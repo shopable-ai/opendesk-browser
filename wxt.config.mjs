@@ -125,7 +125,7 @@ export default defineConfig({
          // development integration unchanged; do NOT weaken the scanner.
          config.define={...config.define,'process.env.NODE_ENV':JSON.stringify('production')};
       }
-      if(target==='agents/chatgpt-fixed-bridge.js'){
+      if(target==='agents/chatgpt-fixed-bridge.js'||target==='agents/gemini-fixed-send-queue.js'){
         // The compiled queue uses the same Page UI implementation as its package.
         config.resolve={...config.resolve,alias:{...config.resolve?.alias,
           '@opendesk/ui':resolve('src/scripting/user-scripts/page-ui.js')}};

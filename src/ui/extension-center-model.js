@@ -137,6 +137,21 @@ function deferredPagePresentation(page,t){
   return null;
 }
 
+export function pageRequiresInstallReview(page){
+  return ['E_PAGE_ENVIRONMENT','E_PAGE_AUTHORIZATION'].includes(page?.error?.code);
+}
+
+function pageBlockPresentation(page,t){
+  if(pageRequiresInstallReview(page))return {
+    status:t('pageReviewRequired'),note:t(page.error.code==='E_PAGE_ENVIRONMENT'?'pageEnvironmentRecovery':'pageAuthorizationRecovery'),
+    needsInstallReview:true};
+  if(page?.error?.code==='E_USER_SCRIPTS_UNAVAILABLE')return {
+    status:t('pageUserScriptsUnavailable'),note:t('pageUserScriptsRecovery')};
+  if(page?.authorization?.status==='suspended'||page?.error?.code==='E_PERMISSION')return {
+    status:t('accessSuspended'),note:t('accessRestoreNote')};
+  return null;
+}
+
 export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   const t=(key,params)=>extensionCenterText(locale,key,params);
   const legacyProgramId=AI_PAGE_LEGACY_IDS[page?.programId];
@@ -149,6 +164,7 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   const error=Boolean(page.error);
   const disableStatus=describePageDisableStatus(page,locale);
   const deferred=deferredPagePresentation(page,t);
+  const block=pageBlockPresentation(page,t);
   let state='pending',status=t('runPending'),note=t('recheckNote');
   if(!enabledKnown){status=t('autoPending');}
   else if(!enabled){
@@ -158,16 +174,13 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
       status=disableStatus.status;
       note=t('recheckNote');
     }
+    if(block?.needsInstallReview)({note}=block);
   }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!error){
     state='ready';status=t('autoOn');note='';
-  }else if(authorization==='suspended'){
-    state='restricted';status=t('accessSuspended');
-    note=t('accessRestoreNote');
   }else if(deferred){
     ({status,note}=deferred);
-  }else if(authorization==='active'&&page.error?.code==='E_USER_SCRIPTS_UNAVAILABLE'){
-    state='restricted';status=t('pageUserScriptsUnavailable');
-    note=t('pageUserScriptsRecovery');
+  }else if(block){
+    state='restricted';({status,note}=block);
   }else if(native==='blocked'){
     state='restricted';status=t('autoUnavailable');
     note=t('chromeBlockedNote');
@@ -185,23 +198,18 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
     enabled,enabledKnown,state,status,note,
     evidenceNote:t('aiEvidence'),
     legacyProgramId:legacyInstalled?legacyProgramId:null,
-    canRestore:enabledKnown&&enabled&&!deferred&&
+    needsInstallReview:enabledKnown&&block?.needsInstallReview===true,
+    canRestore:enabledKnown&&enabled&&!deferred&&!block?.needsInstallReview&&
       (authorization==='suspended'||
         (authorization==='active'&&(native!=='registered'||error)))
   };
 }
 
-// Opening a trusted product manager is distinct from launching a sandbox app.
-// The installed Page identity, execution and permission contracts stay intact.
+// An available installed app opens from its row. Other rows navigate to management or review.
 export function resolveExtensionPrimaryAction(row){
-  if(row?.kind==='page'&&row.id===SCROLL_CONFIG_PROGRAM_ID&&row.installed===true&&row.stateKnown!==false)
-    return {id:'manage',label:'打开'};
   if(row?.kind==='app'&&row.installed===true&&row.enabled===true&&row.stateKnown!==false)
     return {id:'open',label:'打开'};
   return null;
-}
-export function resolveExtensionRowIntent(row){
-  return resolveExtensionPrimaryAction(row)?'launch':'detail';
 }
 // All installed Page Programs use the same trusted management projection.
 // The existing AI projection retains its legacy identity/restore semantics.
@@ -213,31 +221,31 @@ export function describeInstalledPageControl(page,installedPrograms=[],locale='z
   const authorization=page?.authorization?.status,native=page?.nativeState;
   const sitesKnown=Array.isArray(page?.pageRules?.matches)&&page.pageRules.matches.length>0;
   const error=Boolean(page?.error);
-  const scriptsUnavailable=authorization==='active'&&page?.error?.code==='E_USER_SCRIPTS_UNAVAILABLE';
   const disableStatus=describePageDisableStatus(page,locale);
   const deferred=deferredPagePresentation(page,t);
-  let state='pending',status=t('conditionsPending');
+  const block=pageBlockPresentation(page,t);
+  let state='pending',status=t('conditionsPending'),note=t('recheckNote');
   if(!enabledKnown)status=t('enabledPending');
   else if(!enabled){
-    if(!disableStatus)state='off';
+    if(!disableStatus){state='off';note='';}
     status=disableStatus?.status||t('disabledConfirmed');
+    if(block?.needsInstallReview)({note}=block);
   }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!error){
-    state='ready';status=t('conditionsReady');
-  }else if(authorization==='suspended'){
-    state='restricted';status=t('accessSuspended');
+    state='ready';status=t('conditionsReady');note='';
   }else if(deferred){
-    status=deferred.status;
-  }else if(scriptsUnavailable){
-    state='restricted';status=t('pageUserScriptsUnavailable');
+    ({status,note}=deferred);
+  }else if(block){
+    state='restricted';({status,note}=block);
   }else if(native==='blocked'){
-    state='restricted';status=t('registrationBlocked');
+    state='restricted';status=t('registrationBlocked');note=t('chromeBlockedNote');
   }else if(error){
-    state='restricted';status=t('registrationIssue');
+    state='restricted';status=t('registrationIssue');note=t('autoErrorNote');
   }else status=t('enableRequested');
   return {enabled,enabledKnown,state,status,
-    note:deferred?.note||(scriptsUnavailable&&enabled?t('pageUserScriptsRecovery'):t('pageEvidence')),
+    note,
     legacyProgramId:null,
-    canRestore:enabledKnown&&enabled&&!deferred&&
+    needsInstallReview:enabledKnown&&block?.needsInstallReview===true,
+    canRestore:enabledKnown&&enabled&&!deferred&&!block?.needsInstallReview&&
       (authorization==='suspended'||(authorization==='active'&&(native!=='registered'||error)))
   };
 }

@@ -17,11 +17,26 @@ const INSTALLED_IDENTITY=['namespace','programId','revision','sourceHash','manif
 // a ledger read or a wait for the world queue. Results are not shared or cached.
 let documentQueries=0;
 const waitingDocuments=[];
-async function observeLedgerDocument(api,documentId){
+const queryPhases={observe:0,reserve:0,other:0};
+async function observeLedgerDocument(api,documentId,phase,diagnostics){
   if(documentQueries<8)documentQueries++;
-  else await new Promise(resolve=>waitingDocuments.push(resolve));
+  else{
+    const queuedAt=diagnostics&&performance.now();
+    if(diagnostics){
+      diagnostics.queued++;
+      diagnostics.observeAtQueue+=queryPhases.observe;
+      diagnostics.reserveAtQueue+=queryPhases.reserve;
+      diagnostics.otherAtQueue+=queryPhases.other;
+    }
+    await new Promise(resolve=>waitingDocuments.push(resolve));
+    if(diagnostics)diagnostics.maxWait=Math.max(diagnostics.maxWait,performance.now()-queuedAt);
+  }
+  queryPhases[phase]++;
+  const startedAt=diagnostics&&performance.now();
   try{return await api.webNavigation.getFrame({documentId});}
   finally{
+    if(diagnostics)diagnostics.maxNative=Math.max(diagnostics.maxNative,performance.now()-startedAt);
+    queryPhases[phase]--;
     const next=waitingDocuments.shift();
     if(next)next();else documentQueries--;
   }
@@ -66,7 +81,7 @@ export function createPreviewWorlds({api,storage}) {
       'E_WORLD_ISOLATION', '执行世界账本损坏，请关闭当前标签页后重试');
     return value;
   }
-  async function ledger(persisted,onTiming,prefix='',scope) {
+  async function ledger(persisted,onTiming,prefix='',scope,queryPhase='other',recoverDocumentFor=()=>true) {
     const checkpoint=timingCheckpoint(onTiming,prefix),value=await sessionLedger();
     checkpoint('SessionMs');
     if(!storage)return value;
@@ -110,8 +125,9 @@ export function createPreviewWorlds({api,storage}) {
       const row={tabId:execution.tabId,documentId:execution.documentId,worldId:execution.managedUI.worldId,
         installed:execution.managedUI.lifecycle};
       assertInstalledBinding(row,execution);
-      recover.push({row,execution});
-      if(!value.some(item=>item.worldId===row.worldId||item.installed?.executionKey===execution.executionKey))
+      const recoverDocument=recoverDocumentFor(row);
+      recover.push({row,execution,recoverDocument});
+      if(recoverDocument&&!value.some(item=>item.worldId===row.worldId||item.installed?.executionKey===execution.executionKey))
         documents.set(row.documentId,true);
     }
     checkpoint('ReconcileMs');
@@ -119,19 +135,31 @@ export function createPreviewWorlds({api,storage}) {
     // UUID observations in flight without idling behind one slow batch member.
     // No result is cached across reads; only an exact absence refunds a slot.
     const ids=[...documents.keys()];let nextDocument=0;
+    const queryDiagnostic=typeof onTiming==='function'?
+      {queued:0,observeAtQueue:0,reserveAtQueue:0,otherAtQueue:0,maxWait:0,maxNative:0}:null;
     await Promise.all(Array.from({length:Math.min(8,ids.length)},async()=>{
       while(nextDocument<ids.length){
         const documentId=ids[nextDocument++];
         try{
-          const frame=await observeLedgerDocument(api,documentId);
+          const frame=await observeLedgerDocument(api,documentId,queryPhase,queryDiagnostic);
           documents.set(documentId,frame!==null&&frame!==undefined);
         }catch{/* Unobservable and BFCache documents still consume their budget. */}
       }
     }));
     checkpoint('DocumentsMs');
+    if(queryDiagnostic){
+      const {queued,observeAtQueue,reserveAtQueue,otherAtQueue,maxWait,maxNative}=queryDiagnostic;
+      // Permit occupancy is sampled at enqueue, before any async wait. These
+      // counts describe contention; they are not additive wall-clock timings.
+      for(const [key,value] of Object.entries({DocumentQueries:ids.length,DocumentQueriesQueued:queued,
+        DocumentObservePermitsAtQueue:observeAtQueue,DocumentReservePermitsAtQueue:reserveAtQueue,
+        DocumentOtherPermitsAtQueue:otherAtQueue,DocumentMaxPermitWaitMs:maxWait,DocumentMaxNativeMs:maxNative})){
+        try{onTiming(prefix+key,value)?.catch?.(()=>{});}catch{/* Diagnostics are non-authoritative. */}
+      }
+    }
     // Merge against the accumulating ledger in execution order: a row recovered
     // earlier in this read must enforce the same identity binding as a session row.
-    for(const {row,execution} of recover){
+    for(const {row,execution,recoverDocument} of recover){
       const current=value.find(item=>item.worldId===row.worldId||item.installed?.executionKey===execution.executionKey);
       if(current){
         // A stale state mirror may follow a lost session-write acknowledgement;
@@ -144,16 +172,23 @@ export function createPreviewWorlds({api,storage}) {
         current.installed=row.installed;
         continue;
       }
-      if(documents.get(row.documentId))value.push(row);
+      if(recoverDocument&&documents.get(row.documentId))value.push(row);
     }
     checkpoint('MergeMs');
     return value;
   }
-  async function reserve(target,pendingBinding,onTiming,beforeReserve) {
+  async function reserve(target,pendingBinding,onTiming,readConfigurations,beforeReserve) {
       const checkpoint=timingCheckpoint(onTiming);
-      const rows = await ledger(undefined,onTiming,'worldReserveLedger');
-      checkpoint('worldReserveLedgerMs');
-      await beforeReserve(rows);
+      // Both observations start under the world queue after the first ledger.
+      // Drain both even on failure, and do not clean or reserve until both pass.
+      const [configurations,fresh]=await Promise.allSettled([
+        readConfigurations(),
+        ledger(undefined,onTiming,'worldReserveLedger',undefined,'reserve').finally(()=>checkpoint('worldReserveLedgerMs'))
+      ]);
+      if(configurations.status==='rejected')throw configurations.reason;
+      if(fresh.status==='rejected')throw fresh.reason;
+      const rows=fresh.value;
+      await beforeReserve(rows,configurations.value);
       invariant(rows.filter(row => row.documentId === target.documentId).length < MAX_PREVIEW_WORLDS_PER_DOCUMENT,
         'E_PREVIEW_WORLD_LIMIT', '当前文档已调试 6 次；请刷新网页后继续。刷新会清除本页旧脚本的运行状态。');
       invariant(rows.length < 4096, 'E_PREVIEW_WORLD_LIMIT', '本次浏览器会话的调试世界已达上限，请关闭不用的标签页');
@@ -180,7 +215,7 @@ export function createPreviewWorlds({api,storage}) {
     const handle=Object.freeze({}),timings={};
     const onTiming=(key,value)=>{timings[key]=value;},checkpoint=timingCheckpoint(onTiming);
     // Readonly only: no FIFO position, Native work or reservation at begin.
-    const firstRead=ledger(undefined,onTiming,'worldAllocateLedger').then(rows=>{
+    const firstRead=ledger(undefined,onTiming,'worldAllocateLedger',undefined,'observe').then(rows=>{
       checkpoint('worldAllocateLedgerMs');return {rows};
     },error=>({error}));
     observations.set(handle,{target:observationTarget(target),pendingBinding,firstRead,timings,state:'open'});
@@ -192,7 +227,7 @@ export function createPreviewWorlds({api,storage}) {
     if(observation.state==='open')observation.state='discarded';
     await observation.firstRead; // already handled; draining never replaces an earlier error
   }
-  async function allocate(native, target, {injectImmediately=false,pendingBinding,onTiming,concurrentProof=false,firstLedger}={}) {
+  async function allocate(native, target, {injectImmediately=false,pendingBinding,onTiming,concurrentProof=false,firstLedger,messaging=false}={}) {
     const checkpoint=timingCheckpoint(onTiming);
     invariant(typeof concurrentProof==='boolean'&&(!concurrentProof||typeof pendingBinding==='string'&&pendingBinding.length>0),
       'E_WORLD_ISOLATION','并行隔离核验必须持有原世界预留');
@@ -230,7 +265,7 @@ export function createPreviewWorlds({api,storage}) {
         observation.pendingBinding===pendingBinding,'E_WORLD_ISOLATION','原世界观察身份已变化或已消费');
       observation.state='consumed';
     }
-    const firstRead=observation?.firstRead??ledger(undefined,onTiming,'worldAllocateLedger').then(rows=>{
+    const firstRead=observation?.firstRead??ledger(undefined,onTiming,'worldAllocateLedger',undefined,'observe').then(rows=>{
       firstCheckpoint('worldAllocateLedgerMs');return {rows};
     },error=>({error}));
     const allocated=await ordered(async () => {
@@ -246,10 +281,13 @@ export function createPreviewWorlds({api,storage}) {
     // every allocation, including the first one after a browser restart. Reset
       // may change messaging in existing contexts. Installed parents still need
       // their original channel for frame retirement and managed disposal.
-    const configurations = await native.getWorldConfigurations();
-    invariant(Array.isArray(configurations), 'E_WORLD_ISOLATION', '无法读取浏览器执行世界配置');
-    checkpoint('worldConfigurationsMs');
-    const beforeReserve=async rows=>{
+    const readConfigurations=async()=>{
+      const timed=timingCheckpoint(onTiming),configurations=await native.getWorldConfigurations();
+      invariant(Array.isArray(configurations), 'E_WORLD_ISOLATION', '无法读取浏览器执行世界配置');
+      timed('worldConfigurationsMs');
+      return configurations;
+    };
+    const beforeReserve=async (rows,configurations)=>{
       const cleanupCheckpoint=timingCheckpoint(onTiming),liveInstalled=new Set();
       // Union protection only: reserve still charges and persists exclusively
       // its fresh full rows. A stale snapshot cannot authorize or refund them.
@@ -270,11 +308,12 @@ export function createPreviewWorlds({api,storage}) {
     }
     cleanupCheckpoint('worldCleanupConfigurationsMs');
     };
-    const worldId = await reserve(target,pendingBinding,onTiming,beforeReserve), marker = '__opendesk_probe_' + token();
+    const worldId = await reserve(target,pendingBinding,onTiming,readConfigurations,beforeReserve), marker = '__opendesk_probe_' + token();
     const reserved = token(), isolated = token();
     checkpoint('worldReserveMs');
     try{
-    await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:false});
+    // Chrome binds the messaging API when the proof first enters this world.
+    await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging});
     checkpoint('worldConfigureMs');
     const proof={worldId,marker,reserved,isolated,invalidated:false};
     // Only the trusted installed parent opts in. Its persisted pending nonce
@@ -300,12 +339,15 @@ export function createPreviewWorlds({api,storage}) {
     if(typeof allocated==='string')return allocated;
     try{
       await prove(allocated);
+      const revalidationCheckpoint=timingCheckpoint(onTiming);
       await ordered(async()=>{
+        revalidationCheckpoint('worldProofRevalidationQueueWaitMs');
         const rows=await sessionLedger(),matches=rows.filter(row=>row.worldId===allocated.worldId),row=matches[0];
         invariant(pendingProofs.get(allocated.worldId)===allocated&&!allocated.invalidated&&matches.length===1&&
           row.tabId===target.tabId&&row.documentId===target.documentId&&row.pendingBinding===pendingBinding&&
           !row.installed&&!row.managed&&!row.previewFrames,
           'E_WORLD_ISOLATION','隔离核验期间原世界预留已改变');
+        revalidationCheckpoint('worldProofRevalidationLedgerMs');
       });
       checkpoint('worldProofRevalidationMs');
       return allocated.worldId;
@@ -315,8 +357,12 @@ export function createPreviewWorlds({api,storage}) {
   }
   async function cleanup({tabId, documentId, removed = false}) {
     return ordered(async () => {
-      const rows = await ledger();
-      const stale=rows.filter(row=>row.tabId===tabId&&(removed||row.documentId!==documentId));
+      const isStale=row=>row.tabId===tabId&&(removed||row.documentId!==documentId);
+      // Cleanup needs exact liveness only for worlds it might reset. Keep
+      // other session rows and all durable receipts; full ledger consumers
+      // still recover and charge unrelated worlds independently.
+      const rows=await ledger(undefined,undefined,'',undefined,'other',isStale);
+      const stale=rows.filter(isStale);
       for(const row of stale){const pending=pendingProofs.get(row.worldId);if(pending)pending.invalidated=true;}
       let native;
       try {native = api.userScripts;} catch { /* A removed tab still releases the session ledger. */ }
@@ -368,5 +414,8 @@ export function createPreviewWorlds({api,storage}) {
     for(const row of rows)if((!scope||row.worldId===scope.worldId)&&row.installed&&row.pendingBinding===row.installed.receiptNonce)delete row.pendingBinding;
     await api.storage.session.set({[LEDGER]:rows});return result;
   });
-  return Object.freeze({allocate,beginAllocation,discardAllocation,cleanup,records:ledger,editRecords,releasePending});
+  // Receipt maintenance cannot leave a session world pointing to a deleted
+  // execution. Keep the mirror stable for the final check and disk write.
+  const withWorldDocuments=work=>ordered(async()=>work(new Set((await sessionLedger()).map(row=>row.documentId))));
+  return Object.freeze({allocate,beginAllocation,discardAllocation,cleanup,records:ledger,editRecords,releasePending,withWorldDocuments});
 }

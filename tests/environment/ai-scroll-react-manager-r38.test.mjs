@@ -90,14 +90,25 @@ test('AI Scroll home, management and editor omit old Page cleanup',async t=>{
       /清理待核对|受管界面清理|页面恢复记录|保留草稿的对话|old-document|E_REAL_CLEANUP/);
     assert.equal(f.state.detailModel.pageControl.state,state);
     assert.equal(find('scroll-status-details'),null,'old cleanup alone is not a runtime status');
-    assert.equal(f.doc.querySelector('.ec-scroll-home .ec-page-control [role="status"]'),null);
+    assert.equal(f.doc.querySelector('.ec-scroll-home .ec-page-control [role="status"]').textContent,
+      state==='ready'?'已开启':'已关闭');
+    assert.equal(f.doc.querySelector('[data-ec-detail-action="refresh-status"]'),null);
+    assert.equal(f.doc.querySelector('.ec-extension-about'),null);
     assertNoCleanup();
+    find('scroll-sites').dispatch('click');await tick();
+    assert.equal(f.doc.querySelector('.ec-extension-about'),null);
+    find('extension-center-back').dispatch('click');await tick();
     f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
     const management=find('scroll-management');
+    const about=f.doc.querySelector('details.ec-extension-about');
+    assert.equal(about.previousElementSibling,management);
+    assert.equal(about.hasAttribute('open'),true);
+    assert.equal(about.querySelector('dd').textContent,f.installed.version);
     management.focus();management.dispatch('click');await tick();
     assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'management');
     assert.equal(f.doc.activeElement.id,'scroll-page-title');
     assert.match(f.doc.querySelector('.ec-scroll-content').textContent,/Chrome 注册/);
+    assert.equal(f.doc.querySelector('.ec-extension-about'),null);
     assertNoCleanup();
     find('extension-center-back').dispatch('click');await tick();
     assert.equal(f.doc.activeElement.id,'scroll-management');
@@ -106,10 +117,56 @@ test('AI Scroll home, management and editor omit old Page cleanup',async t=>{
     if(state==='ready'){
       addSite.dispatch('click');await tick();
       assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'editor');
+      assert.equal(f.doc.querySelector('.ec-extension-about'),null);
       assertNoCleanup();
     }else assert.equal(addSite.disabled,true,'disabled Page cannot enter the editor');
     assertReadOnly(f.requests);
   });
+});
+
+test('AI Scroll keeps failed status in place and allows one trusted read-only retry',async t=>{
+  let nextPageRead;
+  const f=await fixture(t,{async request(method){
+    if(method==='listPagePrograms'&&nextPageRead){
+      const run=nextPageRead;nextPageRead=null;return await run();
+    }
+  }});
+  await tick();
+  const status=()=>f.doc.querySelector('.ec-scroll-home .ec-page-control');
+  const retry=()=>status().querySelector('[data-ec-detail-action="refresh-status"]');
+  const phase=()=>status().querySelector('[role="status"]').dataset.state;
+  const hold=()=>{
+    let settle;const pending=new Promise(resolve=>{settle=resolve;});
+    t.after(()=>settle());nextPageRead=async()=>{
+      if(await pending==='fail')throw Error('Status unavailable');
+    };return settle;
+  };
+  const reject=hold();const refresh=f.ui.refresh();await tick();
+  assert.equal(phase(),'checking');assert.equal(retry(),null);
+  reject('fail');await refresh;
+  assert.equal(f.state.detailModel.key,'page:'+id,'a failed read does not leave the current detail');
+  assert.equal(phase(),'failed');
+  const header=f.doc.querySelector('.ec-detail-head');
+  assert.equal(header.querySelector('[data-ec-detail-action="uninstall"]').disabled,true);
+  assert.equal(header.querySelector('[data-ec-detail-action="refresh-status"]'),null);
+  assert.equal(f.doc.getElementById('scroll-add-home').disabled,true);
+  const recheck=retry();
+  assert.ok(recheck);
+  const reads=()=>f.requests.filter(request=>request.method==='listPagePrograms').length;
+  const before=reads();
+  const retryAction=f.state.detailModel.scrollStatusRead.onRetry;
+  recheck.dispatch('click',{isTrusted:false});await tick();
+  assert.equal(reads(),before);
+  const release=hold();recheck.focus();recheck.dispatch('click');await tick();
+  assert.equal(reads(),before+1);
+  assert.equal(phase(),'checking');assert.equal(retry(),null);
+  assert.equal(retryAction({isTrusted:true}),false,'a stale retry cannot start a second read');
+  assert.equal(reads(),before+1);
+  release();await tick();await tick();
+  assert.equal(f.state.detailModel.pageControl.state,'ready');
+  assert.equal(phase(),'ready');assert.equal(retry(),null);
+  assert.equal(header.querySelector('[data-ec-detail-action="uninstall"]').disabled,false);
+  assertReadOnly(f.requests);
 });
 
 test('AI Scroll uncertain home opens technical details and rechecks without writes or lost focus',async t=>{

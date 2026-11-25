@@ -345,15 +345,16 @@ test('clear scope changes replace the plan used for the confirmed operation',asy
   f.controller.dispose();
 });
 test('clear distinguishes incomplete receipts from cookies recreated after removal',async()=>{
-  for(const [removed,remaining,expected,type] of [[0,0,false,'error'],[1,1,true,'success']]){
+  for(const [removed,remaining,expected] of [[0,0,false],[1,1,true]]){
     const f=fixture();await f.controller.load();
     f.cookies.clearSite=async opts=>opts.preview?
       {matched:1,excluded:0,scope:'SITE_EXACT_HOST',previewRef:'12345678-1234-1234-1234-123456789abc'}:
       {preview:false,scope:'SITE_EXACT_HOST',matched:1,removed,remaining,excluded:0};
     await f.controller.previewClear();
     assert.equal(await f.controller.executeClear(),expected);
-    assert.equal(f.controller.snapshot().messageType,type);
-    assert.deepEqual(f.notices,expected?['已清理 1 条，当前范围剩余 1 条。']:[]);
+    assert.equal(Boolean(f.controller.snapshot().clearRecovery),!expected);
+    assert.equal(f.controller.snapshot().messageType,expected?'success':'info');
+    assert.deepEqual(f.notices,expected?['已清理 shop.example.com 的 1 条 Cookie，本次清理范围剩余 1 条。']:[]);
     f.controller.dispose();
   }
 });
@@ -361,7 +362,7 @@ test('cleanup distinguishes a stale preview or revoked grant from an uncertain n
   for(const [code,phase,text] of [
     ['E_COOKIE_STALE','ready',/清理尚未执行.*E_COOKIE_STALE/],
     ['E_GRANT_REVOKED','blocked',/授权.*失效/],
-    ['E_OUTCOME_UNKNOWN','ready',/清理可能部分生效.*勿自动重试/]
+    ['E_OUTCOME_UNKNOWN','ready',/^$/]
   ]){
     const f=fixture();await f.controller.load();
     let attempts=0;
@@ -373,10 +374,101 @@ test('cleanup distinguishes a stale preview or revoked grant from an uncertain n
     assert.equal(await f.controller.executeClear(),false);
     assert.equal(f.controller.snapshot().phase,phase);
     assert.match(f.controller.snapshot().message,text);
+    assert.equal(Boolean(f.controller.snapshot().clearRecovery),code==='E_OUTCOME_UNKNOWN');
+    assert.equal(f.controller.snapshot().previousReceipt,null);
     assert.deepEqual(f.notices,[]);
     assert.equal(attempts,1);
     f.controller.dispose();
   }
+});
+test('uncertain clear cannot replay across a refresh or another site; only original-scope readback unlocks a new preview',async()=>{
+  let url=site,storeId='0';
+  const f=fixture({currentPage:async()=>({status:'available',url})});
+  f.cookies.getCurrentStore=async()=>({storeId});
+  let submits=0,previews=0;
+  const originalClear=f.adapter.clearPreview;
+  f.adapter.clearPreview=(...args)=>{previews++;return originalClear(...args);};
+  f.adapter.clearExecute=async()=>{
+    submits++;f.replaceRows([]);
+    throw Object.assign(Error('PRIVATE'),{code:'E_OUTCOME_UNKNOWN'});
+  };
+  await f.controller.load();await f.controller.previewClear();
+  assert.equal(await f.controller.executeClear(),false);
+  f.controller.acknowledgeUnknown('clear');
+  assert.equal(await f.controller.previewClear(),null);
+  assert.equal(await f.controller.executeClear(),false);
+  await f.controller.retry();
+  assert.ok(f.controller.snapshot().clearRecovery?.available);
+  url='https://other.example.test/account';
+  await f.controller.load();
+  assert.equal(f.controller.snapshot().clearRecovery?.available,false);
+  await f.controller.verifyClearCurrentRecords();
+  assert.ok(f.controller.snapshot().clearRecovery);
+  url=site;storeId='1';await f.controller.load();
+  await f.controller.verifyClearCurrentRecords();
+  assert.equal(f.controller.snapshot().clearRecovery?.available,false);
+  storeId='0';await f.controller.load();
+  const read=f.adapter.list;
+  f.adapter.list=async()=>{throw Object.assign(Error('PRIVATE'),{code:'E_GRANT_REVOKED'});};
+  assert.equal(await f.controller.verifyClearCurrentRecords(),undefined);
+  assert.equal(f.controller.snapshot().clearRecovery?.available,false);
+  assert.equal(f.controller.snapshot().phase,'blocked');
+  f.adapter.list=read;await f.controller.load();
+  assert.equal(await f.controller.verifyClearCurrentRecords(),true);
+  assert.equal(f.controller.snapshot().clearRecovery,null);
+  assert.deepEqual(f.controller.snapshot().unknownEffects,[]);
+  assert.deepEqual(f.controller.snapshot().rows,[]);
+  assert.match(f.controller.snapshot().message,/上次清理的结果仍无法确认/);
+  assert.deepEqual(f.notices,[]);
+  assert.equal(submits,1);assert.equal(previews,1);
+  assert.equal(await f.controller.executeClear(),false);
+  assert.equal(submits,1);
+  f.replaceRows([base]);await f.controller.retry();
+  await f.controller.previewClear();
+  assert.equal(previews,2);assert.equal(submits,1);
+  f.controller.dispose();
+});
+
+test('clear recovery survives the metadata backoff without resubmitting the write',async t=>{
+  t.mock.timers.enable({apis:['Date','setTimeout']});
+  const f=fixture();t.after(()=>f.controller.dispose());
+  let writes=0,readAttempts=0;
+  f.adapter.clearExecute=async()=>{
+    writes++;f.replaceRows([]);throw Object.assign(Error('Lost receipt'),{code:'E_OUTCOME_UNKNOWN'});
+  };
+  await f.controller.load();await f.controller.previewClear();await f.controller.executeClear();
+  const originalList=f.adapter.list,limited=deferred();
+  f.adapter.list=async(...args)=>{
+    if(++readAttempts===1){limited.resolve();throw Object.assign(Error('Wait'),{code:'E_RATE_LIMIT'});}
+    return originalList(...args);
+  };
+  const verification=f.controller.verifyClearCurrentRecords();await limited.promise;await Promise.resolve();
+  assert.ok(f.controller.snapshot().clearRecovery?.pending);
+  assert.equal(await f.controller.previewClear(),null);
+  t.mock.timers.tick(60000);
+  assert.equal(await verification,true);
+  assert.equal(f.controller.snapshot().clearRecovery,null);
+  assert.match(f.controller.snapshot().message,/上次清理的结果仍无法确认/);
+  assert.equal(readAttempts,2);assert.equal(writes,1);
+});
+
+test('navigation after clear dispatch retains only one recovery record for the original site',async()=>{
+  let url=site;
+  const f=fixture({currentPage:async()=>({status:'available',url})});
+  const pending=deferred(),started=deferred();
+  f.adapter.clearExecute=async()=>{started.resolve();return pending.promise;};
+  await f.controller.load();await f.controller.previewClear();
+  const receipt=f.controller.executeClear();await started.promise;
+  url='https://other.example.test/';
+  f.controller.invalidate('网页已改变');await f.controller.load();
+  pending.reject(Object.assign(Error('PRIVATE'),{code:'E_OUTCOME_UNKNOWN'}));
+  assert.equal(await receipt,false);
+  const state=f.controller.snapshot();
+  assert.deepEqual(state.clearRecovery,{hostname:'shop.example.com',available:false,pending:false});
+  assert.equal(state.previousReceipt,null);
+  assert.equal(state.message,'');
+  assert.deepEqual(f.notices,[]);
+  f.controller.dispose();
 });
 test('bulk import preflight and native partial failure never replay writes',async()=>{
   const f=fixture();await f.controller.load();

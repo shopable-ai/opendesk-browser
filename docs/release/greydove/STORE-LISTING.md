@@ -119,14 +119,9 @@ GrayDove（灰鸽）是一款 Chrome 浏览器脚本与自动化工作台。你�
 
 适合的用户场景：在当前网页试运行一段按钮增强 JS；用户审阅并启动表单自动化 Task；执行后查看结果与错误；在一个侧边栏打开可选工具。不要把隐式后台自动操作、跨站无限权限或批量注册作为默认能力。
 
-建议截图（全部须来自真实、同候选 Chrome）：
-1. 在当前网页编写/试运行 JavaScript：英文 “Customize a website with JavaScript”；中文“让网页按你的习惯工作”
-2. 任务参数和网站授权：英文 “Review each task before running”；中文“执行前先确认网站和操作”
-3. 点击/填写任务与执行结果：英文 “Automate steps and see the result”；中文“减少重复操作，查看执行结果”
-4. 已安装网页脚本与启停管理：英文 “Manage your installed scripts”；中文“集中管理已安装脚本”
-5. 侧边栏的相关网页工具：英文 “Web tools in one Side Panel”；中文“常用网页工具集中管理”
+中英文均先放 **01 · 扩展列表（Extensions）**，再放 **02 · 开发工作台（Develop）**。原生侧栏与真实 ChatGPT 同屏：首图显示快捷按钮填入的未发送草稿，次图显示脚本从回复读回的三项清单。其他镜头（例如已审阅的任务及其执行结果）在同一候选实测后再决定是否加拍。
 
-不得用 HTML 预览、概念设计或 Node 模拟截图冒充正式产品截图。
+GrayDove 2.0.3 Standard 的四张实拍、英文界面仍有中文的限制及原图见[截图档案](../extension-store-media/README.md#graydove-浏览器插件)。商店语言入口仍以发行包和后台为准。后续补拍与排序见[拍摄方案](../extension-store-media-plan.zh-CN.md#浏览器插件本体每种语言都先扩展再开发)。不得用 HTML 预览、概念设计或 Node 模拟截图冒充正式产品截图。
 
 
 ### R2：文案质量评审与证据限制（2026-11-17）

@@ -1,7 +1,8 @@
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {parseHTML} from 'linkedom';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {ALL_WEB_ORIGINS, siteAccessPermissionRequest, siteAccessSatisfies,
   createSiteAccess} from '../../src/ui/site-access.js';
 
@@ -113,42 +114,29 @@ test('core API status is separately queried; it never grants applications automa
   assert.equal(f.requests.length,0,'missing cookies does not re-request granted websites');
 });
 
-test('site recovery is reachable from every workbench tab and detailed controls retain the original panel', async () => {
-  const [html,shell,css]=await Promise.all([
-    renderSidebarFixture(),
-    readFile('src/ui/tool-shell.js','utf8'),
-    readFile('src/ui/tool-shell.css','utf8')]);
-  const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);
-  assert.equal(new Set(ids).size,ids.length,'DOM IDs must stay unique');
-  const develop=html.indexOf('id="workbench-develop"');
-  const advanced=html.indexOf('id="script-advanced"');
-  const access=html.indexOf('id="site-access"');
-  const diagnostics=html.indexOf('id="tool-diagnostics"');
-  assert.ok(develop>=0 && diagnostics>develop && diagnostics<advanced && access>advanced,
-    'Diagnostics follow parameters before results; website controls retain the advanced script panel');
-  assert.match(html, /<details id="script-advanced"[^>]*>\s*<summary>[^<]*<\/summary>\s*<details id="site-access"[\s>]/,
-    'The existing website permission controls remain directly inside advanced script settings');
-  const recovery=html.indexOf('id="site-access-recovery"');
-  assert.ok(recovery>html.indexOf('id="workspace-content"') && recovery<html.indexOf('id="workbench-tasks"'),
-    'A restricted Task or Controller user can reach the same recovery action without opening another tab');
-  assert.match(html, /id="site-access-recovery"[^>]* hidden/);
-  assert.match(shell, /accessRecovery\.hidden=view\.snapshot\?\.websites!==false/);
-  assert.match(shell, /for\(const button of \[accessGrant,accessRestore\]\)listen\(button,'click',event=>/);
-  for (const id of ['site-access-status','site-access-grant','site-access-refresh',
-    'script-run','script-stop','task-run','task-stop','page-preview-run'])
-    assert(ids.includes(id),id);
-  // Automatic dependency resolution may expose optional advanced details;
-  // these hidden controls must not restore manual setup as the Run entrance.
-  assert.match(html, /<details id="page-dependency-panel"[^>]* hidden>/);
-  assert.match(html, /<summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）<\/summary>/);
-  assert.match(html, /<select id="page-dependency-lock"[^>]* hidden/);
-  for (const removed of ['page-dependency-url','page-preview-jquery'])
-    assert(!ids.includes(removed),removed+' must not restore obsolete userscript setup UI');
-  for (const removed of ['site-access-cookies','site-access-notifications'])
-    assert(!ids.includes(removed),removed+' must not imply an optional install-time permission');
-  assert.match(shell,/createTaskWorkbench/);
-  assert.match(shell,/createSiteAccess/);
-  assert.match(shell,/siteAccess\.grant\(event\)/);
-  assert.match(shell,/siteAccess\.dispose\(\); taskWorkbench\.dispose\(\)/);
-  assert.match(css,/#site-access-status/);
+test('diagnostics groups Chrome permissions and keeps site recovery available outside Develop', async () => {
+  const view=createDeveloperView();
+  try {
+    view.patch('site-access-status',{data:{websites:false}});
+    view.patch('script-user-scripts-recovery',{hidden:false});
+    const render=async activeTab=>parseHTML(await renderSidebarFixture({activeTab,developerView:view})).document;
+    const task=await render('tasks');
+    assert.ok(task.querySelector('#site-access-restore:not([disabled])'));
+    assert.equal(task.getElementById('site-access-recovery').closest('[hidden], [role="tabpanel"]'),null);
+    assert.ok(task.getElementById('browser-user-scripts-settings').closest('[hidden]'));
+
+    const editor=await render('develop');
+    assert.equal(editor.getElementById('script-user-scripts-settings').closest('[hidden]'),null);
+    view.navigate('diagnostics');
+    const diagnostics=await render('develop');
+    const find=id=>diagnostics.getElementById(id);
+    const ids=[...diagnostics.querySelectorAll('[id]')].map(node=>node.id);
+    assert.equal(new Set(ids).size,ids.length,'DOM IDs must stay unique');
+    const chromePermissions=find('develop-chrome-permissions-title').parentElement;
+    assert.ok(chromePermissions.contains(find('site-access-grant')));
+    assert.ok(chromePermissions.contains(find('browser-user-scripts-settings')));
+    assert.equal(chromePermissions.closest('[hidden], details'),null);
+    assert.ok(find('script-user-scripts-settings').closest('[hidden]'),'only one settings action is visible in diagnostics');
+    for(const id of ['site-access-cookies','site-access-notifications'])assert.equal(find(id),null);
+  } finally {view.dispose();}
 });

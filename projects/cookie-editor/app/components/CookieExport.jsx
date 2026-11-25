@@ -13,10 +13,12 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
   const [includeValues,setIncludeValues]=React.useState(true);
   const [working,setWorking]=React.useState(false);
   const metadata=!includeValues;
-  const requiresValues=format==='header'&&!includeValues;
+  const textFormat=format!=='json';
+  const formatLabel=format==='netscape'?'Netscape':'Cookie Header';
+  const requiresValues=textFormat&&!includeValues;
   const rows=controller.snapshot().rows;
   const partitioned=rows.some(row=>Boolean(row.partitionKey));
-  const lossy=partitioned&&format==='header';
+  const lossy=partitioned&&textFormat;
   const busy=disabled||working;
   React.useEffect(()=>{
     root.current?.querySelector('[role="tab"][aria-selected="true"]')?.focus({preventScroll:true});
@@ -55,10 +57,13 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
     <div id={panelId} role="tabpanel" tabIndex={0} className="cookie-export-content"
       aria-label="导出操作">
       {lossy&&<p className="cookie-message od-alert od-alert--warning" role="alert">
-        当前网站存在分区 Cookie，Cookie Header 无法完整导出。请选择 JSON。
+        当前网站存在分区 Cookie，{formatLabel} 无法完整导出。请选择 JSON。
       </p>}
       {requiresValues&&<p className="cookie-message od-alert od-alert--warning" role="alert">
-        Cookie Header 需要包含 Cookie 值。
+        {formatLabel} 需要包含 Cookie 值。
+      </p>}
+      {format==='netscape'&&!lossy&&<p className="cookie-message od-field-help">
+        cookies.txt 格式，适用于 curl 等工具。完整备份请用 JSON。
       </p>}
       <CookieExportActions disabled={busy||lossy||requiresValues}
         onCopy={()=>void deliver('copy')} onDownload={()=>void deliver('download')}/>

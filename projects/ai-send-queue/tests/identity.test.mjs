@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createQueueCache} from '../src/page/cache.js';
 import {registerPageStatus} from '../src/page/status.js';
+import {geminiRoute} from '../src/page/site.js';
 
 const root=new URL('../',import.meta.url);
 const source=await readFile(new URL('src/page/main.js',root),'utf8');
@@ -12,7 +13,7 @@ const legacySelector='[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-send
 const previousSelector='[data-opendesk-ui-owner][data-od-id="opendesk.ai-send-queue.lifecycle"]';
 
 // Execute the actual entry with inert collaborators; no website or messages.
-function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatgpt.com',frame=false,withBridge=false}={}){
+function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatgpt.com',pathname='/',frame=false,withBridge=false}={}){
   const calls={owners:0,sites:0,engines:0,views:0,ticks:0,destroy:0,inspect:0};
   const legacyHost={queue:['private legacy queue'],destroy(){throw Error('must not touch legacy');}};
   let active=true,interval,actions,disposer,statusHandler,unsubscribed=0;
@@ -22,11 +23,11 @@ function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatg
   const site={inspect(){calls.inspect++;return {ok:false};}};
   const doc={querySelector(selector){assert.ok([legacySelector,previousSelector].includes(selector));
     return legacy&&selector===legacyMarker?legacyHost:null;}};
-  const win={location:{origin}};win.top=frame?{}:win;
+  const win={location:{origin,pathname}};win.top=frame?{}:win;
   const context=vm.createContext({window:win,document:doc,registerPageStatus,
     ...(withBridge?{OpenDeskAppPage:{onRequest(fn){statusHandler=fn;return ()=>unsubscribed++;}}}:{}),
     createPageUI(options){calls.owners++;assert.equal(options.id,ID+'.lifecycle');return owner;},
-    createChatGPTSite(){calls.sites++;return site;},createQueueCache,
+    createChatGPTSite(){calls.sites++;return site;},createGeminiSite(){calls.sites++;return site;},geminiRoute,createQueueCache,
     createQueueEngine(){calls.engines++;return {view:()=>({inFlight:null,items:[]}),tick(){calls.ticks++;}};},
     createQueueView(options){calls.views++;actions=options.actions;
       return {place(){},render(){},hide(){},hasRecovery(){return false;}};},
@@ -37,13 +38,13 @@ function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatg
     poll(){interval();},get actions(){return actions;}};
 }
 
-test('source manifest binds the embedded Page to the parent package without widening Page rules',async()=>{
+test('source manifest binds the embedded Page to the parent and scopes DeepSeek to home and conversations',async()=>{
   const pkg=JSON.parse(await readFile(new URL('package.json',root)));
   const tool=JSON.parse(await readFile(new URL('tool.config.json',root)));
   assert.equal(pkg.opendesk.id,'app.'+tool.id);
   assert.equal(tool.version,pkg.version);
   assert.ok(Number.isSafeInteger(tool.pageModule.revision)&&tool.pageModule.revision>0);
-  assert.deepEqual(pkg.opendesk.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
+  assert.deepEqual(pkg.opendesk.pageRules,{matches:['https://chatgpt.com/*','https://gemini.google.com/*','https://chat.deepseek.com/a/chat/s/*','https://chat.deepseek.com/'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
 });
 
@@ -103,8 +104,11 @@ test('every user action yields to late legacy lifecycle and remains inert after 
   }
 });
 
-test('wrong origin and child frames stay inert',async()=>{
-  for(const options of [{origin:'https://example.com'},{frame:true}]){
+test('wrong origin, non-conversation Gemini routes and child frames stay inert',async()=>{
+  for(const options of [{origin:'https://example.com'},{frame:true},
+    {origin:'https://gemini.google.com',pathname:'/library'},
+    {origin:'https://gemini.google.com',pathname:'/app/thread-id',frame:true},
+    {origin:'https://chat.deepseek.com',pathname:'/a/chat/s/0405c8f7-638e-476b-8beb-d196812c6cee'}]){
     const h=harness(options);assert.equal((await h.run()).status,'skipped');
     assert.equal(h.calls.owners,0);assert.equal(h.calls.sites,0);
   }

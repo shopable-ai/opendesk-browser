@@ -16,18 +16,20 @@ import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js'
 import {officialMarketApps} from '../../src/marketplace/catalog.js';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
-test('R6.10 clipper keeps the reviewed fixed release despite shared style edits',async()=>{
-  const source=await readOfficialSources();
-  const row=source.tools.find(item=>item.id==='web-markdown-clipper');
-  assert.equal(row.packageFile,'web-markdown-clipper.opendesk-tool.json');
-  const bytes=await readFile(row.project+'/'+row.packageFile);
-  const archive=JSON.parse(await readFile('official-tools/releases/r5-20261026-reading-kit-10.json','utf8'));
-  const release=archive.catalog.apps.find(item=>item.toolId===row.id);
-  assert.equal(hash(bytes),release.sha256);
-  assert.equal(bytes.length,release.bytes);
-  const built=await createOfficialToolResources();
-  assert.deepEqual(built.resources.get(officialPackagePath(row.id)),bytes);
-});
+for(const id of ['reading-toc','web-markdown-clipper']){
+  test(id+' preinstalls the reviewed package bytes from the official distribution',async()=>{
+    const source=await readOfficialSources();
+    const row=source.tools.find(item=>item.id===id);
+    assert.equal(row.packageFile,id+'.opendesk-tool.json');
+    const bytes=await readFile(row.project+'/'+row.packageFile);
+    const built=await officialFixtures();
+    const release=built.catalog.apps.find(item=>item.toolId===id);
+    assert.equal(release.installationPolicy,'preinstalled');
+    assert.equal(hash(bytes),release.sha256);
+    assert.equal(bytes.length,release.bytes);
+    assert.deepEqual(built.resources.get(release.packagePath),bytes);
+  });
+}
 const api={runtime:{getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path}};
 const spec=id=>({id,project:'examples/sidebar-tools/'+id,kind:'sidebar-tool',installationPolicy:'optional'});
 test('R2.1 migrated official source locations are exact and preserve unmigrated roots',async()=>{
@@ -108,12 +110,12 @@ test('official candidates disclose only explicit About fields bound to the packa
   await assert.rejects(loadOfficialTool({...release,author:about.author.trim()},{api,fetcher}),{code:'E_PACKAGE_IDENTITY'});
   await assert.rejects(loadOfficialTool({...other,supportUrl:''},{api,fetcher}),{code:'E_PACKAGE_IDENTITY'});
 });
-test('official catalog preinstalls Web Flow and AI Send Queue alongside existing defaults',async()=>{
+test('official catalog retains the approved default and optional install policies',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
     ['adblock','ai-knowledge-answers','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-downloader','video-speed-controller','video-svip','web-markdown-clipper','webflow']);
   const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
-  assert.deepEqual(policies,{'ai-send-queue':'preinstalled','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'optional',
+  assert.deepEqual(policies,{'ai-send-queue':'preinstalled','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'preinstalled',
     'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional','video-svip':'optional','video-downloader':'optional','webflow':'preinstalled'});
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
@@ -175,14 +177,8 @@ test('R4.8 first-install intent uses fixed classic WXT resource without bundling
   assert(entry.includes("registerDefaultPreinstall({...options,reason:details.reason})"));
   assert(entry.includes('resumeDefaultPreinstall(options)'),
     'fixed first-party worker script installs immediately and can recover on restart');
-  const messageHandler=entry.match(/chrome\.runtime\.onMessage\.addListener\(\(message,sender,sendResponse\)=>\{([\s\S]*?)\n  \}\);/)?.[1];
-  assert(messageHandler,'fixed sidecar exposes the current Chrome access check');
-  assert.equal((entry.match(/chrome\.runtime\.onMessage\.addListener/g)||[]).length,1,
-    'no additional message listener can expose a package installation path');
-  assert(messageHandler.includes('if(message?.protocol!==READING_TOC_CHROME_ACCESS_PROTOCOL)return false;'));
-  assert(messageHandler.includes('checkReadingTocContentAccess({api:chrome,sender,expectedUrl:message.expectedUrl})'));
-  assert(!/registerDefaultPreinstall|resumeDefaultPreinstall|repair\(/.test(messageHandler),
-    'page/tool messages only check access; they cannot install or repair packages');
+  assert.doesNotMatch(entry,/\bon(?:Message|Connect)(?:External)?\b/,
+    'the fixed preinstall script exposes no install or repair path to page/tool messages');
   assert(host.includes("from '../sidebar-tools/default-preinstall.js'"));
   assert.equal(contract.PACKAGE_ENTRIES['sidebar-tools/preinstall-intent'],'./src/entrypoints/preinstall-intent.js');
   assert.equal(contract.FIXED_OUTPUTS['preinstall-intent'],'sidebar-tools/preinstall-intent.js');
@@ -429,7 +425,7 @@ test('R4.5 generated catalog rejects forged paths, duplicate releases, persisted
 test('R4.5 all official tools derive availability, update and installed states from the same versions',async()=>{
   const {catalog}=await officialFixtures();
   for(const release of catalog.apps){
-    const pkg=await officialToolFixture(release.toolId);
+    const {tool:pkg}=await loadOfficialTool(release,{api,fetcher:officialFixtureFetch});
     assert.equal(officialToolStatus(release,[]),'available');
     assert.equal(officialToolStatus(release,[{...pkg,version:'0.0.0'}]),'update');
     assert.equal(officialToolStatus(release,[pkg]),'installed');

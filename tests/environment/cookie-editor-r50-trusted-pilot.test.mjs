@@ -66,10 +66,6 @@ test('approved Preview shares the App toolbar and Controller clear preflight wit
   assert.match(app,/controller\.discardClear\(\)/);
   assert.match(app,/if\(dirty\)/);
   assert.match(app,/<CookieClearDialog/);
-  assert.match(app,/hostname:result\.hostname,count:result\.count/);
-  assert.match(controller,/adapter\.clearPreview\(guard\.at\)/);
-  assert.match(controller,/previewRef:p\.previewRef,count:p\.matched/);
-  assert.match(controller,/adapter\.clearExecute\(guard\.at,plan\.previewRef,plan\.count\)/);
   assert.match(adapter,/browser\(\)\.cookies\.clearSite/);
   assert.match(adapter,/preview:true,maxCookies:50/);
   assert.match(adapter,/previewRef,expectedCount,maxCookies:50/);

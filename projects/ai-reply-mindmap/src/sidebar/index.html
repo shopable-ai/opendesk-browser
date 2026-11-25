@@ -1,0 +1,29 @@
+<main class="mindmap-settings">
+  <header>
+    <p class="eyebrow">Reply to Map</p>
+    <h1>AI 回复思维导图</h1>
+    <p>在网页回复下方点「思维导图」，再次点击可返回原文。</p>
+  </header>
+  <section aria-labelledby="page-title">
+    <div class="row"><h2 id="page-title">当前网页</h2><button type="button" id="check">重新检查</button></div>
+    <p id="connection" role="status">正在检查网页…</p>
+  </section>
+  <form id="rules">
+    <fieldset id="fields" disabled>
+      <legend>CSS 定位规则</legend>
+      <p id="mode">每个网站单独保存。只有网页定位不准时才需要修改。</p>
+      <label for="reply-root">助手回复容器</label>
+      <input id="reply-root" name="root" maxlength="220" spellcheck="false" autocomplete="off">
+      <label for="reply-body">回复正文</label>
+      <input id="reply-body" name="body" maxlength="220" spellcheck="false" autocomplete="off">
+      <label for="reply-actions">回复操作栏</label>
+      <input id="reply-actions" name="actions" maxlength="220" spellcheck="false" autocomplete="off">
+      <div class="buttons">
+        <button type="button" id="test">测试定位</button>
+        <button type="button" class="primary" id="save" disabled>保存规则</button>
+        <button type="button" id="reset" disabled>恢复默认</button>
+      </div>
+    </fieldset>
+    <p id="feedback" role="status" aria-live="polite"></p>
+  </form>
+</main>

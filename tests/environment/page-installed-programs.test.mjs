@@ -68,6 +68,7 @@ function fixture(){
       return {id:1,windowId:1,active:true,url:target.expectedUrl,incognito:false,status:f.tabStatus};}},
     webNavigation:{getAllFrames:async()=>f.framesGone?[]:[{frameId:0,documentId:target.documentId,url:target.expectedUrl,documentLifecycle:f.documentLifecycle}],
       getFrame:async input=>{
+        if(f.observeHistory&&input.documentId!==target.documentId)return f.observeHistory(input.documentId);
         assert.equal(input.documentId,target.documentId);
         if(Object.hasOwn(input,'tabId'))assert.deepEqual(input,{tabId:1,frameId:0,documentId:target.documentId});
         if(f.frameObservationError)throw Error('observation failed');
@@ -121,6 +122,7 @@ function fixture(){
       await f.afterCompilation?.(desired,handle);
       return handle;
     },beginInstalledAllocation:executor.beginInstalledAllocation,discardInstalledAllocation:executor.discardInstalledAllocation,
+    withWorldDocuments:executor.withWorldDocuments,
     executeInstalled:(...args)=>(f.executeInstalled||executor.executeInstalled)(...args),
     get retireInstalled(){return f.retireHook||undefined;},
     executeFrame:async(input,authorize,dispatch)=>{
@@ -133,7 +135,7 @@ function fixture(){
   f.api=api;f.admission=admission;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
     const restoredExecutor=createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource});
-    const restoredPreview={...preview,prepareInstalled:restoredExecutor.prepareInstalled,executeInstalled:restoredExecutor.executeInstalled,beginInstalledAllocation:restoredExecutor.beginInstalledAllocation,discardInstalledAllocation:restoredExecutor.discardInstalledAllocation};
+    const restoredPreview={...preview,prepareInstalled:restoredExecutor.prepareInstalled,executeInstalled:restoredExecutor.executeInstalled,beginInstalledAllocation:restoredExecutor.beginInstalledAllocation,discardInstalledAllocation:restoredExecutor.discardInstalledAllocation,withWorldDocuments:restoredExecutor.withWorldDocuments};
     f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session,
       onPageTask:(message,source)=>f.onPageTask?.(message,source)});
   };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
@@ -290,21 +292,28 @@ function documents(f,count=3){
     tab:{id:target.tabId,incognito:false}}}));
 }
 test('two exact documents advance independently and a third waits for one lease',async()=>{
-  const f=fixture();await f.install();const pages=documents(f);
-  let releaseFirst,releaseSecond;
-  const gates=[new Promise(resolve=>releaseFirst=resolve),new Promise(resolve=>releaseSecond=resolve)];
-  f.completionGate=input=>gates[input.target.tabId-1];
+  const f=fixture();await f.install();const pages=documents(f),gates=pages.map(()=>deferred());
+  const started=[];
+  f.completionGate=input=>{
+    const index=input.target.tabId-1;
+    started.push(index);
+    return gates[index].promise;
+  };
   const runs=pages.map(page=>f.service.handleBoot(f.message(),page.sender));
   runs.forEach(run=>run.catch(()=>{}));
   try{
     await reaches(()=>f.sourceCalls===2);
-    assert.equal(f.snapshot().get('runs').get('@slot').preview.entries.length,2);
-    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.tabId===3),false);
-    releaseSecond();await runs[1];
-    await runs[2];
+    // Distinct documents can finish independent preparation in any order.
+    const [held,releasing]=started,waiting=pages.findIndex((_,i)=>!started.includes(i));
+    assert.deepEqual(f.snapshot().get('runs').get('@slot').preview.entries.map(row=>row.tabId).sort(),
+      [held+1,releasing+1].sort());
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.tabId===waiting+1),false);
+    gates[releasing].resolve();await runs[releasing];
+    await reaches(()=>started.includes(waiting));
+    gates[waiting].resolve();await runs[waiting];
     assert.equal(f.sourceCalls,3,'third document advances while first main still awaits its receipt');
-    assert.equal(f.installation().lastExecution.tabId,3);
-  }finally{releaseFirst();releaseSecond();await Promise.allSettled(runs);}
+    assert.equal(f.installation().lastExecution.tabId,waiting+1);
+  }finally{gates.forEach(gate=>gate.resolve());await Promise.allSettled(runs);}
 });
 function executionProgram(f,input){
   return f.rows().find(row=>row.tag==='page-execution-v1'&&row.managedUI?.worldId===input.worldId)?.programId;
@@ -1745,6 +1754,66 @@ test('prefix reads: countPrefix keeps the global 4096 execution quota blocking b
     {method:'countPrefix',store:'frameworkKV',prefix:'page-execution:',count:4096}
   ]);
   assert.equal(f.reads.some(row=>row.method==='all'&&row.store==='frameworkKV'),false);
+});
+
+test('at the receipt limit a fresh page starts without losing live, cached or unresolved evidence',async()=>{
+  const f=fixture();await f.install();await seedPageReadHistory(f,{executions:4096});
+  const history=f.rows().filter(row=>row.tag==='page-execution-v1').slice(0,12).map((row,index)=>({
+    ...row,receiptId:'receipt-'+index,finishedAt:index,
+    state:['completed','failed','completed','completed','outcome-unknown','dispatched','prepared'][index]??'completed',
+    ...(index===7?{managedUI:{lifecycle:{state:'unknown'}}}:{}),
+    ...(index===8?{managedUI:{lifecycle:{state:'evaluated',frames:[{state:'unknown'}]}}}:{}),
+    ...(index===11?{managedUI:{worldId:'historical-world',lifecycle:{state:'evaluated'}}}:{})
+  }));
+  await f.storage.transaction(['frameworkKV','runs'],'readwrite',async tx=>{
+    for(const row of history)await tx.put('frameworkKV',row,row.executionKey);
+    // A reservation owns this receipt independently of its terminal parent state.
+    await tx.put('runs',{tag:'slot',currentRunId:null,preview:{kind:'installed-documents-v1',entries:[{
+      namespace:f.installation().namespace,installedProgramId:'other',executionKey:history[9].executionKey,
+      browserSessionIncarnation:f.session,nonce:'active-reservation',tabId:1,documentId:history[9].documentId,children:[]
+    }]}},'@slot');
+  });
+  await f.api.storage.session.set({opendeskPagePreviewWorldsD1:[{
+    tabId:1,documentId:history[10].documentId,worldId:'opendesk-preview-d1-test'
+  }]});
+  // Make the one obsolete managed row a valid persisted world binding.
+  const installed=f.installation(),managed=history[11];
+  Object.assign(managed,{receiptNonce:'old-world-nonce'});
+  managed.managedUI={worldId:'historical-world',compiledSha256:'a'.repeat(64),lifecycle:{
+    state:'evaluated',namespace:managed.namespace,programId:managed.programId,revision:managed.revision,
+    sourceHash:managed.sourceHash,manifestHash:managed.manifestHash,installationId:installed.authorization.installationId,
+    grantGeneration:managed.grantGeneration,executionKey:managed.executionKey,receiptNonce:managed.receiptNonce,
+    compiledSha256:'a'.repeat(64),target:{tabId:managed.tabId,documentId:managed.documentId}
+  }};
+  // Use a complete world binding for the protected children as well.
+  for(const index of [7,8]){
+    const row=history[index],lifecycle=row.managedUI.lifecycle;
+    row.receiptNonce='kept-world-'+index;
+    row.managedUI={...managed.managedUI,worldId:'kept-world-'+index,lifecycle:{
+      ...managed.managedUI.lifecycle,...lifecycle,executionKey:row.executionKey,receiptNonce:row.receiptNonce,
+      target:{tabId:row.tabId,documentId:row.documentId}
+    }};
+  }
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    for(const index of [7,8,11])await tx.put('frameworkKV',history[index],history[index].executionKey);
+  });
+  const active=history[1].documentId,unobservable=history[2].documentId,cached=history[3].documentId;
+  f.observeHistory=documentId=>{
+    if(documentId===unobservable)throw Error('transient Chrome error');
+    if(documentId===active||documentId===cached)return {documentId,documentLifecycle:documentId===cached?'cached':'active'};
+    return null;
+  };
+  f.enablePrefixReads();f.restart();
+  const result=await f.service.handleBoot(f.message(),f.sender);
+  assert.equal(result.state,'completed');
+  assert.equal(f.sourceCalls,1);
+  const db=f.snapshot().get('frameworkKV');
+  assert.equal(db.has(history[0].executionKey),false);
+  assert.equal(db.has(history[11].executionKey),false);
+  for(const row of history.slice(1,11))assert.deepEqual(db.get(row.executionKey),row);
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,4095);
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_REQUEST_CONFLICT');
+  assert.equal(f.sourceCalls,1,'the live document is never replayed');
 });
 
 test('worker interruption becomes visible unknown state and preserves the live exact slot without replay',async()=>{

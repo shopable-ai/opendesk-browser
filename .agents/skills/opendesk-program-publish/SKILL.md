@@ -82,6 +82,8 @@ attach.connected:true 仅是本地绑定，status.connected:true 仅表示 Nativ
 
 build:program 不再是本地 Controller / Page 日常开发前置步骤。依赖锁、最终字节哈希、Candidate → Verification → Available → Installed 合同保留。构建、MCP 成功、Git commit 不等于安装或发布。Page 正式安装使用独立 Page Authority，完成后应在「扩展 → 网页增强」检索和管理；不冒用 Controller 证据，也不打包成侧栏应用。未授权不远端发布或 npm publish。
 
+Page 正式更新按[单一对外版本规则](../../../docs/product/extension-about.zh-CN.md#对外只使用一个版本号)提高真实项目的 `version`；普通修复默认提高补丁位。打包需要 `revision` 时，由执行者核对现有冻结记录并按原规则选择，不让用户再选第二个版本号，也不把同版本只换修订作为常规发行。保留内部修订、源码摘要与安装审阅绑定；本地预览、原样重建和原授权范围内的配置维护不作为新版发行。
+
 Local Dev 对已锁定 npm + HTTPS 静态 import 的直连已有实现与定向本机证据。日常见 docs/api/dependencies-and-errors.zh-CN.md；旧 R10.1 GOAL 的“不支持”前置已过时，不重复开发。按实际候选/相关输入复用，分项结果不提升为正式 F3/ZIP。
 
 ## 最小验收与交付

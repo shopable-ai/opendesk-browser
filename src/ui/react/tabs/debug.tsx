@@ -54,6 +54,10 @@ export function DebugPage({model={},actions=null,hidden=false,development=null,l
       </section>
       {development&&<details className="debug-detail od-disclosure"><summary>本地开发服务</summary>
         <output id="opendesk-development-status" className="hint" title={development.title}>{development.text}</output>
+        {development.detailMemory&&<>
+          <p className="hint">详情记忆只读观察：时间为后台收到存储变化或完成读回的时间；观察会随后台重载清空，不代表保存动作的触发时机。</p>
+          <pre aria-label="详情记忆只读观察">{JSON.stringify(development.detailMemory,null,2)}</pre>
+        </>}
       </details>}
       <PageCleanupDiagnostics model={state.pageCleanup} locale={locale}/>
       <details className="debug-detail od-disclosure"><summary>脱敏诊断快照</summary>

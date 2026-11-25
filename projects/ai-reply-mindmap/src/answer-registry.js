@@ -1,4 +1,4 @@
-import {answerRootOf,discoverAnswers,inspectAnswer,isStreaming} from './chatgpt-adapter.js';
+import * as chatgptAdapter from './chatgpt-adapter.js';
 import {extractAnswerTree} from './extract.js';
 import {createAnswerView} from './view.js';
 import {annotateMindmapError,describeMindmapError} from './diagnostics.js';
@@ -12,7 +12,7 @@ function unmountAnswerTool(host){
   const group=host.parentElement;host.remove();
   if(group?.matches(TOOL_GROUPS)&&!group.childNodes.length)group.remove();
 }
-function mountAnswerTool(bar,host){
+function mountAnswerTool(bar,host,{before,after}){
   if(!bar?.isConnected||!host||host===bar||host.contains(bar))return null;
   // The native DIL footer may wrap a narrower action row. Both independent
   // Page Programs resolve that same footer without requiring the other Program
@@ -43,14 +43,19 @@ function mountAnswerTool(bar,host){
   if(!group.hasAttribute(TOOLS))group.setAttribute(TOOLS,'');
   // Keep the same left alignment regardless of which Page Program mounts first.
   if(group.style.marginInlineStart!=='0px')group.style.marginInlineStart='0px';
-  if(group.style.marginInlineEnd!=='auto')group.style.marginInlineEnd='auto';
+  const endMargin=after?.parentElement===target?'0px':'auto';
+  if(group.style.marginInlineEnd!==endMargin)group.style.marginInlineEnd=endMargin;
   if(group.style.justifyContent!=='flex-start')group.style.justifyContent='flex-start';
   const previous=host.parentElement;
   if(group.lastElementChild!==host)group.append(host);
   if(previous!==group&&previous?.matches(TOOL_GROUPS)&&!previous.childNodes.length)previous.remove();
   // Existing nested shared groups stay inside the native row. A missing group
   // is independently created at the same outer footer by either installation.
-  if(target.lastElementChild!==group)target.append(group);
+  if(after?.parentElement===target){
+    if(group.previousElementSibling!==after)target.insertBefore(group,after.nextSibling);
+  }else if(before?.parentElement===target){
+    if(group.nextElementSibling!==before)target.insertBefore(group,before);
+  }else if(target.lastElementChild!==group)target.append(group);
   return group;
 }
 
@@ -109,14 +114,15 @@ function makeButton(doc,css,owner,handleClick){
   }};
 }
 
-function answerController({document,window,owner,css,parts,coordinator,createView,instanceId,themePreference}){
-  let {root,content,bar}=parts;
+function answerController({document,window,owner,css,parts,coordinator,createView,instanceId,themePreference,adapter,currentRoute}){
+  const {isStreaming,inspectAnswer,setConcealed,completedOnly}=adapter;
+  let {root,content,bar,before,after}=parts;
   let hidden=null,view=null,disposed=false,revision=0,viewRevision=-1,lastChange=0,viewSession=0;
   const readMessageId=()=>root.getAttribute('data-message-id')||
     root.getAttribute('data-chatgpt-search-message-ids')||
     root.getAttribute('data-content-search-unit-key')||root.id||null;
   let messageId=readMessageId();
-  let busyTimer=null,buttonRef=null,openingAnchor=null;
+  let busyTimer=null,buttonRef=null,openingAnchor=null,failureNotice=null;
   const handleClick=async()=>{
     if(disposed||buttonRef?.button.disabled)return;
     if(view){await close({restorePosition:true});return;}
@@ -170,7 +176,15 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
   }
   function syncButton(){
     if(disposed)return;
-    const busy=isStreaming(root)||(lastChange>0&&Date.now()-lastChange<STABLE_MS);
+    const streaming=isStreaming(root);
+    const quietWait=lastChange>0?STABLE_MS-(Date.now()-lastChange):0;
+    const busy=streaming||quietWait>0;
+    // A late edit to completed content marks the current snapshot stale. It
+    // only delays a new snapshot; actual streaming still retires the viewer.
+    if(completedOnly&&(streaming||(!view&&busy))){
+      if(view)void close().catch(()=>{});
+      if(buttonRef.host.isConnected)unmountAnswerTool(buttonRef.host);
+    }else insertButton();
     buttonRef.button.disabled=busy&&!view;
     buttonRef.button.setAttribute('aria-pressed',String(!!view));
     const label=view?'返回完整原文':'查看本条 AI 回复的思维导图';
@@ -179,11 +193,11 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     // Keep the native action-bar trigger in its exact slot in either mode.
     buttonRef.host.hidden=false;
     buttonRef.host.removeAttribute('aria-hidden');
-    if(busy&&busyTimer===null){
-      busyTimer=owner.setTimeout(()=>{busyTimer=null;syncButton();},STABLE_MS+40);
+    if((quietWait>0||(!completedOnly&&busy))&&busyTimer===null){
+      busyTimer=owner.setTimeout(()=>{busyTimer=null;syncButton();},(quietWait>0?quietWait:STABLE_MS)+40);
     }
   }
-  function insertButton(next){
+  function insertButton(next=bar){
     if(!next?.isConnected)return;
     // Different old/new installed Program identities can temporarily coexist.
     // Never remove a live foreign trigger: the other installation owns its DOM.
@@ -195,7 +209,7 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
       return;
     }
     for(const clone of peers)clone.remove();
-    mountAnswerTool(next,buttonRef.host);
+    mountAnswerTool(next,buttonRef.host,{before,after});
   }
   function restore(){
     if(!hidden)return;
@@ -210,12 +224,30 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
       if(oldAria===null)node.removeAttribute('aria-hidden');
       else node.setAttribute('aria-hidden',oldAria);
     }
+    setConcealed?.(node,false);
     hidden=null;
+  }
+  function clearFailure(){
+    failureNotice?.remove();failureNotice=null;
+  }
+  function showFailure(error){
+    if(!currentRoute()||!content.isConnected||!root.contains(content))return;
+    clearFailure();
+    const host=make(document,'div');
+    host.setAttribute('data-opendesk-chatgpt-mindmap','failure');
+    const shadow=host.attachShadow({mode:'open'});
+    const style=make(document,'style');style.textContent=css;
+    const status=make(document,'p');status.className='odmm-failure';status.setAttribute('role','status');
+    shadow.append(style,status);content.insertAdjacentElement('afterend',host);failureNotice=host;
+    status.textContent=error.message?.includes('Extension context invalidated')?
+      '扩展已重新加载，原文已恢复。刷新此网页后再打开导图。':
+      '导图未能显示，原文已恢复。可以再次点击导图按钮重试。';
   }
   function conceal(){
     hidden={node:content,hadStyle:content.hasAttribute('style'),oldDisplay:content.style.getPropertyValue('display'),
       oldPriority:content.style.getPropertyPriority('display'),
       oldAria:content.getAttribute('aria-hidden')};
+    setConcealed?.(content,true);
     content.style.setProperty('display','none','important');
     content.setAttribute('aria-hidden','true');
   }
@@ -223,19 +255,19 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     const anchor=openingAnchor;openingAnchor=null;
     const session=viewSession,closingRevision=revision;
     coordinator.releaseFull(api);
-    const previous=view;view=null;restore();syncButton();
-    // Retire directly; restore the opener position after the old layout is gone.
-    const retired=coordinator.retire(previous);
-    return retired.catch(async error=>{
+    const previous=view;view=null;
+    // Swap the visible layout before measuring the opener. Waiting on the
+    // private frame lets the conversation re-anchor and unmount older turns.
+    if(previous)previous.host.hidden=true;
+    restore();syncButton();
+    if(focus&&buttonRef.host.isConnected)buttonRef.button.focus({preventScroll:true});
+    if(restorePosition)restoreAnchor(anchor);
+    return coordinator.retire(previous).catch(async error=>{
       // A user-initiated return can fail retirement after the answer is back.
       // Record it only while this session still has no replacement viewer.
       if(reportFailure&&previous&&!disposed&&viewSession===session&&revision===closingRevision&&!view)
         await failed(annotateMindmapError(error,'view.destroy'),null,session);
       throw error;
-    }).finally(()=>{
-      if(disposed)return;
-      if(focus&&buttonRef.host.isConnected)buttonRef.button.focus({preventScroll:true});
-      if(restorePosition)restoreAnchor(anchor);
     });
   }
   async function failed(error,source,session){
@@ -245,7 +277,8 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     const record=coordinator.recordFailure(error,{instanceId,contentRevision:revision,viewSession:session});
     // Restore immediately; preserve the primary error even if cleanup fails.
     // Debug metadata belongs in the console, never in the reply action group.
-    const closing=close({reportFailure:false});
+    const closing=close({reportFailure:false,restorePosition:true});
+    if(source)showFailure(error);
     try{await closing;}
     catch(cleanup){
       record.cleanup=describeMindmapError(annotateMindmapError(cleanup,'view.destroy'));
@@ -253,9 +286,12 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     }
   }
   async function open(){
-    if(disposed||!root.isConnected||!content.isConnected||!bar.isConnected)return;
+    if(disposed||!currentRoute()||!root.isConnected||!content.isConnected||!bar.isConnected)return;
+    const fresh=inspectAnswer(root);
+    if(!fresh.ok||fresh.content!==content||fresh.bar!==bar)return;
     // Recover from late generation; do not take a snapshot during stream.
     if(isStreaming(root)||Date.now()-lastChange<STABLE_MS)return;
+    clearFailure();
     const focusViewer=buttonRef.button.matches(':focus-visible');
     const session=++viewSession;
     let nextView=null,mounted=false,stage='answer.extract';
@@ -305,10 +341,10 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
       if(disposed)return;
       const nextId=readMessageId();
       if(next.content!==content||nextId!==messageId){
-        close();content=next.content;messageId=nextId;lastChange=0;revision++;
+        close();clearFailure();content=next.content;messageId=nextId;lastChange=0;revision++;
       }
-      bar=next.bar;
-      insertButton(bar);syncTheme();syncButton();
+      ({bar,before,after}=next);
+      syncTheme();syncButton();
       // If the original content was re-rendered, the old viewer cannot be
       // silently rebound to a different message or content subtree.
       if(view&&!view.host.isConnected&&coordinator.full!==api){
@@ -333,17 +369,18 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     destroy(){
       if(disposed)return;disposed=true;
       coordinator.releaseFull(api);
-      const previous=view;view=null;restore();
+      const previous=view;view=null;restore();clearFailure();
       coordinator.retire(previous);
       buttonRef.destroy();
     }
   };
-  insertButton(bar);syncTheme();syncButton();
+  syncTheme();syncButton();
   return Object.freeze(api);
 }
 
 export function createAnswerRegistry({document,window,owner,css,createView=createAnswerView,
-  programRevision={version:'unknown',revision:null}}){
+  programRevision={version:'unknown',revision:null},adapter=chatgptAdapter}){
+  const {answerRootOf,discoverAnswers,inspectAnswer}=adapter;
   const byRoot=new WeakMap(),controllers=new Set();
   let nextInstance=0;
   let disposed=false,pending=false,route=window.location.pathname+window.location.search;
@@ -391,6 +428,7 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
   }};
   function scan(){
     if(disposed||!owner.active())return;
+    if(checkRoute())return;
     lastScanned=Date.now();
     const roots=discoverAnswers(document,{max:MAX_ANSWERS});
     const seen=new Set(roots);
@@ -410,7 +448,8 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
       }
       if(existing&&controllers.has(existing)){existing.reconcile(parts);continue;}
       const controller=answerController({document,window,owner,css,parts,coordinator,createView,
-        instanceId:`answer-${++nextInstance}`,themePreference});
+        instanceId:`answer-${++nextInstance}`,themePreference,adapter,
+        currentRoute:()=>route===window.location.pathname+window.location.search});
       byRoot.set(root,controller);controllers.add(controller);
     }
   }
@@ -421,6 +460,7 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
   }
   function mutations(records){
     if(disposed)return;
+    if(checkRoute())return;
     for(const record of records){
       if(record.type==='attributes'){schedule();continue;}
       const root=answerRootOf(record.target);
@@ -433,10 +473,10 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
   }
   function checkRoute(){
     const next=window.location.pathname+window.location.search;
-    if(next===route)return;
+    if(next===route)return false;
     route=next;
     for(const controller of controllers)controller.destroy();
-    controllers.clear();schedule();
+    controllers.clear();schedule();return true;
   }
   const keydown=event=>{
     if(event.key==='Escape'&&full){
@@ -457,7 +497,8 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
     owner.observe(document.documentElement,mutations,
       {subtree:true,childList:true,characterData:true,attributes:true,
         attributeFilter:['data-is-streaming','aria-busy','data-message-id','id','data-message-complete',
-          'data-talvt-turn-state','data-chatgpt-search-message-ids','data-content-search-unit-key']});
+          'data-talvt-turn-state','data-chatgpt-search-message-ids','data-content-search-unit-key',
+          ...(adapter.observedAttributes??[])]});
     owner.on(window,'keydown',keydown);
     // A page-theme mutation updates the native trigger only; it never
     // overrides the user's separately saved workbook skin.

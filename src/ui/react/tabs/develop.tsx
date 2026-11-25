@@ -4,7 +4,7 @@ import {DevelopContextHeader,DevelopSourceEditor} from './develop-editor.tsx';
 import {DevelopLocalProject} from './develop-local.tsx';
 import {DevelopDiagnostics} from './develop-diagnostics.tsx';
 import {DevelopExecution} from './develop-execution.tsx';
-import {DevelopAdvanced} from './develop-advanced.tsx';
+import {DevelopAdvanced,DevelopBrowserPermissions} from './develop-advanced.tsx';
 import {DevelopPromptProvider} from './develop-ai-prompt.tsx';
 import {Confirmation} from '../components/confirmation.tsx';
 
@@ -46,6 +46,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
           <DevelopSourceEditor view={view} actions={actions} locale={locale}/>
         </div>
         </DevelopPromptProvider>
+        <div hidden={section!=='diagnostics'}><DevelopBrowserPermissions active={!hidden&&section==='diagnostics'}/></div>
         <DevelopExecution section={section}>
           <nav className="developer-management-links od-toolbar" aria-label="脚本管理" hidden={section!=='editor'}>
             <DevelopSectionButton section="diagnostics" id="developer-diagnostics-entry">权限与诊断</DevelopSectionButton>

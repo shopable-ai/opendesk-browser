@@ -43,6 +43,8 @@ async function main() {
 
 这两个入口的运行世界不同：Controller 有 page/params；Page 有 document。运行前仍检查目标与网站授权。源码可暂不保存，但“运行成功”不等于已安装任务。新自动化优先使用 [现代 Page/Locator API](../framework/modern-page-api.zh-CN.md)，不是把 document 操作搬进 Controller。
 
+如果自定义网页脚本无法运行，打开侧栏「开发 → 权限与诊断 → Chrome 权限」。这里分别显示用户脚本能力与网站访问权限。Chrome 138 起，请使用「打开 Chrome 扩展设置」定位当前扩展，在详情中手动开启「允许用户脚本」。保留权限页并切回同一窗口的网页，侧栏会自动检测，也可以点「重新检测」。检测不会运行脚本、注册脚本或授权网站；确认可用后由你发起试运行。Chrome 功能可用也不表示某条脚本已获准在目标网站运行。普通用户可从「扩展 → 更多 → 网页功能帮助」查看所需的恢复步骤。
+
 ## Page 试运行后保存固定版本（R12 候选入口）
 
 目前 Sidebar 「开发 → 网页 JavaScript 试运行」完成一次真实预览并得到可信执行结果后，增加「保存网页脚本版本」。点击后沿用当前 E07.1 的 `importPageCandidate` 和 `frameworkKV`，形成固定 Candidate，**不会正式安装，更不会重新打开网页自动执行**。在「版本管理与任务制作」中调整脚本 ID 和 revision（留空默认 1）；同一 ID+revision 内容不能覆盖，修改源码要增版本并再次试运行。

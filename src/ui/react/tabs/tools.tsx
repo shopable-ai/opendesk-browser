@@ -7,6 +7,8 @@ import {ConversationAiGlyph} from '../components/conversation.tsx';
 import {extensionCenterText} from '../../extension-center-localization.js';
 import {localeManagerText} from '../../locale-manager-localization.js';
 import {ExtensionAbout} from '../components/extension-about.tsx';
+import {ExtensionRecoveryPage} from './extension-recovery.tsx';
+import {recoveryText} from '../../extension-recovery-localization.js';
 
 const LocaleManager=React.lazy(()=>import('./locale-manager.tsx'));
 
@@ -53,8 +55,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onI
     ?lastInteractedKey:rows.find(row=>row.installed)?.key;
   return rows.map(row=>{
     const label=row.primaryAction||t('details');
-    const identity=row.installed&&titles.get(row.title)>1&&row.key.startsWith('app:')
-      ?row.key.slice(4):null;
+    const identity=row.installed&&titles.get(row.title)>1?row.key.slice(row.key.indexOf(':')+1):null;
     const accessible=t('actionTitle',{action:label,title:row.title})+(row.pinned?' · '+t('pinned'):'')+(identity?' · '+t('installationId')+identity:'');
     return <li key={row.key} data-extension-id={row.key}
       className={'ec-row od-collection-row'+(row.installed&&row.key===activeActionKey?' ec-row--action-visible':'')+
@@ -70,7 +71,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onI
       <button type="button" className="ec-row-main" data-extension-key={row.key}
         data-extension-action="main" disabled={busy}
         aria-label={accessible} title={accessible}
-        onClick={event=>onOpenRow(row.key,event.nativeEvent)}>
+        onClick={event=>row.onSelect?row.onSelect(event.nativeEvent):onOpenRow?.(row.key,event.nativeEvent)}>
         <span className="ec-glyph" aria-hidden="true">
           <svg viewBox="0 0 24 24">
             {row.kind==='page'?<><rect x="3" y="4" width="18" height="16" rx="2"/>
@@ -118,7 +119,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onI
   });
 }
 
-function WebFeatureRow({row,t,busy,duplicate,chromeAccess}){
+function WebFeatureRow({row,t,busy,duplicate,chromeAccess,inDetail=false}){
   const summary=React.useId();
   const label=duplicate?row.title+' · '+row.key.slice(4):row.title;
   return <li className="ec-companion" data-companion-state={row.state} data-web-feature-key={row.key}>
@@ -127,8 +128,9 @@ function WebFeatureRow({row,t,busy,duplicate,chromeAccess}){
       {duplicate&&<p className="ec-companion-id">{row.key.slice(4)}</p>}
     </div>
     <div className="ec-companion-action">
-      <p id={summary} className="ec-companion-status">{t(row.state==='waiting'&&chromeAccess!==false
-        ?'companionNeedsCheck':'companion_'+row.state)}</p>
+      <p id={summary} className="ec-companion-status">{t(row.state==='waiting'?
+        (chromeAccess!==false?'companionNeedsCheck':inDetail?'pageInstalledWaiting':'companion_waiting'):
+        'companion_'+row.state)}</p>
       {row.onCheck&&<Button variant={chromeAccess===true?'primary':'quiet'} data-extension-key={row.key}
         data-extension-action="companion-check" aria-label={t('companionCheck')+' · '+label}
         aria-describedby={summary} aria-disabled={busy||undefined}
@@ -138,6 +140,23 @@ function WebFeatureRow({row,t,busy,duplicate,chromeAccess}){
       {row.checking?t('companionChecking'):row.result||(row.state==='unknown'?t('companionUnknownGuide'):'')}
     </p>}
   </li>;
+}
+
+function WebFeatureSettingsButton({model,t,description}){
+  const errorId=React.useId();
+  return <>
+    <Button variant={model.chromeAccess===true?'secondary':'primary'} className="ec-web-features-settings"
+      aria-describedby={description} aria-disabled={model.busy||undefined}
+      onClick={event=>{if(!model.busy)model.onSettings(event.nativeEvent);}}>
+      {t('companionSettings')}
+    </Button>
+    {model.settingsFailed&&<>
+      <p id={errorId} role="alert">{t('companionManual')}</p>
+      <textarea className="od-field ec-web-features-path" aria-label={t('webFeaturesSettingsAddress')}
+        aria-describedby={errorId} readOnly rows={2}
+        value={model.settingsURL||'chrome://extensions'} onFocus={event=>event.currentTarget.select()}/>
+    </>}
+  </>;
 }
 
 function WebFeaturesView({model,t,onBack,titleRef}){
@@ -180,25 +199,27 @@ function WebFeaturesView({model,t,onBack,titleRef}){
           {t(setupTitle)}
         </span>
       </div>
-      <p id="web-features-setting-note" className="ec-web-features-note">
-        {t(accessState==='unknown'?'webFeaturesVerifySetting':'webFeaturesStepAllow')}
-      </p>
-      <Button variant={chromeAccess===true?'secondary':'primary'} className="ec-web-features-settings"
-        aria-describedby="web-features-setting-note" aria-disabled={model?.busy||undefined}
-        onClick={event=>{if(!model?.busy)model?.onSettings?.(event.nativeEvent);}}>
-        {t('companionSettings')}
-      </Button>
-      {model?.settingsFailed&&<>
-        <p id="web-features-settings-error" role="alert">{t('companionManual')}</p>
-        <textarea className="od-field ec-web-features-path" aria-label={t('webFeaturesSettingsAddress')}
-          aria-describedby="web-features-settings-error" readOnly rows={2}
-          value={model.settingsURL||'chrome://extensions'} onFocus={event=>event.currentTarget.select()}/>
-      </>}
+      <ol className="ec-web-features-steps">
+        <li>
+          <strong>{t('webFeaturesOpenStep')}</strong>
+          <p id="web-features-setting-note" className="ec-web-features-note">
+            {t(accessState==='on'?'webFeaturesSettingReady':accessState==='unknown'?
+              'webFeaturesVerifySetting':'webFeaturesStepAllow')}
+          </p>
+          {model&&<WebFeatureSettingsButton model={model} t={t} description="web-features-setting-note"/>}
+        </li>
+        <li>
+          <strong>{t('webFeaturesCheckStep')}</strong>
+          {rows.some(row=>row.onCheck)?<p className="ec-web-features-note">{t('webFeaturesStepCheck')}</p>:
+            !model?.loading&&!model?.error&&<p className="ec-web-features-note">{t('webFeaturesStepFind')}</p>}
+          <p className="ec-web-features-note">{t('webFeaturesStepReturn')}</p>
+        </li>
+        <li>
+          <strong>{t('webFeaturesReloadStep')}</strong>
+          <p className="ec-web-features-note">{t('webFeaturesStepReload')}</p>
+        </li>
+      </ol>
     </section>
-    <details className="ec-web-features-help od-disclosure">
-      <summary>{t('oldPagesHelpTitle')}</summary>
-      <div><p>{t('oldPagesGuide')}</p></div>
-    </details>
     <section className="ec-web-features-tools" aria-labelledby="web-features-tools-title">
       <h3 id="web-features-tools-title">{t('webFeaturesCheckTitle')}</h3>
       {rows.length>0&&<ul className="ec-companion-list">
@@ -213,6 +234,14 @@ function WebFeaturesView({model,t,onBack,titleRef}){
       {retry&&<Button variant="secondary" aria-disabled={model.busy||undefined}
         onClick={event=>{if(!model.busy)model.onRead(event.nativeEvent);}}>{t('companionReadAgain')}</Button>}
     </section>
+    <details className="ec-web-features-help od-disclosure">
+      <summary>{t('webFeaturesSiteAccessTitle')}</summary>
+      <div><p>{t('webFeaturesSiteAccessGuide')}</p></div>
+    </details>
+    <details className="ec-web-features-help od-disclosure">
+      <summary>{t('oldPagesHelpTitle')}</summary>
+      <div><p>{t('oldPagesGuide')}</p></div>
+    </details>
   </section>;
 }
 
@@ -365,7 +394,7 @@ function extensionActionGlyph(id,enabled=false){
 // Capture the real gesture within the same React subtree and require it
 // before delegating to the original Controller/Authority. Never optimistically
 // change the displayed persisted state.
-export function ManagedPageControl({control,title,heading,description,compact=false,onDetails,locale='zh-CN'}){
+export function ManagedPageControl({control,title,heading,description,compact=false,confirmedLabel,onDetails,locale='zh-CN'}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   const runtimePending=control.state==='pending'||control.state==='restricted';
   const showControlStatus=!compact||runtimePending;
@@ -386,21 +415,26 @@ export function ManagedPageControl({control,title,heading,description,compact=fa
       onBlurCapture={()=>{gesture.current=null;}}>
       <div className="ec-page-main-copy">
         <h3>{heading||t('controlHeading')}</h3>
+        {compact&&confirmedLabel&&<p className="ec-page-state" data-state={control.state} role="status">{confirmedLabel}</p>}
         <p>{description||t('controlDescription')}</p>
       </div>
       <Switch data-ec-detail-action="toggle" aria-label={t('enableNamed',{title})}
-        isSelected={control.enabled} isDisabled={control.busy||!control.enabledKnown}
+        isSelected={control.enabled} isDisabled={control.busy||!control.enabledKnown||
+          (!control.enabled&&control.needsInstallReview)}
         onChange={onChange}/>
     </div>
     {showControlStatus&&<p className="ec-page-state" data-state={control.state} role="status" aria-live="polite">
       {control.status}
     </p>}
     {control.note&&control.state!=='ready'&&<p>{control.note}</p>}
+    {control.scriptsSettings&&<WebFeatureSettingsButton model={control.scriptsSettings} t={t}/>}
     {control.legacyProgramId&&<p className="ec-page-legacy">
       {t('legacy',{id:control.legacyProgramId})}
     </p>}
-    {(control.canRestore||runtimePending)&&
+    {(control.canRestore||control.onReview||runtimePending)&&
       <div className="ec-page-control-actions">
+        {control.onReview&&<Button disabled={control.busy} data-ec-detail-action="review"
+          onClick={event=>control.onReview(event.nativeEvent)}>{control.reviewLabel}</Button>}
         {control.canRestore&&<Button disabled={control.busy}
           onClick={event=>control.onRestore?.(event.nativeEvent)}>
           {compact?t('restoreAuto'):t('restore')}
@@ -451,6 +485,7 @@ export function PageDiagnostics({info,locale='zh-CN'}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   return <>
     <p>{t('sourceLabel')}{info?.source||t('unknownSource')}</p>
+    {Number.isSafeInteger(info?.revision)&&info.revision>0&&<p>{t('revision')}{info.revision}</p>}
     <p>{t('installIdentity')}{info?.installationId||t('checkPending')}</p>
     <p>{t('authorization')}{info?.authorization||t('unknown')}</p>
     <p>{t('native')}{info?.nativeState||t('unknown')}</p>
@@ -471,13 +506,14 @@ function DetailActions({model,actions=model.actions,disabled=false,locale='zh-CN
   if(!actions.length)return null;
   return <div className="ec-detail-actions">
     {actions.map(action=>{
-      const icon=extensionActionGlyph(action.id,model.enabled??model.pageControl?.enabled);
+      const icon=action.id==='uninstall'?extensionActionGlyph(action.id):null;
       return icon?<IconButton key={action.id}
         className={action.id==='uninstall'?'ec-detail-action od-icon-button--danger':'ec-detail-action'}
         disabled={model.busy||disabled} label={t('actionTitle',{action:action.label,title:model.title})} title={action.label}
         data-ec-detail-action={action.id}
         onClick={event=>action.onClick?.(event.nativeEvent)}>{icon}</IconButton>:
-        <Button key={action.id} disabled={model.busy||disabled} data-ec-detail-action={action.id}
+        <Button key={action.id} variant="secondary"
+          disabled={model.busy||disabled} data-ec-detail-action={action.id}
           onClick={event=>action.onClick?.(event.nativeEvent)}>{action.label}</Button>;
     })}
   </div>;
@@ -485,6 +521,33 @@ function DetailActions({model,actions=model.actions,disabled=false,locale='zh-CN
 
 // Detail actions retain the originating native event. Identity and permission
 // checks remain with the existing Extension Center controller.
+function DetailMemoryPreference({model,locale,disabled=false}){
+  const t=key=>extensionCenterText(locale,key);
+  const gesture=React.useRef(null);
+  const capture=event=>{gesture.current=event.nativeEvent?.isTrusted?event.nativeEvent:null;};
+  if(!model)return null;
+  return <section className="ec-detail-card ec-page-control" aria-labelledby="extension-detail-memory-label">
+    <div className="ec-page-main" onPointerDownCapture={capture} onPointerUpCapture={capture}
+      onKeyDownCapture={capture} onKeyUpCapture={capture} onClickCapture={capture}
+      onBlurCapture={()=>{gesture.current=null;}}>
+      <div className="ec-page-main-copy">
+        <h3 id="extension-detail-memory-label">{t('detailMemoryLabel')}</h3>
+        <p id="extension-detail-memory-description">{t('detailMemoryDescription')}</p>
+      </div>
+      <Switch data-ec-detail-action="detail-memory" aria-labelledby="extension-detail-memory-label"
+        aria-describedby="extension-detail-memory-description" isSelected={model.enabled===true}
+        isDisabled={disabled||model.loading||model.saving||!model.known} onChange={enabled=>{
+          const event=gesture.current;gesture.current=null;
+          if(event?.isTrusted)model.onChange(enabled,event);
+        }}/>
+    </div>
+    {(model.loading||model.saving)&&<p role="status">{t(model.saving?'detailMemorySaving':'detailMemoryReading')}</p>}
+    {model.error&&<p role="alert">{t(model.error)}</p>}
+    {model.error&&<Button variant="quiet" disabled={disabled||model.loading||model.saving}
+      onClick={event=>model.onRetry(event.nativeEvent)}>{t('reload')}</Button>}
+  </section>;
+}
+
 export function ExtensionDetail({model,container,onScrollNavigation,scrollNavigation,locale=model?.locale||'zh-CN'}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   React.useLayoutEffect(()=>{
@@ -497,20 +560,21 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
   if(!model)return null;
   const pageHeader=model.kind==='page';
   const managed=model.kind==='page'&&Boolean(model.pageControl);
-  const headerActions=model.scrollManager?model.actions:
-    pageHeader?model.actions.filter(action=>action.id==='uninstall'):[];
+  const headerActions=pageHeader?model.actions.filter(action=>action.id==='uninstall'):[];
   const bodyActions=pageHeader?model.actions.filter(action=>action.id!=='uninstall'):model.actions;
+  const scrollActionsDisabled=!scrollNavigation||scrollNavigation.actionsDisabled;
+  const about=<ExtensionAbout key={model.key} model={model.about} locale={locale}/>;
+  const memory=<DetailMemoryPreference key={'memory:'+model.key} model={model.detailMemory} locale={locale} disabled={model.busy}/>;
+  const hasToolSettings=model.kind==='app'&&model.installed&&
+    model.actions.some(action=>action.id==='settings');
   // Render Authority/official scopes only. Never infer capabilities from titles.
   const sites=Array.isArray(model.sites)?model.sites.filter(s=>typeof s==='string'&&s.trim()):[];
-  return <>
-    <div className={'ec-detail-head'+(pageHeader?' ec-detail-head--page od-page-head':'')}>
-      {!pageHeader&&<span className="ec-glyph" aria-hidden="true">▦</span>}
+  const header=<div className="ec-detail-head ec-detail-head--page od-page-head">
       <div className="ec-detail-copy">
         <strong id={model.scrollManager?'scroll-page-title':undefined} tabIndex={model.scrollManager?-1:undefined}
-          className={pageHeader?'od-page-title':undefined}
-          role={pageHeader?'heading':undefined} aria-level={pageHeader?1:undefined}
+          className="od-page-title" role="heading" aria-level={1}
           title={scrollNavigation?.title?model.title+' / '+scrollNavigation.title:model.title}>
-          {scrollNavigation?.title||model.title}</strong>{!pageHeader&&<span className="ec-type">{model.type}</span>}
+          {scrollNavigation?.title||model.title}</strong>
       </div>
       {model.scrollManager&&<div className="od-page-actions">
         {(!scrollNavigation?.view||scrollNavigation.view==='home')&&scrollNavigation?.settingsLabel&&
@@ -524,31 +588,44 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
         <IconButton id="scroll-ai-toggle" label={scrollNavigation?.aiLabel||'AI'}
           aria-expanded={Boolean(scrollNavigation?.aiOpen)} aria-controls="scroll-ai-panel"
           disabled={!scrollNavigation} onClick={()=>scrollNavigation?.toggleAI?.()}><ConversationAiGlyph/></IconButton>
-        <DetailActions locale={locale} model={model} disabled={!scrollNavigation||scrollNavigation.actionsDisabled}/>
+        <DetailActions locale={locale} model={model} actions={headerActions}
+          disabled={scrollActionsDisabled||Boolean(model.scrollStatusRead)}/>
       </div>}
       {!model.scrollManager&&headerActions.length>0&&<div className="od-page-actions">
         <DetailActions locale={locale} model={model} actions={headerActions}/>
       </div>}
-    </div>
-    {model.description&&!model.scrollManager&&<p className="ec-detail-description">{model.description}</p>}
-    <ExtensionAbout model={model.about} locale={locale}/>
+    </div>;
+  return <>
+    {model.scrollManager||(!model.description&&managed)?header:<div className="ec-detail-intro">
+      {header}
+      <div className="ec-detail-summary">
+        {model.description&&<p className="ec-detail-description">{model.description}</p>}
+        {!managed&&<div className="ec-detail-overview">
+          <div className="ec-detail-notes">
+            <p className="ec-detail-status" role="status">{model.installationText}</p>
+            {model.usageText&&<p>{model.usageText}</p>}
+            {!model.installed&&model.kind==='app'&&<p>{t(model.cleanupPending?'cleanupFirst':'marketReview')}</p>}
+          </div>
+          <DetailActions locale={locale} model={model} actions={bodyActions}/>
+        </div>}
+      </div>
+    </div>}
+    {model.companion&&<section className="ec-detail-card">
+      <h3>{t('webFeatures')}</h3>
+      <ul className="ec-companion-list">
+        <WebFeatureRow row={model.companion.row} t={t} busy={model.companion.busy}
+          duplicate={false} chromeAccess={model.companion.chromeAccess} inDetail/>
+      </ul>
+      {model.companion.row.state==='waiting'&&model.companion.chromeAccess===false&&<>
+        <p>{t('companionStillOff')}</p>
+        <WebFeatureSettingsButton model={model.companion} t={t}/>
+      </>}
+    </section>}
     {managed&&!model.scrollManager&&<ManagedPageControl locale={locale} control={model.pageControl} title={model.title}/>}
     {model.scrollManager&&<ScrollSiteManager key={model.scrollManager.identityKey}
       locale={locale} model={model.scrollManager} pageControl={model.pageControl} title={model.title} detail={model}
-      onNavigation={onScrollNavigation} PageControl={ManagedPageControl} Diagnostics={PageDiagnostics}/>}
-    {!managed&&!model.scrollManager&&<DetailActions locale={locale} model={model} actions={bodyActions}/>}
-    {!managed&&<section className="ec-detail-card">
-      <h3>{t('installationSource')}</h3>
-      <p>{model.installationText}</p>
-      {model.kind==='app'&&<>
-        {model.installed?<><p>{t('sourceLabel')}{model.source?.label||t('sourcePending')}</p>
-          {model.source?.sha256&&<p>{t('pinnedHash')}{model.source.sha256}</p>}
-          <p>{model.usageText||t('appUsage')}</p>
-          <p>{model.appDataText}</p></>:<p>{model.cleanupPending?
-          t('cleanupFirst'):
-          t('marketReview')}</p>}
-      </>}
-    </section>}
+      onNavigation={onScrollNavigation} PageControl={ManagedPageControl} Diagnostics={PageDiagnostics}
+      settingsFooter={<>{memory}{about}</>}/>}
     {model.kind==='page'&&!model.scrollManager&&(sites.length>0||model.siteUpgrade)&&<section className="ec-detail-card ec-page-sites">
       <h3>{t('sites')}</h3>
       {sites.length>0&&<ul className="ec-sites">{sites.map(site=><li key={site}>{site}</li>)}</ul>}
@@ -558,15 +635,20 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
         <PageSiteUpgrade locale={locale} upgrade={model.siteUpgrade}/>
       </details>}
     </section>}
-    {managed&&!model.scrollManager&&model.pageControl.officialBlock&&
-      <p className="ec-page-release-block" role="status">
+    {model.kind==='page'&&!model.scrollManager&&(model.pageInfo||model.pageControl?.officialBlock)&&<details className="od-disclosure ec-page-diagnostics">
+      <summary>{t('preinstallTechnical')}</summary>
+      {model.pageInfo&&<PageDiagnostics locale={locale} info={model.pageInfo}/>}
+      {model.pageControl?.officialBlock&&<p className="ec-page-release-block">
         {t('releaseBlock',{reason:model.pageControl.officialBlock})}
       </p>}
-    {model.kind==='page'&&!model.scrollManager&&model.pageInfo&&<details className="od-disclosure ec-page-diagnostics">
-      <summary>{t('diagnostics')}</summary>
-      {managed&&<p>{model.installationText}</p>}
-      <PageDiagnostics locale={locale} info={model.pageInfo}/>
     </details>}
+    {model.kind==='app'&&model.installed&&<details className="od-disclosure ec-page-diagnostics">
+      <summary>{t('preinstallTechnical')}</summary>
+      <p>{t('sourceLabel')}{model.source?.label||t('sourcePending')}</p>
+      {model.source?.sha256&&<p>{t('pinnedHash')}{model.source.sha256}</p>}
+    </details>}
+    {!model.scrollManager&&memory}
+    {!model.scrollManager&&!hasToolSettings&&about}
   </>;
 }
 
@@ -574,7 +656,7 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
 // Search and filter UI belongs to React. The existing Extension Center owns
 // query/filter values, refresh, installation/Host actions and locale storage.
 // Existing IDs/ARIA/CSS are preserved for accessibility and legacy contracts.
-export function ExtensionToolbar({model,locale=model?.locale||model?.language||'zh-CN',onWebFeatures}){
+export function ExtensionToolbar({model,locale=model?.locale||model?.language||'zh-CN',onWebFeatures,onRecovery}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   const current=model||{};
   const kind=current.kind||'all',scope=current.scope||'smart';
@@ -615,6 +697,9 @@ export function ExtensionToolbar({model,locale=model?.locale||model?.language||'
         <button id="extension-center-reset" className="ec-menu-action" type="button"
           onClick={event=>current.onReset?.(event.nativeEvent)}>{t('reset')}</button>
         <div className="ec-menu-separator">
+          {scope==='smart'&&kind!=='page'&&current.marketDiscoveryAvailable===true&&
+            <button id="extension-center-discovery-shortcut" type="button" className="ec-menu-action"
+              onClick={event=>current.onDiscoverFromMenu?.(event.nativeEvent)}>{t('checkWeb')}</button>}
           <Button id="extension-center-language-settings" className="ec-menu-action"
             onClick={event=>current.onLanguageSettings?.(event.nativeEvent)}>{t('language')}</Button>
            <button id="extension-center-import" className="ec-menu-action" type="button"
@@ -623,6 +708,8 @@ export function ExtensionToolbar({model,locale=model?.locale||model?.language||'
             onClick={event=>current.onReload?.(event.nativeEvent)}>{t('reload')}</button>
           <button id="extension-center-web-features" className="ec-menu-action" type="button"
             onClick={onWebFeatures}>{t('webFeatures')}</button>
+          {current.extensionRecovery&&<button id="extension-center-open-recovery" className="ec-menu-action" type="button"
+            onClick={onRecovery}>{recoveryText(locale,'title')}</button>}
           <button id="extension-center-update-history" className="ec-menu-action" type="button"
             onClick={event=>current.onUpdateHistory?.(event.nativeEvent)}>更新记录与提醒设置…</button>
         </div>
@@ -830,38 +917,50 @@ export function ExtensionRowMenu({items=[],model=null,locale=model?.locale||'zh-
 }
 
 // A read-only discovery result; install authority remains with the existing Host.
-export function ExtensionDiscovery({model,onDiscover,showEntry=false,locale=model?.locale||'zh-CN'}){
+export function ExtensionDiscovery({model,onDiscover,onMarket,showEntry=false,locale=model?.locale||'zh-CN'}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   if(!model&&!showEntry)return null;
   const found=model?.state==='found';
+  const installed=model?.state==='installed';
   const retry=model?.state==='error'||model?.state==='empty';
+  const loading=model?.state==='loading';
+  const pending=loading||Boolean(model?.busy);
   const activate=event=>{
+    if(pending)return;
     if(found)model.onReview?.(event.nativeEvent);
+    else if(installed)model.onInstalled?.(event.nativeEvent);
     else if(retry)model.onRetry?.(event.nativeEvent);
     else if(!model)onDiscover?.(event.nativeEvent);
   };
   return <section id="extension-center-discovery" className="ec-discovery"
-    aria-label={t('webDiscovery')} aria-busy={model?.state==='loading'||Boolean(model?.busy)}>
-    <div className="ec-discovery-copy">
-      <strong>{found?model.title+' · v'+model.version:
-        model?.state==='loading'?t('checkingWeb'):model?t('webEntry'):t('installWeb')}</strong>
-      {found&&model.origin&&<span className="ec-discovery-origin">{model.origin}</span>}
-      <p role="status" data-state={model?.state}>
-        {model?.message||t('discoveryNote')}
-      </p>
+    aria-label={t('webDiscovery')} data-state={model?.state}>
+    <div id="extension-center-discovery-status" role="status" data-state={model?.state}
+      className={model?'ec-discovery-copy':'visually-hidden'} data-error={model?.code?true:undefined}>
+      {(found||installed)&&<div className="ec-discovery-app">
+        <strong>{model.title}</strong>
+        {model.version&&<span dir="ltr">v{model.version}</span>}
+      </div>}
+      {(found||installed)&&model.origin&&<span className="ec-discovery-origin">{t('discoveryOrigin',{origin:model.origin})}</span>}
+      {model&&<p>{model.message}</p>}
     </div>
     <div className="ec-discovery-actions">
-      <Button id="extension-center-discover" disabled={Boolean(model?.busy)}
-        aria-disabled={model?.state==='loading'||undefined}
-        onClick={activate}>
-        {found?(model.busy?t('checking'):t('appDetails')):
-          model?.state==='loading'?t('detecting'):retry?t('retry'):t('checkWeb')}
+      <Button id="extension-center-discover" variant={model?'secondary':'quiet'}
+        aria-disabled={pending||undefined} onClick={activate}>
+        {!model&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4M3 8h18m-2.5 10.5L22 22"/><circle cx="15.5" cy="15.5" r="4"/></svg>}
+        {installed?t('viewInstalledApp'):found?(model.busy?t('checking'):t('appDetails')):
+          loading?t('detecting'):retry?t('retry'):t('checkWeb')}
       </Button>
-      {model&&<IconButton label={t('dismissWeb')} title={t('close')}
+      {model&&<IconButton className="ec-discovery-dismiss" label={t('dismissWeb')}
         onClick={event=>model.onDismiss?.(event.nativeEvent)}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </IconButton>}
     </div>
+    {model?.state==='empty'&&onMarket&&<Button variant="quiet" className="ec-discovery-market"
+      onClick={event=>onMarket(event.nativeEvent)}>{t('market')}</Button>}
+    {model?.code&&<details className="ec-discovery-diagnostic" key={model.code}>
+      <summary>{t('discoveryDiagnostics')}</summary>
+      <code>{model.code}</code>
+    </details>}
   </section>;
 }
 
@@ -883,6 +982,25 @@ export function ExtensionCenterPage({
   const webFeatures=webFeaturesOverride??openWebFeaturesOnLoad;
   const webFeaturesVisible=webFeatures&&!detailVisible&&!languageVisible;
   const webFeaturesTitle=React.useRef(null),webFeaturesReturn=React.useRef(null);
+  const [recoveryOpen,setRecoveryOpen]=React.useState(false);
+  const recoveryVisible=recoveryOpen&&Boolean(toolbarModel?.extensionRecovery)&&!detailVisible&&!languageVisible;
+  const recoveryTitle=React.useRef(null),recoveryReturn=React.useRef(null);
+  const closeRecovery=()=>setRecoveryOpen(false);
+  const openRecovery=()=>{
+    toolbarModel?.onCloseMenu?.(false);
+    const scroll=[];
+    for(let node=pageRef.current;node;node=node.parentElement)scroll.push([node,node.scrollTop]);
+    recoveryReturn.current=scroll;
+    setRecoveryOpen(true);
+  };
+  React.useLayoutEffect(()=>{
+    if(recoveryVisible)recoveryTitle.current?.focus();
+    else if(!recoveryOpen&&recoveryReturn.current){
+      for(const [node,top] of recoveryReturn.current)node.scrollTop=top;
+      recoveryReturn.current=null;
+      pageRef.current?.ownerDocument.getElementById('extension-center-more')?.focus({preventScroll:true});
+    }
+  },[recoveryOpen,recoveryVisible]);
   const [preinstallSettingsVisited,setPreinstallSettingsVisited]=React.useState(false);
   const preinstallHelpVisible=preinstallInfo&&!detailVisible&&!languageVisible;
   const preinstallTitleRef=React.useRef(null),preinstallReturn=React.useRef(null);
@@ -942,20 +1060,20 @@ export function ExtensionCenterPage({
   const fileDragDepth=React.useRef(0);
   const isFileDrag=event=>Array.from(event.dataTransfer?.types||[]).includes('Files');
   const onDragEnter=event=>{
-    if(languageVisible||preinstallHelpVisible||webFeaturesVisible||!isFileDrag(event))return;
+    if(languageVisible||preinstallHelpVisible||webFeaturesVisible||recoveryVisible||!isFileDrag(event))return;
     event.preventDefault();fileDragDepth.current++;setFileOver(true);
   };
   const onDragOver=event=>{
-    if(languageVisible||preinstallHelpVisible||webFeaturesVisible||!isFileDrag(event))return;
+    if(languageVisible||preinstallHelpVisible||webFeaturesVisible||recoveryVisible||!isFileDrag(event))return;
     event.preventDefault();event.dataTransfer.dropEffect='copy';
   };
   const onDragLeave=event=>{
-    if(languageVisible||preinstallHelpVisible||webFeaturesVisible||!isFileDrag(event))return;
+    if(languageVisible||preinstallHelpVisible||webFeaturesVisible||recoveryVisible||!isFileDrag(event))return;
     fileDragDepth.current=Math.max(0,fileDragDepth.current-1);
     if(!fileDragDepth.current)setFileOver(false);
   };
   const onDrop=event=>{
-    if(languageVisible||preinstallHelpVisible||webFeaturesVisible||!isFileDrag(event))return;
+    if(languageVisible||preinstallHelpVisible||webFeaturesVisible||recoveryVisible||!isFileDrag(event))return;
     event.preventDefault();event.stopPropagation();
     fileDragDepth.current=0;setFileOver(false);
     toolbarModel?.onImportFiles?.(Array.from(event.dataTransfer.files||[]));
@@ -975,49 +1093,56 @@ export function ExtensionCenterPage({
         preinstallTitleRef.current.closest('[hidden],[inert]')))return;
       if(webFeaturesVisible&&(!webFeaturesTitle.current?.getClientRects().length||
         webFeaturesTitle.current.closest('[hidden],[inert]')))return;
+      if(recoveryVisible&&(!recoveryTitle.current?.getClientRects().length||recoveryTitle.current.closest('[hidden],[inert]')))return;
       if(toolbarModel?.menuOpen){event.preventDefault();toolbarModel.onCloseMenu?.(true);}
       else if(preinstallHelpVisible){event.preventDefault();setPreinstallInfo(false);}
       else if(webFeaturesVisible){event.preventDefault();closeWebFeatures();}
+      else if(recoveryVisible){event.preventDefault();closeRecovery();}
       else if(detailVisible){event.preventDefault();detailBackRef.current(event);}
     };
     doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
     return ()=>{doc.removeEventListener('click',clickOutside);doc.removeEventListener('keydown',keyDown);};
-  },[toolbarModel,detailVisible,preinstallHelpVisible,webFeaturesVisible,onBack]);
+  },[toolbarModel,detailVisible,preinstallHelpVisible,webFeaturesVisible,recoveryVisible,onBack]);
+  const listHidden=detailVisible||languageVisible||preinstallHelpVisible||webFeaturesVisible||recoveryVisible;
   return <div className="ec-drop-surface"
     onDragEnter={onDragEnter} onDragOver={onDragOver}
     onDragLeave={onDragLeave} onDrop={onDrop}>
-    <p id="extension-center-status" className="ec-message" role="status"
-      aria-live="polite" data-state={statusModel?.state||'info'}
-      hidden={!statusModel?.text}>
-      <ExtensionStatus model={statusModel}/>
-    </p>
-    <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible||languageVisible||preinstallHelpVisible||webFeaturesVisible}>
-      <div className="ec-toolbar">
-        <ExtensionToolbar locale={locale} model={toolbarModel} onWebFeatures={openWebFeatures}/>
-      </div>
-      <ExtensionPreinstallNotice model={preinstallModel} locale={locale} onAction={preinstallAction}
-        settingsVisited={preinstallSettingsVisited} onInfo={openPreinstallInfo}/>
-      {updateCenter}
-      <ExtensionDiscovery locale={locale} model={showWebDiscovery?discoveryModel:null}
-        showEntry={showWebDiscovery} onDiscover={toolbarModel?.onDiscover}/>
-      <input id="extension-center-file" type="file" accept=".json,application/json" hidden
-        aria-label={t('selectPackage')} onChange={event=>{
-          toolbarModel?.onImportFiles?.(Array.from(event.currentTarget.files||[]));event.currentTarget.value='';
-        }}/>
-      <div id="extension-center-import-host"></div>
-      <span id="extension-center-count" className="visually-hidden" aria-live="polite">
-        {feedbackModel?.countText||t('loading')}
-      </span>
-      <h2 id="extension-center-list-heading" className="visually-hidden">{t('listHeading')}</h2>
-      <ul id="extension-center-list" className="ec-list od-collection" aria-label={t('listAria')}
-        aria-busy={Boolean(rowsModel.busy||rowsModel.pendingKey)}>
-        <ExtensionRows {...rowsModel} locale={locale} menuKey={menuKey}/>
-      </ul>
-      <div id="extension-center-cleanups" hidden={!recoveryModel?.ids?.length}>
-        <ExtensionRecoveries locale={locale} model={recoveryModel}/>
-      </div>
-      <div id="extension-center-empty" className="ec-empty" hidden={!feedbackModel?.showEmpty}>
-        <ExtensionEmpty model={feedbackModel}/>
+    <div id="extension-center-toolbar" className="ec-toolbar" hidden={listHidden}>
+      <ExtensionToolbar locale={locale} model={toolbarModel} onWebFeatures={openWebFeatures} onRecovery={openRecovery}/>
+    </div>
+    <div id="extension-center-results" className="ec-results">
+      <p id="extension-center-status" className="ec-message" role="status"
+        aria-live="polite" data-state={statusModel?.state||'info'}
+        hidden={!statusModel?.text||Boolean(detailVisible&&detailModel?.scrollStatusRead&&statusModel.pageReadOnly)}>
+        <ExtensionStatus model={statusModel}/>
+      </p>
+      <div ref={pageRef} id="extension-center-list-view" hidden={listHidden}>
+        <ExtensionPreinstallNotice model={preinstallModel} locale={locale} onAction={preinstallAction}
+          settingsVisited={preinstallSettingsVisited} onInfo={openPreinstallInfo}/>
+        {updateCenter}
+        <ExtensionDiscovery locale={locale} model={showWebDiscovery?discoveryModel:null}
+          onMarket={toolbarModel?.storeWebsiteStatus==='ready'?toolbarModel.onMarket:undefined}
+          showEntry={showWebDiscovery} onDiscover={toolbarModel?.onDiscover}/>
+        <input id="extension-center-file" type="file" accept=".json,application/json" hidden
+          aria-label={t('selectPackage')} onChange={event=>{
+            toolbarModel?.onImportFiles?.(Array.from(event.currentTarget.files||[]));event.currentTarget.value='';
+          }}/>
+        <div id="extension-center-import-host"></div>
+        <span id="extension-center-count" className="visually-hidden" aria-live="polite">
+          {feedbackModel?.countText||t('loading')}
+        </span>
+        <h2 id="extension-center-list-heading" className="visually-hidden">{t('listHeading')}</h2>
+        <ul id="extension-center-list" className="ec-list od-collection" aria-label={t('listAria')}
+          aria-busy={Boolean(feedbackModel?.showLoading||rowsModel.busy||rowsModel.pendingKey)}>
+          <ExtensionRows {...rowsModel} locale={locale} menuKey={menuKey}/>
+        </ul>
+        {feedbackModel?.showLoading&&<p className="ec-list-loading" aria-hidden="true">{t('loadingInstalled')}</p>}
+        <div id="extension-center-cleanups" hidden={!recoveryModel?.ids?.length}>
+          <ExtensionRecoveries locale={locale} model={recoveryModel}/>
+        </div>
+        <div id="extension-center-empty" className="ec-empty" hidden={!feedbackModel?.showEmpty}>
+          <ExtensionEmpty model={feedbackModel}/>
+        </div>
       </div>
     </div>
     {preinstallHelpVisible&&<PreinstallExplanation model={preinstallModel} locale={locale}
@@ -1025,6 +1150,8 @@ export function ExtensionCenterPage({
       settingsVisited={preinstallSettingsVisited} titleRef={preinstallTitleRef}/>}
     {webFeaturesVisible&&<WebFeaturesView model={toolbarModel?.webFeatures} t={t}
       onBack={closeWebFeatures} titleRef={webFeaturesTitle}/>}
+    {recoveryVisible&&<ExtensionRecoveryPage controller={toolbarModel.extensionRecovery} locale={locale}
+      onBack={closeRecovery} titleRef={recoveryTitle}/>}
     <section id="extension-center-detail" className="ec-detail" aria-label={t('detailAria')}
       data-scroll-app={detailModel?.scrollManager?'true':undefined}
       hidden={!detailVisible}>

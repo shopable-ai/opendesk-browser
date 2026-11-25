@@ -175,6 +175,36 @@ test('own page Bridge is absent on read-only, page and legacy no-port hosts',asy
   }
 });
 
+test('page.request accepts the authorized Host response after the ordinary RPC deadline',async()=>{
+  let deadline=0,cleared=false;
+  const b=sandbox({timers:{setTimeout(_fn,ms){deadline=ms;return 1;},clearTimeout(){cleared=true;}}});
+  try{
+    const result=b.request('page.request',{operation:'example.status',payload:{}});
+    const request=b.publicMessages.find(row=>row.kind==='request');
+    assert.ok(request);
+    assert.ok(deadline>15000,'allow the observed application page round trip');
+    assert.equal(cleared,false);
+    b.respond({...request,kind:'response',ok:true,result:{ready:true}});
+    assert.deepEqual(await result,{ready:true});
+    assert.equal(cleared,true);
+  }finally{await b.dispose();}
+});
+
+for(const phase of ['timeout','pagehide'])
+test(`page.request ${phase} preserves unknown outcome and ignores a late receipt`,async()=>{
+  let expire;
+  const b=sandbox({timers:{setTimeout(fn){expire=fn;return 1;},clearTimeout(){}}});
+  try{
+    const result=b.request('page.request',{operation:'example.save',payload:{value:'rule'}});
+    const request=b.publicMessages.find(row=>row.kind==='request');
+    if(phase==='timeout')expire();
+    else await b.dispose();
+    await assert.rejects(result,{code:'E_OUTCOME_UNKNOWN'});
+    b.respond({...request,kind:'response',ok:true,result:{saved:true}});
+    assert.equal(b.publicMessages.filter(row=>row.kind==='request').length,1);
+  }finally{await b.dispose();}
+});
+
 for(const phase of ['timeout','pagehide'])
 test(`storage.set ${phase}: a late write stays unknown without replay or receipt reuse`,async()=>{
   let next=0,commits=0,persisted;

@@ -1,7 +1,10 @@
 // Tab-scoped, origin-local refresh backup. Cached text is untrusted data,
 // never a native send receipt, DOM identity or permission record.
+import {deepSeekConversationKey} from './site.js';
+
 const PREFIX='opendesk.ai-send-queue.session.v1:';
-const validRoute=value=>typeof value==='string'&&value.length<=256&&/^c\/[a-z0-9-]{8,}$/.test(value);
+const validRoute=value=>typeof value==='string'&&value.length<=256&&
+  (/^c\/[a-z0-9-]{8,}$/.test(value)||/^app\/[a-z0-9_-]+$/i.test(value)||deepSeekConversationKey.test(value));
 const validText=value=>typeof value==='string'&&value.trim().length>0&&value.length<=8192;
 const states=new Set(['queued','paused','sending','waiting','unknown']);
 export function normalizeQueueCache(record,route){

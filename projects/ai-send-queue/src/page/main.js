@@ -1,5 +1,5 @@
 import {createPageUI} from '@opendesk/ui';
-import {createChatGPTSite} from './site.js';
+import {createChatGPTSite,createGeminiSite,geminiRoute,createDeepSeekSite,deepSeekRoute} from './site.js';
 import {createQueueEngine} from './engine.js';
 import {createQueueView} from './view.js';
 import {createSendQueueRemote} from './remote.js';
@@ -12,7 +12,7 @@ const POLL_MS=650, WATCHDOG_MS=5000, STALL_MS=30000;
 const LEGACY_LIFECYCLES=['opendesk.chatgpt-send-queue','opendesk.ai-send-queue']
   .map(id=>'[data-opendesk-ui-owner][data-od-id="'+id+'.lifecycle"]');
 const legacyActive=()=>LEGACY_LIFECYCLES.some(selector=>document.querySelector(selector));
-const pageRules={matches:['https://chatgpt.com/*'],excludeMatches:[],
+const pageRules={matches:['https://chatgpt.com/*','https://gemini.google.com/*','https://chat.deepseek.com/a/chat/s/*','https://chat.deepseek.com/'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 
 export default function main({assets}={}) {
@@ -20,7 +20,10 @@ export default function main({assets}={}) {
 }
 
 export async function runQueue({assets,fixed,createRemote}={}) {
-  if(window!==window.top||window.location.origin!=='https://chatgpt.com')
+  const chatgpt=window.location.origin==='https://chatgpt.com';
+  const allowDeepSeekHome=fixed?.deepSeekHome===true;
+  const deepseek=!!fixed&&!!deepSeekRoute(window.location,allowDeepSeekHome);
+  if(window!==window.top||(!chatgpt&&!deepseek&&!geminiRoute(window.location)))
     return {programId:ID,status:'skipped'};
   if(legacyActive())
     return {programId:ID,status:'skipped',reason:'legacy-active'};
@@ -34,11 +37,12 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     return true;
   }
   let composing=false,compositionEndedAt=-Infinity;
-  const site=createChatGPTSite({isComposing:()=>composing});
+  const site=(chatgpt?createChatGPTSite:deepseek?createDeepSeekSite:createGeminiSite)({
+    isComposing:()=>composing,allowHome:allowDeepSeekHome});
   owner.on(document,'compositionstart',()=>{composing=true;},true);
   owner.on(document,'compositionend',()=>{composing=false;compositionEndedAt=Date.now();},true);
   let view=null,engine,remote=null;
-  // One bounded handoff, acknowledged only by the independent interval poll.
+  // A paused Gemini handoff can also be verified by an edit.
   let pending=null,provenance=null,backup=null,editing=null,writing=false;
   let checking=false,checkFailed=false,needsRender=false,lastProgressKey=null;
   const cache=createQueueCache();
@@ -52,13 +56,11 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     try{fn();return true;}
     catch(error){
       checkFailed=true;
-      // Record no page text, draft, exception message or stack.
       diagnostics.lastError={stage,type:error?.name==='TypeError'?'TypeError':'Error'};
       return false;
     }
   }
   function progress(state=engine.view()){
-    // Repeated waiting reasons, UI renders and unrelated DOM mutations are not progress.
     const key=JSON.stringify([state.items.map(item=>[item.id,item.state]),state.phase,
       state.inFlight?.id,state.inFlight?.phase,Boolean(state.answerGate),state.lastConfirmed,
       pending?.kind,pending?.id,Boolean(provenance),Boolean(backup)]);
@@ -72,9 +74,9 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     const previous=cacheStatus.status;
     cacheStatus.status=status;
     const message=status==='write-failed'?
-      '队列缓存未保存，刷新或关闭可能丢失消息。请先复制备份，存储恢复后自动重试。':
+      '队列未保存。刷新或关闭页面可能丢失待发消息。':
       ['invalid','unavailable'].includes(status)?
-        '队列缓存无法读取，暂不自动发送。请先复制备份并检查浏览器存储。':'';
+        '暂时无法读取已保存的队列。':'';
     attempt(()=>{
       view?.setCacheWarning?.(message);
       if(status==='saved'&&['write-failed','invalid','unavailable'].includes(previous))
@@ -158,8 +160,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       return false;
     }
     function recover(transfer,reason){
-      // An acknowledged enqueue already has a queue-owned copy. Mark that row
-      // uncertain instead of showing a misleading duplicate recovery overlay.
+      // Mark the existing queue copy uncertain before offering another copy.
       const retained=transfer.kind==='enqueue'&&!!transfer.id&&
         engine.view().items.some(item=>item.id===transfer.id&&item.text===transfer.text);
       const marked=retained&&engine.uncertain(transfer.id,reason,transfer.before)===true;
@@ -175,8 +176,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     function observeProvenance(snap){
       if(!provenance)return;
       const transfer=provenance;
-      // Dispatch owns its writes, but cannot release another queued draft's
-      // protection. Its exact admission is reconciled after tick below.
+      // Keep other drafts protected until the exact dispatch receipt.
       const flight=engine.view().inFlight;
       if(flight){if(flight.id===transfer.id)provenance=null;return;}
       if(transfer.edited&&transfer.draft!==''&&
@@ -195,11 +195,14 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         // tick reconciles the exact admission and installs the normal reply gate.
         return;
       }
-      if(!sameComposer(transfer.before,snap)||!site.sameHistory(transfer.before,snap)||
+      if(!sameComposer(transfer.before,snap)||!site.sameHistory(transfer.before,snap,transfer.confirmedQueueUser)||
         (snap.rich||snap.draft!==transfer.draft)){
         recover(transfer,'入队后原生草稿或历史发生未确认变化，已保留原文；请核对输入框与队列');
         provenance=null;
-      }else transfer.before=remember(snap);
+      }else{
+        transfer.before=remember(snap);
+        if(snap.history?.at(-1)!==transfer.confirmedQueueUser)transfer.confirmedQueueUser=null;
+      }
     }
     function reconcile(snap){
       if(pending){
@@ -242,15 +245,25 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         backup=null;
       }
     }
+    function pausedGeminiEnqueue(transfer){
+      if(chatgpt||deepseek||transfer?.kind!=='enqueue')return false;
+      const state=engine.view();
+      return state.route===transfer.before.route&&!state.inFlight&&state.items.some(item=>
+        item.id===transfer.id&&item.text===transfer.text&&item.state==='paused');
+    }
     owner.on(document,'beforeinput',event=>{
       if(!owner.active()||writing)return;
       const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
       if(target!==snap.editor&&!snap.editor?.contains?.(target))return;
-      // Foreign events can veto a handoff, but cannot authorize discarding text.
+      // A completed native edit can confirm an empty composer before the poll.
+      const handoff=event.isTrusted===true&&pending&&!pending.veto&&pausedGeminiEnqueue(pending)&&
+        sameComposer(pending.before,snap)&&snap.draft===''&&!snap.rich&&!snap.composing&&
+        site.sameHistory(pending.before,snap)?pending:null;
+      // Foreign events can only veto a handoff.
       if(pending)pending.veto=true;
-      observeProvenance(snap);
+      if(!handoff)observeProvenance(snap);
       observeBackup(snap);
-      editing=event.isTrusted===true?{event,backup,provenance,draft:snap.draft,
+      editing=event.isTrusted===true?{event,backup,provenance,handoff,draft:snap.draft,
         flight:engine.view().inFlight,before:remember(snap)}:null;
     },true);
     owner.on(document,'input',event=>{
@@ -262,12 +275,15 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         (target!==snap.editor&&!snap.editor.contains?.(target)))return;
       if(intent.backup&&intent.backup===backup)
         backup=backup.nativeAdmission&&snap.draft?{text:snap.draft,before:remember(snap),nativeAdmission:true}:null;
-      if(intent.provenance&&intent.provenance===provenance){
+      if(intent.handoff&&intent.handoff===pending&&pausedGeminiEnqueue(pending)&&
+        !snap.rich&&!snap.composing&&site.sameHistory(intent.before,snap)){
+        provenance={...pending,before:remember(snap),draft:snap.draft,edited:true};
+        pending=null;
+      }else if(intent.provenance&&intent.provenance===provenance){
         provenance.draft=snap.draft;provenance.edited=true;
       }
       if(intent.flight&&['await-native-ready','unknown'].includes(intent.flight.phase)){
-        // Persist the actual user draft alongside the cancellation. This copy
-        // never authorizes replay, including when cache storage rejects it.
+        // Persist the edited draft on cancellation without authorizing replay.
         backup=snap.draft?{text:snap.draft,before:remember(snap),nativeAdmission:true}:null;
         if(engine.reclaimEditedPrepared?.(intent.flight.id,intent.before,snap))
           notify('已接管输入框编辑，取消此条自动排队');
@@ -277,11 +293,14 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     const actions={
       enqueue({paused=false}={}){
         if(blocked())return false;
+        if(deepseek&&!currentRoute()?.route){
+          notify('请先用 DeepSeek 的发送按钮发送首条消息，建立对话后即可加入队列。草稿已保留。');
+          return false;
+        }
         if(cachedDraft||view?.hasRecovery()){
           notify('请先核对并处理上一次草稿交接的备份，再继续操作');return;
         }
-        // A flight can still own the text it placed in the native editor.
-        // Wait for exact admission before clearing it through either entry.
+        // A flight can still own native text until exact admission.
         if(engine.view().inFlight){
           notify('当前发送尚未确认，请先核对原对话；草稿已保留');return;
         }
@@ -406,18 +425,22 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         return result.ok;
       }
     };
-    // Read current memory only after the explicit backup click. This never
-    // consumes a queue item, changes a send state, or relies on stale storage.
-    function getBackup(){
-      if(!owner.active()||retireForLegacy())return '';
+    // Only build the backup text after an explicit click. The availability
+    // check needs no storage access and can reuse the current composer snapshot.
+    function getBackup({availabilityOnly=false,snapshot}={}){
+      if(!owner.active()||(!availabilityOnly&&retireForLegacy()))return '';
       const state=engine.view();
-      let snap;
-      try{snap=site.inspect();}catch{} // A missing editor cannot hide the memory backup.
+      let snap=snapshot;
+      if(!snap){
+        try{snap=site.inspect();}catch{} // A missing editor cannot hide the memory backup.
+      }
       const drafts=[pending?.text,pending?.draft,provenance?.text,provenance?.draft,
         backup?.text,cachedDraft?.text,view?.recovery?.()?.text,
-        snap?.ok&&snap.route===cacheRoute?snap.draft:null];
+        snap?.ok&&snap.route===cacheRoute?snap.draft:null]
+        .filter(text=>typeof text==='string'&&text.length);
+      if(availabilityOnly)return !!(state.items.length||drafts.length);
       const parts=state.items.map((item,i)=>'消息 '+(i+1)+'\n'+item.text);
-      for(const text of new Set(drafts.filter(text=>typeof text==='string'&&text.length)))
+      for(const text of new Set(drafts))
         parts.push('草稿备份\n'+text);
       return parts.length?'发送队列备份 · 请核对原对话，备份不会自动发送\n对话：'+
         (state.route||cacheRoute)+'\n\n'+parts.join('\n\n'):'';
@@ -437,27 +460,45 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         return run();
       }).catch(()=>{notify('暂时无法确认队列授权，请重试');return false;});
     }
-    view=createQueueView({owner,createPageUI,assets,engine,getBackup,onRecoveryChange:checkpoint,
+    const routeFor=chatgpt?null:deepseek?location=>deepSeekRoute(location,allowDeepSeekHome):geminiRoute;
+    const currentRoute=routeFor?()=>routeFor(window.location):null;
+    view=createQueueView({owner,createPageUI,assets,engine,getBackup,onRecoveryChange:checkpoint,currentRoute,
       trustedActions:!!fixed,
       actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
         [name,(...args)=>{if(owner.active()&&!retireForLegacy()){
           return withGrant(()=>{try{return action(...args);}finally{checkpoint();}},
             {checkComposer:name==='enqueue'||name==='edit'});
         }}] ))});
+    if(currentRoute){
+      const updateRouteDisplay=()=>view.render();
+      if(window.navigation)owner.on(window.navigation,'currententrychange',event=>{
+        const from=event.isTrusted&&URL.canParse(event.from?.url)?routeFor(new URL(event.from.url))?.route:null;
+        const transfer=provenance;
+        if(from&&from!==currentRoute()?.route&&transfer?.before.route===from&&
+          !pending&&!backup&&!transfer.edited&&transfer.draft===''){
+          const state=engine.view();
+          if(state.route===from&&!state.inFlight&&state.items.every(item=>item.state==='paused')&&
+            state.items.some(item=>item.id===transfer.id&&item.text===transfer.text))provenance=null;
+        }
+        updateRouteDisplay();
+      });
+      else owner.on(window,'popstate',updateRouteDisplay);
+    }
+    if(deepseek)owner.on(window,'resize',()=>{
+      if(!owner.active()||retireForLegacy())return;
+      const snap=site.inspect();
+      if(snap.ok){view.place(snap);view.render(snap);}
+      else view.hide();
+    });
     remote=createRemote?.({owner,site,engine,actions,retireForLegacy})??null;
     const bridge=fixed?.bridge??globalThis.OpenDeskAppPage;
-    if(bridge)registerPageStatus({bridge,owner,site,view,version:'0.1.39'});
-    // A native attempt may precede its DOM receipt. Subsequent editing cannot
-    // prove that an externally initiated send was cancelled.
+    if(bridge)registerPageStatus({bridge,owner,site,view,version:'1.0.0'});
     owner.on(document,'click',event=>{
       if(event.isTrusted!==true||!owner.active()||!engine.view().inFlight)return;
       const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
       if(snap.ok&&snap.sendButton&&(target===snap.sendButton||snap.sendButton.contains?.(target)))
         engine.observeNativeAttempt(snap);
     },true);
-    // One managed capture listener follows native editor replacements.
-    // Ctrl+Enter reuses the crown button's guarded enqueue action; plain Enter
-    // only falls back to the queue when native sending is unavailable.
     owner.on(document,'keydown',event=>{
       if(event.isTrusted!==true||event.key!=='Enter'||
         event.defaultPrevented||event.isComposing||event.keyCode===229||composing||
@@ -474,7 +515,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         return;
       }
       if(queueShortcut){
-        // Consume the key before enqueuing so ChatGPT cannot also submit it.
+        // Prevent a duplicate native send.
         event.preventDefault();event.stopImmediatePropagation();
         if(!event.repeat)void withGrant(()=>{
           if(actions.enqueue())notify('草稿已加入发送队列');
@@ -483,8 +524,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       }
       const send=snap.sendButton;
       const disabled=!!send&&(send.disabled||send.getAttribute('aria-disabled')==='true');
-      // An enabled official send always keeps its normal keyboard behavior,
-      // including sites that permit native sending during a response.
+      // Keep enabled native send shortcuts.
       if((send&&!disabled)||(!snap.busy&&!disabled)){
         if(state.inFlight)engine.observeNativeAttempt(snap);
         return;
@@ -499,14 +539,13 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       },{checkComposer:true});
     },true);
     owner.on(window,'beforeunload',()=>{
-      // Report failures while the page is usable; leaving never opens a native
-      // dialog. Normal enqueue/delete/send checkpoints remain fail-closed.
+      // Save without opening a native dialog.
       if(owner.active())checkpoint();
     });
-    // All schedules share this gate and the original engine; no timeout proves a reply complete.
     let authorizing=false;
     function poll(source='poll'){
-      if(!fixed||!hasWork())return pollAuthorized(source);
+      // Off the DeepSeek conversation routes, reconcile without submitting.
+      if(!fixed||!hasWork()||deepseek&&!currentRoute()?.route)return pollAuthorized(source);
       if(authorizing)return;
       authorizing=true;
       return fixed.authorize().then(allowed=>{if(allowed)pollAuthorized(source);})
@@ -522,7 +561,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         let snap,placed=false,recovery=true;
         const reconciled=attempt(()=>{snap=site.inspect();ensureCache(snap);restoreDraft();reconcile(snap);},'reconcile');
         if(reconciled)attempt(()=>{
-          if(snap.ok){placed=view.place(snap);view.render();}
+          if(snap.ok){placed=view.place(snap);view.render(snap);}
           else view.hide();
           recovery=!!cachedDraft||view.hasRecovery();
         },'layout');
@@ -530,7 +569,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         const flight=engine.view().inFlight;
         // Even a failed UI round must reconcile late admission and existing deadlines.
         const ticked=attempt(()=>{
-          const canSubmit=!checkFailed&&placed&&!pending&&!recovery&&
+          const canSubmit=!checkFailed&&placed&&(!deepseek||!!snap?.route)&&!pending&&!recovery&&
             engine.view().phase!=='unknown'&&checkpoint();
           const submitBlockReason=checkFailed?'本轮队列检查异常':!placed?'队列控件尚未安全显示':
             pending?'草稿交接尚未确认':recovery?'恢复草稿尚待核对':'队列缓存未保存';
@@ -543,10 +582,14 @@ export async function runQueue({assets,fixed,createRemote}={}) {
             // Advance only history proved by this item's exact admission.
             provenance.before={...provenance.before,users:[...snap.users],
               assistants:[...snap.assistants],history:snap.history?.slice(),busy:snap.busy};
+            const user=after.answerGate?.confirmedUser;
+            // The initial reply can mount before a busy control is observed.
+            // Only the exact admitted user can authorize that one append.
+            provenance.confirmedQueueUser=user&&snap.history?.at(-1)===user?user:null;
             observeProvenance(snap);
           }
         },'provenance');
-        if(needsRender)attempt(()=>view.render(),'render-change');
+        if(needsRender)attempt(()=>view.render(snap),'render-change');
         checkpoint();
         progress();
         if(!checkFailed)diagnostics.lastCheckCompletedAt=Date.now();
@@ -580,7 +623,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     attempt(()=>{
       snap=site.inspect();
       ensureCache(snap);
-      if(snap.ok){view.place(snap);view.render();}
+      if(snap.ok){view.place(snap);view.render(snap);}
     },'initial-layout');
     progress();
     return {programId:ID,status:'active',runtime:fixed?'ISOLATED':'USER_SCRIPT',

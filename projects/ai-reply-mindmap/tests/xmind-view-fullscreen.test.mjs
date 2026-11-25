@@ -28,6 +28,34 @@ test('startup failure identifies create, ready or fit while retaining the origin
   }
 });
 
+test('initial fit reveals a canvas moved out of its conversation scroller during startup',async()=>{
+  const {document,window}=parseHTML('<html><body><article></article></body></html>');
+  const scroller=document.querySelector('article');
+  window.innerHeight=800;
+  window.getComputedStyle=node=>({overflowY:node===scroller?'auto':'visible'});
+  Object.defineProperty(scroller,'clientHeight',{value:500});
+  Object.defineProperty(scroller,'clientTop',{value:0});
+  scroller.getBoundingClientRect=()=>({top:100});
+  const owner={on(){return ()=>{};}};
+  let top=180,scrolls=0;
+  const view=createAnswerView({document,window,owner,css:'',
+    tree:{title:'Root',children:[]},nodeCount:1,
+    rendererFactory(){
+      assert.equal(scrolls,0,'leave an already visible canvas in place');
+      return {ready:Promise.resolve().then(()=>{top=-300;}),async fit(){
+        assert.equal(scrolls,1);assert.equal(top,180);
+      },async destroy(){}};
+    }});
+  scroller.append(view.host);
+  view.host.shadowRoot.querySelector('.odmm-canvas').getBoundingClientRect=()=>({top,bottom:top+380,height:380});
+  view.host.scrollIntoView=options=>{
+    assert.equal(options.behavior,'instant');scrolls++;top=180;
+  };
+  await view.start();
+  assert.equal(view.host.dataset.ready,'true');
+  await view.destroy();
+});
+
 // DOM call regression only; the parent's real Chromium probe verifies that
 // moveBefore actually retains the opaque iframe Document and MessagePort.
 async function setup({iframe=true,bodyMove=true,inlineMove=true,moveError,truncated=false}={}){

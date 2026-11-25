@@ -68,7 +68,7 @@ npm run dev
 
 如果此前已从同一个目录加载过 `build:dev` 的静态包，在首次切换到持续开发时，点击扩展卡片的「重新加载」一次，再打开 Sidebar。以后保留同一加载目录，不需重复安装或打包 ZIP。
 
-若已安装工具打开后显示“该文件可能已被移至别处、修改或删除”，先检查加载目录里的 `manifest.json`、`sidepanel.html` 和 `sidebar-tools/sandbox.html`。WXT 全量构建失败可能只留下部分 JS，工具 JSON 本身仍然有效；修复日志中的构建错误，再恢复同一个 `npm run dev`，无需卸载工具。
+若已安装工具打开后显示“该文件可能已被移至别处、修改或删除”，先检查加载目录里的 `manifest.json`、`sidepanel.html` 和 `sidebar-tools/sandbox.html`。旧版开发服务曾在全量构建开始时清空浏览器加载目录。新版在内部目录编译，构建和校验通过后才发布到 `dist/development`；失败时继续使用上一份产物。更新开发服务后仍使用原加载目录，无需卸载扩展或工具。
 
 **开发体积预算（2026-11-11）：** `development` 模式每个固定生成 JS 入口统一允许 **8 MiB（8,388,608 UTF-8 字节）**，包括 SW、可信工作台、Sidebar Tool Host 和设置页；适用于持续开发与静态开发包，独立于 Standard/Developer edition。此值是单文件上限，不是整包总量，也不包含 sourcemap。`production` 保留现有预算：普通入口 512 KiB、SW 2 MiB、可信工作台 3 MiB、Sidebar Tool Host 1 MiB、设置页 576 KiB；原非阻断审阅线保留。这些是项目工程预算，不是 Chrome 体积限制。构建、包验证和体积审计共用 `scripts/build-contract.mjs`，模块来源、固定资源哈希、CSP、自包含检查、沙箱及运行时读取限制继续生效；开发预算不改变 Babel/Vue 编译器等固定资源的身份或专用读取合同。
 
@@ -85,7 +85,7 @@ cd /Users/shopme/Documents/workspace/opendesk-browser
 npm run dev
 ```
 
-保留这个终端。修改源码并保存，WXT/Vite 根据已记录的模块依赖图增量编译相关入口；静态 HTML/CSS 从源码同步到 WXT public 后进入同一监听队列。输出始终在 `dist/development`。
+保留这个终端。修改源码并保存，WXT/Vite 根据已记录的模块依赖图增量编译相关入口；静态 HTML/CSS 从源码同步到 WXT public 后进入同一监听队列。编译写入 `.wxt/development-build/development`；发布时先替换资源文件，再更新清单和供浏览器检查的 revision。浏览器始终加载 `dist/development`。
 
 | 修改内容 | 自动行为 | 用户需要做什么 |
 | --- | --- | --- |

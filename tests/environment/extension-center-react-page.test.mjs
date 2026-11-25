@@ -64,8 +64,12 @@ async function fixture({withImportHost=false,pageId='reader'}={}){
   }
   const eventCall=(action,id,event)=>{lastNativeEvent=event;calls.push({action,id,native:event instanceof MouseEvent,
     trusted:event?.isTrusted,gesture:navigator.userActivation.isActive});};
-  let corrupt=false,ackOnly=false,holdToggle=false,finishToggle,pageInstalled=true;
+  let corrupt=false,ackOnly=false,holdToggle=false,finishToggle,pageInstalled=true,scriptsAllowed=false;
   const api={runtime:{getURL:path=>location.origin+'/'+path},tabs:{create:async value=>calls.push(value)},
+    userScripts:{async getScripts(){
+      if(!scriptsAllowed)throw Error("'userScripts.getScripts' is not available in this context.");
+      return [];
+    },execute(){throw Error('unexpected execution');}},
     permissions:{contains:async()=>true,request:async()=>{throw Error('unexpected permission');}},
     storage:{local:{get:async keys=>{if(corrupt)throw Error('storage unavailable');
       return Object.fromEntries(keys.map(key=>[key,structuredClone(store[key])]))}},
@@ -82,7 +86,7 @@ async function fixture({withImportHost=false,pageId='reader'}={}){
           args.expectedGeneration!==page.installed.authorization.generation)
           throw Object.assign(Error('Page identity changed'),{code:'E_PAGE_IDENTITY'});
         pageInstalled=false;
-        return {uninstalled:true,nativeState:'unregistered',manifestHash:page.manifestHash,
+        return {uninstalled:true,programId:page.programId,nativeState:'unregistered',manifestHash:page.manifestHash,
           installationId:args.installationId,managedCleanup:{state:'retired'}};
       }
       if(method!=='setInstalledPageEnabled')throw Error(method);
@@ -126,6 +130,7 @@ async function fixture({withImportHost=false,pageId='reader'}={}){
     installedApps:()=>store[SIDEBAR_TOOL_STORE],
     pageInstalled:()=>pageInstalled,nativeEvent:()=>lastNativeEvent,
     setCorrupt:value=>{corrupt=value;},setAckOnly:value=>{ackOnly=value;},
+    setScriptsAllowed:value=>{scriptsAllowed=value;},
     hold:()=>{holdToggle=true;},release:()=>finishToggle(),
     dispose(){controller.dispose();importRoot?.unmount();root.unmount();},
     cleanup(id='quick-notes'){store[SIDEBAR_TOOL_STORE]=[];store[TOOL_CLEANUP_STORE]={
@@ -212,9 +217,17 @@ async function chooseListUninstall(page,key){
   await page.locator('#extension-center-row-menu [data-ec-context-action="uninstall"]').click();
 }
 
-test('React page preserves list, search/filter, detail identity and native Page actions',options,async t=>{
+test('App rows launch directly; Page rows preserve list context and control Web authority',options,async t=>{
   const page=await browserFixture(t);
-  await page.locator('[data-extension-key="app:quick-notes"][data-extension-action="main"]').click();
+  const app=page.locator('[data-extension-id="app:quick-notes"]');
+  await app.locator('[data-extension-action="main"]').press('Enter');
+  assert.equal(await page.locator('#extension-center-detail').isVisible(),false);
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='open').length),1);
+  assert.equal(await app.locator('[data-extension-action="open"]').count(),0);
+  await clickRowMore(app.locator('[data-extension-action="more"]'));
+  assert.equal(await page.locator('#extension-center-row-menu [data-ec-context-action="detail"]').count(),0);
+  await page.locator('#extension-center-row-menu [data-ec-context-action="settings"]').click();
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='settings').length),1);
   assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='open').length),1);
   await page.locator('#extension-center-search').fill('阅读');
   assert.equal(await page.locator('#extension-center-list > li').count(),1);
@@ -225,19 +238,25 @@ test('React page preserves list, search/filter, detail identity and native Page 
   assert.equal(await page.locator('#extension-center-detail button[data-ec-detail-action="toggle"]').count(),0);
   assert.equal(await page.locator('.ec-page-diagnostics:not([open])').count(),1);
   await page.locator('#extension-center-back').click();
-  await page.locator('[data-extension-key="page:reader"][data-extension-action="more"]').click();
-  await page.locator('#extension-center-row-menu').getByRole('menuitem',{name:'查看详情',exact:true}).click();
+  const reader=page.locator('[data-extension-key="page:reader"][data-extension-action="main"]');
+  assert.equal(await reader.evaluate(node=>node===document.activeElement),true);
+  assert.equal(await page.locator('#extension-center-search').inputValue(),'阅读');
+  await clickRowMore(page.locator('[data-extension-key="page:reader"][data-extension-action="more"]'));
+  assert.equal(await page.locator('#extension-center-row-menu [data-ec-context-action="detail"]').count(),0);
+  await page.keyboard.press('Escape');
+  await reader.press('Enter');
   assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
-  await page.locator('[data-ec-detail-action="toggle"]').click();
+  const toggle=page.getByRole('switch',{name:'启用「阅读增强」'});
+  await toggle.press('Space');
   await page.waitForFunction(()=>fixture.page.installed.enabled===false&&fixture.state.detailModel?.busy===false)
     .catch(async error=>{throw new Error(String(error)+'\nTOGGLE_READBACK '+JSON.stringify(await page.evaluate(()=>({
       installed:fixture.page.installed,calls:fixture.calls,detail:fixture.state.detailModel,
       status:fixture.state.statusModel,text:document.body.innerText
     }))));});
-  assert.equal(await page.getByRole('switch',{name:'启用「阅读增强」'}).evaluate(node=>node===document.activeElement),true);
+  await page.waitForFunction(node=>node===document.activeElement,await toggle.elementHandle());
   assert.equal(await page.evaluate(()=>fixture.calls.find(x=>x.action==='page-toggle').args.expectedGeneration),5);
   await page.evaluate(()=>{fixture.setAckOnly(true);});
-  await page.locator('[data-ec-detail-action="toggle"]').click();
+  await toggle.press('Space');
   await page.waitForFunction(()=>fixture.state.statusModel?.text.includes('读回确认'));
   await page.evaluate(async()=>{fixture.page.installed.revision++;fixture.page.installed.sourceHash='d'.repeat(64);await fixture.controller.refresh();});
   assert.equal(await page.locator('#extension-center-list-view').isVisible(),true);
@@ -329,11 +348,11 @@ test('React row menu preserves native gestures, keyboard/outside close, pending 
   await page.evaluate(()=>fixture.release());
   await page.waitForFunction(()=>fixture.state.rowsModel.busy===false);
   assert.equal(await page.locator('#extension-center-status').innerText(),'已从本机安装记录确认应用停用。');
-  await clickRowMore(more);await menu.locator('[data-ec-context-action="detail"]').click();
-  assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
-  await page.keyboard.press('Escape');assert.equal(await page.locator('#extension-center-list-view').isVisible(),true);
-  await clickRowMore(more);await menu.locator('[data-ec-context-action="settings"]').click();
+  await page.locator('[data-extension-key="app:quick-notes"][data-extension-action="main"]').press('Enter');
   assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='settings').length),1);
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='open').length),0);
+  await clickRowMore(more);await menu.locator('[data-ec-context-action="settings"]').click();
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='settings').length),2);
   await clickRowMore(more);
   await page.evaluate(()=>{
     window.stale={onClick:fixture.state.rowMenuModel.items[0].onClick,event:fixture.nativeEvent()};
@@ -399,7 +418,7 @@ test('R5.11 Page overflow opens one confirmation; fixed generation is passed to 
     [{action:'page-uninstall',args:{programId:'reader',manifestHash:'a'.repeat(64),
       installationId:'fixture-page-install-1',expectedGeneration:5}}]);
   assert.equal(await page.evaluate(()=>fixture.pageInstalled()),false);
-  assert.match(await page.locator('#extension-center-status').innerText(),/Page Authority 回执/);
+  assert.equal(await page.locator('#extension-center-status').innerText(),'已卸载。');
   await page.evaluate(()=>fixture.controller.refresh());
   assert.equal(await page.locator('[data-extension-key="page:reader"][data-extension-action="uninstall"]').count(),0);
 });
@@ -562,7 +581,7 @@ for(const [programId,name] of [
     assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),2);
     assert.equal(await control.evaluate(node=>document.activeElement===node),true);
     if(!scroll){
-      assert.equal(await page.locator('.ec-page-management [data-ec-detail-action="uninstall"]').count(),1);
+      assert.equal(await page.locator('#extension-center-detail [data-ec-detail-action="uninstall"]').count(),1);
       assert.equal(await page.locator('.ec-site-review-details').count(),0);
     }else{
       assert.equal(await page.locator('.ec-detail-head [data-ec-detail-action="uninstall"]').count(),1);
@@ -585,6 +604,45 @@ test('R1.4 master Switch never displays a Host acknowledgment as saved state',op
   assert.equal(await control.isChecked(),true);
   assert.equal(await page.evaluate(()=>fixture.page.installed.enabled),true);
   assert.equal(await page.evaluate(()=>fixture.state.statusModel.state),'error');
+});
+
+test('blocked Page explains the appropriate action without opening technical details or requesting access',options,async t=>{
+  const page=await browserFixture(t,{withImportHost:true});
+  await page.evaluate(async()=>{
+    Object.assign(fixture.page.installed,{nativeState:'blocked',
+      error:{code:'E_PAGE_ENVIRONMENT',message:'internal environment evidence'}});
+    fixture.page.installed.authorization.status='suspended';
+    await fixture.controller.refresh();
+  });
+  await page.locator('[data-extension-key="page:reader"][data-extension-action="main"]').click();
+  const management=page.locator('#extension-center-detail');
+  await management.getByRole('status').filter({hasText:'需要重新审阅安装'}).waitFor();
+  assert.equal(await management.getByText('此版本依赖的运行环境已变化。',{exact:false}).isVisible(),true);
+  assert.equal(await management.getByText('internal environment evidence',{exact:false}).isVisible(),false);
+  assert.equal(await management.getByRole('button',{name:'恢复自动运行'}).count(),0);
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle'||c.action==='import').length),0);
+  await management.getByRole('button',{name:'导入网页增强包…',exact:true}).click();
+  await page.locator('#sidebar-tool-import').waitFor({state:'visible'});
+  assert.deepEqual(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle'||c.action==='import')),[{action:'import'}]);
+});
+
+test('restored Chrome user-script availability offers explicit Page recovery without automatic side effects',options,async t=>{
+  const page=await browserFixture(t,{pageId:'opendesk.ai-reply-mindmap'});
+  await page.evaluate(async()=>{
+    Object.assign(fixture.page.installed,{nativeState:'blocked',error:{code:'E_USER_SCRIPTS_UNAVAILABLE'}});
+    fixture.page.installed.authorization.status='suspended';
+    await fixture.controller.refresh();
+  });
+  await page.locator('[data-extension-key="page:opendesk.ai-reply-mindmap"][data-extension-action="main"]').click();
+  const management=page.locator('#extension-center-detail');
+  const restore=management.getByRole('button',{name:'尝试恢复原有授权与注册',exact:true});
+  await management.getByText('Chrome 用户脚本不可用',{exact:true}).waitFor();
+  assert.equal(await restore.count(),0);
+  await page.evaluate(async()=>{fixture.setScriptsAllowed(true);await fixture.controller.refresh();});
+  await management.getByText('Chrome 已允许用户脚本 · 此扩展仍暂停',{exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>fixture.calls.length),0);
+  await restore.click();
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),1);
 });
 
 for(const nativeState of ['unregistered','pending','registered'])
@@ -628,12 +686,15 @@ test('R1.5 recovery ACK with superseded readback cannot confirm cached enabled s
   const page=await browserFixture(t,{pageId:'opendesk.ai-scroll-navigation'});
   await page.evaluate(async()=>{
     fixture.page.installed.nativeState='pending';await fixture.controller.refresh();
+  });
+  await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
+  await page.getByRole('button',{name:'恢复自动运行',exact:true}).waitFor();
+  await page.evaluate(()=>{
     const request=fixture.client.request.bind(fixture.client);
     fixture.client.request=(method,args)=>method==='listPagePrograms'
       ?new Promise(resolve=>{(fixture.reads??=[]).push(()=>request(method,args).then(resolve));})
       :request(method,args);
   });
-  await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
   await page.getByRole('button',{name:'恢复自动运行',exact:true}).click();
   await page.waitForFunction(()=>fixture.reads?.length===1);
   await page.evaluate(()=>{void fixture.controller.refresh();});

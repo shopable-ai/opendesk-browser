@@ -13,6 +13,7 @@ import {BUILTIN_RESOURCE_PATHS} from '../../src/libs/runtime-contract.js';
 import {verifyManifest,verifyBuiltinResourceManifest} from '../../scripts/verify-package.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from '../../scripts/market-channel.mjs';
 import {BROWSER_EDITION_RECORD,DEVELOPER_BROWSER_NAME,editionRecordText} from '../../scripts/browser-editions-r245.mjs';
+import {PACKAGED_TASK_RESOURCES,preparePackagedTaskResources} from '../../scripts/packaged-task-resources.mjs';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const {configureDevelopmentRestarts,publishDevelopment}=development;
@@ -191,12 +192,14 @@ test('development manifest policy survives WXT mutations of its configuration ob
   }finally{config.manifest.host_permissions=original.host_permissions;config.manifest.content_security_policy=original.content_security_policy;}
 });
 
-test('live publication restores manifest policy, publishes builtin hashes, and retains the marker after an incomplete build',async()=>{
-  const root=await mkdtemp(join(tmpdir(),'opendesk-dev-publish-')),outDir=join(root,'dist');
+test('a failed full dev build leaves the loaded extension intact until a complete revision is ready',async()=>{
+  const root=await mkdtemp(join(tmpdir(),'opendesk-dev-publish-')),
+    outDir=join(root,development.DEVELOPMENT_BUILD_DIR,'development'),live=join(root,'dist/development');
   try{
     const canonical=JSON.parse(await readFile(new URL('../../manifest.json',import.meta.url)));
     await writeFile(join(root,'manifest.json'),JSON.stringify(canonical));
-    const paths=[...new Set([...SDK_RESOURCE_PATHS,...BUILTIN_RESOURCE_PATHS])];
+    const entryPaths=['sw.js','sidepanel.html','sidebar-tools/sandbox.html'];
+    const paths=[...new Set([...entryPaths,...SDK_RESOURCE_PATHS,...BUILTIN_RESOURCE_PATHS])];
     for(const path of paths){
       await mkdir(dirname(join(outDir,path)),{recursive:true});
       const pinned=path===BUILTIN_CATALOG.bootstrap||path.startsWith('libs/vendor/');
@@ -204,18 +207,25 @@ test('live publication restores manifest policy, publishes builtin hashes, and r
     }
     const manifest=structuredClone(canonical);manifest.host_permissions.push('http://localhost/*');
     manifest.name=DEVELOPER_BROWSER_NAME;
+    manifest.action.default_title='打开 '+manifest.name;
     manifest.externally_connectable=structuredClone(developmentExternal);
     manifest.content_security_policy.extension_pages+=' http://localhost:43119';
     await writeFile(join(outDir,'manifest.json'),JSON.stringify(manifest));
     await mkdir(dirname(join(outDir,BROWSER_EDITION_RECORD)),{recursive:true});
     await writeFile(join(outDir,BROWSER_EDITION_RECORD),editionRecordText('developer'));
     await buildOfficialTools(outDir);
+    for(const {sourcePath} of PACKAGED_TASK_RESOURCES){
+      await mkdir(dirname(join(root,sourcePath)),{recursive:true});
+      await writeFile(join(root,sourcePath),await readFile(new URL('../../'+sourcePath,import.meta.url)));
+    }
+    await preparePackagedTaskResources(outDir,{root});
+    for(const {path} of PACKAGED_TASK_RESOURCES)paths.push(path);
     const wxt={config:{root,outDir},logger:{info(){}}};
     const output={publicAssets:paths.filter(path=>!path.endsWith('.js')).map(fileName=>({fileName})),steps:[{chunks:paths.filter(path=>path.endsWith('.js')).map(fileName=>({fileName}))}]};
     await publishDevelopment(wxt,output);
-    verifyManifest(JSON.parse(await readFile(join(outDir,'manifest.json'))),{mode:'development',edition:'developer'});
-    await verifyBuiltinResourceManifest(outDir);
-    const markerPath=join(outDir,'development-update.json'),before=await readFile(markerPath,'utf8');
+    verifyManifest(JSON.parse(await readFile(join(live,'manifest.json'))),{mode:'development',edition:'developer'});
+    await verifyBuiltinResourceManifest(live);
+    const markerPath=join(live,'development-update.json'),before=await readFile(markerPath,'utf8');
     const row=JSON.parse(before);
     assert.match(row.files[SDK_RESOURCE_MANIFEST],/^[a-f0-9]{64}$/);
     assert.match(row.files[BUILTIN_CATALOG.resourceManifest],/^[a-f0-9]{64}$/);
@@ -225,9 +235,20 @@ test('live publication restores manifest policy, publishes builtin hashes, and r
     await assert.rejects(publishDevelopment(wxt,output),/Unapproved market external origin/);
     assert.equal(await readFile(markerPath,'utf8'),before,'unknown origins cannot publish a new ready marker');
     await writeFile(join(outDir,'manifest.json'),published);
-    await rm(join(outDir,BUILTIN_CATALOG.pageCore));
+    const worker=await readFile(join(live,'sw.js'),'utf8');
+    await writeFile(join(outDir,'sw.js'),'partially written next build');
+    const sandbox=await readFile(join(live,entryPaths[2]));
+    await rm(join(outDir,entryPaths[2]));
     await assert.rejects(publishDevelopment(wxt,output),error=>error.code==='ENOENT');
     assert.equal(await readFile(markerPath,'utf8'),before);
+    assert.equal(await readFile(join(live,'sw.js'),'utf8'),worker);
+    assert.match(await readFile(join(live,'sidepanel.html'),'utf8'),/fixture sidepanel/);
+    assert.deepEqual(await readFile(join(live,entryPaths[2])),sandbox);
+    await writeFile(join(outDir,entryPaths[2]),sandbox);
+    await writeFile(join(outDir,'sw.js'),'complete next build');
+    await publishDevelopment(wxt,output);
+    assert.equal(await readFile(join(live,'sw.js'),'utf8'),'complete next build');
+    assert.notEqual(await readFile(markerPath,'utf8'),before);
   }finally{await rm(root,{recursive:true,force:true});}
 });
 

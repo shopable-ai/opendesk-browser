@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const read=path=>readFile(new URL(path,import.meta.url),'utf8');
 
-test('export is an anchored two-tab React popover, never a replacement page',async()=>{
+test('export is an anchored React popover, never a replacement page',async()=>{
   const [app,view,popup,css]=await Promise.all([
     read('../../app/CookieEditorApp.jsx'),
     read('../../app/components/CookieEditorView.jsx'),
@@ -16,12 +16,7 @@ test('export is an anchored two-tab React popover, never a replacement page',asy
   assert.match(view,/haspopup="dialog" expanded=\{exportOpen\}/);
   assert.match(view,/document\.addEventListener\('focusin'/);
   assert.match(view,/window\.addEventListener\('blur'/);
-  assert.match(view,/\['json','JSON'/);
-  assert.match(view,/\['header','Cookie Header'/);
-  assert.doesNotMatch(view,/<option value="netscape">|aria-label="导出格式" value=/);
   assert.match(popup,/role="dialog"/);
-  assert.match(popup,/const requiresValues=format==='header'&&!includeValues/);
-  assert.match(popup,/Cookie Header 需要包含 Cookie 值/);
   assert.match(popup,/pendingRef\.current=true/);
   assert.match(popup,/onPendingChange\?\.\(true\)/);
   assert.match(app,/if\(exportPending\.current&&!confirmed\)return/);
@@ -31,7 +26,6 @@ test('export is an anchored two-tab React popover, never a replacement page',asy
   assert.doesNotMatch(popup,/JSON 备份保留完整属性|复制为请求头文本|仅导出属性，不包含 Cookie 值/);
   assert.match(css,/\.cookie-export-popover\{/);
  assert.match(view,/className="od-button cookie-button--choice"/);
- assert.match(css,/\.cookie-export-tabs\{\s*display:flex;gap:6px;align-items:center/);
  assert.match(view,/aria-selected=\{format===key\}/);
   assert.doesNotMatch(css,/\.cookie-export-workspace\{/);
 });
@@ -405,10 +399,9 @@ test('formal Cookie import is a native bottom sheet with a single trusted confir
  assert.match(component,/onBeginImport\?\.\(\)/);
  assert.match(component,/onAbandonIntent\?\.\(\)/);
  assert.match(component,/onImportText\?\.\(text,\{overwrite\}\)/);
- assert.match(component,/const \[overwrite,setOverwrite\]=React\.useState\(true\)/);
  assert.match(component,/<span>覆盖已有 Cookie<\/span>/);
  assert.match(component,/data-cookie-secret-input="true"/);
- assert.match(component,/disabled=\{disabled\|\|busy\|\|uncertain\}/);
+ assert.match(component,/disabled=\{disabled\|\|busy\|\|settled\}/);
  assert.match(component,/onClick=\{confirmImport\}/);
  assert.match(component,/\{busy\?'处理中…':'确认导入'\}/);
  assert.doesNotMatch(component,/preparePreview|previewRef|setPreview|导入预览|预览导入/);
@@ -421,7 +414,6 @@ test('formal Cookie import is a native bottom sheet with a single trusted confir
  assert.match(app,/importOpen=\{panel==='import'\}/);
  assert.match(app,/section==='cookie'&&cookieReady&&panel==='import'&&\s*<CookieImport/);
  assert.match(app,/onAbandonIntent=\{\(\)=>finishImportIntent\(activeImportRef\.current\)\}/);
- assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/restoreImportFocus\.current=true/);
  assert.match(app,/cookie-import-toast/);

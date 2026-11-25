@@ -68,6 +68,26 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
     return method==='getAllCookieStores'?chromeCall(api,api.cookies,method):
       chromeCall(api,api.cookies,method,details);
   };
+  // A timed-out Host reply cannot cancel a dispatched Chrome call. Hold the
+  // exact slot until its callback settles; other paths and partitions can proceed.
+  const writesInFlight=new Map();
+  const setExact=(details,context)=>{
+    const url=new URL(details.url),slash=url.pathname.lastIndexOf('/');
+    const partition=details.partitionKey;
+    const slot=JSON.stringify([url.hostname,details.name,
+      details.path??(slash>0?url.pathname.slice(0,slash):'/'),
+      partition?[partition.topLevelSite,Boolean(partition.hasCrossSiteAncestor)]:null]);
+    const stores=writesInFlight.get(slot)??new Set();
+    const store=details.storeId??null;
+    if(stores.has(store)||stores.has(null)||store===null&&stores.size)
+      throw fail('E_OUTCOME_UNKNOWN','Prior native Cookie write is awaiting a receipt');
+    context?.beforeNativeSet?.();
+    stores.add(store);writesInFlight.set(slot,stores);
+    return native('set',details).finally(()=>{
+      stores.delete(store);
+      if(!stores.size)writesInFlight.delete(slot);
+    });
+  };
   const scoped=(args,kind)=>{
     const allowed=kind==='set'?['url','name','value','domain','path','secure','httpOnly','sameSite','session','expirationDate','storeId','partitionKey']:
       kind==='getAll'?['url','name','limit','storeId','partitionKey']:['url','name','storeId','partitionKey'];
@@ -144,7 +164,7 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
       ...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{}),
       secure:cookie.secure===true,httpOnly:cookie.httpOnly===true,
       ...(cookie.sameSite?{sameSite:cookie.sameSite}:{})};
-    await native('set',details);
+    await setExact(details);
   };
   // After expiring a more specific Cookie, get() may return the surviving
   // same-name Cookie on "/". Read back only the exact deleted identity.
@@ -184,8 +204,17 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
   async function write(args,context,witness=false){
     const details=scoped(args,'set');await verified(details.url,'set','pre',context);
     if(typeof api?.cookies?.set!=='function'||typeof api?.cookies?.getAll!=='function')throw fail('E_CHROME_UNSUPPORTED');
+    // With a dispatch lock, start Chrome while holding it and release it before
+    // waiting for the native callback. A denied lock is still pre-dispatch.
+    const start=()=>{
+      // An expired native set can delete the slot, so check at dispatch time.
+      if(details.expirationDate!==undefined&&details.expirationDate<=Date.now()/1000)
+        throw fail('E_COOKIE_EXPIRED','Cookie expired before writing');
+      return {writing:setExact(details,context)};
+    };
+    const {writing}=context?.withNativeSet?await context.withNativeSet(start):start();
     try{
-      const result=await native('set',details);
+      const result=await writing;
       const lookup=new URL(details.url),slash=lookup.pathname.lastIndexOf('/');
       const expected={name:details.name,domain:lookup.hostname,
         hostOnly:details.domain===undefined,

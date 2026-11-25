@@ -1,5 +1,7 @@
 // Local-only visual proof. Imports the PRODUCT registry and renderer; no mock engine.
 import {createAnswerRegistry} from '/src/answer-registry.js';
+import {createAnswerView} from '/src/view.js';
+import {createXmindRenderer} from '/src/xmind-adapter.js';
 import {requireXmindRuntime} from '/src/xmind-adapter.js';
 
 const status=document.getElementById('preview-status');
@@ -80,7 +82,8 @@ async function start(){
   const response=await fetch('/assets/ui.css',{cache:'no-store'});
   if(!response.ok)throw new Error('E_PREVIEW_CSS_MISSING');
   const css=await response.text();
-  registry=createAnswerRegistry({document,window,owner,css});
+  registry=createAnswerRegistry({document,window,owner,css,
+    createView:options=>createAnswerView({...options,rendererFactory:createXmindRenderer})});
   registry.start();
   if(registry.count!==3)throw new Error('E_PREVIEW_ANSWERS');
   state.sdk='FIXED_RESOURCES_LOADED';

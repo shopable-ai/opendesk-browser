@@ -48,28 +48,38 @@ test('fresh build graphs reload transitive code, retain old identity and share e
   assert.equal((await secondLoader('../outside.mjs')).identity,baseline.outside);
 });
 
-test('WXT recovery selects fresh hooks before registration and retains them on incremental config resolution',async t=>{
+test('WXT recovery keeps fixed content registrations in sync with fresh hooks',async t=>{
   const root=await mkdtemp(join(tmpdir(),'opendesk-build-module-'));
   t.after(()=>rm(root,{recursive:true,force:true}));
-  await writeFile(join(root,'leaf.mjs'),'export const value=1;');
-  await writeFile(join(root,'wxt.config.mjs'),"import {value} from './leaf.mjs'; export default {hooks:{'build:done':()=>value}};");
+  const chatgpt={matches:['https://chatgpt.com/*'],js:['agents/chatgpt-fixed-bridge.js']};
+  const gemini={matches:['https://gemini.google.com/*'],js:['agents/gemini-fixed-send-queue.js']};
+  const writeGeneration=(value,contentScripts)=>writeFile(join(root,'leaf.mjs'),
+    'export const value='+value+'; export const contentScripts='+JSON.stringify(contentScripts)+';');
+  await writeGeneration(1,[chatgpt]);
+  await writeFile(join(root,'wxt.config.mjs'),`import {value,contentScripts} from './leaf.mjs';
+    export default {manifest:{content_scripts:contentScripts},hooks:{'build:done':()=>value}};`);
+  const cachedManifest=()=>({content_scripts:structuredClone([chatgpt]),name:'protected-name'});
   const fixture=()=>{
     const registered=new Map();
-    return {config:{root,command:'serve',hooks:{stale:true},outDir:'protected-output',vite:'protected-vite'},
+    return {config:{root,command:'serve',hooks:{stale:true},manifest:cachedManifest(),outDir:'protected-output',vite:'protected-vite'},
       hook:(name,fn)=>registered.set(name,fn),registered};
   };
   const first=fixture();await developmentBuild.setup(first);
   const installed=first.config.hooks;
   assert.equal(installed['build:done'](),1);
-  first.config={...first.config,hooks:{stale:true}};
-  first.registered.get('config:resolved')();
-  assert.equal(first.config.hooks,installed);
-  assert.equal(first.config.outDir,'protected-output');
-  assert.equal(first.config.vite,'protected-vite');
-  await writeFile(join(root,'leaf.mjs'),'export const value=2;');
+  await writeGeneration(2,[chatgpt,gemini]);
   const next=fixture();await developmentBuild.setup(next);
-  assert.equal(next.config.hooks['build:done'](),2);
+  const nextHooks=next.config.hooks;
+  assert.equal(nextHooks['build:done'](),2);
+  assert.deepEqual(next.config.manifest,{content_scripts:[chatgpt,gemini],name:'protected-name'});
+  next.config={...next.config,hooks:{stale:true},manifest:cachedManifest()};
+  next.registered.get('config:resolved')();
+  assert.equal(next.config.hooks,nextHooks);
+  assert.deepEqual(next.config.manifest,{content_scripts:[chatgpt,gemini],name:'protected-name'});
+  assert.equal(next.config.outDir,'protected-output');
+  assert.equal(next.config.vite,'protected-vite');
   assert.equal(installed['build:done'](),1);
+  assert.deepEqual(first.config.manifest.content_scripts,[chatgpt]);
 });
 
 test('static builds do not refresh config or register development hooks',async()=>{

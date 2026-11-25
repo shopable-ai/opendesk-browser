@@ -10,7 +10,7 @@ const safeCodes=new Set([
   'E_COOKIE_READ','E_COOKIE_SET','E_COOKIE_REMOVE','E_COOKIE_CLEAR',
   'E_COOKIE_OBSERVE','E_COOKIE_IMPORT','E_COOKIE_EXPORT','E_CLIPBOARD',
   'E_DOWNLOAD','E_COOKIE_WRITE','E_SCHEMA','E_PERMISSION','E_COOKIE_SCOPE',
-  'E_COOKIE_STORE','E_COOKIE_PARTITION','E_CHROME',
+  'E_COOKIE_STORE','E_COOKIE_PARTITION','E_COOKIE_EXPIRED','E_COOKIE_BATCH_EXPIRED','E_CHROME',
   'E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_LIMIT',
   'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED','E_DOCUMENT_STALE',
   'E_HOST_CLOSED','E_COOKIE_SDK_NOT_READY','E_TOOL_RUNTIME_UNAVAILABLE','E_TOOL_TIMEOUT','E_TOOL_DISPOSED',
@@ -142,7 +142,8 @@ export function createCookieSdkAdapter({getBrowser,request,version='development'
     getPartition:target=>browser().cookies.getPartitionKey({url:target.url}),
     write:(target,row,{ifAbsent=false}={})=>
       browser().cookies.set({...nativeInput(row,target),...(ifAbsent?{ifAbsent:true}:{})}),
-    writeMany:(target,cookies)=>browser().cookies.setMany({url:target.url,cookies}),
+    writeMany:(target,cookies,{skipConflicts=false}={})=>browser().cookies.setMany({
+      url:target.url,cookies,...(skipConflicts?{skipConflicts:true}:{})}),
     supportsWriteMany:()=>typeof browser().cookies.setMany==='function',
     remove:(target,row)=>browser().cookies.remove({
       url:target.url,name:row.name,domain:row.domain,path:row.path,

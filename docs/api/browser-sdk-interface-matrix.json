@@ -6662,8 +6662,8 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
-      "callSignature": "OpenDeskSDK.browser.cookies.setMany({url,cookies})",
-      "returnSignature": "Promise<{saved:number,verified:number,results:Array<{index:number,saved:boolean,verified:boolean,code?:string}>,stopped?:true}>",
+      "callSignature": "OpenDeskSDK.browser.cookies.setMany({url,cookies,skipConflicts?:true})",
+      "returnSignature": "Promise<{saved:number,verified:number,results:Array<{index:number,saved:boolean,verified:boolean,skipped?:true,code?:\"E_OUTCOME_UNKNOWN\"|\"E_COOKIE_CONFLICT\"|\"E_COOKIE_SCOPE\"|\"E_COOKIE_STORE\"|\"E_COOKIE_PARTITION\"|\"E_CHROME_UNSUPPORTED\"|\"E_CHROME_PERMISSION_REQUIRED\"|\"E_SITE_GRANT_REQUIRED\"|\"E_GRANT_REVOKED\"|\"E_TOOL_CHANGED\"|\"E_TOOL_DISABLED\"|\"E_OWNER\"|\"E_CONTEXT\"|\"E_PERMISSION\"|\"E_SCHEMA\"|\"E_LIMIT\"|\"E_DOCUMENT_CHANGED\"|\"E_SITE_PERMISSION_REVOKED\"|\"E_COOKIE_EXPIRED\"}>,stopped?:true}>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -6740,6 +6740,9 @@
             },
             "maxItems": 50,
             "minItems": 1
+          },
+          "skipConflicts": {
+            "const": true
           }
         },
         "required": [
@@ -6778,6 +6781,9 @@
                 "verified": {
                   "type": "boolean"
                 },
+                "skipped": {
+                  "const": true
+                },
                 "code": {
                   "enum": [
                     "E_OUTCOME_UNKNOWN",
@@ -6795,7 +6801,10 @@
                     "E_CONTEXT",
                     "E_PERMISSION",
                     "E_SCHEMA",
-                    "E_LIMIT"
+                    "E_LIMIT",
+                    "E_DOCUMENT_CHANGED",
+                    "E_SITE_PERMISSION_REVOKED",
+                    "E_COOKIE_EXPIRED"
                   ]
                 }
               },
@@ -6855,7 +6864,9 @@
         "E_GRANT_REVOKED",
         "E_TOOL_CHANGED",
         "E_TOOL_DISABLED",
-        "E_PERMISSION"
+        "E_PERMISSION",
+        "E_SITE_PERMISSION_REVOKED",
+        "E_COOKIE_EXPIRED"
       ],
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
@@ -6876,8 +6887,8 @@
           "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
           "tests/environment/browser-sdk-r9-installed-host.test.mjs"
         ],
-        "positive": "One exact-payload trusted approval; complete schema/scope preflight; existing single-set exact native readback for every row; counts and index-only receipts without values",
-        "negative": "Mixed URL/Store/Partition and invalid later rows fail before effects; first failure/unknown stops remaining rows without retry; stale intent/sender/install/grant rejected",
+        "positive": "One exact-payload trusted approval; complete schema/scope preflight; exact native readback for each confirmed write; value-free counts and zero-based row receipts. With skipConflicts:true every row has ifAbsent:true and an explicit path; an exact name/domain/path/Store/Partition conflict preserves the existing Cookie, returns skipped:true and E_COOKIE_CONFLICT with saved:false and verified:false, and continues.",
+        "negative": "skipConflicts:false, missing ifAbsent:true or missing explicit path in skip mode, mixed URL/Store/Partition, and invalid later row schemas are rejected before writing. A conflict without skipConflicts, any other failure, or an unknown outcome stops later rows; retain preceding receipts and the stopping row with stopped:true, omit unexecuted rows, and never retry unknown writes. Expired rows do not issue a destructive native write; stale intent/sender/install/grant are rejected.",
         "native": "Same-candidate installed batch import and revoked/unknown path; NOT_TESTED"
       },
       "maxRequestBytes": 12000,

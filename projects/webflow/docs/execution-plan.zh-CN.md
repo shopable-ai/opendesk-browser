@@ -1,5 +1,7 @@
 ## Web Flow UI 对齐与 ego 实装（2026-11-21）
 
+**2026-11-24 版本交付：** 项目配置与唯一 Sidebar JSON 升至 **1.0.0**，除包版本外，其余字段与 0.3.41 一致。包同源和固定任务绑定检查通过；百度任务测试样本的固定身份与绑定不符，旧包也有相同结果。新版未在浏览器安装验证。
+
 **目标：** 从真实 ego 扩展中心打开同一候选的 Web Flow「概览 / 脚本 / 记录」，按[批准预览](../preview/index.html)和[产品合同 WFUI-01–13](product-contract.zh-CN.md)核对 UI 和核心交互。达到全部适用 P0 与受影响 P1、读回实际运行版本，以及原生双阶段手动运行有可信回执后结案。
 
 - **旧入口与定位：** ego lite 0.6.3.14 中，已打开的原生 Side Panel（`sidepanel.html?hostInstanceId=69bf46e9-09ef-47a1-837c-30c4f334a59d`）仍显示 Web Flow **0.3.11** 和旧版「手动任务」概览。相同 Browser 扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 的新 app 路由 `app.html?toolId=webflow&view=scripts` 显示「找不到已安装的工具」，新扩展中心也没有 Web Flow。启动分支在本入口的安装列表查询无匹配时发出该提示。旧文档留存与新入口查不到包是已见事实；是否同一 Profile、记录何时因何不可见、以及是否曾降级，均未证实。11 月 14 日的 0.3.40 实装回执不能代替本轮读回。

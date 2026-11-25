@@ -167,12 +167,12 @@ test('R6.1 existing React page owns the discovery UI; no alternate installer exi
   assert.match(center,/discoverCurrentPageMarketInstall/);
   assert.match(center,/currentPageTarget\.revalidate\(selected\.target\)/);
   assert.match(center,/fresh\.href!==selected\.href/);
+  assert.match(center,/openOfficialReview\(fresh\.release\.toolId,fresh\.release,/);
   const detect=center.slice(center.indexOf('async function detectPageInstall('),center.indexOf('async function reviewDiscoveredPage('));
   assert(detect.indexOf('target=currentPageTarget.capture()')>=0);
   assert(detect.indexOf('target=currentPageTarget.capture()')<
     detect.indexOf('await Promise.all([loadMarketChannel(api),loadOfficialCatalog({api})])'),
     "the user's document must be captured before any asynchronous channel/catalog fetch");
-  assert.match(center,/#\/apps\//);
   assert.match(pageUI,/ExtensionDiscovery/);
   assert.match(pageUI,/extension-center-discover/);
   assert.match(main,/renderDiscovery\(next\)/);
@@ -180,12 +180,13 @@ test('R6.1 existing React page owns the discovery UI; no alternate installer exi
 });
 
 
-test('R6.2 website discovery is available-only and absent from the global extensions menu',async()=>{
+test('Website discovery uses one contextual entry for each eligible scope',async()=>{
   const center=await readFile('src/ui/extension-center.js','utf8');
   const pageUI=await readFile('src/ui/react/tabs/tools.tsx','utf8');
   const toolbar=pageUI.slice(pageUI.indexOf('export function ExtensionToolbar('),
     pageUI.indexOf('export function ExtensionEmpty('));
-  assert(!toolbar.includes('extension-center-discover'),'global menu must not own the web discovery action');
+  assert.match(toolbar,/scope==='smart'&&kind!=='page'&&current\.marketDiscoveryAvailable===true/);
+  assert.match(toolbar,/id="extension-center-discovery-shortcut"/);
   assert.match(pageUI,/showWebDiscovery=toolbarModel\?\.scope==='available'/);
   assert.match(pageUI,/toolbarModel\?\.kind!=='page'/);
   assert.match(pageUI,/toolbarModel\?\.marketDiscoveryAvailable===true/);
@@ -201,7 +202,7 @@ test('R6.2 website discovery is available-only and absent from the global extens
     pageUI.indexOf('// React owns the complete Extension Center presentation'));
   assert.equal((contextual.match(/id="extension-center-discover"/g)||[]).length,1);
   assert.match(contextual,/const activate=event=>/);
-  assert.match(contextual,/aria-disabled=\{model\?\.state==='loading'\|\|undefined\}/);
+  assert.match(contextual,/aria-disabled=\{pending\|\|undefined\}/);
 });
 
 

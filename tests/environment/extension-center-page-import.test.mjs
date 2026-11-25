@@ -39,11 +39,12 @@ async function pageDraft({v2=false}={}){
     authoring:{files:[file],...(v2?{remoteLock}:{})}};
 }
 
-async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
+async function fixture(t,{receiveDraft,requestPage,installed=[],installedTools=[],configureApi}={}){
   const {document:doc,window}=parseHTML(await renderSidebarFixture());
   const view=createSidebarToolsView();
   view.attachRuntime({frameRoot:doc.getElementById('sidebar-tool-frame'),settingsControl:doc.getElementById('sidebar-tool-settings-open')});
   const get=id=>view.fields[id]||doc.getElementById(id),store=new Map(),writes=[],received=[],requests=[];
+  if(installedTools.length)store.set(SIDEBAR_TOOL_STORE,structuredClone(installedTools));
   const oldWindow=globalThis.window,oldFetch=globalThis.fetch;
   const offline=async()=>{throw new Error('Offline DOM fixture');};
   let host;
@@ -62,7 +63,7 @@ async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
   const api={permissions:{contains:async()=>true,request:async()=>{assert.fail('existing permissions must not prompt');}},runtime:{
     id:'test',getManifest:()=>({version:'0.1.0'}),getURL:path=>'chrome-extension://test/'+path,
     async sendMessage(message){
-      if(message.kind==='runtime-contract')return {ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:await sidebarToolPackageContractHash()}};
+      if(message.kind==='runtime-contract')return {ok:true,data:{extensionId:api.runtime.id,version:'0.1.0',contractHash:await sidebarToolPackageContractHash()}};
       assert.fail('unexpected runtime message '+message.kind);
     }
   },storage:{
@@ -79,6 +80,7 @@ async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
       for(const listener of changed)listener(changes,'local');
     },async remove(key){store.delete(key);}}
   }};
+  configureApi?.(api);
   get('script-source').value='';get('script-revision').value='';get('script-version').dataset.dirty='false';
   const taskWorkbench={async receiveDraft(draft){
     received.push(draft);
@@ -142,9 +144,88 @@ async function installPackage(overrides={}){
     pageRules:{matches:['https://example.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'},...overrides};
   return {...pkg,packageHash:await digest(pkg)};
 }
-function receipt(pkg,overrides={}){return {programId:pkg.programId,revision:pkg.revision,sourceHash:pkg.sourceHash,
+function receipt(pkg,overrides={}){return {programId:pkg.programId,revision:pkg.revision,version:pkg.version,sourceHash:pkg.sourceHash,
   manifestHash:'a'.repeat(64),pageRules:pkg.pageRules,enabled:true,nativeState:'registered',error:null,
   authorization:{installationId:'existing-installation',generation:3,status:'active'},...overrides};}
+
+test('Page import blocked by user scripts opens this host settings and rechecks without replay',async t=>{
+  const pkg=await installPackage({version:'1.1.0',revision:2});
+  const installed=receipt(pkg,{revision:1,version:'1.0.0',nativeState:'waiting-user-scripts'});
+  const companion={...app,format:SIDEBAR_TOOL_FORMAT_V2,id:'page-companion',capabilities:['page.module'],
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}};
+  const older={...companion,pageModule:await installPackage({programId:'app.page-companion'})};
+  const newer={...companion,version:pkg.version,pageModule:await installPackage({programId:'app.page-companion',version:pkg.version,revision:2})};
+  const extensionId='b'.repeat(32),opened=[];
+  const helpHref='chrome-extension://'+extensionId+'/sidepanel.html?panel=web-features';
+  let accessible=false,probes=0;
+  const f=await fixture(t,{installed:[installed],installedTools:[older],configureApi(api){
+    api.runtime.id=extensionId;
+    api.runtime.getURL=path=>'chrome-extension://'+extensionId+'/'+path;
+    api.tabs={async create({url}){opened.push(url);if(opened.length===1)throw Error('Chrome refused');}};
+    api.userScripts={execute(){assert.fail('a probe must never execute');},async getScripts(){
+      probes++;
+      if(!accessible)throw Error("'userScripts.getScripts' is not available in this context.");
+      return [];
+    }};
+  },requestPage(operation){
+    if(operation==='importPageInstallPackage')throw Object.assign(Error('Chrome user scripts unavailable'),
+      {code:'E_USER_SCRIPTS_UNAVAILABLE'});
+    if(operation==='prepareAppPage')throw Object.assign(Error('Old page registration needs to be revoked'),
+      {code:'E_APP_PAGE_REVOCATION_REQUIRES_USER_SCRIPTS'});
+  }});
+  const field='sidebar-tool-user-scripts-recovery',recovery=f.get(field),install=f.get('sidebar-tool-install');
+  f.select(pkg,{name:'update.opendesk-page.json'});await settle(()=>!install.disabled);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
+  assert.equal(recovery.hidden,false);
+  assert.equal(recovery.data.helpHref,helpHref);
+  f.event(field,'settings');f.event(field,'check');
+  assert.deepEqual(opened,[]);assert.equal(probes,0);
+  f.event(field,'settings',{trusted:true});await settle(()=>recovery.data.openFailed);
+  f.event(field,'settings',{trusted:true});await settle(()=>!recovery.data.opening);
+  assert.deepEqual(opened,Array(2).fill('chrome://extensions/?id='+extensionId));
+  f.event(field,'check',{trusted:true});await settle(()=>recovery.data.check==='unavailable');
+  accessible=true;
+  f.event(field,'check',{trusted:true});await settle(()=>recovery.data.check==='available');
+  assert.equal(probes,2);
+  assert.equal(f.get('page-install-import-status').attributes['data-state'],'pending-review');
+  assert.equal(install.disabled,true);
+  f.event('sidebar-tool-install','click',{trusted:true});await tick();
+  assert.equal(f.requests.filter(row=>row.operation==='importPageInstallPackage').length,1);
+  assert.equal(f.writes.length,0);
+  accessible=false;
+  f.select(newer,{name:'update.opendesk-tool.json'});
+  const fileError=f.get('sidebar-tool-file-error');
+  await settle(()=>!install.disabled||!fileError.hidden);
+  assert.equal(fileError.hidden,true,fileError.textContent);
+  assert.equal(recovery.hidden,true);
+  assert.equal(recovery.data.helpHref,null);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>!recovery.hidden&&install.textContent==='重试更新');
+  assert.notEqual(recovery.data.kind,'page-import','Previous Page review must not supply the next recovery UI');
+  assert.equal(recovery.data.helpHref,helpHref);
+  assert.equal(recovery.data.check??null,null,'Previous probe result must not appear in the next review');
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[older]);
+  f.event(field,'check',{trusted:true});await tick();
+  assert.equal(probes,2,'Legacy recovery has no Page probe');
+});
+
+test('Page import denied website access stays in site review without showing the user scripts switch',async t=>{
+  const pkg=await installPackage(),requested=[];
+  const f=await fixture(t,{configureApi(api){
+    api.permissions.contains=async()=>false;
+    api.permissions.request=async request=>{requested.push(request);return false;};
+  }});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-install').disabled);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='permission-denied');
+  assert.deepEqual(requested,[{origins:['https://example.com/*']}]);
+  assert.equal(f.get('sidebar-tool-user-scripts-recovery').hidden,true);
+  assert.equal(f.get('sidebar-tool-user-scripts-recovery').data.helpHref??null,null);
+  assert.equal(f.get('sidebar-tool-install').textContent,'重新确认安装');
+  assert.equal(f.get('sidebar-tool-install').disabled,false);
+  assert.equal(f.requests.filter(row=>row.operation==='importPageInstallPackage').length,0);
+});
 
 test('Page install reviews permissions and calls the existing Authority only after a trusted confirmation',async t=>{
   const pkg=await installPackage();let calls=0;
@@ -200,7 +281,7 @@ test('same identity review carries the existing installation CAS and keeps the o
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   assert.match(f.get('sidebar-tool-preview-description').textContent,/已经安装/);
   assert.equal(f.get('sidebar-tool-update').hidden,false);
-  assert.match(f.get('sidebar-tool-update-versions').textContent,/r1.*r1/);
+  assert.equal(f.get('sidebar-tool-update-versions').textContent,'当前 v1.0.0');
   f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('sidebar-tool-import').hidden);
   const toast=f.view.getSnapshot().toast;
@@ -211,7 +292,7 @@ test('same identity review carries the existing installation CAS and keeps the o
   assert.equal(f.get('page-install-import-receipt').hidden,true);
 });
 
-test('Page update review discloses added website scope and existing revision before confirm',async t=>{
+test('Page update review shows versions and added website scope before confirm',async t=>{
   const pkg=await installPackage(),older=receipt(pkg,{
     version:'0.9.0',revision:0,
     pageRules:{...pkg.pageRules,matches:['https://old.example/*']}
@@ -219,7 +300,9 @@ test('Page update review discloses added website scope and existing revision bef
   const f=await fixture(t,{installed:[older]});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   assert.equal(f.get('sidebar-tool-update').hidden,false);
-  assert.match(f.get('sidebar-tool-update-versions').textContent,/v0\.9\.0.*r0.*v1\.0\.0.*r1/);
+  assert.equal(f.get('sidebar-tool-update-versions').textContent,'当前 v0.9.0 → 新 v1.0.0');
+  assert.equal(f.get('sidebar-tool-preview-version').textContent,'v1.0.0');
+  assert.match(f.get('sidebar-tool-preview-file').textContent,/固定修订：当前 r0 → r1/);
   assert.match(f.get('sidebar-tool-update-capabilities').textContent,/新增网站范围.*example\.com.*移除网站范围.*old\.example/);
   assert.match(f.get('sidebar-tool-update-warning').textContent,/新增网站范围/);
   assert.equal(f.get('sidebar-tool-install').textContent,'确认更新');

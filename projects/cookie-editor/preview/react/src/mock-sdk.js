@@ -160,7 +160,15 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{},isolate
   set:async args=>write(args),
   setMany:async args=>{
    record('setMany',args);fail('import');
-   return {results:args.cookies.map((item,index)=>({index,...write({...item,url:item.url||args.url},'import')}))};
+   const results=[];let verified=0;
+   for(const [index,item] of args.cookies.entries()){
+    try{results.push({index,...write({...item,url:args.url},'import')});verified++;}
+    catch(error){
+     if(!args.skipConflicts||!item.ifAbsent||error.code!=='E_COOKIE_CONFLICT')throw error;
+     results.push({index,saved:false,verified:false,skipped:true,code:'E_COOKIE_CONFLICT'});
+    }
+   }
+   return {results,saved:verified,verified};
   },
   remove:async args=>{
    record('remove',args);fail('remove');
@@ -180,6 +188,11 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{},isolate
    if(args.preview){clearPlan={ref:'12345678-1234-1234-1234-123456789abc',url:args.url,scope:args.scope,ids:eligible.map(key)};return {matched:eligible.length,excluded,scope,previewRef:clearPlan.ref};}
    fail('clear');
    if(!clearPlan||args.scope!==clearPlan.scope||args.previewRef!==clearPlan.ref||args.url!==clearPlan.url||args.expectedCount!==eligible.length||JSON.stringify(eligible.map(key))!==JSON.stringify(clearPlan.ids))throw error('E_COOKIE_CONFLICT');
+   if(failure==='clearPartial'&&eligible.length){
+    const [first]=clearPlan.ids;
+    rows=rows.filter(row=>key(row)!==first);clearPlan=null;failure='';onFailureConsumed();
+    throw error('E_OUTCOME_UNKNOWN');
+   }
    rows=rows.filter(row=>!clearPlan.ids.includes(key(row)));clearPlan=null;
    return {preview:false,scope,matched:eligible.length,removed:eligible.length,remaining:0,excluded};
   },

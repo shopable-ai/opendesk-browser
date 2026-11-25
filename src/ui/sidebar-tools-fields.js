@@ -238,14 +238,13 @@ export const SIDEBAR_TOOL_FIELDS = {
   },
   "sidebar-tool-settings-view": {
     "hidden": true,
-    "className": "sidebar-tool-settings-view od-surface",
+    "className": "od-stack sidebar-tool-settings-groups",
     "attributes": {
       "aria-label": "工具设置"
     }
   },
   "sidebar-tool-toc-language": {
-    "hidden": true,
-    "className": "sidebar-toc-settings-row"
+    "hidden": true
   },
   "sidebar-tool-toc-language-select": {
     "className": "od-field",
@@ -492,6 +491,9 @@ export const SIDEBAR_TOOL_FIELDS = {
 
 export const SIDEBAR_TOOL_LABELS = {
   "settingsTitle": "工具设置",
+  "extensionSettings": "扩展设置",
+  "permissionsManagement": "权限管理",
+  "retryRead": "重新读取",
   "followLanguage": "跟随 OpenDesk 默认语言",
   "overlayName": "悬浮目录",
   "appManagement": "应用管理",

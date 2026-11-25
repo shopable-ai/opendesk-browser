@@ -91,7 +91,8 @@ test('R26 stop/resume preserve package/data/grants/preferences and fence every t
   const baseline=structuredClone(f.values);
   await setInstalledSidebarToolEnabled({...f,tool,enabled:false});const stopped=f.values[TOOL_REVOCATION_EPOCHS_STORE][tool.id];
   assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE][tool.id],false);
-  assert.deepEqual(f.locks,['opendesk.sidebar-tools:tool:reading-toc','opendesk.sidebar-tools:catalog']);
+  assert.deepEqual(f.locks,['opendesk.sidebar-tools:stopping:["reading-toc",null]',
+    'opendesk.sidebar-tools:tool:reading-toc','opendesk.sidebar-tools:catalog']);
   await setInstalledSidebarToolEnabled({...f,tool,enabled:true});
   assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE][tool.id],true);
   assert.notEqual(f.values[TOOL_REVOCATION_EPOCHS_STORE][tool.id],stopped);
@@ -146,6 +147,19 @@ test('R26 corrupt records and stale package identity cannot be rewritten by a se
   await assert.rejects(setInstalledSidebarToolEnabled({...f,tool,enabled:false}),{code:'E_STORAGE_CORRUPT'});
   assert.deepEqual(f.values[SIDEBAR_TOOL_ENABLE_STORE],bad);assert.equal(f.writes.length,0);
   await assert.rejects(setInstalledSidebarToolEnabled({...f,tool:{...tool,version:'2.0.0'},enabled:true}),{code:'E_TOOL_CHANGED'});
+});
+test('R26 stale installation epochs and stale enable state are rejected inside both locks before any write',async()=>{
+  const f=fixture();
+  f.values[TOOL_REVOCATION_EPOCHS_STORE]={[tool.id]:'new-installation'};
+  for(const baseline of [{expectedEpoch:'old-installation',expectedEnabled:true},
+                         {expectedEpoch:'new-installation',expectedEnabled:false}]){
+    await assert.rejects(setInstalledSidebarToolEnabled({...f,tool,enabled:false,...baseline}),{code:'E_TOOL_CHANGED'});
+  }
+  assert.equal(f.writes.length,0);
+  assert.deepEqual(f.locks,['opendesk.sidebar-tools:stopping:["reading-toc","old-installation"]',
+    'opendesk.sidebar-tools:tool:reading-toc','opendesk.sidebar-tools:catalog',
+    'opendesk.sidebar-tools:stopping:["reading-toc","new-installation"]',
+    'opendesk.sidebar-tools:tool:reading-toc','opendesk.sidebar-tools:catalog']);
 });
 test('R26 failed stop epoch write remains stopped; failed resume never enables an old instance',async()=>{
   const f=fixture();f.api.storage.local.set=async rows=>{

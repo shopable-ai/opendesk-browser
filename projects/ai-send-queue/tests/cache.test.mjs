@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createQueueCache} from '../src/page/cache.js';
+import {deepSeekRoute,geminiRoute} from '../src/page/site.js';
 import {memoryStorage} from './helpers/session-storage.mjs';
 const route='c/12345678',key='opendesk.ai-send-queue.session.v1:'+route;
 const record=()=>({version:1,route,items:[{id:'q1',text:'  原文\n末行\n',state:'paused'}],
@@ -19,6 +20,23 @@ test('routes and independent tab stores never share or overwrite queues',()=>{
   assert.equal(cache.read('c/87654321').status,'empty');
   assert.equal(createQueueCache({storage:()=>memoryStorage()}).read(route).status,'empty');
   assert.deepEqual(cache.read(route).data,record());
+});
+test('DeepSeek and Gemini adapter identities open isolated refresh caches',()=>{
+  const deepSeek=deepSeekRoute(new URL('https://chat.deepseek.com/a/chat/s/11111111-2222-3333-4444-555555555555')).route;
+  const gemini=geminiRoute(new URL('https://gemini.google.com/app/Abc_123')).route;
+  const storage=memoryStorage(),cache=createQueueCache({storage:()=>storage});
+  for(const key of [route,deepSeek,gemini]){
+    assert.equal(cache.read(key).status,'empty');
+    assert.equal(cache.write({...record(),route:key,items:[{id:'q1',text:key,state:'paused'}]}),true);
+  }
+  const afterRefresh=createQueueCache({storage:()=>storage});
+  for(const key of [route,deepSeek,gemini])assert.equal(afterRefresh.read(key).data.items[0].text,key);
+  assert.equal(afterRefresh.read('a/chat/s/11111111-2222-3333-4444-555555555556').status,'empty');
+  assert.equal(afterRefresh.read('app/abc_123').status,'empty');
+  for(const key of ['a/chat/s','a/chat/s/not-an-id',deepSeek.toUpperCase(),deepSeek+'/',deepSeek+'?x','app/']){
+    assert.equal(afterRefresh.read(key).status,'invalid');
+    assert.equal(afterRefresh.write({...record(),route:key}),false);
+  }
 });
 test('removing the last item clears the cache and does not revive it',()=>{
   const storage=memoryStorage(),cache=createQueueCache({storage:()=>storage});cache.read(route);cache.write(record());

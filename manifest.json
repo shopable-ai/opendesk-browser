@@ -125,6 +125,19 @@
     },
     {
       "matches": [
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/a/chat/s/*",
+        "https://chat.deepseek.com/"
+      ],
+      "js": [
+        "agents/gemini-fixed-send-queue.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "ISOLATED"
+    },
+    {
+      "matches": [
         "http://*/*",
         "https://*/*"
       ],

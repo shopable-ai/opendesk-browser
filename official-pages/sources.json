@@ -6,8 +6,8 @@
       "programId": "opendesk.ai-scroll-navigation",
       "project": "projects/ai-scroll-navigation",
       "packageFile": "ai-scroll-navigation.opendesk-page.json",
-      "version": "0.4.26",
-      "revision": 29,
+      "version": "1.0.0",
+      "revision": 46,
       "title": "AI 对话滚动导航",
       "description": "ChatGPT、DeepSeek、Gemini 的长内容及对话导航。",
       "sites": [
@@ -17,14 +17,14 @@
       ],
       "installationPolicy": "preinstalled",
       "publication": "blocked",
-      "blockedReason": "0.4.26/r29 同源编译通过；三站原生验收尚未完成，发行保持阻断。"
+      "blockedReason": "1.0.0/r46 已核对编译同源及定向测试；三站实站验收未完成，发行保持阻断。"
     },
     {
       "programId": "opendesk.ai-reply-mindmap",
       "project": "projects/ai-reply-mindmap",
       "packageFile": "ai-reply-mindmap.opendesk-page.json",
-      "version": "0.2.7",
-      "revision": 1,
+      "version": "0.2.11",
+      "revision": 8,
       "title": "AI 回复思维导图",
       "description": "ChatGPT 回复的 XMind 查看、定位、导出及主题。",
       "sites": [

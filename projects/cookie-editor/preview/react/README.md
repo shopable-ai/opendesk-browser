@@ -109,10 +109,10 @@ CHROME_BIN='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node v
 `app/CookieEditorApp.jsx`、`app/components/CookieExport.jsx`、
 `app/components/CookieEditorView.jsx`、`src/react.css`。
 点击列表工具栏导出图标，打开靠右对齐的非模态 Popover；原 Cookie 列表保持挂载，
-已有未保存的编辑草稿不被清空。面板仅显示 JSON 与 Cookie Header 两个格式选项卡，
-默认 JSON，可选“包含 Cookie 值”，直接复制或下载。Netscape 从界面移除，
-底层旧数据解析兼容不变。失焦、点击外部、Escape 关闭；Host 执行期间保护进行中的
-操作，失败保留弹层供用户手动重试。存在分区 Cookie 时禁止有损 Header 导出。
+已有未保存的编辑草稿不被清空。面板默认选择 JSON，可选“包含 Cookie 值”，直接复制或下载。
+早期版本只显示 JSON 与 Cookie Header，2.0.92 恢复了 Netscape 选项。
+失焦、点击外部、Escape 关闭；Host 执行期间保护进行中的操作，失败保留弹层供用户手动重试。
+Cookie Header 和 Netscape 均需要 Cookie 值；存在分区 Cookie 时请选择 JSON。
 
 测试入口：`npm test` 和 `npm run test:chromium`，其中 Chromium 检查
 320/360/400/440px、选项卡键盘操作、失焦关闭、真实 Controller 的虚构 SDK

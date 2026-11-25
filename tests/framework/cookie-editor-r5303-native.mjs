@@ -22,15 +22,16 @@ const fixture='http://127.0.0.1:43111/demo-form.html';
 const mode=process.env.COOKIE_NATIVE_MODE||(extension===path.join(root,'dist/development')?'development':'production');
 const stage=process.env.COOKIE_NATIVE_STAGE||'baseline';
 assert(['development','static-development','production'].includes(mode));
-assert(['baseline','core','upgrade','diagnose','recheck','restart-dev','slow-reload'].includes(stage));
+assert(['baseline','core','upgrade','diagnose','recheck','restart-dev','slow-reload','clear-receipt'].includes(stage));
 const slowReload=stage==='slow-reload';
-assert(mode!=='static-development'||slowReload,'Static development is for the isolated slow reload candidate');
-const reloadCandidate=slowReload&&process.env.COOKIE_NATIVE_TOOL_CANDIDATE;
-const reloadCandidateSha=process.env.COOKIE_NATIVE_TOOL_SHA256;
-if(reloadCandidate)assert(/^[a-f0-9]{64}$/.test(reloadCandidateSha||''),'Pin the raw candidate JSON with COOKIE_NATIVE_TOOL_SHA256');
+const clearReceipt=stage==='clear-receipt';
+assert(mode!=='static-development'||slowReload||clearReceipt,'Static development requires an isolated fixture stage');
+const localCandidate=(slowReload||clearReceipt)&&process.env.COOKIE_NATIVE_TOOL_CANDIDATE;
+const localCandidateSha=process.env.COOKIE_NATIVE_TOOL_SHA256;
+if(localCandidate)assert(/^[a-f0-9]{64}$/.test(localCandidateSha||''),'Pin the raw candidate JSON with COOKIE_NATIVE_TOOL_SHA256');
 const targets=slowReload?[]:process.env.COOKIE_NATIVE_TARGETS?.split(',')||[fixture,'http://localhost:43111/demo-form.html','http://cookie-r5303.localhost:43111/demo-form.html'];
 assert(slowReload||(targets.length===3&&new Set(targets.map(url=>new URL(url).hostname)).size===3),'Three distinct hostnames required');
-const requiredCases=slowReload?['actual-entry','official-installed-open','reload-fixture-grant','reload-stable-controls','reload-document-fence','reload-compact-status','reload-automatic-recovery','reload-hard-site-switch']:stage==='restart-dev'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','same-profile-restart','fixture-cookie-cleanup','all-sites-revoke']:stage==='recheck'?['actual-entry','same-id-development-update','official-installed-open','all-sites-grant','independent-values-grant','automatic-site-lists','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download','all-sites-revoke']:stage==='diagnose'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','development-reread-observation']:['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download',
+const requiredCases=clearReceipt?['actual-entry','official-installed-open','all-sites-grant','clear-native-success-receipt']:slowReload?['actual-entry','official-installed-open','reload-fixture-grant','reload-stable-controls','reload-document-fence','reload-compact-status','reload-automatic-recovery','reload-hard-site-switch']:stage==='restart-dev'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','same-profile-restart','fixture-cookie-cleanup','all-sites-revoke']:stage==='recheck'?['actual-entry','same-id-development-update','official-installed-open','all-sites-grant','independent-values-grant','automatic-site-lists','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download','all-sites-revoke']:stage==='diagnose'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','development-reread-observation']:['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download',
   ...(stage==='baseline'?[]:['three-site-list-reuse','same-profile-restart','all-sites-revoke']),
   ...(stage==='upgrade'?['same-id-upgrade']:[])];
 const report={startedAt:new Date().toISOString(),mode,stage,extension,directory,targets,cases:[],
@@ -38,7 +39,7 @@ const report={startedAt:new Date().toISOString(),mode,stage,extension,directory,
 if(slowReload)for(const name of ['reload-manual-recovery-control','reload-attribute-draft'])report.results[name]='NOT_TESTED';
 let launched,client,side,sideTargetId,tool,ownedFixture,release,control,pendingEdit;
 const reuseReport=process.env.COOKIE_NATIVE_REUSE_REPORT;
-if(slowReload)assert(!reuseReport&&process.env.COOKIE_NATIVE_STAY!=='1','Slow reload requires a fresh owned browser and automatic cleanup');
+if(slowReload||clearReceipt)assert(!reuseReport&&process.env.COOKIE_NATIVE_STAY!=='1','Fixture requires a fresh owned browser and automatic cleanup');
 if(stage==='recheck')assert(reuseReport,'Development recheck must reuse an owned browser');
 if(stage==='restart-dev')assert(reuseReport&&process.env.COOKIE_NATIVE_OWNER_INSPECTOR&&process.env.COOKIE_NATIVE_CORE_REPORT,'Restart reuses the original owned launcher and fixture evidence');
 const contexts=new Map(),observedSessions=new Set(),attachedTargets=new Map(),downloads=[],fileChoosers=[];
@@ -50,6 +51,13 @@ async function read(session,expression){
   return result.result.value;
 }
 async function until(fn,label,timeout=15000){const start=Date.now();while(Date.now()-start<timeout){const value=await fn();if(value)return value;await sleep(150);}throw Error('Timeout: '+label);}
+async function readWhileOpening(session,expression){
+  try{return await read(session,expression);}
+  catch(error){
+    if(clearReceipt&&/Inspected target navigated or closed|Execution context was destroyed/.test(error.message))return null;
+    throw error;
+  }
+}
 async function attach(target){
   if(attachedTargets.has(target.targetId))return attachedTargets.get(target.targetId);
   const session=(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
@@ -58,7 +66,7 @@ async function attach(target){
 async function click(session,selector){
   let previous;
   const point=await until(async()=>{
-    const p=await read(session,`(()=>{const n=document.querySelector(${JSON.stringify(selector)});if(!n||n.disabled||!n.getClientRects().length)return null;const r=n.getBoundingClientRect(),x=r.x+(n.type==='file'?Math.min(24,r.width/2):r.width/2),y=r.y+r.height/2;return {x,y,width:innerWidth,height:innerHeight,hit:n.contains(document.elementFromPoint(x,y))};})()`);
+    const p=await readWhileOpening(session,`(()=>{const n=document.querySelector(${JSON.stringify(selector)});if(!n||n.disabled||!n.getClientRects().length)return null;const r=n.getBoundingClientRect(),x=r.x+(n.type==='file'?Math.min(24,r.width/2):r.width/2),y=r.y+r.height/2;return {x,y,width:innerWidth,height:innerHeight,hit:n.contains(document.elementFromPoint(x,y))};})()`);
     if(!p)return null;
     let x=p.x,y=p.y,hit=p.hit,width=p.width,height=p.height;
     if(typeof session!=='string'){
@@ -143,7 +151,7 @@ async function openPanel(url=targets[0]){
 async function visit(url){
   const target=await client.send('Target.createTarget',{url});
   await client.send('Target.activateTarget',{targetId:target.targetId});const session=await attach(target);
-  await until(()=>read(session,'document.readyState==="complete"&&location.href==='+JSON.stringify(url)),'Requested website '+url);
+  await until(()=>readWhileOpening(session,'document.readyState==="complete"&&location.href==='+JSON.stringify(url)),'Requested website '+url);
   return target;
 }
 async function readableList(url){
@@ -202,6 +210,13 @@ async function grantAll(){
   await hideSettings();await bindTool();
   await until(()=>read(tool,'(()=>{const root=document.querySelector(".cookie-react-view"),create=[...document.querySelectorAll("button")].find(n=>n.getAttribute("aria-label")==="新建 Cookie");return Boolean(root&&create&&!create.disabled);})()'),
     'One trusted first-use click opens a usable React Cookie list');
+}
+async function grantClearFixture(){
+  assert(!granted(await grantRecord()),'Fresh fixture must have no existing Cookie consent');
+  await click(side,'#sidebar-tool-cookie-consent-allow');
+  const row=await until(async()=>{const record=await grantRecord();return granted(record)?record:null;},'Reviewed Cookie management consent');
+  await bindTool();
+  await checkpoint('all-sites-grant',{record:row,permissions:await read(side,'chrome.permissions.getAll()')});
 }
 async function grantValues(){
   const before=await grantRecord();
@@ -336,10 +351,10 @@ async function grantReloadFixture(){
   await bindTool();
   await checkpoint('reload-fixture-grant',{version:row.version,values:true});
 }
-async function importReloadCandidate(file){
+async function importLocalCandidate(file){
   const bytes=await readFile(file), candidate=JSON.parse(bytes);
   assert.equal(candidate.id,'cookie-editor');
-  assert.equal(createHash('sha256').update(bytes).digest('hex'),reloadCandidateSha,'Candidate SHA-256 changed');
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),localCandidateSha,'Candidate SHA-256 changed');
   const pinnedPath=path.join(directory,'cookie-editor.candidate.opendesk-tool.json');
   await writeFile(pinnedPath,bytes,{flag:'wx'});
   const previous=await installed();
@@ -359,10 +374,49 @@ async function importReloadCandidate(file){
   await until(async()=>(await installed())?.version===candidate.version,'Reviewed candidate installed');
   const actual=await read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"].find(t=>t.id==="cookie-editor"))');
   for(const key of ['id','version','html','css','js'])assert.equal(actual[key],candidate[key],'Installed candidate '+key+' matches pinned JSON');
-  report.importedCandidate={version:candidate.version,sha256:reloadCandidateSha,path:pinnedPath};
+  report.importedCandidate={version:candidate.version,sha256:localCandidateSha,path:pinnedPath};
   release={...release,version:candidate.version};
   if(!await read(side,'Boolean(document.querySelector("#sidebar-tool-frame iframe")?.getClientRects().length)'))await openOfficial();
   await checkpoint('official-installed-open',{installation:'reviewed-local-candidate',previous,installed:await installed(),candidate:report.importedCandidate});
+}
+const clearSeedNames=['od_fixture_clear_a','od_fixture_clear_b'];
+async function startClearFixture(){
+  const route='/cookie-clear-'+randomUUID();
+  let served=false;
+  ownedFixture=createServer((req,res)=>{
+    if(req.url!==route){res.writeHead(404);res.end();return;}
+    if(!served)res.setHeader('Set-Cookie',clearSeedNames.map(name=>name+'=fictional; Path=/; HttpOnly; SameSite=Lax'));
+    served=true;
+    res.setHeader('Content-Type','text/html; charset=utf-8');
+    res.end('<title>Fictional Cookie clear fixture</title>');
+  });
+  await new Promise((resolve,reject)=>{ownedFixture.once('error',reject);ownedFixture.listen(0,'127.0.0.1',resolve);});
+  return 'http://127.0.0.1:'+ownedFixture.address().port+route;
+}
+async function verifyClearReceipt(){
+  const readState=()=>read(tool,
+    '({rows:[...document.querySelectorAll(".row-trigger")].map(n=>n.textContent),notices:[...document.querySelectorAll("[role=alert]")].filter(n=>n.getClientRects().length).map(n=>n.textContent)})');
+  const before=(await nativeRows('127.0.0.1')).map(row=>row.name).sort();
+  assert.deepEqual(before,clearSeedNames);
+  await until(async()=>{const {rows}=await readState();return before.every(name=>rows.some(row=>row.includes(name)));},'Ordinary grant reads both fixture Cookies');
+  await click(tool,'[aria-label="安全清理本站 Cookie"]');
+  await until(()=>read(tool,'document.querySelector(".cookie-clear-dialog[open] .od-button--danger:not(:disabled)")?.textContent.includes("清理 2 条")'),'Trusted preview of both Cookies');
+  assert.deepEqual((await nativeRows('127.0.0.1')).map(row=>row.name).sort(),before,'Preview did not change Cookie records');
+  await click(tool,'.cookie-clear-dialog[open] .od-button--danger');
+  const receipt=await until(async()=>{
+    await noSecondConfirmation();
+    const state=await readState();
+    if(state.notices.some(message=>/清理结果未确认|E_OUTCOME_UNKNOWN/.test(message)))throw Error('Native clear lost its receipt; do not retry');
+    const shared=await read(side,'[...document.querySelectorAll(".sidebar-tool-toast-message")].filter(n=>n.getClientRects().length&&n.textContent.includes("已清理 127.0.0.1")).length');
+    const local=await read(tool,'[...document.querySelectorAll(".cookie-clear-toast[role=status]")].filter(n=>n.getClientRects().length).map(n=>n.textContent)');
+    assert.equal(shared,0,'Clear does not create a competing Host toast');
+    assert(local.length<=1,'Only one visible native clear receipt');
+    if(local[0])assert.match(local[0],/已清理 127.0.0.1 的 2 条 Cookie，本次清理范围剩余 0 条。/);
+    return local[0];
+  },'One visible success receipt for verified native clear');
+  await until(async()=>!(await readState()).rows.length,'Cookie list updated after clear');
+  assert.equal((await nativeRows('127.0.0.1')).length,0);
+  await checkpoint('clear-native-success-receipt',{before:before.length,after:0,receipt,unknownWarnings:0,confirmationCount:1});
 }
 async function startSlowReloadFixture(){
   let gate;
@@ -716,7 +770,8 @@ await mkdir(directory,{recursive:true});
 try{
   assert.equal(process.platform,'darwin');
   const reloadFixture=slowReload?await startSlowReloadFixture():null;
-  if(!slowReload){
+  const clearFixture=clearReceipt?await startClearFixture():null;
+  if(!slowReload&&!clearReceipt){
   const fixtureAvailable=await fetch(fixture,{signal:AbortSignal.timeout(1500)}).then(r=>r.ok).catch(()=>false);
   if(!fixtureAvailable){
     const html=await readFile(path.join(root,'examples/tasks/demo-form.html'));
@@ -735,20 +790,22 @@ try{
   try{const dev=JSON.parse(await readFile(path.join(extension,'development-update.json'),'utf8'));report.developmentRevision=dev.revision;}catch{}
   report.watcherProcesses=execFileSync('/bin/ps',['-axo','pid,ppid,command'],{encoding:'utf8'}).split('\n').filter(l=>l.includes('node scripts/dev.mjs'));
   if(reuseReport){const prior=JSON.parse(await readFile(path.resolve(reuseReport),'utf8'));assert.equal(prior.extension,extension);assert.equal(prior.mode,'development');launched={metadata:prior.launch,endpoint:prior.cdpEndpoint};report.reusedOwnedBrowser={report:path.resolve(reuseReport),pid:prior.launch.pid,profile:prior.launch.profile};}
-  else launched=await launchChrome({root,binary,extension,headed:true,directory,label:'cookie-r5303',sameProfileRestart:!slowReload});
+  else launched=await launchChrome({root,binary,extension,headed:true,directory,label:'cookie-r5303',sameProfileRestart:!slowReload&&!clearReceipt});
   report.launch=launched.metadata;await save();
   console.log(JSON.stringify({launched:true,pid:launched.metadata.pid,profile:launched.metadata.profile,extension,endpoint:launched.endpoint}));
   await wire(launched.endpoint);
   report.browserVersion=await client.send('Browser.getVersion');await save();
   report.cdpEndpoint=launched.endpoint;await save();
-  const website=await openPanel();
+  const website=await openPanel(clearFixture||undefined);
   await checkpoint('actual-entry',{extensionId:report.extensionId,developmentConnection:report.developmentConnection});
   if(stage==='recheck')await developmentUpdate();
-  if(reloadCandidate)await importReloadCandidate(path.resolve(reloadCandidate));else await openOfficial();
+  if(localCandidate)await importLocalCandidate(path.resolve(localCandidate));else await openOfficial();
   if(stage==='upgrade')await upgradeSameId();
   if(slowReload)await grantReloadFixture();
+  else if(clearReceipt)await grantClearFixture();
   else{await grantAll();await grantValues();}
-  if(slowReload)await verifySlowReload(website,reloadFixture);
+  if(clearReceipt)await verifyClearReceipt();
+  else if(slowReload)await verifySlowReload(website,reloadFixture);
   else if(stage==='restart-dev')await restartDevelopment();
   else if(stage==='diagnose'){
     const observe=async(label)=>{

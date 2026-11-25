@@ -67,6 +67,7 @@ test('two queued messages require separate assistant completion gates and each m
   assert.equal(engine.enqueue('second',state.route),true);
   step(0);
   assert.equal(state.clicks,0);
+  assert.equal(engine.view().reason,'','normal reply waiting does not add a list notice');
   step(100,{busy:false,complete:true});
   step(1300);
   assert.equal(state.prepareCount,1);
@@ -540,10 +541,10 @@ function followUpEngine(){
     replaceHistory:fn=>{history=fn(history);}};
 }
 
-test('native follow-up gate reports waiting and resumes FIFO after latest completion and stable idle',()=>{
+test('native follow-up gate waits silently and resumes FIFO after latest completion and stable idle',()=>{
   const f=followUpEngine(),followUp=f.node('user','follow-up'),reply=f.node('assistant');
   f.append(followUp);f.step(2300,{busy:true,complete:false});
-  assert.match(f.engine.view().reason,/等待.*回复/);
+  assert.equal(f.engine.view().reason,'');
   f.append(reply);f.step(4000,{complete:true});f.step(5300);
   assert.equal(f.state.clicks,1,'complete markers do not override a busy page');
   f.step(6000,{busy:false});f.step(7000);
@@ -558,7 +559,7 @@ test('native follow-up gate waits past an older complete reply for the newest us
   const f=followUpEngine(),oldReply=f.node('assistant'),followUp=f.node('user','follow-up');
   f.append(oldReply,followUp);f.step(2300);f.step(4000);f.step(60000);
   assert.ok(f.engine.view().answerGate);assert.equal(f.state.clicks,1);
-  assert.match(f.engine.view().reason,/等待.*回复/);
+  assert.equal(f.engine.view().reason,'');
   f.append(f.node('assistant'));f.step(61000);f.step(62200);f.step(63400);f.step(63500);
   assert.equal(f.state.clicks,2);assert.equal(f.engine.view().reason,'');
 });
@@ -894,7 +895,7 @@ test('real adapter manual send after prepare never permits a second prepare or c
   step(20000);step(22000);
   assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,0,0,1]);
   assert.equal(engine.remove('q1'),false,'already acknowledged, no deletion needed');
-  assert.match(engine.view().reason,/等待.*回复/);
+  assert.equal(engine.view().reason,'');
   editor.value=text; // The inspected unknown draft remains owned by the user.
   step(24000);step(26000);
   assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,0,0,1]);

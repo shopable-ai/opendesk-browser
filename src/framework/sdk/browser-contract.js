@@ -488,7 +488,8 @@ export function normalizeBrowserOperation(operation,args={}){
         ...(scope?{scope}:{}),...(cursor!==undefined?{cursor}:{}),...(limit!==undefined?{limit}:{})};
     }
     case 'browser.cookies.setMany':{
-      fields(args,['url','cookies'],['url','cookies']);
+      fields(args,['url','cookies','skipConflicts'],['url','cookies']);
+      if(args.skipConflicts!==undefined&&args.skipConflicts!==true)throw fail('E_SCHEMA');
       const url=approvedHttpUrl(args.url);
       if(!Array.isArray(args.cookies)||args.cookies.length<1||args.cookies.length>50)
         throw fail('E_SCHEMA','Cookie batch requires 1–50 entries');
@@ -499,7 +500,8 @@ export function normalizeBrowserOperation(operation,args={}){
         const {url:_url,...cookie}=normalizeBrowserOperation('browser.cookies.set',{url,...row});
         return cookie;
       });
-      const out={url,cookies};
+      if(args.skipConflicts&&cookies.some(row=>row.ifAbsent!==true))throw fail('E_SCHEMA');
+      const out={url,cookies,...(args.skipConflicts?{skipConflicts:true}:{})};
       if(new TextEncoder().encode(JSON.stringify(out)).byteLength>shared.maxRequestBytes)
         throw fail('E_LIMIT','Cookie batch exceeds IPC budget');
       return structuredClone(out);

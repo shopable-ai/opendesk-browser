@@ -1,5 +1,4 @@
-// Toolbar placement and non-sticky content starts are separate identities.
-// Uncertain relationships fail closed; this adapter has no privileged APIs.
+// Toolbar and content targets are separate.
 const TURN = '[data-testid^="conversation-turn-"],[data-content-search-unit-key],'
   + '[data-message-author-role],[data-message-role]';
 const CONTENT = 'pre,textarea,[contenteditable="true"],'
@@ -20,14 +19,10 @@ const MINDMAP_VIEWER = '[data-opendesk-chatgpt-mindmap="viewer"]';
 const ASSISTANT_CONTENT = '[data-d-component],[data-markdown-text-style="assistant-message"]';
 const EXCLUDED = '[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hidden="true"]';
 const GAP = 12;
+const MAX_REPLY_CONTEXT = 72;
 const sessions = new WeakMap(); // doc -> per-owner sessions (Program and trusted tool may coexist)
 
-// A hidden pre-rename lifecycle is not a navigator. Yield only to a live
-// legacy ShadowRoot containing a real navigation button. Inert DOM markers,
-// empty hosts and React clones must not permanently suppress new Scroll UI.
-// This arbitration never transfers, disables or deletes the old installation.
-// A hidden legacy ShadowRoot is not an active navigator, even when its DOM
-// marker/button survives a previous installation or a stopped lifecycle.
+// Yield only to a visible legacy navigator.
 export function legacyNavigationPresent(doc,win=doc.defaultView) {
   return [...doc.querySelectorAll(`[${OWN}]`)].some(node => {
     if(!node.isConnected||node.hasAttribute(MODERN_OWN)||node.closest?.(EXCLUDED))return false;
@@ -50,8 +45,7 @@ function isWritingViewer(element, aside, win) {
   if (headers.length !== 1 || headers[0].parentElement !== section ||
       headers[0].querySelectorAll(VIEWER_CLOSE).length !== 1 || editors.length !== 1 ||
       headers[0].contains(editors[0])) return false;
-  // A viewer must have its own scrollport inside the aside. Navigation and
-  // ambiguous sidebars remain excluded, even if the outer conversation scrolls.
+  // Require a separate viewer scrollport.
   for (let node = editors[0]; node && aside.contains(node); node = node.parentElement) {
     if (!/^(auto|scroll|overlay)$/.test(win.getComputedStyle(node).overflowY)) continue;
     if (node === editors[0] && node.scrollHeight <= node.clientHeight + 1) continue;
@@ -110,18 +104,15 @@ export function findHeaderAction(header, win) {
 export function findConversationScroller(target, doc, win, {includeSelf = false} = {}) {
   for (let node = includeSelf ? target : target?.parentElement; node; node = node.parentElement) {
     if (node === doc.body || node === doc.documentElement) break;
-    // Even an empty inner scrollport is a boundary, never an excuse to move
-    // an unrelated outer region.
+    // An empty inner scrollport still blocks outer scrolling.
     if (/^(auto|scroll|overlay)$/.test(win.getComputedStyle(node).overflowY)) {
-      // overflow-x:auto also computes overflow-y:auto on unconstrained code
-      // blocks. Their entire height scrolls with the parent document.
+      // Skip auto-height code blocks with implicit overflow-y:auto.
       if (node === target && node.scrollHeight <= node.clientHeight + 1) continue;
       return node;
     }
   }
   const root = doc.scrollingElement || doc.documentElement;
-  // Keep an identified transcript's edge controls disabled even when the
-  // document has no scroll range. Scroll actions still check their own max.
+  // An unscrollable transcript still has disabled edge controls.
   return root || null;
 }
 function viewport(scroller, doc, win) {
@@ -132,15 +123,38 @@ function viewport(scroller, doc, win) {
   return {top: rect.top + (scroller.clientTop || 0), left: rect.left,
     right: rect.right, height: scroller.clientHeight};
 }
-function obstruction(binding, scroller, doc, win, port) {
+function visibleReplyPort(scroller, doc, win) {
+  const port = viewport(scroller, doc, win);
+  const visual = win.visualViewport;
+  const viewportTop = visual?.offsetTop ?? 0;
+  const viewportLeft = visual?.offsetLeft ?? 0;
+  let top = Math.max(port.top, viewportTop);
+  let bottom = Math.min(port.top + port.height, viewportTop + (visual?.height ?? win.innerHeight));
+  const left = Math.max(port.left, viewportLeft);
+  const right = Math.min(port.right, viewportLeft + (visual?.width ?? win.innerWidth));
+  for (let node = scroller.parentElement; node && node !== doc.documentElement; node = node.parentElement) {
+    if (node === doc.body || !/^(auto|scroll|overlay|hidden|clip)$/.test(win.getComputedStyle(node).overflowY)) continue;
+    const clip = viewport(node, doc, win);
+    top = Math.max(top, clip.top);
+    bottom = Math.min(bottom, clip.top + clip.height);
+  }
+  return {top, left, right, height: bottom - top};
+}
+function firstLineHeight(target, win) {
+  const style = win.getComputedStyle(target);
+  return parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2 || 20;
+}
+function replyContext(height, lineHeight) {
+  return Math.max(0, Math.min(MAX_REPLY_CONTEXT, Math.floor(height * .16), height - lineHeight));
+}
+function obstruction(binding, doc, win, port, gap = GAP) {
   const obstacles = new Set(doc.querySelectorAll('header'));
   for (let node = binding.header; node && node !== doc.body; node = node.parentElement) obstacles.add(node);
   const intervals = [];
   const targetRect = binding.target.getBoundingClientRect();
   const left = Math.max(port.left, targetRect.left);
   const right = Math.min(port.right, targetRect.right);
-  const targetStyle = win.getComputedStyle(binding.target);
-  const lineHeight = parseFloat(targetStyle.lineHeight) || parseFloat(targetStyle.fontSize) * 1.2 || 20;
+  const lineHeight = firstLineHeight(binding.target, win);
   for (const node of obstacles) {
     if (node === binding.target || binding.target.contains?.(node) || !rendered(node, win)) continue;
     const style = win.getComputedStyle(node);
@@ -149,18 +163,16 @@ function obstruction(binding, scroller, doc, win, port) {
         && node !== binding.header && !node.contains(binding.header)) continue;
     const rect = node.getBoundingClientRect();
     if (left >= right || rect.right <= left || rect.left >= right) continue;
-    // Read real rectangles, including a bar inset slightly below the port top.
-    // A bar in a parallel column or a later unpinned section is not coverage.
     intervals.push({top: rect.top, bottom: rect.bottom});
   }
   intervals.sort((a, b) => a.top - b.top);
-  let edge = port.top + GAP;
+  let edge = port.top;
   for (const interval of intervals) {
-    if (interval.top < edge + lineHeight && interval.bottom > edge - GAP) {
-      edge = Math.max(edge, interval.bottom + GAP);
+    if (interval.top < edge + gap + lineHeight && interval.bottom > edge) {
+      edge = interval.bottom;
     }
   }
-  return edge - port.top - GAP;
+  return edge - port.top;
 }
 export function jumpRegionTop(binding, doc, win) {
   const {target, header, main, kind} = binding || {};
@@ -169,33 +181,27 @@ export function jumpRegionTop(binding, doc, win) {
   if (/^(sticky|fixed)$/.test(win.getComputedStyle(target).position)) return false;
   const scroller = findConversationScroller(target, doc, win, {includeSelf: true});
   if (!scroller || (kind === 'editor' && scroller !== target)) return false;
-  const max = scroller.scrollHeight - scroller.clientHeight;
-  if (!(max > 1)) return false;
-  let top = 0;
-  if (scroller !== target) {
-    const port = viewport(scroller, doc, win);
-    top = target.getBoundingClientRect().top - port.top + scroller.scrollTop - GAP;
+  if (scroller === target) return scrollPort(scroller, doc, win, 0);
+  const reply = kind === 'reply';
+  const port = reply ? visibleReplyPort(scroller, doc, win) : viewport(scroller, doc, win);
+  const rect = target.getBoundingClientRect();
+  const line = reply ? firstLineHeight(target, win) : GAP;
+  if (reply && (port.height < line || Math.max(rect.left, port.left) >= Math.min(rect.right, port.right))) return false;
+  const gap = reply ? replyContext(port.height, line) : GAP;
+  const start = scroller.scrollTop;
+  if (!scrollPort(scroller, doc, win, start + rect.top - port.top - gap)) return false;
+
+  const landing = reply ? visibleReplyPort(scroller, doc, win) : viewport(scroller, doc, win);
+  const cover = obstruction(binding, doc, win, landing, gap);
+  const usable = landing.height - cover;
+  if (reply ? usable < line : usable <= GAP) {
+    if (reply && scroller.scrollTop !== start) scrollPort(scroller, doc, win, start);
+    return false;
   }
-  top = Math.max(0, Math.min(max, top));
-  if (!Number.isFinite(top)) return false;
-  const scroll = value => {
-    const options = {top: value, left: scroller.scrollLeft || 0, behavior: 'instant'};
-    if (scroller === doc.scrollingElement && typeof win.scrollTo === 'function') win.scrollTo(options);
-    else if (typeof scroller.scrollTo === 'function') scroller.scrollTo(options);
-    else scroller.scrollTop = value;
-  };
-  scroll(top);
-  if (scroller !== target) {
-    // Establish a canonical landing before reading sticky geometry. This also
-    // discards a later header that was pinned at the old reading position.
-    // Make at most one synchronous correction; never animate or chase it.
-    const port = viewport(scroller, doc, win);
-    const cover = obstruction(binding, scroller, doc, win, port);
-    if (cover + GAP >= port.height) return false;
-    const missing = port.top + cover + GAP - target.getBoundingClientRect().top;
-    if (missing > 1) {
-      scroll(Math.max(0, Math.min(max, scroller.scrollTop - missing)));
-    }
+  const desired = landing.top + cover + (reply ? replyContext(usable, line) : GAP);
+  const missing = desired - target.getBoundingClientRect().top;
+  if (missing > 1 && scroller.scrollTop > 0) {
+    scrollPort(scroller, doc, win, scroller.scrollTop - missing);
   }
   return true;
 }
@@ -203,8 +209,6 @@ export function jumpConversationTop(main, doc, win) {
   return jumpRegionTop({target: main?.querySelector(TURN), main, kind: 'conversation'}, doc, win);
 }
 
-// Reuse the same bounded scrollport resolution for both directions. Never
-// allow a nested code block/editor to replace the conversation scrollport.
 function scrollPort(scroller, doc, win, top) {
   const max = scroller.scrollHeight - scroller.clientHeight;
   if (!(max > 1) || !Number.isFinite(top)) return false;
@@ -215,7 +219,31 @@ function scrollPort(scroller, doc, win, top) {
   else scroller.scrollTop = options.top;
   return true;
 }
-export function jumpRegionEnd(binding, doc, win) {
+const anchored = (node, win) => /^(absolute|fixed|sticky)$/.test(win.getComputedStyle(node).position);
+function chatGPTComposer(scroller, target, bottom, win) {
+  const composers = [...scroller.querySelectorAll('form[data-chatgpt-composer][data-composer-placement="thread"]')]
+    .filter(node => !target.contains(node) && rendered(node, win));
+  if (composers.length !== 1) return null;
+  const [composer] = composers;
+  for (let node = composer; node && node !== scroller; node = node.parentElement) {
+    if (anchored(node, win) && node.getBoundingClientRect().bottom >= bottom - 1) return composer;
+  }
+  return null;
+}
+function geminiComposer(main, scroller, bottom, win) {
+  if (!main.contains(scroller)) return null;
+  const composers = [...main.querySelectorAll('input-container')].filter(node =>
+    node.closest('chat-window') === main && !scroller.contains(node) && rendered(node, win));
+  if (composers.length !== 1) return null;
+  const [composer] = composers;
+  if (!anchored(composer, win) || composer.getBoundingClientRect().bottom < bottom - 1) return null;
+  // Avoid the input field, not its decorative gradient.
+  const fields = [...composer.querySelectorAll('.text-input-field')].filter(node =>
+    composer.contains(node.closest('input-area-v2')) && rendered(node, win) &&
+    win.getComputedStyle(node).pointerEvents !== 'none');
+  return fields.length === 1 ? fields[0] : null;
+}
+export function jumpRegionEnd(binding, doc, win, refreshDock, floor=-Infinity) {
   const {target, main, header, kind} = binding || {};
   if (!target?.isConnected || !main?.isConnected || !main.contains(target) ||
       (header && !header.isConnected) ||
@@ -224,15 +252,39 @@ export function jumpRegionEnd(binding, doc, win) {
   if (!scroller || (kind === 'editor' && scroller !== target)) return false;
   if (scroller === target) return scrollPort(scroller, doc, win,
     scroller.scrollHeight - scroller.clientHeight);
-  const port = viewport(scroller, doc, win);
+  const chatGPTReply = kind === 'reply' && binding.answerRoot === target;
+  const geminiReply = kind === 'reply' && main.matches('chat-window');
+  const siteReply = chatGPTReply || geminiReply;
+  const port = siteReply ? visibleReplyPort(scroller, doc, win) : viewport(scroller, doc, win);
   const rect = target.getBoundingClientRect();
-  if (rect.left >= port.right || rect.right <= port.left) return false;
-  return scrollPort(scroller, doc, win,
-    scroller.scrollTop + rect.bottom - (port.top + port.height) + GAP);
+  if ((siteReply && port.height <= GAP) || rect.left >= port.right || rect.right <= port.left) return false;
+  const overlaps = box => box.left < Math.min(port.right, rect.right) && box.right > Math.max(port.left, rect.left);
+  let bottom = port.top + port.height;
+  const composer = chatGPTReply ? chatGPTComposer(scroller, target, bottom, win) :
+    geminiReply ? geminiComposer(main, scroller, bottom, win) : null;
+  const cover = composer?.getBoundingClientRect();
+  if (cover && cover.top > port.top && cover.top < bottom && overlaps(cover)) bottom = cover.top;
+  if (siteReply) {
+    const line = firstLineHeight(target, win);
+    const peers = [...doc.documentElement.children].filter(node => {
+      const style = win.getComputedStyle(node);
+      return style.position === 'fixed' && style.opacity !== '0' && rendered(node, win);
+    }).map(node => ({box: node.getBoundingClientRect(), dock: node.getAttribute(MODERN_OWN) === 'dock'}))
+      .sort((a,b) => b.box.top - a.box.top);
+    // On narrow screens the compact dock can sit well above the composer.
+    for (const {box, dock} of peers) if (box.top >= port.top + GAP + line && box.top < bottom - GAP &&
+        (dock || box.bottom > bottom - GAP - line) && overlaps(box)) bottom = box.top;
+  }
+  const next = scroller.scrollTop + rect.bottom - bottom + GAP;
+  if (next <= floor) return true;
+  if (!scrollPort(scroller, doc, win, next)) return false;
+  if (siteReply && refreshDock) {
+    // The first scroll can reveal the Dock. Correct for its new geometry once.
+    refreshDock();
+    jumpRegionEnd(binding, doc, win, null, scroller.scrollTop);
+  }
+  return true;
 }
-// Fixed, audited site adapters provide the transcript container and turn
-// selector. Empty/ambiguous turns fail closed; recognized transcripts with
-// zero scroll range keep disabled controls instead of vanishing.
 export function findConversationNavigation(main, turnSelector, doc, win) {
   if (!main?.isConnected || !rendered(main, win) ||
       typeof turnSelector !== 'string' || !turnSelector) return null;
@@ -244,18 +296,26 @@ export function findConversationNavigation(main, turnSelector, doc, win) {
   if (!scroller || turns.includes(scroller) ||
       turns.some(turn => findConversationScroller(turn, doc, win, {includeSelf: true}) !== scroller))
     return null;
-  // Do not accept a scrollport inside a single message, code editor, or aside.
   if (scroller !== doc.scrollingElement && scroller !== doc.documentElement &&
       (!scroller.contains(first) || !scroller.contains(last) || scroller.closest('aside')))
     return null;
   return {scroller, main, first, last, turns};
 }
-// Page through user-question rounds, not screen-height increments or assistant
-// paragraphs. Missing/contradictory role evidence fails closed rather than
-// inventing a turn count. Only previously loaded DOM is inspected.
+// DeepSeek speaker markers must be direct children.
+export function deepSeekMessage(node) {
+  if(!node?.matches('.ds-message'))return null;
+  const users=[...node.children].filter(child=>child.matches('.fbb737a4'));
+  const replies=[...node.children].filter(child=>child.matches('.ds-assistant-message-main-content'));
+  if(users.length+replies.length!==1)return null;
+  if(replies.length)return node.matches('.d29f3d7d')?null:{role:'assistant',body:replies[0]};
+  return node.matches('.d29f3d7d')?{role:'user',body:users[0]}:null;
+}
+
+// Only count questions with an unambiguous role.
 function conversationTurnRole(node,site) {
   if(site==='gemini')
     return node.localName==='user-query'?'user':node.localName==='model-response'?'assistant':null;
+  if(site==='deepseek')return deepSeekMessage(node)?.role??null;
   const roles=new Set();
   const mark=(name,value)=>{
     if(typeof value!=='string')return;
@@ -274,16 +334,20 @@ function conversationTurnRole(node,site) {
     for(const name of markers)if(child.hasAttribute(name))mark(name,child.getAttribute(name));
     if(roles.size>1)return null;
   }
-  // DeepSeek may mark the message kind on a directly enclosing message row.
-  if(!roles.size&&site==='deepseek') {
-    const row=node.parentElement;
-    if(row&&row.querySelectorAll('.ds-message').length===1) {
-      for(const name of ['data-role','data-message-role','data-message-author-role'])
-        mark(name,row.getAttribute(name));
-    }
-  }
   return roles.size===1?[...roles][0]:null;
 }
+export function isVirtualChatGPT(binding,win) {
+  return win.location?.origin==='https://chatgpt.com'&&
+    (binding.site==='chatgpt'||binding.custom===true)&&
+    binding.scroller.hasAttribute('data-app-action-timeline-scroll');
+}
+
+// Native IDs survive search-unit key hydration.
+function virtualQuestionId(target) {
+  const id=target.parentElement?.getAttribute('data-chatgpt-search-message-ids');
+  return /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(id||'')?id.toLowerCase():null;
+}
+
 export function findConversationPages(binding,doc,win,history=null) {
   const forget=()=>{if(history)history.snapshot=null;return null;};
   const {main,scroller,selector,site}=binding||{};
@@ -291,48 +355,63 @@ export function findConversationPages(binding,doc,win,history=null) {
       !['chatgpt','deepseek','gemini','custom'].includes(site))return forget();
   const navigation=findConversationNavigation(main,selector,doc,win);
   if(!navigation||navigation.scroller!==scroller||navigation.turns.length>2000)return forget();
+  const virtual=isVirtualChatGPT(binding,win);
   const pages=[];
   for(const node of navigation.turns) {
     const role=conversationTurnRole(node,site);
     if(!role)return forget();
     if(role==='user')pages.push({target:node});
-    else if(!pages.length)return forget();
+    else if(!pages.length&&!virtual)return forget();
   }
-  if(!pages.length)return forget();
+  // A virtual window may briefly contain only the tail of an answer.
+  if(!pages.length)return virtual?null:forget();
   const paging={main,scroller,pages};
-  // ChatGPT virtualizes entire rounds. Keep only verified question keys and
-  // geometry in this dock's document/session, never detached message nodes or
-  // message text. This is observed history, not a server-side total.
+  // Cache only observed keys and geometry; never hold detached nodes.
   if(!history)return paging;
-  if(site!=='chatgpt'||win.location?.origin!=='https://chatgpt.com') {
+  if(!virtual&&(site!=='chatgpt'||win.location?.origin!=='https://chatgpt.com')) {
     forget();return paging;
   }
-  const port=viewport(scroller,doc,win),known=new Map();
+  const port=viewport(scroller,doc,win),known=new Map(),live=new Map();
   for(const {target} of pages) {
-    const key=target.getAttribute('data-content-search-unit-key');
+    const unit=target.getAttribute('data-content-search-unit-key');
+    const slot=/^(?:fallback-)?(turn-[0-9]+:[0-9]+):user$/.exec(unit||'')?.[1];
+    const key=virtual?virtualQuestionId(target):(slot&&unit);
     const top=scroller.scrollTop+target.getBoundingClientRect().top-port.top;
-    const cover=obstruction({target,main},scroller,doc,win,port);
-    if(!/^(?:fallback-)?turn-\d+:\d+:user$/.test(key||'')||known.has(key)||
+    const cover=obstruction({target,main},doc,win,port);
+    if(!key||known.has(key)||
         !Number.isFinite(top)||!Number.isFinite(cover)) {
       forget();return paging;
     }
-    known.set(key,{key,top,cover});
+    known.set(key,{key,top,cover,slot});
+    live.set(key,{target,key});
   }
-  const scope=[doc.documentElement,win.location.href,main,scroller,selector,site];
-  const size=[scroller.scrollHeight,scroller.clientHeight,scroller.clientWidth,
-    win.innerWidth,win.innerHeight];
+  const scope=[doc.documentElement,win.location.href,main,scroller,selector,site,virtual];
+  const size=[scroller.clientHeight,scroller.clientWidth,win.innerWidth,win.innerHeight,
+    ...(virtual?[]:[scroller.scrollHeight])];
   const old=history.snapshot;
-  const reusable=old&&[...known.keys()].some(key=>old.known.has(key))&&
+  const shared=old?[...known.values()].filter(({key})=>old.known.has(key)):[];
+  const oldSlots=new Map(virtual&&old?[...old.known.values()]
+    .filter(({slot})=>slot).map(({slot,key})=>[slot,key]):[]);
+  const reusable=old&&
     scope.every((value,i)=>value===old.scope[i])&&
-    size.every((value,i)=>value===old.size[i])&&[...known].every(([key,value])=>{
-      const previous=old.known.get(key);
-      return !previous||(Math.abs(previous.top-value.top)<=2&&Math.abs(previous.cover-value.cover)<=2);
-    });
+    size.every((value,i)=>value===old.size[i])&&
+    (virtual?[...known.values()].every(({key,slot})=>!slot||!oldSlots.has(slot)||oldSlots.get(slot)===key):
+      shared.length>0&&shared.every(value=>{
+        const previous=old.known.get(value.key);
+        return Math.abs(previous.top-value.top)<=2&&Math.abs(previous.cover-value.cover)<=2;
+      }));
   const merged=new Map(reusable?old.known:[]);
+  if(virtual&&reusable&&shared.some(({key,top})=>Math.abs(top-old.known.get(key).top)>2)) {
+    // Update estimates from the nearest shared question.
+    for(const [key,value] of merged)if(!known.has(key)){
+      const nearest=shared.reduce((best,current)=>
+        Math.abs(old.known.get(current.key).top-value.top)<Math.abs(old.known.get(best.key).top-value.top)?current:best);
+      merged.set(key,{...value,top:value.top+nearest.top-old.known.get(nearest.key).top});
+    }
+  }
   for(const [key,value] of known)merged.set(key,value);
   if(merged.size>2000){forget();return paging;}
   history.snapshot={scope,size,known:merged};
-  const live=new Map(pages.map(page=>[page.target.getAttribute('data-content-search-unit-key'),page]));
   paging.pages=[...merged.values()].sort((a,b)=>a.top-b.top)
     .map(value=>live.get(value.key)||{...value,remembered:true});
   return paging;
@@ -343,22 +422,32 @@ function questionLanding(paging,page,doc,win) {
     return page.cover+GAP<port.height?page.top-page.cover-GAP:null;
   }
   if(!page.target?.isConnected||!paging.main.contains(page.target))return null;
-  const cover=obstruction({target:page.target,main:paging.main},paging.scroller,doc,win,port);
+  const cover=obstruction({target:page.target,main:paging.main},doc,win,port);
   if(cover+GAP>=port.height)return null;
   return paging.scroller.scrollTop+page.target.getBoundingClientRect().top-port.top-cover-GAP;
 }
 export function currentConversationPageIndex(paging,doc,win) {
   if(!paging?.pages?.length||!paging.scroller?.isConnected)return -1;
-  // Count and navigate against the actual question landing, including native
-  // sticky headers. A question merely entering the viewport is not yet passed.
-  let index=0;
+  // Count from the landing below sticky headers.
+  let index=-1;
   for(const [position,page] of paging.pages.entries()) {
     const top=questionLanding(paging,page,doc,win);
     if(top===null)return -1;
     if(top<=paging.scroller.scrollTop+2)index=position;
     else break;
   }
-  return index;
+  const {scroller,pages}=paging;
+  const max=scroller.scrollHeight-scroller.clientHeight;
+  // At bottom, count a visible final question that cannot align.
+  if(index>=0&&index===pages.length-2&&max>2&&scroller.scrollTop>=max-2) {
+    const target=pages.at(-1).target;
+    if(target?.isConnected&&paging.main.contains(target)) {
+      const port=viewport(scroller,doc,win),rect=target.getBoundingClientRect();
+      const cover=obstruction({target,main:paging.main},doc,win,port);
+      if(rect.top>=port.top+cover&&rect.top+firstLineHeight(target,win)<=port.top+port.height)return index+1;
+    }
+  }
+  return Math.max(0,index);
 }
 export function conversationPageTargetIndex(paging,direction,doc,win) {
   if(!['previous','next'].includes(direction))return -1;
@@ -366,9 +455,7 @@ export function conversationPageTargetIndex(paging,direction,doc,win) {
   if(index<0)return -1;
   const {scroller,pages}=paging;
   const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
-  // Going up from a long answer first returns to its own question. At that
-  // question's landing, continue to the previous round. Use the same sticky
-  // header allowance and clamp as the actual jump, including short final rounds.
+  // From a long answer, return to its question before paging back.
   const step=direction==='previous'?-1:1;
   for(let candidate=index+(step>0?1:0);candidate>=0&&candidate<pages.length;candidate+=step) {
     const landing=questionLanding(paging,pages[candidate],doc,win);
@@ -436,8 +523,7 @@ function messageActions(marker, copySelector, peerSelector, boundary, win) {
 }
 
 function assistantActions(original, main, win) {
-  // Current DIL places regeneration inside More's closed menu. Bind the
-  // direct completed-turn footer, never a code block or the nested user bar.
+  // DIL puts regenerate inside More; bind the outer turn footer.
   const turn = original.closest('[data-talvt-turn-state]');
   if (turn && original.matches('[data-content-search-unit-key$=":assistant"]')) {
     if (turn.getAttribute('data-talvt-turn-state') !== 'complete' ||
@@ -448,7 +534,7 @@ function assistantActions(original, main, win) {
     const footers = [...turn.children].filter(node => node.matches('.turn-action-controls'));
     if (footers.length !== 1 || footers[0].contains(original) ||
         original.contains(footers[0]) || footers[0].querySelector(TURN)) return null;
-    const feedback = [...footers[0].querySelectorAll('button[aria-label="评价回复"]')];
+    const feedback = [...footers[0].querySelectorAll('button[aria-label="评价回复"],button[aria-label="反馈"]')];
     if (feedback.length !== 1) return null;
     const actions = messageActions(feedback[0], 'button[aria-label="复制"]',
       'button[aria-label="更多操作"]', turn, win);
@@ -479,9 +565,7 @@ function messageBindings(main, doc, win) {
         && node.querySelector(ASSISTANT_CONTENT));
       if (!viewers.length && contents.some(node => !rendered(node, win))) continue;
       if (viewers.length) {
-        // DIL keeps the assistant root visible and conceals only its content
-        // DIV. The sole adjacent viewer replaces that exact content, not a
-        // user turn, nested writing block, or another reply.
+        // The adjacent viewer replaces the concealed assistant content.
         if (viewers.length !== 1 || contents.length !== 1
             || contents[0].nextElementSibling !== viewers[0]
             || rendered(contents[0], win) || !rendered(viewers[0], win)
@@ -489,8 +573,7 @@ function messageBindings(main, doc, win) {
         target = viewers[0];
       }
     }
-    // The explicit replacement can be compact even for a long answer. Its
-    // own height must not retire the reply's navigation while mindmap is open.
+    // A compact viewer still belongs to the full reply.
     if (target === original && !isLong(target, doc, win)) continue;
     let actions = null;
     if (!assistant) {
@@ -500,7 +583,7 @@ function messageBindings(main, doc, win) {
     } else {
       actions = assistantActions(original, main, win);
     }
-    if (actions) bindings.push({...actions, target, main, kind: 'region',
+    if (actions) bindings.push({...actions, target, main, kind: assistant && target === original ? 'reply' : 'region',
       ...(assistant ? {answerRoot: original} : {})});
   }
   return bindings;
@@ -531,8 +614,7 @@ export function findRegionBindings(doc, win) {
       if (findConversationScroller(target, doc, win, {includeSelf: true}) === target) {
         kind = 'editor';
       } else {
-        // Writing blocks may be editable, natural-height conversation content.
-        // Clipped/overflowing editors still must never redirect to a parent.
+        // Editors with overflow must keep scrolling locally.
         if (!target.matches('[contenteditable="true"]') ||
             target.scrollHeight > target.clientHeight + 1 ||
             /^(hidden|clip)$/.test(win.getComputedStyle(target).overflowY)) continue;
@@ -559,10 +641,7 @@ export function findRegionBindings(doc, win) {
   }
   return bindings;
 }
-// Both reply navigation and mindmap own their live host; the shared group
-// owns layout only. Repeated mounts do not move an already correctly placed host.
-// Resolving the same verified assistant footer as Mind Map prevents creating
-// two background groups when the native DIL action buttons sit one level deeper.
+// Share the verified footer layout; each tool owns its own host.
 function answerToolScope(bar) {
   return bar.closest?.('.turn-action-controls') || bar;
 }
@@ -574,8 +653,7 @@ export function mountAnswerTool(bar, host) {
   if (groups.length > 1) {
     const previous = host.parentElement;
     const destinations = groups.filter(candidate => candidate !== previous);
-    // An older peer may mount after our short-marker group. Move only our
-    // sole host into its unique mindmap group; never absorb foreign children.
+    // Only move our own host into the older peer group.
     if (groups.length !== 2 || destinations.length !== 1 ||
         previous?.childNodes.length !== 1 || previous.childNodes[0] !== host ||
         ![...destinations[0].children].some(node =>
@@ -593,8 +671,7 @@ export function mountAnswerTool(bar, host) {
       + 'max-width:100%;flex-wrap:wrap;flex:0 0 auto;';
   }
   if (!group.hasAttribute(ANSWER_TOOLS)) group.setAttribute(ANSWER_TOOLS, '');
-  // A peer may have created the group with the former right-aligned margin.
-  // Update layout only, and avoid style mutations on every observer refresh.
+  // Normalize peer layout only when it changes.
   if (group.style.marginInlineStart !== '0px') group.style.marginInlineStart = '0px';
   if (group.style.marginInlineEnd !== 'auto') group.style.marginInlineEnd = 'auto';
   if (group.style.justifyContent !== 'flex-start') group.style.justifyContent = 'flex-start';
@@ -602,8 +679,7 @@ export function mountAnswerTool(bar, host) {
   if (previous !== group) group.append(host);
   if (previous !== group && previous?.matches(ANSWER_TOOL_GROUPS) && !previous.childNodes.length)
     previous.remove();
-  // The two Apps retain their own listeners. Order navigation before Mind Map
-  // and never replace the shared group, native controls or a peer's host.
+  // Order navigation before Mind Map without replacing peer controls.
   const mindmap = [...group.children].find(node =>
     node.matches('[data-opendesk-chatgpt-mindmap="button"]'));
   if (mindmap) {
@@ -669,10 +745,10 @@ function newButton(doc, kind, directions, sessionKey) {
 export function installJumpToTop({doc, win, owner, resolveBindings = findRegionBindings,
   regionSelector = 'main,[role="main"],header', sessionKey = 'default',
   resolveNavigation = () => ({}),
+  refreshDock,
   regionDirections = {top: true, bottom: false},
   conversationDirections = {top: true, bottom: false}}) {
-  // An old session may delete the WeakMap entry when it was the last owner.
-  // Reacquire after disposing, or a repeated install becomes untracked.
+  // Disposal may remove the owner map; reacquire it.
   sessions.get(doc)?.get(sessionKey)?.dispose();
   let active = sessions.get(doc);
   if (!active) {active = new Map();sessions.set(doc, active);}
@@ -689,8 +765,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
   function refresh() {
     pending = false;
     if (disposed) return;
-    // A still-active old install is the incumbent. Its buttons remain owned
-    // by the old script; this program yields without touching that owner.
+    // Yield to a live older installation.
     if (legacyNavigationPresent(doc)) {
       for (const header of [...mounted.keys()]) remove(header);
       return;
@@ -703,8 +778,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
           || findConversationMain(doc, win) !== old.main || !rendered(root, win)
           || !root.matches(ASSISTANT_TURN)
           || root.getAttribute('data-content-search-unit-key') !== old.answerKey) continue;
-      // Concealment and viewer insertion/removal can arrive in separate refreshes.
-      // Keep only an already proven reply/action relationship, with no scroll target.
+      // Keep proven controls through staged transitions without scrolling.
       const replacing = root.querySelector(MINDMAP_VIEWER) || [...root.children].some(node =>
         node.tagName === 'DIV' && node.querySelector('[data-d-component]') && !rendered(node, win));
       const actions = replacing && assistantActions(root, old.main, win);
@@ -725,9 +799,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       if (!bindings.some(binding => binding.header === header)) remove(header);
     }
     for (const binding of bindings) {
-      // Two distinct versions can share a document even when each has its
-      // own module-local WeakMap. The first connected live host wins; a
-      // second install cannot create a second effective reply navigator.
+      // First live host wins even across independent module instances.
       const incumbent = [...answerToolScope(binding.header).querySelectorAll(`[${MODERN_OWN}="reply"]`)]
         .find(node => node.isConnected && node.shadowRoot &&
           node.getAttribute(OWN) === (sessionKey === 'default' ? 'host' : sessionKey));
@@ -735,8 +807,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
         remove(binding.header);
         continue;
       }
-      // React cloneNode copies the marker, not the ShadowRoot/listeners.
-      // Clean only inert copies owned by this navigation session.
+      // Remove only our inert clones.
       for (const clone of answerToolScope(binding.header).querySelectorAll(
         `[${OWN}="${sessionKey === 'default' ? 'host' : sessionKey}"]`)) {
         if (!clone.shadowRoot) unmountAnswerTool(clone);
@@ -761,8 +832,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
         const active = [...answerToolScope(binding.header).querySelectorAll(`[${MODERN_OWN}="reply"]`)]
           .find(node => node.isConnected && node.shadowRoot &&
             node.getAttribute(OWN) === (sessionKey === 'default' ? 'host' : sessionKey));
-        // The old Page can mount between scheduled refresh and a click.
-        // Revalidate the DOM owner before any scroll side effect.
+        // Revalidate owner before scrolling.
         if (resolveNavigation()?.[(binding.kind === 'conversation' ? 'conversation' : 'region') +
             (direction === 'top' ? 'Top' : 'Bottom')] === false ||
             button.disabled || legacyNavigationPresent(doc) || active !== item.host) {
@@ -772,7 +842,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
           && next.anchor === binding.anchor
           && (next.answerRoot || next.target) === (binding.answerRoot || binding.target));
         if (current) {
-          if (direction === 'bottom') jumpRegionEnd(current, doc, win);
+          if (direction === 'bottom') jumpRegionEnd(current, doc, win, refreshDock);
           else jumpRegionTop(current, doc, win);
         } else {
           // A click can beat the debounced refresh during a mode transition.
@@ -793,8 +863,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
     owner.setTimeout(refresh, 120);
   }
   const observer = owner.observe(doc.documentElement, records => {
-    // A pre-rename installation can mount after this Page has mounted.
-    // Do not debounce its takeover or ignore it as our own DOM mutation.
+    // Handle legacy takeover immediately.
     const peerChanged = records.some(record => record.type === 'childList' &&
       [...record.addedNodes, ...record.removedNodes].some(node =>
         (node.matches?.(LEGACY_LIFECYCLE)) ||

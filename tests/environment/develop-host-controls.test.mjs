@@ -38,7 +38,7 @@ function currentPageOwner(initial, ready = Promise.resolve()) {
 }
 const currentPage = (overrides = {}) => ({status:'available', windowId:1, tabId:7, frameId:0,
   documentId:'doc-7', url:'https://a.example/form', origin:'https://a.example', title:'Form', ...overrides});
-function fixture({withheld = false, ready = Promise.resolve(), installGate, tabs, frames, currentPageTarget} = {}) {
+function fixture({withheld = false, ready = Promise.resolve(), installGate, tabs, frames, currentPageTarget, tabActivated} = {}) {
   const onAdded = signal(), onRemoved = signal(), onCommitted = signal(), tabRemoved = signal();
   const state = {websites:!withheld, allowed:true, denied:false, requests:[], messages:[], rpc:[],
     tabs:(tabs ?? [{id:7, incognito:false, url:'https://a.example/form', title:'Form'}]).map(tab => ({windowId:1, ...tab})),
@@ -55,7 +55,7 @@ function fixture({withheld = false, ready = Promise.resolve(), installGate, tabs
     tabs:{query:async (query = {}) => structuredClone(state.tabs.filter(tab =>
       (query.windowId === undefined || tab.windowId === query.windowId) &&
       (!query.currentWindow || tab.windowId === 1) &&
-      (query.active === undefined || tab.active === query.active))), get:async id => structuredClone(state.tabs.find(tab => tab.id === id)), onRemoved:tabRemoved},
+      (query.active === undefined || tab.active === query.active))), get:async id => structuredClone(state.tabs.find(tab => tab.id === id)), onRemoved:tabRemoved, onActivated:tabActivated},
     webNavigation:{getAllFrames:async ({tabId}) => structuredClone(Array.isArray(state.frames) ? state.frames : state.frames[tabId]), onCommitted},
     runtime:{sendMessage:async message => {
       state.messages.push(structuredClone(message));
@@ -258,6 +258,82 @@ test('host controls start without DOM, expose site recovery, and clean only thei
     assert.deepEqual([f.onAdded.size, f.onRemoved.size, f.onCommitted.size, f.tabRemoved.size], [0, 0, 0, 0]);
     assert.deepEqual(f.controller.resourceSnapshot(), {subscriptions:0, actions:0});
     assert.deepEqual(Object.keys(f.view.actions), ['script-run']);
+  } finally { f.controller.dispose(); }
+});
+
+test('Chrome user scripts are independent of site access and rechecked on return from settings', async () => {
+  const activated = signal();
+  const f = fixture({tabActivated:activated, currentPageTarget:currentPageOwner(currentPage())});
+  const id = 'a'.repeat(32), opened = [];
+  const status = () => f.field('browser-user-scripts-status').data.state;
+  let available = false;
+  f.api.runtime.id = id;
+  f.api.runtime.getManifest = () => ({name:'GrayDove'});
+  f.api.tabs.create = async ({url}) => { opened.push(url); return {id:11, windowId:1}; };
+  const native = {getScripts:async () => [], execute:() => assert.fail('diagnostics must never execute scripts')};
+  Object.defineProperty(f.api, 'userScripts', {get:() => available ? native : undefined});
+  try {
+    await f.controller.ready;
+    assert.equal(f.field('site-access-status').data.websites, true);
+    await f.action('browser-user-scripts-panel-active', true);
+    await tick();
+    assert.equal(status(), 'unavailable');
+    assert.equal(f.field('browser-user-scripts-reopen-hint').hidden, false);
+    await f.action('browser-user-scripts-settings', {isTrusted:false});
+    assert.deepEqual(opened, []);
+    await f.action('browser-user-scripts-settings');
+    assert.deepEqual(opened, ['chrome://extensions/?id='+id]);
+
+    available = true;
+    activated.fire({tabId:14,windowId:2});
+    activated.fire({tabId:11,windowId:1});
+    await tick();
+    assert.equal(status(), 'unavailable', 'other windows and activation of settings itself do not imply a return');
+    activated.fire({tabId:7,windowId:1});
+    await tick();
+    assert.equal(status(), 'available');
+    assert.equal(f.field('browser-user-scripts-reopen-hint').hidden, true);
+
+    available = false;
+    f.tabRemoved.fire(11);
+    await tick();
+    assert.equal(status(), 'unavailable');
+
+    // The user can also open and close Chrome settings on their own.
+    available = true;
+    activated.fire({tabId:7,windowId:2});
+    await tick();
+    assert.equal(status(), 'unavailable');
+    activated.fire({tabId:7,windowId:1});
+    await tick();
+    assert.equal(status(), 'available');
+    await f.action('browser-user-scripts-panel-active', false);
+    available = false;
+    activated.fire({tabId:7,windowId:1});
+    await tick();
+    assert.equal(status(), 'available', 'hidden diagnostics do not probe on tab activation');
+
+    f.api.tabs.create = async () => { throw Error('settings unavailable'); };
+    await f.action('browser-user-scripts-settings');
+    assert.equal(f.field('browser-user-scripts-settings-error').hidden, false);
+    assert.match(f.field('browser-user-scripts-settings-error').textContent, /「GrayDove」/);
+    assert.deepEqual([f.state.requests, f.state.messages, f.state.rpc], [[], [], []]);
+  } finally { f.controller.dispose(); }
+  assert.equal(activated.size, 0);
+});
+
+test('Chrome user scripts do not show a stale or affirmative result after a failed probe', async () => {
+  const f = fixture();
+  const stale = deferred();
+  try {
+    f.api.userScripts = {getScripts:() => stale.promise, execute:() => assert.fail('unexpected execution')};
+    const oldRead = f.action('browser-user-scripts-refresh');
+    f.api.userScripts = {...f.api.userScripts, getScripts:async () => { throw Error('unexpected browser failure'); }};
+    await f.action('browser-user-scripts-refresh');
+    assert.equal(f.field('browser-user-scripts-status').data.state, 'unknown');
+    stale.resolve([]);
+    await oldRead;
+    assert.equal(f.field('browser-user-scripts-status').data.state, 'unknown');
   } finally { f.controller.dispose(); }
 });
 

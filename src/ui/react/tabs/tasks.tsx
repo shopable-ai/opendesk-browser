@@ -40,18 +40,19 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
   },[selectedId]);
   React.useEffect(()=>{if(manageMode&&selectedId)setExpandedTaskId(selectedId);},[manageMode,selectedId]);
   const selected=rows.some(row=>row.taskId===selectedId),expanded=expandedTaskId===selectedId&&selected;
-  // Keep ONE React workspace mounted across selection/filter/collapse, retaining
-  // IME, form controls and disclosure state; only its visibility changes.
+  // Keep one keyed workspace as a sibling of the rows. It follows the selected
+  // task without remounting its form controls or disclosures.
   React.useLayoutEffect(()=>{
     if(!expanded&&returnFocus.current){
       [...rowsRef.current?.querySelectorAll('[data-task-id]')||[]].find(node=>node.dataset.taskId===selectedId)?.focus({preventScroll:true});
       returnFocus.current=null;
     }
   },[expanded,selectedId]);
-  return <div ref={rowsRef} className="task-browser">
-    {rows.length===0&&<p className="task-search-empty">{emptyText}</p>}
-    <div className="od-collection" hidden={rows.length===0}>
-    {rows.map(row=><div key={row.taskId}
+  const detail=<div key="task-workspace" className="task-inline-workspace" hidden={!expanded}
+    onFocusCapture={event=>{returnFocus.current=event.target;}}>
+    {renderWorkspace?.({expanded})||(React.isValidElement(workspace)?workspace:null)}
+  </div>;
+  const cards=rows.map(row=><div key={'task:'+row.taskId}
       className={'task-card-group od-collection-row'+(row.taskId===selectedId?' selected':'')}>
       <Button variant="quiet" className="task-card" data-task-id={row.taskId} title={row.title}
         aria-pressed={row.taskId===selectedId} aria-expanded={row.taskId===selectedId&&expanded}
@@ -87,11 +88,12 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5h.01M12 12h.01M12 19h.01" strokeWidth="3.5"/></svg>
       </IconButton>
       </span>
-    </div>)}
-    </div>
-    <div hidden={!expanded} onFocusCapture={event=>{returnFocus.current=event.target;}}>
-      {renderWorkspace?.({expanded})||(React.isValidElement(workspace)?workspace:null)}
-    </div>
+    </div>);
+  const selectedIndex=rows.findIndex(row=>row.taskId===selectedId);
+  cards.splice(selectedIndex<0?cards.length:selectedIndex+1,0,detail);
+  return <div ref={rowsRef} className="task-browser">
+    {rows.length===0&&<p className="task-search-empty">{emptyText}</p>}
+    <div className="od-collection" hidden={rows.length===0}>{cards}</div>
     {visible&&menuModel&&<ExtensionRowMenu id="task-row-menu" label={'任务菜单「'+menu.title+'」'} model={menuModel}/>}
   </div>;
 }

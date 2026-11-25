@@ -17,7 +17,7 @@ import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
 import {browserTextDownloadUrl,COOKIE_BATCH_ERROR_CODES} from '../framework/sdk/browser-schemas.js';
 import {requestManagedProxyIntent,createManagedProxyActionGate} from './sidebar-tools/managed-proxy-consent.js';
 import readingTocCatalog from '../../projects/reading-toc/trusted/locales.generated.js';
-import {uiMessage,resolveUiLocale} from './app-localization.js';
+import {uiMessage,resolveUiLocale,UI_LOCALE_SUPPORTED} from './app-localization.js';
 import {toolManagementText} from './tool-management-localization.js';
 import {extensionCenterText} from './extension-center-localization.js';
 import {describePageCleanup} from './page-cleanup-summary.js';
@@ -29,7 +29,6 @@ import {permissionPattern} from '../environment.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
 import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-scripts/page-install-package.js';
-import {usesFixedSendQueue} from '../scripting/user-scripts/fixed-send-queue.js';
 import {SEND_QUEUE_PIN,admitsPinnedQueueTool,admitsPinnedQueuePage} from '../platform/host/send-queue-admission.js';
 import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
@@ -39,16 +38,19 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {assertSidebarToolRuntime} from '../sidebar-tools/runtime-compatibility.js';
 import {writeVerifiedLocalValue,etagFor,sameStorageValue} from './sidebar-tools/storage-state.js';
+import {isRecoveryLibrary,toolLibraryStorage} from '../sidebar-tools/recovery/library-storage.js';
+import {extensionRecoveryAccounts} from '../sidebar-tools/recovery/account.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
-import {toolPageHref,normalizeOwnPageTarget} from './sidebar-tools/navigation.js';
+import {toolPageHref,normalizeOwnPageTarget,webFeaturesHelpHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
 import {onlineUpdateSource} from '../marketplace/update-client.js';
-import {recoverMarketOperation} from './sidebar-tools/installation.js';
+import {canonicalSha256,recoverMarketOperation} from './sidebar-tools/installation.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {normalizeToolUiNotice,createToolUiNoticeRateGate,
   TOOL_UI_NOTICE_HANDLE_TTL_MS,TOOL_UI_NOTICE_HANDLE_MAX_UPDATES} from '../sidebar-tools/ui-notice.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
-import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
+import {createCookieImportIntentGate,createCookieImportAdmission,COOKIE_IMPORT_BATCH_BUDGET_MS,
+  COOKIE_IMPORT_BEGIN_BUDGET_MS} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_SHARE_FIELDS,
   COOKIE_ACCOUNT_SHARE_OPTIONAL_FIELDS,COOKIE_SERVICE_FIELDS,COOKIE_SERVICE_READS}
@@ -193,6 +195,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }catch{/* Damaged local translations never prevent the source UI opening. */}
     return {locale:requested,localization:tool?.localization||null};
   }
+  function toolSettingsLocale(tool){
+    const globalLocale=localeController?.getLocale?.()||'zh-CN';
+    return tool?.localization?resolveUiLocale(toolLocaleContext(tool).locale,UI_LOCALE_SUPPORTED,globalLocale):globalLocale;
+  }
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
@@ -318,6 +324,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let siteGrants={},menuGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0;
   let menuStatusKey='',menuStatus=null,menuStatusPending=false,menuStatusRequest=0;
   let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,lastTocSettingsRows='';
+  let listSettingsReturn=null;
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true,enableRecordsLoading=true;
   let promptWebButtons=null,promptWebPending=false,promptWebChanged=false;
@@ -330,6 +337,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let pendingSourceLabel=null,pendingBaselineEpoch=undefined,pendingBaselineProvenance=undefined,cleanupReview=null;
   let developmentStorage=null;
   let pagePackageReviewReturn=null;
+  let onReviewedToolInstalled=null;
   let bookmarkFallbackNotice='';
   let frameExportPort=null;
   let promptHost=null;
@@ -441,14 +449,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // the user scroll to the end of the extension list to discover it.
     if(message&&problem&&changed&&visible)view.showToast(message,{type:'error',position:'bottom-center'});
   };
-  const successNotice=(message,caption='')=>{
+  const successNotice=(message,caption='',installKey)=>{
     if(disposed||!visible)return;
     // A success for one operation cannot erase an unrelated persistent error.
     if(status.attributes['data-state']!=='error')notice('');
     // Install/update/uninstall successes expire after 5 seconds even if the
     // pointer remains over them; actionable errors retain their own lifetime.
-    view.showToast(message,{type:'success',caption,position:'bottom-center',
-      timeout:5000,pauseOnInteraction:false});
+    const options={type:'success',caption,position:'bottom-center',timeout:5000,pauseOnInteraction:false};
+    if(installKey){
+      const owner='host:install-receipt:'+installKey;
+      const previous=view.getSnapshot().toasts.find(row=>row.owner===owner);
+      if(!previous||!view.updateToolToast(previous.id,message,options,owner))
+        view.addToolToast(message,options,owner);
+    }else view.showToast(message,options);
   };
   const refreshNoticeLanguage=()=>{
     if(!disposed&&noticeProjection)patchToolField(view,status,{textContent:noticeProjection()});
@@ -476,7 +489,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
     'page.module':'在审阅的网站自动运行此应用的网页模块',
     'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用',
-    'page.videoSpeed':'调节已授权网页主/播放中 HTML5 视频；明确开启全局模式后跨网页沿用倍速，关闭侧栏仍生效；可停止并尝试恢复已控制视频 1×',
+    'page.videoSpeed':'调节已授权网页的 HTML5 视频倍速；全局模式默认开启，仅在已授权网站沿用倍速，关闭侧栏后仍生效；可关闭并尝试恢复已控制视频为 1×',
     'page.videoContext':'只读识别已授权视频网页的片名、当前集数与页面变化；不读取会员凭证或视频流',
     'page.mediaDownload':'仅检测当前授权网页的有限 HTML5 媒体，并为同源 MP4/WebM 启动一次 Chrome 下载',
     'user.export':'复制文本或请求文件下载',
@@ -737,7 +750,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       throw Object.assign(new Error('请切换到目标网站的活动 Chrome 标签页'),{code:'E_DOCUMENT_CHANGED'});
     const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
       operation:'browser.cookies.userGrant',hostInstanceId,toolId:tool.id,toolVersion:tool.version,
-      installEpoch:revocationEpochs[tool.id]??null,cookieCapability:capability,enabled,origin:current,
+      installEpoch:revocationEpochs[tool.id]??null,packageHash:await sidebarToolPackageHash(tool),
+      cookieCapability:capability,enabled,origin:current,
       ...(snapshot?{document:{
         tabId:snapshot.tabId,windowId:snapshot.windowId,documentId:snapshot.documentId,
         url:snapshot.url,origin:snapshot.origin}}:{})});
@@ -897,10 +911,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const versionOrder=compareToolVersions;
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
+  function setImportScriptsRecovery(kind=null,pageResult={}) {
+    patchToolField(view,importScriptsRecovery,{hidden:kind===null,data:{kind,check:null,opening:false,openFailed:false,
+      installedWaiting:false,updating:false,retainedRevision:null,
+      helpHref:kind===null?null:webFeaturesHelpHref(api.runtime),
+      ...pageResult}});
+  }
   function resetReview() {
     pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;pendingPage=null;pendingProduct=null;
+    onReviewedToolInstalled=null;
     pendingSourceLabel=null;pendingBaselineEpoch=undefined;pendingBaselineProvenance=undefined;cleanupReview=null;
-    patchToolField(view,importScriptsRecovery,{hidden:true,data:{opening:false,openFailed:false}});
+    setImportScriptsRecovery();
     patchToolField(view, pageInstallStatus, {textContent: ''});patchToolField(view, pageInstallStatus, {hidden: true});
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', null);
     setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', null);setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', null);
@@ -908,6 +929,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, preview, {hidden: true});patchToolField(view, updatePanel, {hidden: true});patchToolField(view, installButton, {disabled: true});
     patchToolField(view, permissionDetails, {open: false});patchToolField(view, technicalDetails, {open: false});
     patchToolField(view, permissionSummary, {textContent: '权限详情'});
+    patchToolField(view, previewCapabilities, {rows:[]});
     patchToolField(view, previewSource, {textContent: ''});patchToolField(view, updateImpact, {textContent: ''});
     patchToolField(view, updateCapabilities, {textContent: ''});
   }
@@ -917,29 +939,41 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   listen(importScriptsRecovery,'settings',event=>{
     if(!event?.isTrusted||disposed||busy||importPanel.hidden||importScriptsRecovery.hidden||
-       importScriptsRecovery.data.opening)return;
+       importScriptsRecovery.data.opening||importScriptsRecovery.data.check==='checking')return;
     const selection=fileSelection;
     const finish=openFailed=>{
       if(!disposed&&selection===fileSelection&&!importScriptsRecovery.hidden)
-        patchToolField(view,importScriptsRecovery,{data:{opening:false,openFailed}});
+        patchToolField(view,importScriptsRecovery,{data:{...importScriptsRecovery.data,opening:false,openFailed}});
     };
     const url=userScriptsSettingsURL(api);
     if(!url||typeof api.tabs?.create!=='function'){finish(true);return;}
-    patchToolField(view,importScriptsRecovery,{data:{opening:true,openFailed:false}});
+    patchToolField(view,importScriptsRecovery,{data:{...importScriptsRecovery.data,opening:true,openFailed:false}});
     try{
       void Promise.resolve(api.tabs.create({url})).then(()=>finish(false),()=>finish(true));
     }catch{finish(true);}
+  });
+  listen(importScriptsRecovery,'check',async event=>{
+    const data=importScriptsRecovery.data;
+    if(!event?.isTrusted||disposed||busy||importPanel.hidden||importScriptsRecovery.hidden||
+       data.kind!=='page-import'||data.opening||data.check==='checking')return;
+    const selection=fileSelection;
+    patchToolField(view,importScriptsRecovery,{data:{...data,check:'checking'}});
+    let check;
+    try{check=await inspectUserScriptsAccess(api)?'available':'unavailable';}
+    catch{check='unknown';}
+    if(!disposed&&fileSelection===selection&&!importScriptsRecovery.hidden)
+      patchToolField(view,importScriptsRecovery,{data:{...importScriptsRecovery.data,check}});
   });
   function clearImport() {
     fileSelection++;resetReview();
     patchToolField(view, fileInput, {value: ''});setFileError();
   }
-  function setImportOpen(open,{returnToCaller=false}={}) {
+  function setImportOpen(open,{returnToCaller=false,fixedOfficial=false}={}) {
     if(open&&pendingAction)return false;
     if(open&&view.getSnapshot().market?.review)return;
     const resume=!open&&returnToCaller?pagePackageReviewReturn:null;
     pagePackageReviewReturn=null;
-    patchToolField(view, importPanel, {hidden: !open});
+    patchToolField(view, importPanel, {hidden: !open,data:{fixedOfficial:open&&fixedOfficial||undefined}});
     setToolFieldAttribute(view, importTrigger, 'aria-expanded', String(open));
     if(!open)clearImport();
     if(resume)queueMicrotask(()=>{if(!disposed)void resume();});
@@ -1515,15 +1549,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     render();
   }
-  async function reviewOfficial(release){
+  async function reviewOfficial(release,{fixedOfficial=false,onInstalled=null}={}){
     if(busy||disposed||view.getSnapshot().market?.review)return;
-    setImportOpen(true);clearImport();notice('');
+    setImportOpen(true,{fixedOfficial});clearImport();notice('');
     const selection=++fileSelection;
     try{
       const {tool,release:verified}=await loadOfficialTool(release,{api,fetcher});
       if(disposed||selection!==fileSelection)return;
       await reviewCandidate(tool,'来源：OpenDesk 官方发行'+(verified.origin?' · '+verified.origin:'')+
-        ' · 原始文件 SHA-256 '+verified.sha256,verified,selection);
+        ' · 原始文件 SHA-256 '+verified.sha256,verified,selection,{onInstalled});
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       setFileError((error.code||'E_PACKAGE')+'：'+String(error.message||error));
@@ -1534,7 +1568,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       tool?.capabilities.includes(CLIP_CAPABILITY)?CLIP_CAPABILITY:
       tool?.capabilities.includes(TOC_CAPABILITY)?TOC_CAPABILITY:null;
   }
-  function renderTocSettings(){
+  function renderTocSettings(settingsLocale){
     const managed=Boolean(active&&!readOnlyPreview),id=active?.id,promptSettings=managed&&id===PROMPT_ID;
     if(managed&&id==='cookie-editor')prepareCookieAdmission(active);
     setToolFieldAttribute(view, settingsView, 'data-tool', managed?id:'');
@@ -1551,10 +1585,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     // Settings live in the trusted Host. Repaint text, never iframe content or permissions.
-    const globalLocale=localeController?.getLocale?.()||'zh-CN';
     const tocLocale=isToc?toolLocaleContext(active).locale:'zh-CN';
     const tocText=key=>readingTocHostText(tocLocale,key);
-    const commonText=(key,parameters)=>toolManagementText(globalLocale,key,parameters);
+    const commonText=(key,parameters)=>toolManagementText(settingsLocale,key,parameters);
     const promptText=key=>promptHostText(toolLocaleContext(active).locale,key);
     const localized=managed&&!!active?.localization&&!!toolLocaleService;
     if(tocLanguageRow)patchToolField(view, tocLanguageRow, {hidden: !localized});
@@ -1569,17 +1602,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, tocLanguageSelect, {disabled: busy||!localized});
       setToolFieldAttribute(view, tocLanguageSelect, 'aria-label', commonText('languageLabel'));
     }
-    const commonLabels=new Set(['settingsTitle','languageLabel','followLanguage','toggleHeading','appManagement','openTabLabel']);
+    const commonLabels=new Set(['settingsTitle','languageLabel','followLanguage','toggleHeading','extensionSettings',
+      'permissionsManagement','appManagement','openTabLabel','retryRead']);
     view.patchLabels(Object.fromEntries(Object.entries(view.labels).map(([key])=>[key,commonLabels.has(key)?commonText(key):tocText(key)])));
     if(promptEnableLabel)patchToolField(view, promptEnableLabel, {textContent:commonText(
       enableReadError||enableRecordsLoading?'toggleHeading':enabled?'toolEnabled':'toolDisabled')});
     if(promptEnableDescription)patchToolField(view, promptEnableDescription, {hidden:true});
     setToolFieldAttribute(view, settingsView, 'aria-label', commonText('settingsTitle'));
+    setToolFieldAttribute(view, settingsView, 'lang', settingsLocale);
     patchToolField(view, settingsButton, {title:commonText('settingsTitle')});
     setToolFieldAttribute(view, settingsButton, 'aria-label', settingsButton.title);
     setToolFieldAttribute(view, settingsButton, 'aria-controls', 'sidebar-tool-settings-view');
-    patchToolField(view, backButton, {title: commonText('backAction')});
-    setToolFieldAttribute(view, backButton, 'aria-label', backButton.title);
     if(openTabButton){
       patchToolField(view, openTabButton, {title: commonText('openTabAction')});
       setToolFieldAttribute(view, openTabButton, 'aria-label', openTabButton.title);
@@ -1745,10 +1778,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, display, {hidden: !active||toolParked,data:{toolId:active?.id||'',
       preview:readOnlyPreview,settingsOpen:tocSettingsOpen,
       enabled:Boolean(active&&!enableReadError&&sidebarToolEnabled(enableRecords,active.id))}});
+    const settingsLocale=toolSettingsLocale(active);
     view.setExtensionAbout?.(tocSettingsOpen&&active&&!toolParked&&!readOnlyPreview&&
       installed.some(tool=>samePackage(tool,active))?{
         model:describeExtensionAbout({kind:'app',installed:true,record:active}),
-        locale:localeController?.getLocale?.()||'zh-CN'
+        locale:settingsLocale
       }:null);
     const trustedTocTitle=active?.id===READING_TOC_TOOL_ID&&
       active?.capabilities.includes(TOC_CAPABILITY)&&
@@ -1768,7 +1802,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         (clipNavigation&&clipPage==='home'),
       isSettings:tocSettingsOpen};
     const labelOptions={...titleOptions,
-      ...(tocSettingsOpen?{isSettings:false,isHome:false,pageTitle:toolManagementText(localeController?.getLocale?.()||'zh-CN','settingsPage')}:{}),
+      ...(tocSettingsOpen?{isSettings:false,isHome:false,pageTitle:toolManagementText(settingsLocale,'settingsPage')}:{}),
       readOnlyLabel:readOnlyPreview?toolManagementText(localeController?.getLocale?.()||'zh-CN','readonly'):''};
     const {visible:resolvedTitle,context:fullTitle}=formatSidebarToolHeading(labelOptions);
     // One short visible title; the complete context remains in accessibility
@@ -1828,9 +1862,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           !menuStatus.browserPermission?'允许 Chrome 右键菜单权限':'恢复此网站的右键菜单'});
       setToolFieldAttribute(view, menuButton, 'aria-label', menuButton.title);
     }
-    renderTocSettings();
+    renderTocSettings(settingsLocale);
     // The shared back is always about the visible level, even for single-page tools.
-    const backLabel=tocSettingsOpen?'返回上一页':
+    const backLabel=tocSettingsOpen?toolManagementText(settingsLocale,'backToPrevious'):
       (nativeBookmarkNavigation?.canBack||navigation?.canBack||
         (clipNavigation&&clipPage!=='home'))?'返回上一级':'返回扩展列表';
     patchToolField(view,backButton,{title:backLabel});
@@ -1838,10 +1872,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     taskWorkbench.setToolActive?.(Boolean(visible && active && !toolParked));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active && !toolParked?'active':'list';
   }
-  function focusToolInList(id) {
+  function focusToolInList(id,extensionAction='main') {
     // The list is still hidden until React commits the suspended ToolHost.
     // Resolve its current action (or search/import fallback) after that commit.
-    requestToolFieldEffect(view,importTrigger,'focus',{preventScroll:true,extensionToolId:id??null});
+    requestToolFieldEffect(view,importTrigger,'focus',{preventScroll:true,extensionToolId:id??null,extensionAction});
   }
   function cancelRemovalReview(){
     pendingUninstallId=null;pendingUninstallBaseline=null;
@@ -1854,7 +1888,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const canKeepSidebarDraft=()=>toolDirty&&getDisplaySurface()==='sidebar'&&hasLiveSandbox()&&
     !tocSettingsOpen&&!pendingAction&&!pendingUninstallId&&
     frameRevocationEpoch===(revocationEpochs[active.id]??null);
-  function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview('invalidated');tocSettingsOpen=false;destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview('invalidated');tocSettingsOpen=false;listSettingsReturn=null;destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy)return false;
     const previousId=active?.id;
@@ -1882,6 +1916,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return true;
   }
   function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false,developmentSession=null,initialPage=null}={}) {
+    listSettingsReturn=null;
     // Native official admission can fall back to a new sandbox session.
     // Preserve only that same verified launch intent across the fallback.
     const carryOpen=forceSandbox&&instance!==null&&pendingAnalyticsOpen===instance;
@@ -2264,16 +2299,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     mountSandbox(frameRoot);
   }
-  function openTool(id,{launchGate=null,userInitiated=false,initialPage=null}={}) {
-    
+  function openTool(id,{launchGate=null,userInitiated=false,initialPage=null,expectedPackage=null,expectedEpoch}={}) {
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
     if(readOnlyPreview){notice('本地应用正在调试；请先进入「应用调试」停止调试，再打开安装版应用。',true);return false;}
     if(installedReadError||revocationReadError){notice('安装记录读取失败，请刷新核对后再打开应用。',true);return;}
+    const launchEpoch=expectedEpoch===undefined?revocationEpochs[id]??null:expectedEpoch;
+    const matchesLaunch=tool=>!expectedPackage||Boolean(tool&&samePackage(tool,expectedPackage)&&
+      !installedReadError&&!revocationReadError&&!enableReadError&&sidebarToolEnabled(enableRecords,id)&&
+      (revocationEpochs[id]??null)===launchEpoch);
+    const reportChangedLaunch=()=>notice('此应用的安装记录或启用状态已变化，请返回扩展列表重新选择。',true);
+    const tool=toolById(id);
+    if(!matchesLaunch(tool)){reportChangedLaunch();return;}
     // An OD rail click on the already-open app must not remount its live UI,
     // discard its draft or introduce a redundant leave-confirmation dialog.
     if(!launchGate&&active?.id===id&&!readOnlyPreview&&!tocSettingsOpen&&
-       samePackage(active,toolById(id))&&frameRevocationEpoch===(revocationEpochs[id]??null)&&
+       samePackage(active,tool)&&frameRevocationEpoch===(revocationEpochs[id]??null)&&
        (frame?.isConnected||nativeUI)){
       if(toolParked){toolParked=false;render();syncFrameLayout();notice('');}
       return instance;
@@ -2283,12 +2324,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(active&&!canLeave(()=>{
       const target=toolById(id);
+      if(disposed||!matchesLaunch(target)){if(!disposed)reportChangedLaunch();return;}
       if(target&&visible&&!busy){
         mountTool(target,{initialPage});
         if(userInitiated===true)pendingAnalyticsOpen=instance;
       }
     }))return;
-    const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return;}
     try{requireToolRuntime(tool);}
     catch(error){notice((error.code||'E_TOOL_RUNTIME')+'：'+error.message,true);return;}
@@ -2301,20 +2342,24 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   // Management never mounts untrusted code. The existing trusted settings UI
   // owns site grants, enable/disable, version details and uninstall reviews.
-  function openSettings(id){
+  function openSettings(id,{returnAction=null,expectedPackage=null,expectedEpoch}={}){
     if(disposed||busy||!visible||installedReadError)return false;
     if(readOnlyPreview){notice('本地应用正在调试；请先进入「应用调试」停止调试，再打开安装版设置。',true);return false;}
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return false;}
+    const matches=()=>!expectedPackage||(!revocationReadError&&samePackage(expectedPackage,toolById(id))&&
+      (expectedEpoch===undefined||(revocationEpochs[id]??null)===expectedEpoch));
+    if(!matches())return false;
     // Opening permissions for the already-running Cookie Editor is a view
     // transition, not a navigation away from its draft or pending write.
     // Entering from the Extension Center still mounts no sandbox in Settings.
     const sameLiveCookie=tool.id==='cookie-editor'&&!readOnlyPreview&&
       active?.id===id&&samePackage(active,tool);
     const show=()=>{
-      if(disposed||!visible||busy)return;
+      if(disposed||!visible||busy||installedReadError||!samePackage(tool,toolById(id))||!matches())return;
       cancelRemovalReview();setImportOpen(false);clearTransientNotice();
       if(!sameLiveCookie)destroyFrame();
+      listSettingsReturn=returnAction?{action:returnAction,park:sameLiveCookie&&toolParked}:null;
       toolParked=false;
       active=tool;readOnlyPreview=false;previewDirty=false;
       tocSettingsOpen=true;render();
@@ -2323,7 +2368,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(active&&!sameLiveCookie&&!canLeave(show))return false;
     show();return true;
   }
-  function openOfficialReview(id,expectedRelease=null){
+  function openOfficialReview(id,expectedRelease=null,{fixedOfficial=false,onInstalled=null}={}){
     if(disposed||busy||!visible||active||view.getSnapshot().market?.review)return false;
     const online=onlineUpdateSource(expectedRelease);
     if(expectedRelease&&(expectedRelease.sourceId!==undefined||expectedRelease.updateSource!==undefined)&&!online)return false;
@@ -2334,7 +2379,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!release||release.toolId!==id)return false;
     if(expectedRelease&&(release.id!==expectedRelease.id||
       release.version!==expectedRelease.version||release.sha256!==expectedRelease.sha256))return false;
-    void reviewOfficial(release);
+    void reviewOfficial(release,{fixedOfficial,onInstalled});
     return true;
   }
   function openImport(){
@@ -2369,12 +2414,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         await reviewPagePackage(pkg,{name:'联合产品网页候选'},selection,{deferConfirmation:true});
         if(disposed||selection!==fileSelection)return;
         pendingProduct={tool,release:checked,baseline:pendingBaseline};
-        patchToolField(view,previewVersion,{textContent:'侧栏 v'+tool.version+' · 网页 v'+pkg.version+' · r'+pkg.revision});
+        patchToolField(view,previewVersion,{textContent:'侧栏 v'+tool.version+' · 网页 v'+pkg.version});
         patchToolField(view,previewDescription,{textContent:'一个 AI 消息发送队列产品。一次审阅并确认两份安装；消息与发送仅由网页内存队列管理。'});
         patchToolField(view,previewCapabilities,{textContent:'侧栏：'+tool.capabilities.map(readableCapability).join('、')+
           '；网页：'+pageHostPermissionOrigins(pkg.pageRules.matches).join('、')+'，仅顶层 USER_SCRIPT、'+pkg.pageRules.matches.join('、')});
         patchToolField(view,previewSource,{textContent:'已审核精确候选 · 官方 Page 公开发行仍 blocked，真实发送待验证'});
-        patchToolField(view,previewFile,{textContent:'侧栏 SHA-256：'+checked.sha256+'；网页 sourceHash：'+pkg.sourceHash+'；网页 packageHash：'+pkg.packageHash});
+        patchToolField(view,previewFile,{textContent:'侧栏 SHA-256：'+checked.sha256+'；网页固定修订：r'+pkg.revision+
+          '；网页 sourceHash：'+pkg.sourceHash+'；网页 packageHash：'+pkg.packageHash});
         patchToolField(view,updateImpact,{textContent:'两份安装分别读回。失败停止并显示部分状态，不回滚或重放未知操作；更新保留原有停用状态。'});
         patchToolField(view,installButton,{textContent:'确认联合安装 / 更新',disabled:false});
       }catch(error){
@@ -2500,7 +2546,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       :{status:'unavailable',reasonCode:String(target?.reason||'E_NO_ACTIVE_TAB').slice(0,64),
         message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
   }
-  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportClick=null,directExportPort=null,assertWrite=null,proxyAction=null,observeClick=null,regionRequest=null) {
+  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportClick=null,directExportPort=null,assertWrite=null,proxyAction=null,observeClick=null,regionRequest=null,importAdmission=null) {
+    importAdmission?.check();
     proxyAction??=proxyActionGate.begin(tool.id,operation);
     proxyAction.assertCurrent();
     const videoEnableEpoch=videoShortcutEpoch,regionGeneration=clipRegionGeneration;
@@ -2807,8 +2854,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       assertSession(source,token);
       if(document.origin!==origin)throw Object.assign(
         new Error('原始 Chrome 页面已变化'),{code:'E_DOCUMENT_CHANGED'});
+      importAdmission?.check();
       return cookieImportGate.start({owner:cookieImportOwner(tool,token,revocationEpoch),
-        origin,document,verifiedUserActivation:verifiedGesture,multiOrigin:true});
+        origin,document,verifiedUserActivation:verifiedGesture,multiOrigin:true,startedAt:importAdmission?.startedAt});
     }
     if(operation==='cookieEditor.import.finish'){
       if(!payload||Object.keys(payload).join(',')!=='ref'||
@@ -2911,6 +2959,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      const exactCookieClear=operation==='browser.cookies.clearSite'&&payload?.scope==='site-exact-host';
+      // Exact clear previews and partition reads follow this panel's window.
+      // Build this proof here; sandbox arguments cannot select a window or tab.
+      if((exactCookieClear&&payload.preview===true)||((operation==='browser.cookies.getPartitionKey'||
+          operation==='browser.cookies.getAllPage'&&payload?.scope==='site-exact-host'||
+          ['browser.cookies.get','browser.cookies.getAll','browser.cookies.getAllPage'].includes(operation)&&payload?.partitionKey)&&
+         websiteOrigin(currentPageTarget?.snapshot?.url)===websiteOrigin(payload?.url))){
+        const {document}=captureCookieImportDocument(exactCookieClear?'清理':'读取');
+        envelope.cookieReadDocument=document;
+      }
       if(['browser.siteBudget.getStatus','browser.siteBudget.setPolicy'].includes(operation)){
         // Reuse the original SDK Tool Host + installation hash/epoch envelope.
         // No untrusted JavaScript enters the fixed background service.
@@ -3372,6 +3430,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           {
             importBatchOwner=owner;
             try{
+              importAdmission.cap(cookieImportGate.expiresAt(owner,importBatchRef));
               if(websiteOrigin(currentPageTarget?.snapshot?.url)!==sourceOrigin||
                  cookieSiteRecord(tool,sourceOrigin)?.write!==true)
                 throw Object.assign(new Error('网站或写入授权已改变'),
@@ -3379,7 +3438,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
                 operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
                 installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
-                targetOperation:operation,targetArgs:payload||{},cookieImportSource:sourceOrigin,document});
+                targetOperation:operation,targetArgs:payload||{},cookieImportSource:sourceOrigin,document,
+                cookieImportDeadlineAt:importAdmission.workerDeadline()});
               if(!approval?.ok||typeof approval.data?.approvalRef!=='string')
                 throw Object.assign(new Error(approval?.error?.message||'可信 Host 拒绝本次写入'),
                   {code:approval?.error?.code||'E_BROWSER'});
@@ -3437,7 +3497,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
               operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
               installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId,
-              targetOperation:operation,targetArgs:payload||{}});
+              targetOperation:operation,targetArgs:payload||{},...(exactCookieClear?{document}:{})});
             if(!approval?.ok||typeof approval.data?.approvalRef!=='string')
               throw Object.assign(new Error(approval?.error?.message||'可信 Host 拒绝本次清理'),
                 {code:approval?.error?.code||'E_BROWSER'});
@@ -3484,6 +3544,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               operation==='browser.cookies.remove'?'删除指定 Cookie':
               operation==='browser.cookies.setMany'?'批量写入 '+payload.cookies.length+' 条 Cookie':'写入指定 Cookie';
             const batch=operation==='browser.cookies.setMany';
+            const clearTarget=exactCookieClear?captureCookieImportDocument('清理'):null;
             const ref=await requestBrowserClick({toolId:tool.id,inline:batch,
               title:batch?'写入网站 Cookie':undefined,
               message:batch?origin+' · '+kind+'。仅使用当前获准的 Cookie 存储区与分区。':
@@ -3492,10 +3553,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               button:batch?'写入并继续':'确认本次 Cookie 操作',run:async event=>{
                 if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
                 assertSession(source,token);
+                if(clearTarget){
+                  await currentPageTarget.revalidate(clearTarget.captured);
+                  assertSession(source,token);
+                }
                 const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
                   operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
                   installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
-                  targetOperation:operation,targetArgs:payload||{}});
+                  targetOperation:operation,targetArgs:payload||{},...(clearTarget?{document:clearTarget.document}:{})});
                 if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Cookie intent denied'),{
                   code:approval?.error?.code||'E_BROWSER'});
                 return approval.data.approvalRef;
@@ -3526,6 +3591,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         proxyAction.assertCurrent();
         if((writeIntentOwner||importBatchOwner||clearIntentOwner)&&!cookiePageIsCurrent())
           throw Object.assign(new Error('原网页已经变化，本次操作未提交'),{code:'E_COOKIE_NOT_SUBMITTED'});
+        importAdmission?.submit();
         try{reply=await api.runtime.sendMessage(envelope);}
         catch(error){
           if(cookieMutation)throw cookieReceiptUnknown(error);
@@ -3546,17 +3612,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           // revokes continuation, but cannot undo a receipt with no Cookie data.
           const {results,saved,verified,stopped}=reply.data??{};
           const count=payload.cookies.length,partial=stopped===true;
+          const verifiedRow=row=>row.saved===true&&row.verified===true&&row.code===undefined&&row.skipped===undefined;
           const valid=Array.isArray(results)&&results.length>0&&results.length<=count&&
             (partial||stopped===undefined&&results.length===count)&&
             results.every((row,index)=>row?.index===index&&(partial&&index===results.length-1
-              ?row.saved===false&&row.verified===false&&COOKIE_BATCH_ERROR_CODES.includes(row.code)
-              :row.saved===true&&row.verified===true&&row.code===undefined));
-          const confirmed=valid?results.length-Number(partial):0;
+              ?row.saved===false&&row.verified===false&&row.skipped===undefined&&COOKIE_BATCH_ERROR_CODES.includes(row.code)
+              :verifiedRow(row)||payload.skipConflicts===true&&row.skipped===true&&
+                row.saved===false&&row.verified===false&&row.code==='E_COOKIE_CONFLICT'));
+          const confirmed=valid?results.filter(verifiedRow).length:0;
           if(!valid||saved!==confirmed||verified!==confirmed)throw cookieReceiptUnknown();
           if(importBatchOwner)cookieImportGate.settle({owner:importBatchOwner,ref:importBatchRef,count,
             confirmed:!partial&&cookiePageIsCurrent()});
-          return {saved,verified,results:results.map(({index,saved,verified,code})=>
-            ({index,saved,verified,...(code===undefined?{}:{code})})),...(partial?{stopped:true}:{})};
+          return {saved,verified,results:results.map(({index,saved,verified,code,skipped})=>
+            ({index,saved,verified,...(code===undefined?{}:{code}),...(skipped===true?{skipped:true}:{})})),...(partial?{stopped:true}:{})};
         }
         if(cookieMutation){
           const data=reply.data;
@@ -4124,9 +4192,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const namespace=sidebarToolStorageKey(tool.id);
       const stored=(await api.storage.local.get(namespace))[namespace]||{};
       if(!stored||typeof stored!=='object'||Array.isArray(stored))throw new Error('工具数据无效');
-      const current=Object.hasOwn(stored,key)?stored[key]:null;
-      if(operation==='storage.get')return payload?.withEtag===true
-        ?{value:current,etag:await etagFor(current)}:{value:current};
+      const library=isRecoveryLibrary(tool.id,key)?await toolLibraryStorage(stored,()=>canonicalSha256(tool)):null;
+      const current=library?library.value:Object.hasOwn(stored,key)?stored[key]:null;
+      if(operation==='storage.get'){
+        const result=payload?.withEtag===true?{value:current,etag:await etagFor(current)}:{value:current};
+        if(current!==null)await library?.assertCurrent?.();
+        return result;
+      }
       let encoded;
       try{encoded=JSON.stringify(payload.value);}
       catch{throw new Error('只能保存可序列化数据');}
@@ -4139,7 +4211,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(payload.ifMatch!==await etagFor(current))
           throw Object.assign(new Error('工具数据已在其他窗口修改，请重新打开确认'),{code:'E_STORAGE_CONFLICT'});
       }
-      const next={...stored,[key]:JSON.parse(encoded)};
+      const parsed=JSON.parse(encoded);
+      const next=library?library.replace(parsed):{...stored,[key]:parsed};
       if(Object.keys(next).length>SIDEBAR_TOOL_DATA_LIMITS.maxKeys||
         new TextEncoder().encode(JSON.stringify(next)).byteLength>SIDEBAR_TOOL_DATA_LIMITS.totalBytes)
         throw Object.assign(new Error('工具数据超过 32 KB'),{code:'E_TOOL_DATA_LIMIT'});
@@ -4156,6 +4229,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       // Only a static trusted caller can supply this lexical callback. It runs
       // after the tool lock and all asynchronous validation, before any effect.
       if(assertWrite)try{await assertWrite();}catch(error){error.writeIssued=false;throw error;}
+      await library?.assertCurrent?.();
       await writeVerifiedLocalValue(api,namespace,next,stored,'工具数据');
       assertSession(source,token);
       // Only a verified single-item mutation with an explicit save intent counts.
@@ -4174,7 +4248,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           reportAnalytics('event.host_report','prompt.saved',tool.id,'sidepanel');
       }
       return Object.hasOwn(payload||{},'ifMatch')
-        ?{saved:true,etag:await etagFor(next[key])}:{saved:true};
+        ?{saved:true,etag:await etagFor(parsed)}:{saved:true};
     });
   }
   const queued=new Map();
@@ -4475,6 +4549,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }catch(error){reply(false,null,error);return;}
     }
     const proxyAction=proxyActionGate.begin(tool.id,message.operation);
+    const importBegin=message.operation==='cookieEditor.import.begin';
+    const cookieBatch=tool.id==='cookie-editor'&&message.operation==='browser.cookies.setMany';
+    const importAdmission=importBegin||cookieBatch?createCookieImportAdmission(importBegin?
+      COOKIE_IMPORT_BEGIN_BUDGET_MS:COOKIE_IMPORT_BATCH_BUDGET_MS):null;
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
     const videoEnableEpoch=videoShortcutEpoch;
@@ -4483,14 +4561,28 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          videoEnableEpoch!==videoShortcutEpoch)
         throw Object.assign(new Error('快捷键偏好已变更'),{code:'E_VIDEO_SHORTCUT_STALE'});
     };
-    const work=previous.catch(()=>{}).then(()=>{
+    const pendingWork=previous.catch(()=>{}).then(()=>{
       checkVideoEnable();
       proxyAction.assertCurrent();
       if(cookieReadCapability)assertCookieReadPage();
-      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportClick,exportPort,null,proxyAction,observeClick,regionRequest);
+      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportClick,exportPort,null,proxyAction,observeClick,regionRequest,importAdmission);
     });
+    const work=importAdmission?Promise.race([pendingWork,importAdmission.expiry]):pendingWork;
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(async result=>{
+      if(importBegin){
+        importAdmission.check();
+        assertSession(source,token);
+        reply(true,result);
+        return;
+      }
+      if(cookieBatch){
+        // The dispatcher already verified this exact batch and stripped all
+        // Cookie data. A later revocation fences continuation, not this receipt.
+        assertSession(source,token);
+        reply(true,result);
+        return;
+      }
       if(!readOnlyPreview){
         try{
           await assertSidebarToolEnabled(api,tool.id);
@@ -4536,7 +4628,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         assertRegion();await currentPageTarget.revalidate(receipt.session.target);assertRegion();
       }
       reply(true,result);
-    }).catch(error=>reply(false,null,error)).finally(()=>{
+    }).catch(error=>{
+      const unsent=cookieBatch&&!importAdmission.submitted&&
+        !['E_COOKIE_BATCH_EXPIRED','E_COOKIE_NOT_SUBMITTED'].includes(error?.code);
+      reply(false,null,unsent?Object.assign(new Error(error?.message||'未提交 Cookie 批次'),
+        {code:'E_COOKIE_NOT_SUBMITTED'}):error);
+    }).finally(()=>{
+      importAdmission?.stop();
       if(regionRequest&&message.operation==='clip.region'){
         if(!regionRequest.finished)void cancelClipRegion(regionRequest);
         regionRequest.finished=true;
@@ -4711,6 +4809,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     api.storage.onChanged.addListener(onToolStorageChanged);
     listeners.push(()=>api.storage.onChanged.removeListener(onToolStorageChanged));
   }
+  const stopRecoveryAccountChanges=extensionRecoveryAccounts.subscribe?.(()=>{
+    if(active?.id!==TRUSTED_KNOWLEDGE_ID)return;
+    knowledgeDataGeneration++;
+    suspendTool();
+  });
+  if(stopRecoveryAccountChanges)listeners.push(stopRecoveryAccountChanges);
   const preinstallStatus=view.fields['sidebar-tool-preinstall'];
   function showPreinstallState(state,technical='',settingsFailed=false){
     if(disposed)return;
@@ -4988,7 +5092,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
     render();notice(allow?'已恢复 '+origin+' 的目录':'已停用 '+origin+' 的目录');
   }
-  async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection,{deferConfirmation=false,expectedInstallEpoch=undefined}={}){
+  async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection,{deferConfirmation=false,expectedInstallEpoch=undefined,onInstalled=null}={}){
     const runtimeIdentity=await assertSidebarToolRuntime(api);
     if(disposed||selection!==fileSelection)return;
     requireToolRuntime(candidate);
@@ -5018,21 +5122,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       throw Object.assign(new Error('应用已在其他窗口重新安装，请重新选择安装包核对。'),{code:'E_TOOL_CHANGED'});
     pending=candidate;pendingBaseline=previous?structuredClone(previous):null;
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
+    onReviewedToolInstalled=onInstalled;
     pendingSourceLabel=sourceLabel;pendingBaselineEpoch=previousEpoch;
     pendingBaselineProvenance=nextSource?structuredClone(oldSource??null):undefined;
     patchToolField(view, previewTitle, {textContent: candidate.title});
     patchToolField(view, previewVersion, {textContent: 'v'+candidate.version});
     patchToolField(view, previewDescription, {textContent: candidate.description+
       (release?.changelog?'\n版本说明：'+release.changelog:'')+taskDelegationReview(candidate)+appControllerReview(candidate)+(candidate.pageModule?
-      (usesFixedSendQueue(candidate.id,candidate.pageModule)?
-        '\n网页模块：安装后，Chrome 允许访问时会在 ':
-        '\n网页模块：可先安装。Chrome 开启「允许用户脚本」后，网页模块在 ')+
+      '\n网页模块：运行条件满足时，会在 '+
       candidate.pageModule.pageRules.matches.join('、')+' 自动运行；'+
       (candidate.pageModule.pageRules.excludeMatches.length?'排除 '+candidate.pageModule.pageRules.excludeMatches.join('、')+'；':'')+
       '关闭侧栏后继续可用。停用或卸载应用会同时停止网页模块。':'')+(candidate.background?
       '\n后台运行：仅按已批准计划访问本应用授权的数据。':'')});
-    patchToolField(view, previewCapabilities, {textContent: candidate.capabilities.length
-      ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力'});
+    const capabilityLabels=candidate.capabilities.map(readableCapability);
+    patchToolField(view, previewCapabilities, {textContent:capabilityLabels.join('、')||'无需额外能力',
+      rows:importPanel.data.fixedOfficial?capabilityLabels.map(label=>({label})):[]});
     patchToolField(view, previewSource, {textContent: release
       ?nextSource?'官方发行 · '+nextSource.origin+' · '+nextSource.channel+
         (sourceReview?'；旧来源缺失或不同，本次确认包含来源替换审阅':' · 安装包已校验'):
@@ -5098,9 +5202,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!Array.isArray(response?.catalog)||!Array.isArray(response?.installed)||!access)
       throw new Error('未能核对网页增强安装状态，请重新选择文件。');
     const installed=response.installed.find(row=>row.programId===pkg.programId)||null;
+    const sameInstalled=installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash;
     pendingPage={pkg,installed};
     patchToolField(view, previewTitle, {textContent: pkg.title});
-    patchToolField(view, previewVersion, {textContent: 'v'+pkg.version+' · r'+pkg.revision});
+    patchToolField(view, previewVersion, {textContent: 'v'+pkg.version});
     patchToolField(view, previewDescription, {textContent: '网页增强 · 安装后在批准的网站自动运行。'});
     patchToolField(view, previewCapabilities, {textContent: 'Chrome 网站访问授权范围：'+
       pageHostPermissionOrigins(pkg.pageRules.matches).join('、')+
@@ -5108,13 +5213,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       (pkg.pageRules.excludeMatches.length?'；排除：'+pkg.pageRules.excludeMatches.join('、'):'')+
       '。Chrome 权限可能覆盖整个 Origin；脚本仅在已审阅路径及顶层文档运行，不获得侧栏或 Native 权限。'});
     patchToolField(view, previewFile, {textContent: '身份：'+pkg.programId+'；文件：'+(file.name||'本地 JSON')+
+      '；固定修订：'+(installed?'当前 r'+installed.revision+' → ':'')+'r'+pkg.revision+
       '；安装包 SHA-256：'+pkg.packageHash+'；源码 SHA-256：'+pkg.sourceHash});
     patchToolField(view, previewSource, {textContent:'本地安装包 · 请确认文件来源可信'});
     patchToolField(view, technicalDetails, {open:false});
     if(installed){
-      patchToolField(view, previewDescription, {textContent: installed.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash
+      patchToolField(view, previewDescription, {textContent: sameInstalled
         ?'此版本已经安装；确认后核对原安装与注册状态。'
-        :'已安装 r'+installed.revision+'；确认后按原版本规则安装此固定版本。'});
+        :'此扩展已安装；请核对更新内容和网站权限。'});
       if(installed.enabled===false)patchToolField(view, previewDescription, {textContent: previewDescription.textContent + (' 原安装已被主动停用，将保留停用状态。')});
       const before=Array.isArray(installed.pageRules?.matches)?installed.pageRules.matches:[];
       const after=pkg.pageRules.matches;
@@ -5139,8 +5245,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         :removed.length||changedConfig?'网站权限范围已变化 · 请核对':'网站权限范围未变化 · 查看详情'});
       patchToolField(view, permissionDetails, {open: Boolean(added.length||removed.length||changedConfig)});
       patchToolField(view, updateVersions, {textContent:
-        '当前 '+(installed.version?'v'+installed.version:'版本未记录')+' · r'+installed.revision+
-        ' → 新 v'+pkg.version+' · r'+pkg.revision});
+        '当前 '+(installed.version?'v'+installed.version:'版本未记录')+
+        (sameInstalled&&installed.version===pkg.version?'':' → 新 v'+pkg.version)});
       patchToolField(view, updateCapabilities, {textContent: [
         ...(added.length?['新增网站范围：'+added.join('、')]:[]),
         ...(removed.length?['移除网站范围：'+removed.join('、')]:[]),
@@ -5160,7 +5266,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, permissionSummary, {textContent:'将访问以下网站 · 请核对'});
       patchToolField(view, permissionDetails, {open:true});
     }
-    patchToolField(view, installButton, {textContent: installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash?'确认安装并核对':installed?'确认更新':'确认安装'});
+    patchToolField(view, installButton, {textContent: sameInstalled?'确认安装并核对':installed?'确认更新':'确认安装'});
     patchToolField(view, installButton, {disabled: deferConfirmation});patchToolField(view, preview, {hidden: false});
   }
   function requireConfirmedPageInstall(pkg,result,{allowWaiting=false}={}) {
@@ -5187,12 +5293,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', disabled?'installed-disabled':waiting?'installed-waiting':'installed');
     setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', result.authorization.installationId);
     setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', result.manifestHash);
-    patchToolField(view, pageInstallStatus, {textContent: '安装完成 · '+pkg.title+' v'+pkg.version+'（r'+pkg.revision+'）。'+
+    patchToolField(view, pageInstallStatus, {textContent: '安装完成 · '+pkg.title+' v'+pkg.version+'。'+
       (disabled?'保留原有停用状态；可在「扩展」中主动启用。':
         waiting?pageRuntimePendingMessage(result):'打开或刷新批准的网站即可使用。')+cleanupNote});
     patchToolField(view, pageInstallStatus, {hidden: false});
     patchToolField(view, pageInstallReceiptText, {textContent: '安装 ID：'+result.authorization.installationId+
-      '；注册：'+result.nativeState+'；固定清单 SHA-256：'+result.manifestHash});
+      '；固定修订：r'+result.revision+'；注册：'+result.nativeState+'；固定清单 SHA-256：'+result.manifestHash});
     patchToolField(view, pageInstallReceipt, {hidden: false});
     patchToolField(view, installButton, {textContent: disabled?'已安装（停用）':'已安装'});
     doc.dispatchEvent(new doc.defaultView.Event('opendesk:page-installation-changed'));
@@ -5210,7 +5316,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     busy=true;patchToolField(view, installButton, {disabled: true});patchToolField(view, fileInput, {disabled: true});patchToolField(view, importClose, {disabled: true});
     patchToolField(view, pageInstallStatus, {textContent: '正在安装并核对注册状态…'});patchToolField(view, pageInstallStatus, {hidden: false});
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'pending');
-    let installationRequested=false;
+    let installationRequested=false,userScriptsWaiting=false;
     try{
       await permission;
       if(disposed||selection!==fileSelection)return;
@@ -5227,6 +5333,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         expectedInstalledManifestHash:installed?.manifestHash??null,
         expectedGeneration:installed?.authorization?.generation??null});
       if(disposed||selection!==fileSelection)return;
+      userScriptsWaiting=result?.nativeState==='waiting-user-scripts';
       // The native receipt alone is not a durable list entry. Never call the
       // import authority again to resolve a missing/late registry readback.
       const observed=await foundationClient.request('listPagePrograms',{});
@@ -5270,17 +5377,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         setImportOpen(false);
         successNotice('已安装「'+product.tool.title+'」',
           !finalPage.enabled?'网页原有停用状态已保留，可在产品详情恢复。'+(cleanupNote?' '+cleanupNote:''):
-            cleanupNote||'打开或刷新目标网页即可使用。');
+            cleanupNote||'打开或刷新目标网页即可使用。','tool:'+product.tool.id);
         return;
       }
       requireConfirmedPageInstall(pkg,result,{allowWaiting:true});
       const cleanupNote=showPageInstallReceipt(pkg,recorded,observed.cleanupPending,{allowWaiting:true});
+      if(recorded.nativeState==='waiting-user-scripts'){
+        // Installation is durable; Chrome's separate opt-in still needs the user's attention.
+        setImportScriptsRecovery('page-import',{installedWaiting:true,updating:Boolean(installed)});
+        return;
+      }
       setImportOpen(false,{returnToCaller:true});
       successNotice((installed?'已更新':'已安装')+'「'+pkg.title+'」',
         !recorded.enabled?'原有停用状态已保留。'+(cleanupNote?' '+cleanupNote:''):
-          ['waiting-user-scripts','activation-unconfirmed'].includes(recorded.nativeState)?
+          recorded.nativeState==='activation-unconfirmed'?
             pageRuntimePendingMessage(recorded)+(cleanupNote?' '+cleanupNote:''):
-            cleanupNote||'打开或刷新目标网页即可使用。');
+            cleanupNote||'打开或刷新目标网页即可使用。','page:'+pkg.programId);
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       patchToolField(view, installButton, {disabled:true});
@@ -5288,6 +5400,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       // Query the original receipt, keep an explicit pending state, and never replay.
       const baseline=installed?'r'+installed.revision:'未安装';
       let readback=' 审阅时基线：'+baseline+'；当前状态未读回；本次请求仍未确认。';
+      let retainedRevision=null;
       patchToolField(view, previewDescription, {textContent:readback.trim()});
       patchToolField(view, updateVersions, {textContent:
         '审阅时基线：'+baseline+'；导入目标：v'+pkg.version+' · r'+pkg.revision+'；当前状态未读回'});
@@ -5299,6 +5412,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         const cleanupNote=pageCleanupPendingDescription(pkg.programId,response.cleanupPending);
         const current=result?'r'+result.revision:cleanupNote?'旧安装已卸载，清理待核对':'未找到此 programId 的安装记录';
         const matches=result&&result.revision===pkg.revision&&result.sourceHash===pkg.sourceHash;
+        if(installed&&result&&!matches&&result.revision===installed.revision&&result.sourceHash===installed.sourceHash&&
+            result.manifestHash===installed.manifestHash&&
+            result.authorization?.installationId===installed.authorization?.installationId)
+          retainedRevision=result.revision;
         patchToolField(view, previewFile, {textContent:previewFile.textContent+
           '\n当前安装状态读回：'+(result
           ?'身份：'+result.programId+'；源码 SHA-256：'+(result.sourceHash||'未记录')+
@@ -5319,6 +5436,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           '审阅时基线：'+baseline+'；导入目标：v'+pkg.version+' · r'+pkg.revision+'；当前读回版本：'+current});
       }catch{/* Preserve the original failure; no mutation replay. */}
       const permissionDenied=!installationRequested&&error?.code==='E_PERMISSION';
+      if(installationRequested&&(error?.code==='E_USER_SCRIPTS_UNAVAILABLE'||userScriptsWaiting))
+        setImportScriptsRecovery('page-import',{updating:Boolean(installed),retainedRevision});
       setToolFieldAttribute(view, pageInstallStatus, 'data-state', permissionDenied?'permission-denied':'pending-review');
       patchToolField(view, pageInstallStatus, {textContent: (product&&installationRequested?'联合安装部分完成或结果未知。':'')+(error?.code||'E_PAGE_INSTALL')+'：'+String(error?.message||error)+
         (permissionDenied?' 可再次点击确认或重新选择文件；尚未开始安装。':
@@ -5331,7 +5450,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
   }
   function reviewDroppedFiles(files){
-    if(disposed||busy||view.getSnapshot().market?.review)return;
+    if(disposed||busy||importPanel.data.fixedOfficial||view.getSnapshot().market?.review)return;
     // Dragging does not populate a native file input. Clear any prior picker
     // name and invalidate pending asynchronous review before choosing new bytes.
     fileSelection++;resetReview();patchToolField(view,fileInput,{value:''});
@@ -5347,7 +5466,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     void chooseFile(file).catch(error=>setFileError(String(error?.message||error)));
   }
   async function chooseFile(selectedFile) {
-    if(disposed||busy)return;
+    if(disposed||busy||importPanel.data.fixedOfficial)return;
     const selection=++fileSelection,file=selectedFile;
     // Preserve the browser's selected filename; clearing .value here lies to the user.
     resetReview();setFileError();notice('');
@@ -5384,8 +5503,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   async function install({keepReview=false,permission=null}={}) {
     if(!canCommitReview({withinProduct:keepReview})||(!keepReview&&installButton.disabled))return;
+    const selection=fileSelection,onInstalled=onReviewedToolInstalled;
     busy=true;patchToolField(view, installButton, {disabled: true});patchToolField(view, fileInput, {disabled: true});patchToolField(view, importClose, {disabled: true});
-    patchToolField(view,importScriptsRecovery,{hidden:true,data:{opening:false,openFailed:false}});
+    setImportScriptsRecovery();
     let accepted=null,officialTocInstalled=false,updating=false,refreshFailed=false,pageRefreshPending=false,pageActivationPending=false;
     try{
       if(permission)await permission;
@@ -5457,7 +5577,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // prepareAppPage rejected before commit. A failed or uncertain write
         // uses the outcome recovery below and never offers a blind retry.
         setFileError();
-        patchToolField(view,importScriptsRecovery,{hidden:false});
+        setImportScriptsRecovery('app-page-revocation');
         patchToolField(view,installButton,{textContent:updating?'重试更新':'重试安装'});
         return;
       }else if(error?.code==='E_OUTCOME_UNKNOWN'&&(pendingRelease?.sourceId||error.marketOperation)){
@@ -5544,14 +5664,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(!accepted||disposed)return;
     if(keepReview)return accepted;
-    setImportOpen(false);render();focusToolInList(accepted.id);
+    const returnToDiscovery=importPanel.data.fixedOfficial===true;
+    if(selection===fileSelection)onInstalled?.();
+    setImportOpen(false);render();
+    // The drawer restores focus to the original discovery button.
+    if(!returnToDiscovery)focusToolInList(accepted.id);
     successNotice((updating?'已更新':'已安装')+'「'+accepted.title+'」',
       refreshFailed?'安装已完成；界面刷新失败，请重新打开扩展列表核对，无需重复安装。':
       !sidebarToolEnabled(enableRecords,accepted.id)?'原有停用状态已保留，可在应用设置中恢复。':
-      pageActivationPending?extensionCenterText(localeController?.getLocale?.()||'zh-CN','webFeaturesPendingReceipt'):
+      pageActivationPending?'侧栏可用，网页功能待开启。可在「扩展 → 更多 → 网页功能帮助」查看。'+
+        (pageRefreshPending?' 部分已打开的网页需要刷新，请先保存网页内容。':''):
       pageRefreshPending?'安装已完成；部分已打开的网页需要刷新，请先保存网页内容。':
       accepted.pageModule?'网页功能已安装；已打开的网页如未显示，请保存内容后刷新。':
-      officialTocInstalled?'符合条件的网页会自动显示目录。':'可直接打开使用。');
+      officialTocInstalled?'符合条件的网页会自动显示目录。':'可直接打开使用。','tool:'+accepted.id);
   }
   async function recheckCleanupReview(event){
     const recovery=cleanupReview;
@@ -5816,7 +5941,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   listen(headerActions,'activate',event=>{void requestHeaderNavigation(event);});
   listen(backButton,'click',()=>{
     if(busy)return;
-    if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;}
+    if(tocSettingsOpen){
+      const fromList=Boolean(listSettingsReturn);
+      closePromptSettings();
+      if(!fromList)requestToolFieldEffect(view,backButton,'focus',{preventScroll:true});
+      return;
+    }
     if(nativeUI?.kind==='bookmark'&&bookmarkNavigation?.canBack&&bookmarkNavigationBack){
       if(toolSaving){notice('书签正在保存，请完成后再返回。',true);return;}
       bookmarkNavigationBack();return;
@@ -6020,15 +6150,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       .finally(()=>{if(!disposed&&active&&samePackage(active,tool)){promptWebPending=false;render();}});
   }
   function closePromptSettings(){
+    if(listSettingsReturn){
+      const id=active?.id,{action,park}=listSettingsReturn;
+      listSettingsReturn=null;
+      if(park){tocSettingsOpen=false;toolParked=true;render();}
+      else suspendTool();
+      focusToolInList(id,action);
+      return true;
+    }
     if(hasAppSettings()){
       if(toolDirty||toolSaving||pendingAction){notice(toolBusyNotice,true);return false;}
       if(toolNavigation.page===toolNavigation.settingsPage)requestBusinessNavigation('back');
     }
     const tool=active,remount=tool?.id===PROMPT_ID&&promptWebChanged;
     tocSettingsOpen=false;promptWebChanged=false;
-    // The Extension Center's direct Settings action intentionally has no
-    // running iframe. Returning to the product must create one, while an
-    // already-mounted editor is kept intact (including unsaved input).
+    // An app may have opened on its own settings (e.g. first-use permission).
+    // Leaving those settings can reveal the app; list Settings returns above.
     const launchFromManagement=tool&&!readOnlyPreview&&!frame&&!nativeUI&&!nativePending&&
       !enableReadError&&sidebarToolEnabled(enableRecords,tool.id);
     if(launchFromManagement||(remount&&!toolDirty&&!toolSaving))mountTool(tool);
@@ -6107,28 +6244,38 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   listen(settingsDeny,'click',action(()=>runSiteToggle(active?.id,()=>setSitePermission(false))));
   // The Extension Center overflow and this settings button share one guarded lifecycle.
   // Never expose the raw storage mutation to a presentation caller.
-  async function toggleEnabled(id,event){
-    if(!event?.isTrusted||disposed||busy||!visible||enableReadError||enableRecordsLoading||toolSaving)return false;
+  async function toggleEnabled(id,event,{expectedPackage=null,expectedEpoch,expectedEnabled}={}){
+    if(!event?.isTrusted||disposed||busy||!visible||enableReadError||enableRecordsLoading||toolSaving||
+      installedReadError||revocationReadError)return false;
     const tool=toolById(id);
     if(!tool||readOnlyPreview&&active?.id===id){
       notice('工具不可用，请刷新扩展列表。',true);return false;
     }
     const wasEnabled=sidebarToolEnabled(enableRecords,id),enabled=!wasEnabled;
+    const epoch=revocationEpochs[id]??null;
+    const reportChanged=()=>notice('工具安装、启停状态或编辑内容已变化；请核对后重新点击启停。',true);
+    if((expectedPackage&&!samePackage(expectedPackage,tool))||
+      (expectedEpoch!==undefined&&expectedEpoch!==epoch)||
+      (expectedEnabled!==undefined&&expectedEnabled!==wasEnabled)){
+      reportChanged();return false;
+    }
     const session=instance,activeId=active?.id;
     const restoreEnableFocus=event.target?.id===enableButton?.key;
     const apply=async()=>{
       // The user might confirm discarding a draft after a newer install, update
       // or state change. Lock down all original assumptions before the mutation.
       if(disposed||busy||toolSaving||!visible||enableReadError||enableRecordsLoading||
+        installedReadError||revocationReadError||(revocationEpochs[id]??null)!==epoch||
         !samePackage(toolById(id),tool)||active?.id!==activeId||
         (activeId===id&&instance!==session)||
         sidebarToolEnabled(enableRecords,id)!==wasEnabled){
-        notice('工具状态或编辑内容已变化；请核对后重新点击启停。',true);
+        reportChanged();
         return false;
       }
       busy=true;render();
       try{
-        await setInstalledSidebarToolEnabled({api,lockManager,tool,enabled,pageClient:foundationClient});
+        await setInstalledSidebarToolEnabled({api,lockManager,tool,enabled,pageClient:foundationClient,
+          expectedEpoch:epoch,expectedEnabled:wasEnabled});
         if(active?.id===id){
           destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
         }
@@ -6449,11 +6596,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const requested=tocLanguageSelect.value;
       patchToolField(view,tocLanguageSelect,{disabled:true});
       void toolLocaleService.setToolLocale(tool.id,requested==='follow'?null:requested).then(()=>{
-        if(!disposed&&active===tool)notice(toolManagementText(localeController?.getLocale?.()||'zh-CN','languageSaved')+
-          (languageNames[toolLocaleContext(tool).locale]||toolLocaleContext(tool).locale)+
-          toolManagementText(localeController?.getLocale?.()||'zh-CN',requested==='follow'?'languageFollowScope':'languageToolScope'));
+        if(disposed||active!==tool)return;
+        const settingsLocale=toolSettingsLocale(tool),{locale}=toolLocaleContext(tool);
+        successNotice(toolManagementText(settingsLocale,'languageSaved')+(languageNames[locale]||locale)+
+          toolManagementText(settingsLocale,requested==='follow'?'languageFollowScope':'languageToolScope'));
       }).catch(error=>{
-        notice(toolManagementText(localeController?.getLocale?.()||'zh-CN','languageSaveError')+
+        if(!disposed&&active===tool)notice(toolManagementText(toolSettingsLocale(tool),'languageSaveError')+
           String(error?.message||error),true);
       }).finally(()=>{if(!disposed&&active===tool)render();});
     });

@@ -26,10 +26,10 @@
 .workbench-nav .od-nav-update-count{display:inline-grid;place-items:center;min-width:17px;min-height:17px;
   padding:0 3px;border-radius:999px;background:#2355a5;color:#fff;font:700 10px/1.3 system-ui;flex:none}
 
-/* One page inset for ordinary lists/forms. A visible ToolHost owns its header
- * inset; a concealed debug preview must not remove the list's breathing room. */
+/* A visible sidebar ToolHost header owns the top inset in both run and
+ * settings views. Lists and concealed hosts keep the workspace inset. */
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:var(--space-3);max-width:980px;width:100%;padding:var(--space-3) var(--od-page-gutter);margin:0 auto}
-#workspace-content:has(> #workbench-tools:not([hidden]) > #sidebar-tools > .sidebar-tool-host:not([hidden]) > #sidebar-tool-display:not([hidden])){padding-top:0}
+#workspace-content:has(> #workbench-tools[role=tabpanel]:not([hidden]) > #sidebar-tools > .sidebar-tool-host:not([hidden]) > #sidebar-tool-display:not([hidden]) > .sidebar-tool-view-head:not([hidden])){padding-block-start:0}
 #workspace-content>div[hidden]{display:none!important}
 /* The Tools panel is itself full-canvas; its inner inset matches trusted headers.
  * This keeps the outdented sandbox within the panel's measured scroll bounds. */
@@ -49,9 +49,11 @@
 #task-stop,#script-stop,#script-save,#workflow-save,#workflow-stop{flex:none;background:var(--od-action-bg);color:var(--od-action-ink);border:1px solid var(--od-action-border)}
 #task-stop:disabled,#script-stop:disabled,#workflow-stop:disabled{display:none}
 
-/* Installed tasks share the collection frame; the one mounted workspace is a separate group. */
+/* The expanded workspace follows the selected row within the task collection. */
 .task-card-list{min-width:0;margin:0}
-.task-browser{display:grid;gap:var(--space-4);min-width:0}
+.task-browser{min-width:0}
+.task-inline-workspace{padding:var(--space-2) var(--space-3)}
+.task-inline-workspace + .od-collection-row{border-top:1px solid var(--od-line)}
 .task-card-group{position:relative;--task-row-surface:var(--od-paper);background:var(--task-row-surface)}
 .task-card-group.selected{--task-row-surface:color-mix(in srgb,var(--od-focus) 4%,var(--od-paper))}
 .task-card-group:is(:hover,:focus-within){--task-row-surface:var(--od-muted)}
@@ -192,7 +194,7 @@
 #workbench-develop [hidden],#develop-dock [hidden]{display:none!important}
 /* The 34px source row supplies its own breathing room above the code controls. */
 #workbench-develop .developer-compose{gap:0}
-#workbench-develop .developer-context,#workbench-develop .developer-output{gap:var(--space-1)}
+#workbench-develop .developer-output{gap:var(--space-1)}
 #workbench-develop .developer-management-links{gap:var(--space-4);flex-wrap:wrap}
 #workbench-develop .developer-icon,#develop-dock .developer-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 #workbench-develop .developer-sub-head{display:flex;align-items:center;gap:var(--space-1)}
@@ -495,6 +497,17 @@
   white-space:normal;overflow-wrap:anywhere;text-decoration:underline;text-underline-offset:.18em;cursor:pointer}
 .od-import-scripts-settings:hover{text-decoration-thickness:2px}
 .od-import-scripts-recovery .od-import-scripts-settings:focus-visible{outline-offset:2px}
+.od-import-page-warning{border-inline-start:3px solid var(--od-warning)}
+.od-import-page-warning-summary{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--space-2);align-items:start}
+.od-import-page-warning-summary svg{width:1.15em;height:1.15em;margin-block-start:.15em}
+.od-import-page-warning-summary h3{margin:0 0 var(--space-1);font:inherit;font-weight:700;line-height:1.4}
+.od-import-page-warning-actions{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.od-import-page-warning-actions button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:start}
+.od-import-page-warning-actions button[aria-disabled="true"]{cursor:wait}
+.od-import-page-warning-status:empty{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.od-import-scripts-help{justify-self:start;max-width:100%;min-height:24px;display:inline-flex;align-items:center;
+  color:var(--od-accent-ink);text-decoration:underline;text-underline-offset:.18em;overflow-wrap:anywhere}
+.od-import-scripts-help:hover{text-decoration-thickness:2px}
 #sidebar-tool-install{width:auto;display:block;margin-inline-start:auto;min-height:34px;padding:8px 10px;background:#365eda;color:#fff;font-size:12px;font-weight:700}
 #sidebar-tool-install:disabled{opacity:.5}
 .sidebar-tool-list{display:grid;gap:var(--space-2);margin:0}
@@ -628,7 +641,10 @@
 .sidebar-tool-settings-heading-copy{min-width:0}
 .sidebar-tool-settings-heading-copy h2{margin:0;font-size:14px;font-weight:700;line-height:1.4;color:var(--od-ink)}
 .sidebar-tool-settings-heading-copy p{margin:3px 0 0;font-size:11px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
-/* Settings already owns the surface: do not nest a second app-management card. */
+.sidebar-tool-settings-groups{gap:var(--space-4);overflow-wrap:anywhere}
+#sidebar-tool-display:has(> #sidebar-tool-settings-view:not([hidden])) > .sidebar-tool-view-head{margin-block-end:var(--space-3)}
+#sidebar-tool-display:has(> #sidebar-tool-settings-view:not([hidden])) > #sidebar-tool-launch{margin-block-end:var(--space-2)}
+#sidebar-tool-display:has(> #sidebar-tool-settings-view:not([hidden])) #sidebar-tool-title{white-space:normal;overflow-wrap:anywhere}
 .sidebar-tool-management{display:grid;gap:8px;min-width:0}
 .sidebar-tool-section-caption{font-size:12px;font-weight:700;color:var(--od-ink)}
 .sidebar-tool-management .sidebar-toc-settings-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0;margin:0;min-width:0}
@@ -676,6 +692,9 @@
 .sidebar-tool-settings-product,.sidebar-tool-settings-permissions{display:grid;gap:10px;min-width:0}
 .sidebar-tool-settings-product:not(:has(> :not([hidden]))){display:none}
 .sidebar-tool-settings-permissions[hidden]{display:none!important}
+.sidebar-tool-language-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);min-width:0}
+.sidebar-tool-language-row>label{flex:none;max-width:100%;overflow-wrap:anywhere}
+.sidebar-tool-language-row>select.od-field{width:auto;max-width:100%;margin:0;margin-inline-start:auto}
 @media(prefers-reduced-motion:reduce){
  #sidebar-tool-enable.od-tool-management-switch::before,
  #sidebar-tool-enable.od-tool-management-switch::after{transition:none}

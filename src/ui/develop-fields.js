@@ -605,6 +605,14 @@ export const DEVELOPER_FIELDS = {
   "site-access-refresh": {
     "textContent": "刷新授权状态"
   },
+  "browser-user-scripts-status": {
+    "dataset": {"state": "checking"},
+    "textContent": "正在检测…"
+  },
+  "browser-user-scripts-settings": {},
+  "browser-user-scripts-refresh": {},
+  "browser-user-scripts-reopen-hint": {"hidden": true},
+  "browser-user-scripts-settings-error": {"hidden": true},
   "script-allow-cookies": {
     "type": "checkbox",
     "checked": true

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {composeExtensionEntries,resolveExtensionPrimaryAction,resolveExtensionRowIntent} from '../../src/ui/extension-center-model.js';
+import {composeExtensionEntries,resolveExtensionPrimaryAction} from '../../src/ui/extension-center-model.js';
 
 const installed={id:'notes',title:'Notes',description:'笔记',version:'1.0.0'};
 const program={programId:'reader',manifestHash:'fixed',installed:{
@@ -16,14 +16,11 @@ test('R4.7 zero-or-one primary: active app only; false, unknown, Page and uninst
   const rows=composeExtensionEntries({installed:[installed],pages:[program],official:[release]});
   const app=rows.find(row=>row.key==='app:notes');
   assert.deepEqual(resolveExtensionPrimaryAction(app),{id:'open',label:'打开'});
-  assert.equal(resolveExtensionRowIntent(app),'launch');
   for(const row of rows.filter(row=>row.key!=='app:notes')){
     assert.equal(resolveExtensionPrimaryAction(row),null);
-    assert.equal(resolveExtensionRowIntent(row),'detail');
   }
   const disabled=composeExtensionEntries({installed:[installed],enabled:{notes:false}})[0];
   assert.equal(resolveExtensionPrimaryAction(disabled),null);
-  assert.equal(resolveExtensionRowIntent(disabled),'detail');
   const unknown=composeExtensionEntries({installed:[installed],appStatusKnown:false})[0];
   assert.equal(unknown.enabled,null);
   assert.equal(unknown.stateKnown,false);

@@ -186,7 +186,7 @@ test('R4/R23 five-tab design system has one token source and a strict trusted as
   assert.ok(html.includes('class="workflow-head od-toolbar od-page-head"'),
     'workflow header composes both shared toolbar and page-head tokens');
   assert.ok(html.includes('class="developer-source-switch od-toolbar od-page-head"'),'shared page head developer-source-switch');
-  assert.equal(load(html)('#extension-center-list-view > .ec-toolbar').length,1,'React extension center owns toolbar');
+  assert.equal(load(html)('#extension-center-toolbar.ec-toolbar').length,1,'React extension center owns toolbar');
   for(const card of ['catalog-reader'])
     assert.ok(html.includes('class="'+card+' od-surface"'),'shared surface '+card);
   assert.equal(load(html)('#extension-center-list').length,1,'unified React list receives official Catalog rows');

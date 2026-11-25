@@ -53,8 +53,8 @@ bootstrapping=(async()=>{
   await buildCookieEditorReactIfOfficial({log:false});
   await preparePublic();
   if(closing)return;
-  // Keep Chrome's existing unpacked path/ID even when compiler assets ship.
-  server=await createServer({mode:'development',outDirTemplate:'{{mode}}'});
+  // WXT clears outDir on a full build. Keep that away from Chrome's loaded path.
+  server=await createServer({mode:'development',outDir:development.DEVELOPMENT_BUILD_DIR,outDirTemplate:'{{mode}}'});
   if(closing)return;
   restarts=configureDevelopmentRestarts(server,{root,isClosing:()=>closing});
   await server.start();

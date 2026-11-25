@@ -1,4 +1,4 @@
-import {cp,readFile,writeFile,rename,mkdir,realpath,rm,lstat} from 'node:fs/promises';
+import {cp,readFile,writeFile,rename,mkdir,mkdtemp,realpath,rm,lstat} from 'node:fs/promises';
 import {trustedToolShellStyle} from './bundle-provenance.mjs';
 import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -13,18 +13,19 @@ import {buildStayFocusReact} from './build-stay-focus-react.mjs';
 import {buildCookieEditorReactIfOfficial} from './build-cookie-editor-react.mjs';
 import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog} from '../src/sidebar-tools/official-catalog.js';
 import {WORKSPACE_STYLE_INPUTS,WORKSPACE_STYLE_DEST,compileWorkspaceStyle} from './build-workspace-style.mjs';
-import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST,createBuiltinResourceManifest,BUILTIN_RESOURCE_MANIFEST,verifyManifest} from './verify-package.mjs';
+import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST,createBuiltinResourceManifest,BUILTIN_RESOURCE_MANIFEST,verifyManifest,TOOL_SANDBOX_HTML} from './verify-package.mjs';
 import {PACKAGED_TASK_RESOURCES,preparePackagedTaskResources,verifyPackagedTaskResources} from './packaged-task-resources.mjs';
 
 const marker='development-update.json';
+export const DEVELOPMENT_BUILD_DIR='.wxt/development-build';
+const liveOutput='dist/development';
 const sessions=new WeakMap();
 const sessionKey=Symbol.for('opendesk.development.session');
 const restartKey=Symbol.for('opendesk.development.restarts');
 export function developmentWatchOptions(root=process.cwd()) {
-  // Historical browser profiles and source snapshots are not development inputs.
-  // Exclude the directory itself so chokidar never traverses its descendants.
-  const artifacts=resolve(root,'artifacts');
-  return {ignored:path=>path===artifacts||path.startsWith(artifacts+'/')};
+  // Exclude the publish output as well as historical profiles and snapshots.
+  const ignored=['artifacts','dist'].map(path=>resolve(root,path));
+  return {ignored:path=>ignored.some(dir=>path===dir||path.startsWith(dir+'/'))};
 }
 export function configureDevelopmentRestarts(server,{root=process.cwd(),isClosing=()=>false,
   onError=error=>console.error('[OpenDesk dev] Restart failed; fix the source and save to retry.',error)}={}) {
@@ -82,6 +83,67 @@ export function configureDevelopmentRestarts(server,{root=process.cwd(),isClosin
   const control={drain:()=>pending,stop:clearRecovery,protectWatcher,unprotectWatcher};
   server[restartKey]=control;return control;
 }
+const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
+
+async function readOutputFile(path){
+  try{
+    if(!(await lstat(path)).isFile())throw Error('Development output is not a regular file: '+path);
+    return await readFile(path);
+  }
+  catch(error){if(error.code!=='ENOENT')throw error;}
+}
+
+async function publishLiveFiles(root,stage,paths,record){
+  const project=await realpath(root),live=resolve(project,liveOutput),directories=new Set([project]);
+  async function ensureDirectory(path){
+    if(directories.has(path))return;
+    await ensureDirectory(dirname(path));
+    try{await mkdir(path);}catch(error){if(error.code!=='EEXIST')throw error;}
+    if(!(await lstat(path)).isDirectory())throw Error('Development output is not a directory: '+path);
+    directories.add(path);
+  }
+  await ensureDirectory(live);
+  const pending=await mkdtemp(resolve(dirname(live),'.development-publish-'));
+  try{
+    const markerPath=resolve(live,marker);
+    const previous=await readOutputFile(markerPath);
+    const updates=[];
+    // Prepare every replacement before changing any file visible to Chrome.
+    // Publish referenced assets first, then their indexes and the ready marker.
+    const indexes=new Set([OFFICIAL_CATALOG_PATH,OFFICIAL_PAGE_CATALOG_PATH,SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST,'manifest.json']);
+    const ordered=[...paths.filter(path=>!indexes.has(path)),...paths.filter(path=>indexes.has(path)&&path!=='manifest.json'),'manifest.json',marker];
+    for(const path of ordered){
+      const target=resolve(live,path);
+      if(relative(live,target)!==path||!target.startsWith(live+'/'))throw Error('Invalid development output path: '+path);
+      const bytes=path===marker?Buffer.from(JSON.stringify(record)):await readFile(resolve(stage,path));
+      if(Object.hasOwn(record.files,path)&&sha256(bytes)!==record.files[path])throw Error('Development output changed before publication: '+path);
+      await ensureDirectory(dirname(target));
+      const current=path===marker?previous:await readOutputFile(target);
+      if(current?.equals(bytes))continue;
+      const temp=resolve(pending,String(updates.length));
+      await writeFile(temp,bytes);
+      updates.push({temp,target});
+    }
+    for(const {temp,target} of updates)await rename(temp,target);
+    // Drop only files from the preceding revision. Never sweep the live tree.
+    let prior;
+    try{prior=JSON.parse(previous?.toString()||'null');}catch{}
+    if(prior?.protocol===record.protocol&&prior.files&&typeof prior.files==='object'){
+      const livePaths=new Set(ordered);
+      for(const [path,hash] of Object.entries(prior.files)){
+        if(livePaths.has(path)||!/^[a-f0-9]{64}$/.test(hash))continue;
+        const target=resolve(live,path);
+        if(!target.startsWith(live+'/')||relative(live,target)!==path)continue;
+        try{
+          if(await realpath(dirname(target))!==dirname(target))continue;
+          const bytes=await readOutputFile(target);
+          if(bytes&&sha256(bytes)===hash)await rm(target,{force:true});
+        }catch(error){if(error.code!=='ENOENT')throw error;}
+      }
+    }
+  }finally{await rm(pending,{recursive:true,force:true});}
+}
+
 export async function publishDevelopment(wxt,output) {
   await verifyPackagedTaskResources(wxt.config.outDir,{root:wxt.config.root});
   // WXT can prerender during restart before custom hooks are registered.
@@ -100,20 +162,28 @@ export async function publishDevelopment(wxt,output) {
     if(bytes.length!==row.bytes||createHash('sha256').update(bytes).digest('hex')!==row.sha256)
       throw new Error('Official development release is incomplete: '+row.toolId);
   }
-  const paths=[...new Set(['manifest.json',OFFICIAL_CATALOG_PATH,...official.apps.map(row=>row.packagePath),...output.publicAssets.map(asset=>asset.fileName),
+  const paths=[...new Set(['manifest.json',OFFICIAL_CATALOG_PATH,
+    ...official.apps.map(row=>row.packagePath),...output.publicAssets.map(asset=>asset.fileName),
     ...output.steps.flatMap(step=>step.chunks.map(chunk=>chunk.fileName))])].sort();
   await writeFile(resolve(wxt.config.outDir,SDK_RESOURCE_MANIFEST),JSON.stringify(await createSdkResourceManifest(wxt.config.outDir),null,2)+'\n');
   // WXT serve has a different output lifecycle from scripts/build.mjs. Page
   // USER_SCRIPT loads this manifest before any user code; omitting it makes
   // npm run dev fail even while npm run build:dev produces a valid package.
   await writeFile(resolve(wxt.config.outDir,BUILTIN_RESOURCE_MANIFEST),JSON.stringify(await createBuiltinResourceManifest(wxt.config.outDir),null,2)+'\n');
-  paths.push(SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST);
+  for(const path of [SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST])if(!paths.includes(path))paths.push(path);
   const files=Object.fromEntries(await Promise.all(paths.filter(path=>!path.endsWith('.map')).map(async path=>[
-    path,createHash('sha256').update(await readFile(resolve(wxt.config.outDir,path))).digest('hex')])));
-  const revision=createHash('sha256').update(JSON.stringify(files)).digest('hex');
+    path,sha256(await readFile(resolve(wxt.config.outDir,path)))])));
+  const revision=sha256(JSON.stringify(files));
   const record={protocol:'opendesk.development.v1',revision,files};
-  const target=resolve(wxt.config.outDir,marker);
-  await writeFile(target+'.tmp',JSON.stringify(record));await rename(target+'.tmp',target);
+  if(wxt.config.outDir===resolve(wxt.config.root,DEVELOPMENT_BUILD_DIR,'development')){
+    for(const path of [manifest.background.service_worker,manifest.side_panel.default_path,TOOL_SANDBOX_HTML]){
+      if(!Object.hasOwn(files,path))throw Error('Development build omitted '+path);
+    }
+    await publishLiveFiles(wxt.config.root,wxt.config.outDir,paths,record);
+  }else{
+    const target=resolve(wxt.config.outDir,marker);
+    await writeFile(target+'.tmp',JSON.stringify(record));await rename(target+'.tmp',target);
+  }
   wxt.logger.info(`[OpenDesk dev] Output ready ${revision.slice(0,12)}; browser applies updates only after its safety checks.`);
 }
 export function configureDevelopment(wxt,server) {

@@ -398,6 +398,22 @@ test('late cancellation from an old view cannot retire its replacement',async()=
   h.assertNoDebugUI();await h.registry.destroy();
 });
 
+test('invalidated startup explains the failure beside the restored reply and clears it on reopen',async()=>{
+  const firstStart=deferred(),h=setup({firstStart});
+  const opening=h.click();
+  firstStart.reject(new Error('Extension context invalidated'));
+  await opening;
+  const notice=h.content.nextElementSibling;
+  assert.equal(notice.getAttribute('data-opendesk-chatgpt-mindmap'),'failure');
+  assert.match(notice.shadowRoot.querySelector('[role="status"]').textContent,/原文已恢复.*刷新此网页/);
+  assert.equal(h.content.hasAttribute('aria-hidden'),false);
+  assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+  await h.click();
+  assert.equal(notice.isConnected,false);
+  assert.equal(h.trigger.getAttribute('aria-pressed'),'true');
+  await h.registry.destroy();
+});
+
 test('return-to-original cleanup failure is logged when the session has no replacement',async()=>{
   const firstDestroy=deferred(),h=setup({firstDestroy});await h.click();
   const closing=h.views[0].options.onOriginal();
@@ -546,8 +562,8 @@ test('mind-map icon toggles in place without a text label',async()=>{
   await h.registry.destroy();
 });
 
-test('return-to-original compensates nested-scroll drift back to opener position',async()=>{
-  const h=setup();
+test('return-to-original restores the nested scroll position before the renderer finishes retiring',async()=>{
+  const retire=deferred(),h=setup({firstDestroy:retire});
   const scroller=h.triggerHost.closest('article');
   Object.defineProperty(scroller,'scrollHeight',{configurable:true,value:2000});
   Object.defineProperty(scroller,'clientHeight',{configurable:true,value:300});
@@ -558,8 +574,12 @@ test('return-to-original compensates nested-scroll drift back to opener position
   h.window.getComputedStyle=node=>({overflowY:node===scroller?'auto':'visible'});
   await h.click();
   screenY=320; // original content replaces a taller mind-map viewport
-  await h.views[0].options.onOriginal();
-  assert.equal(scroller.scrollTop,280);
-  assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+  const close=h.views[0].options.onOriginal();
+  try{
+    assert.equal(h.views[0].host.hidden,true);
+    assert.equal(h.content.getAttribute('aria-hidden'),null);
+    assert.equal(scroller.scrollTop,280);
+    assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+  }finally{retire.resolve();await close;}
   await h.registry.destroy();
 });

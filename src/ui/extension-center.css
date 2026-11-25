@@ -5,6 +5,22 @@
 #extension-center{min-width:0}#extension-center [hidden]{display:none!important}
 /* Page insets belong to the shell; this view only spaces its own controls. */
 .ec-toolbar{display:flex;align-items:center;gap:var(--space-2);min-width:0;margin-bottom:var(--space-2)}
+/* Only list results scroll. The shell gutter and toolbar stay above them;
+ * details and settings keep their own existing scroll layouts. */
+#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-list-view:not([hidden]) #extension-center-toolbar:not([hidden])){
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-list-view:not([hidden]) #extension-center-toolbar:not([hidden])),
+#sidebar-tools:has(#sidebar-tool-list-view:not([hidden]) #extension-center-toolbar:not([hidden])),
+#sidebar-tool-list-view:not([hidden]):has(#extension-center-toolbar:not([hidden])),
+#extension-center:has(#extension-center-toolbar:not([hidden])),
+.ec-drop-surface:has(> #extension-center-toolbar:not([hidden])){
+  display:flex;flex:1;flex-direction:column;min-height:0;
+}
+.ec-toolbar{flex:none;position:relative;z-index:2}
+.ec-drop-surface:has(> #extension-center-toolbar:not([hidden])) > .ec-results{
+  flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
+}
 .ec-search{display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0;height:36px;margin:0;padding:0 10px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .ec-search:focus-within{outline:2px solid var(--od-focus);outline-offset:-2px}
 .ec-search svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -41,7 +57,7 @@
 .ec-list:empty{display:none}
 .ec-row{position:relative;min-height:52px;--ec-row-surface:var(--od-paper);--ec-actions-right:8px;--ec-content-right:12px;background:var(--ec-row-surface)}
 .ec-row:hover,.ec-row:focus-within,.ec-row:has([aria-expanded=true]){--ec-row-surface:var(--od-muted)}
-/* Full row opens the tool/detail; a single menu floats over content on hover/focus. */
+/* The row body opens the tool or its controls; the menu handles other actions. */
 .ec-row-main{display:grid;grid-template-columns:29px minmax(0,1fr);align-items:center;gap:var(--space-2);width:100%;min-height:52px;min-width:0;max-width:none;padding:var(--space-3);border:0;border-radius:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
 .ec-row-main:hover:not(:disabled){background:transparent}
 .ec-row-actions{position:absolute;top:50%;right:8px;z-index:1;display:flex;align-items:center;opacity:0;pointer-events:none;transform:translateY(-50%);transition:opacity .12s ease;border-radius:var(--radius-control);background:var(--ec-row-surface)}
@@ -68,6 +84,12 @@
 .ec-web-features-state svg{width:14px;height:14px;flex:none}
 .ec-web-features-state[data-state=on] svg{color:var(--od-positive)}
 .ec-web-features-note{color:var(--od-sub)}
+.ec-web-features-steps{display:grid;gap:var(--space-3);box-sizing:border-box;width:100%;min-width:0;margin:0;padding-inline-start:1.5rem}
+.ec-web-features-steps li{padding-inline-start:var(--space-1);min-width:0}
+.ec-web-features-steps li::marker{color:var(--od-accent-ink);font-weight:650}
+.ec-web-features-steps li > .ec-web-features-note{margin-block-start:var(--space-1)}
+.ec-web-features-steps li > .ec-web-features-settings{margin-block:var(--space-2) 0}
+.ec-web-features-steps li > [role=alert]{margin-block:var(--space-2) var(--space-1)}
 .ec-web-features-help{width:100%}
 .ec-web-features-settings{margin-block-start:var(--space-1)}
 .ec-web-features-path{width:100%;min-width:0;resize:none;user-select:text;font-size:var(--od-note-size);line-height:1.5;overflow-wrap:anywhere}
@@ -113,6 +135,9 @@
 .ec-context-action:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
 .ec-empty{text-align:center;padding:24px var(--space-3);border:1px dashed var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-sub);font-size:var(--od-note-size)}
 .ec-empty p{margin:0 0 8px}
+/* Let fast reads finish before showing a list placeholder. No motion or timer state. */
+.ec-list-loading{margin:var(--space-3) 0;text-align:center;color:var(--od-sub);font-size:var(--od-note-size);visibility:hidden;animation:ec-reveal-list-loading 0s 300ms forwards}
+@keyframes ec-reveal-list-loading{to{visibility:visible}}
 .ec-message{margin:8px 2px;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
 .ec-message:empty{display:none}
 .ec-message[data-state=error]{color:var(--od-negative)}.ec-message[data-state=success]{color:var(--od-positive)}
@@ -120,7 +145,6 @@
 .ec-detail-back:hover{background:var(--od-muted)}
 .ec-detail-back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ec-detail-head{display:flex;align-items:center;gap:var(--space-2);min-height:52px;padding:0 0 var(--space-3) calc(var(--ec-detail-back-size) + var(--space-2));border-bottom:1px solid var(--od-line)}
-.ec-detail-head strong{font-size:15px}
 .ec-detail-copy{min-width:0;display:grid;gap:4px}
 .ec-detail-copy>.ec-type{justify-self:start}
 .ec-detail p{color:var(--od-sub);font-size:12px;line-height:1.6}
@@ -133,11 +157,15 @@
 .ec-detail-card{margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3);overflow-wrap:anywhere}
 .ec-detail-card h3{font-size:13px;line-height:1.4;font-weight:650;margin:0}
 .ec-detail-card p{margin:0}
-.ec-extension-about{display:grid;gap:var(--space-2);min-width:0;overflow-wrap:anywhere}
-.ec-extension-about dl{margin:0;display:grid;gap:var(--space-2)}
-.ec-extension-about dl>div{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 var(--space-2)}
-.ec-extension-about dt{color:var(--od-sub);flex:1 1 8rem}
-.ec-extension-about dd{margin:0;min-width:0;flex:2 1 10rem;user-select:text}
+.ec-detail-overview{display:grid;justify-items:start;gap:var(--space-2);min-width:0;overflow-wrap:anywhere}
+.ec-detail-notes{display:grid;gap:var(--space-1);min-width:0}
+.ec-detail-notes p{margin:0}
+.ec-detail-status{color:var(--od-sub);font-size:var(--od-note-size)}
+.ec-page-diagnostics p{overflow-wrap:anywhere}
+.ec-extension-about dl{display:grid;gap:var(--space-2);overflow-wrap:anywhere}
+.ec-extension-about dl>div{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);align-items:baseline;gap:var(--space-2)}
+.ec-extension-about dt{color:var(--od-sub)}
+.ec-extension-about dd{margin:0;user-select:text}
 .ec-extension-about dl>div:first-child dd{font-weight:650}
 .ec-extension-about a{color:inherit;text-decoration:underline;text-underline-offset:.16em}
 .ec-extension-about small{color:var(--od-sub)}
@@ -146,14 +174,15 @@
 /* Back and cards share the shell gutter; reserve the actual hit area plus one gap. */
 #extension-center-detail{--ec-detail-back-size:var(--od-icon-size);position:relative;min-width:0}
 #extension-center-detail-body{display:grid;gap:var(--space-4);min-width:0}
+.ec-detail-intro,.ec-detail-summary{display:grid;min-width:0}
+.ec-detail-intro{gap:var(--space-3)}
+.ec-detail-summary{gap:var(--space-2)}
 #extension-center-detail .ec-detail-back{position:absolute;top:0;left:0;z-index:1}
 #extension-center-detail .ec-detail-head .ec-glyph{flex:none}
 /* Page apps share the compact title/action header used by installed tools. */
 #extension-center-detail .ec-detail-head--page{
   flex:none;min-height:var(--ec-detail-back-size);padding:0 0 0 calc(var(--ec-detail-back-size) + var(--space-2));border:0;gap:var(--space-2)}
 #extension-center-detail .ec-detail-head--page .ec-detail-copy{flex:1}
-#extension-center-detail .ec-detail-head--page strong{
-  display:block;font-size:12px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
 #extension-center-detail .ec-detail-head--page .ec-detail-action{
   width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size)}
 #extension-center-detail .ec-detail-description{margin:0;line-height:1.55}
@@ -234,6 +263,8 @@
   background:var(--od-muted);color:var(--od-ink);border:1px solid var(--od-line)}
 .od-import-sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
   padding:12px 14px 16px;scrollbar-gutter:stable}
+.od-import-capability-list{display:grid;gap:var(--space-1);margin:0;padding-inline-start:1.25em;
+  color:var(--od-ink);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
 .od-import-overlay .sidebar-tool-import label{display:block}
 .od-import-sheet-footer{flex:none;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
   border-top:1px solid var(--od-line);background:var(--od-paper)}
@@ -398,19 +429,29 @@
 @media(max-height:320px){.od-uninstall-dialog{padding:12px;gap:8px}}
 
 /* R6.1 manual-only, document-bound discovery; existing trusted Host owns installs. */
-.ec-discovery{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;
-  margin-bottom:var(--space-3);padding:10px 12px;border:1px solid var(--od-line);
-  border-radius:var(--radius-control);background:var(--od-paper)}
-.ec-discovery-copy{min-width:0;display:grid;gap:3px;font-size:12px;color:var(--od-ink)}
-.ec-discovery-copy strong{font-size:13px;overflow-wrap:anywhere}
-.ec-discovery-copy p{margin:0;color:var(--od-sub);line-height:1.45;overflow-wrap:anywhere}
-.ec-discovery-copy p[data-state="error"]{color:var(--od-negative)}
-.ec-discovery-origin{font-size:11px;color:var(--od-sub);overflow-wrap:anywhere}
-.ec-discovery-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.ec-discovery-actions button{min-height:36px;font-size:12px;padding:5px 8px}
-.ec-discovery-actions .od-icon-button{min-width:36px}
-@media(max-width:400px){.ec-discovery{align-items:stretch;flex-direction:column}
-  .ec-discovery-actions{justify-content:flex-end;flex-wrap:wrap}}
+.ec-discovery{min-width:0;margin-bottom:var(--space-2)}
+.ec-discovery[data-state]{display:grid;gap:var(--space-2);padding:var(--space-3);
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+.ec-discovery-copy{display:grid;gap:var(--space-1);min-width:0;font-size:13px;
+  color:var(--od-sub);line-height:1.45;overflow-wrap:anywhere}
+.ec-discovery-copy p{margin:0}
+.ec-discovery-copy[data-error] p{color:var(--od-negative)}
+.ec-discovery-app{display:flex;gap:var(--space-2);align-items:baseline;flex-wrap:wrap}
+.ec-discovery-app strong{font-size:14px;color:var(--od-ink)}
+.ec-discovery-origin{font-size:12px}
+.ec-discovery-actions{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
+.ec-discovery-actions button{min-height:36px;font-size:13px;padding:var(--space-1) var(--space-2)}
+.ec-discovery-actions .od-button{min-width:0;text-align:start}
+.ec-discovery-actions .od-button--quiet,.ec-discovery-market{color:var(--od-accent-ink)}
+.ec-discovery-market{justify-self:start;max-width:100%;text-align:start;white-space:normal}
+.ec-discovery-actions .od-button--quiet:hover{background:var(--od-action-bg)}
+#extension-center .ec-discovery-actions .od-button--quiet:focus-visible{outline-offset:-2px}
+.ec-discovery-actions .od-icon-button{width:36px;min-width:36px}
+.ec-discovery-actions svg{flex:none;width:17px;height:17px;fill:none;stroke:currentColor;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ec-discovery-diagnostic{min-width:0;color:var(--od-sub);font-size:12px;overflow-wrap:anywhere}
+.ec-discovery-diagnostic summary{width:fit-content;max-width:100%;padding-block:var(--space-1);cursor:pointer}
+.ec-discovery-diagnostic code{display:block;margin-top:var(--space-1)}
 @media(pointer:coarse){.ec-discovery-actions button{min-height:44px;min-width:44px}}
 
 /* The existing Extension Detail hosts custom-site review. Installer consent
@@ -464,7 +505,7 @@
 #extension-center-detail[data-scroll-app]:not([hidden]),
 #extension-center-detail[data-scroll-app]>#extension-center-detail-body{
   display:flex;flex:1;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
-#extension-center-detail[data-scroll-app]>#extension-center-detail-body{gap:var(--space-4)}
+#extension-center-detail[data-scroll-app]>#extension-center-detail-body{gap:var(--space-3)}
 #extension-center-detail[data-scroll-app]>.ec-detail-back{top:0}
 .ec-scroll-site-manager{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0}
 .ec-scroll-ai-feedback{margin:0;padding:0 var(--space-2);font-size:12px;overflow-wrap:anywhere}
@@ -472,6 +513,7 @@
   scrollbar-width:thin;padding:2px 2px var(--space-4);scroll-padding-block:var(--space-2)}
 .ec-scroll-site-manager h3,.ec-scroll-site-manager h4{margin:0;font-size:12px;line-height:1.4;font-weight:650}
 .ec-scroll-home,.ec-scroll-subview{display:grid;gap:var(--space-4);min-width:0;align-content:start}
+.ec-scroll-home{gap:var(--space-3)}
 .ec-scroll-management p{margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .ec-scroll-diagnostics{display:grid;gap:var(--space-2);min-width:0}
 .ec-scroll-group{display:grid;gap:var(--space-2);min-width:0}
@@ -484,11 +526,30 @@
 .ec-scroll-title svg,.ec-scroll-row-actions svg,.ec-scroll-selector svg,.ec-scroll-clear svg{
   width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .ec-scroll-home .ec-page-control{padding:var(--space-3);background:var(--od-paper)}
-.ec-scroll-home .ec-page-control .ec-page-main{padding:0}
-.ec-scroll-home .ec-page-control .ec-page-state{border-top:1px solid var(--od-line);padding-top:var(--space-2);font-weight:500}
+#extension-center-detail .ec-scroll-home .ec-page-main-copy{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--space-1) var(--space-2)}
+.ec-scroll-home .ec-page-main-copy p:last-child{flex-basis:100%;color:var(--od-sub)}
+.ec-scroll-home .ec-page-control h3,.ec-scroll-read-state h3{font-size:13px}
+.ec-scroll-home .ec-page-control .ec-page-state{font-weight:600}
+.ec-scroll-home .ec-page-state[data-state="off"]{color:var(--od-sub)}
+.ec-scroll-status-region:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px;border-radius:var(--radius-surface)}
+#extension-center-detail .ec-scroll-read-state[data-read-state="failed"]{
+  grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.ec-scroll-read-copy{display:grid;gap:var(--space-1);min-width:0}
+.ec-scroll-read-heading{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-1) var(--space-2)}
+.ec-scroll-read-badge{padding:2px 7px;border-radius:var(--radius-pill);background:var(--od-warning-bg);
+  color:var(--od-warning-ink);font-size:12px;line-height:1.4;font-weight:600}
+.ec-scroll-read-copy p{margin:0;color:var(--od-sub);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.ec-scroll-read-state .ec-scroll-retry{padding-inline:var(--space-2);font-size:12px;white-space:nowrap}
+.ec-scroll-retry svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.ec-scroll-home .ec-scroll-title .od-button{font-size:12px;min-height:34px}
+.ec-scroll-home .ec-scroll-title-actions{gap:var(--space-1)}
 .ec-scroll-builtins,.ec-scroll-saved{display:grid;list-style:none;margin:0;padding:0;min-width:0;
   border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
 .ec-scroll-builtins>li,.ec-scroll-site-row{display:flex;align-items:center;gap:10px;padding:10px 12px;min-height:55px;min-width:0}
+.ec-scroll-home .ec-scroll-builtins>li,.ec-scroll-home .ec-scroll-site-row{padding-block:var(--space-2);min-height:44px}
+.ec-scroll-home .ec-scroll-builtins .ec-scroll-site-copy{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--space-1) var(--space-3)}
+.ec-scroll-home .ec-scroll-builtins .ec-scroll-site-copy strong{min-width:76px}
 .ec-scroll-builtins>li+li,.ec-scroll-saved>li+li{border-top:1px solid var(--od-line)}
 .ec-scroll-saved>li{min-width:0}
 .ec-scroll-mark{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:9px;
@@ -542,9 +603,7 @@
 .ec-scroll-flag>span{min-width:0;overflow-wrap:anywhere}
 .ec-scroll-flag .od-shared-switch{flex:none}
 .ec-scroll-flag+.ec-scroll-flag{border-top:1px solid var(--od-line)}
-.ec-scroll-navigation-help{color:var(--od-sub);font-size:11px}
-.ec-scroll-navigation-help>summary{cursor:pointer}
-.ec-scroll-navigation-help[open]>.ec-scroll-help{margin-top:8px}
+.ec-scroll-navigation-help{display:grid;gap:var(--space-2)}
 @media(max-width:360px){
   .ec-scroll-builtins>li,.ec-scroll-site-row{padding:9px 10px}
   .ec-scroll-mark{width:28px;height:28px}

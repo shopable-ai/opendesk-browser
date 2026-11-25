@@ -90,6 +90,7 @@ test('retired unknown history passes the update flow only after receipt, Native 
 
 test('real Side Panel context resolves missing sender documentId and rejects foreign senders',async()=>{
   const f=workerFixture({missingDocumentId:true});await f.connect();assert.equal(f.messages[0].type,'connected');assert.equal(f.messages[0].documentId,'document-1');
+  assert(f.messages.some(message=>message.type==='detail-memory-observation'));
   const foreign=workerFixture();foreign.port.sender.id='other-extension';await foreign.connect();assert.equal(foreign.messages.length,0);f.worker.dispose();foreign.worker.dispose();
 });
 
@@ -150,8 +151,8 @@ test('newly connected tools receive the existing reason a development update is 
     await until(()=>f.messages.some(message=>message.type==='waiting'));
     const waiting=f.messages.find(message=>message.type==='waiting');
     f.messages.length=0;await f.connect();
-    assert.deepEqual(f.messages.map(message=>message.type),['connected','waiting']);
-    assert.equal(f.messages[1].reason,waiting.reason);
+    assert.deepEqual(f.messages.filter(message=>message.type!=='detail-memory-observation').map(message=>message.type),['connected','waiting']);
+    assert.equal(f.messages.find(message=>message.type==='waiting').reason,waiting.reason);
     assert.equal(f.messages[0].revision,revision(1));
     assert.equal(f.reloads,0);
   }finally{f.worker.dispose();}
@@ -192,6 +193,16 @@ function pageFixture(prepareReload,canReload=()=>true){
     location:{href:'chrome-extension://extension/sidepanel.html?hostInstanceId=old&toolId=quick-notes',replace:url=>urls.push(url)}});
   return {ports,statuses,body,link,urls,dispose,get status(){return statuses.at(-1);},get navigations(){return urls.length;}};
 }
+
+test('development page presents passive memory observations without preparation or navigation',async()=>{
+  const f=pageFixture(()=>assert.fail('observer prepared a reload'));
+  try{
+    const observation={observer:'observer-1',current:{state:'known',value:'page:detail-a'},events:[]};
+    await f.ports[0].onMessage.emit({type:'detail-memory-observation',observation});
+    assert.deepEqual(f.status.detailMemory,observation);
+    assert.equal(f.body.inert,false);assert.equal(f.navigations,0);assert.deepEqual(f.ports[0].sent,[]);
+  }finally{f.dispose();}
+});
 
 test('AI inference vetoes reload before and after asynchronous draft preparation',async()=>{
   let finish,save,preparations=0;

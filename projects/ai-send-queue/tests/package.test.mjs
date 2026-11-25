@@ -23,13 +23,16 @@ test('one reviewed Sidebar package contains the complete crown and FIFO Page mod
   const config=JSON.parse(await readFile(resolve(root,'tool.config.json'),'utf8'));
   assert.equal(pkg.pageModule.revision,config.pageModule.revision);
   assert.equal(pkg.pageModule.sourceHash,sha(Buffer.from(pkg.pageModule.sourceUtf8)));
-  assert.deepEqual(pkg.pageModule.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
+  assert.deepEqual(pkg.pageModule.pageRules,{matches:['https://chatgpt.com/*','https://gemini.google.com/*','https://chat.deepseek.com/a/chat/s/*','https://chat.deepseek.com/'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
   assert.match(pkg.pageModule.sourceUtf8,/data:image\/webp;base64,/,'packaged crown image');
   assert.deepEqual(bytes,encodeSidebarToolPackage(await createSidebarToolPackage(root)),
     'current Page source and all assets must reproduce the delivered package');
   assert.equal(usesFixedSendQueue(pkg.id,pkg.pageModule),true,
     'updating the sidebar must preserve the reviewed fixed Page entry');
+  const widened={...pkg.pageModule,pageRules:{...pkg.pageModule.pageRules,
+    matches:[...pkg.pageModule.pageRules.matches.slice(0,2),'https://chat.deepseek.com/*']}};
+  assert.equal(usesFixedSendQueue(pkg.id,widened),false,'reviewed source cannot widen DeepSeek scope');
 });
 
 test('current distribution offers only the composite package and no independent Page candidate',async()=>{

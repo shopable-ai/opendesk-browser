@@ -21,7 +21,7 @@ import {executeBrowserToolStorage,etagFor} from '../../ui/sidebar-tools/storage-
 import {readAppServiceInstallation,assertAppServiceBinding,APP_SERVICE_OPERATIONS} from '../tasks/app-service-installation.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {chromeCall} from './tabs.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,sidebarToolEnabled,sidebarToolStopLock} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
 import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,sidebarToolPackageHash,sidebarToolStorageKey} from '../../ui/sidebar-tools/package.js';
@@ -50,6 +50,9 @@ const validId=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{1,39}$/.test(id);
 const canonicalJSON=value=>JSON.stringify(value,(_key,row)=>
   row&&typeof row==='object'&&!Array.isArray(row)
     ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
+const isExactCookieClear=(operation,args)=>
+  operation==='browser.cookies.clearSite'&&args?.scope==='site-exact-host';
+const cookieDocumentFields=['tabId','windowId','documentId','url','origin'];
 const jsonBytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
 function parsedHttp(value){
   try{const url=new URL(value);return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url:null;}
@@ -168,15 +171,75 @@ function storedMenuState(state,changes={}){
   // Wildcards come only from the installed package, never a stored site grant.
   return {...state,origins:state.origins.filter(origin=>!['http://*','https://*'].includes(origin)),...changes};
 }
-async function readSources(api){
-  const r=await api.storage.local.get([SIDEBAR_TOOL_STORE,BROWSER_MENU_GRANTS_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE]);
-  const tools=requireCompleteInstalledSidebarTools(r[SIDEBAR_TOOL_STORE]);
+// Chrome Storage returns JSON data by value. Reuse pure verification only
+// when every field still matches the last successfully validated input.
+function sameStoredJSON(left,right){
+  if(Object.is(left,right))return true;
+  if(!left||!right||typeof left!=='object'||typeof right!=='object'||
+     Object.getPrototypeOf(left)!==Object.getPrototypeOf(right)||
+     Array.isArray(left)&&left.length!==right.length)return false;
+  const keys=Object.keys(left);
+  return keys.length===Object.keys(right).length&&keys.every(key=>
+    Object.hasOwn(right,key)&&sameStoredJSON(left[key],right[key]));
+}
+async function readInstallation(api,packageProof){
+  const r=await api.storage.local.get([SIDEBAR_TOOL_STORE,...installationAuthorityKeys]);
+  const raw=r[SIDEBAR_TOOL_STORE];
+  let tools=packageProof?.tools;
+  if(!tools||!sameStoredJSON(raw,packageProof.raw)){
+    tools=requireCompleteInstalledSidebarTools(raw);
+    if(packageProof){
+      packageProof.raw=structuredClone(raw);
+      packageProof.tools=tools;
+      packageProof.hashes=new WeakMap();
+    }
+  }
+  return {tools,packageHashes:packageProof?.hashes,...installationAuthority(r)};
+}
+const installationAuthorityKeys=[BROWSER_MENU_GRANTS_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE];
+function installationAuthority(r){
   const epochs=requireToolRevocationEpochs(r[TOOL_REVOCATION_EPOCHS_STORE]);
   const grants=r[BROWSER_MENU_GRANTS_STORE]??{};
   if(!grants||typeof grants!=='object'||Array.isArray(grants))throw failure('E_STORAGE_CORRUPT','Invalid browser grants');
-  const menus={};
-  for(const tool of tools)menus[tool.id]=await effectiveMenuState(grants,tool,epochs);
-  return {tools,grants,menus,epochs,enabled:requireToolEnableRecords(r[SIDEBAR_TOOL_ENABLE_STORE])};
+  return {grants,epochs,enabled:requireToolEnableRecords(r[SIDEBAR_TOOL_ENABLE_STORE])};
+}
+function installedPackageHash(installation,tool){
+  const saved=installation.packageHashes?.get(tool);
+  if(saved)return saved;
+  const checked=digestTool(tool);
+  installation.packageHashes?.set(tool,checked);
+  return checked;
+}
+function cookieBatchExpired(){
+  return failure('E_COOKIE_BATCH_EXPIRED','Cookie import expired before any writes');
+}
+function cookieBatchAdmission({expiresAt,elapsedDeadline}){
+  const controller=new AbortController(),signal=controller.signal;
+  const remaining=()=>Math.min(expiresAt-Date.now(),elapsedDeadline-performance.now());
+  const check=()=>{
+    if(signal.aborted)throw signal.reason;
+    if(remaining()<=0)throw cookieBatchExpired();
+  };
+  let timer;
+  const expiry=new Promise((_,reject)=>{
+    timer=setTimeout(()=>{
+      const error=cookieBatchExpired();
+      controller.abort(error);
+      reject(error);
+    },Math.max(0,remaining()));
+  });
+  const wait=async read=>{
+    check();
+    const result=await Promise.race([read(),expiry]);
+    check();
+    return result;
+  };
+  return {signal,remaining,check,expiry,wait,stop:()=>clearTimeout(timer)};
+}
+async function readSources(api){
+  const installation=await readInstallation(api),menus={};
+  for(const tool of installation.tools)menus[tool.id]=await effectiveMenuState(installation.grants,tool,installation.epochs);
+  return {...installation,menus};
 }
 async function permissionGranted(api){
   return Boolean(api.contextMenus&&api.permissions?.contains&&
@@ -229,9 +292,22 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const pendingSourceContexts=new Map();
   let menuActionsAvailable=false;
   const activeMenuStates=[]; // Ephemeral projection of installed menus, never a grant store.
+  // One memo for the last pure verification. Every admission still reads and
+  // matches the full stored registry, including across separate Cookie RPCs.
+  const cookiePackageProof={};
   // Single-use intents are created only by the trusted extension UI after a user click.
   // They do not survive Worker restart and are never supplied by tool script.
   const browserIntents=new Map(),INTENT_TTL=15000;
+  let cookieAuthorityEpoch=0;
+  const pendingCookieWriteRevocations=new Set();
+  function checkPendingCookieRevocation(identity,sourceOrigin){
+    for(const row of pendingCookieWriteRevocations)
+      if(row.toolId===identity.toolId&&row.toolVersion===identity.toolVersion&&
+         (row.installEpoch??null)===identity.epoch&&row.packageHash===identity.packageHash&&
+         (row.scope==='all-http-sites'||row.origin===sourceOrigin))
+        throw failure('E_GRANT_REVOKED','Cookie write permission is being revoked');
+  }
+  const cookieWindowEpochs=new Map();
   // Host-only, exact-context evidence of a consumed one-use proxy intent.
   // No package field or serialized credential can populate this dispatch scope.
   const proxyConfigApprovals=new WeakMap();
@@ -266,7 +342,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     running:'running',stopped:'completed',cancelled:'cancelled',
     interrupted:'failed',revoked:'cancelled'})[state]??'unknown';
   const serviceContexts=new WeakMap();
-  async function verifyBrowserOwner(identity,operation,origin=null){
+  async function verifyBrowserSitePermission(origin){
+    const site=parsedHttp(origin);
+    if(!site||site.origin!==origin||!api.permissions?.contains||
+       !await api.permissions.contains({origins:[permissionPattern(origin+'/')]}))
+      throw failure('E_SITE_PERMISSION_REVOKED');
+  }
+  async function verifyBrowserOwner(identity,operation,origin=null,installation=null){
     const service=serviceContexts.get(identity);
     if(service){
       if(origin!==null||!APP_SERVICE_OPERATIONS.includes(operation))throw failure('E_CAPABILITY');
@@ -278,10 +360,29 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       await service.authorize();
       return tool;
     }
-    const owned=await readSources(api),tool=admittedTool(owned.tools,identity.toolId);
+    const owned=installation??await readSources(api);
+    const {tool,op}=await verifyInstalledBrowserOwner(identity,operation,owned);
+    for(const permission of op.requiredChromePermissions){
+      // Chrome permission loss must not hide an owned STOP or prevent its
+      // durable intent. These two methods cannot mutate native proxy config
+      // without the Driver independently checking permission and exact PAC.
+      if(permission==='proxy'&&['browser.proxy.managed.getStatus',
+        'browser.proxy.managed.requestDisable'].includes(operation))continue;
+      await verifyChromePermission(permission);
+    }
+    if(origin!==null)await verifyBrowserSitePermission(origin);
+    return tool;
+  }
+  async function verifyChromePermission(permission){
+    if(!api.permissions?.contains||!await api.permissions.contains({permissions:[permission]}))
+      throw failure('E_CHROME_PERMISSION_REQUIRED');
+  }
+  async function verifyInstalledBrowserOwner(identity,operation,owned){
+    const tool=owned.tools.find(row=>row.id===identity.toolId);
+    if(!tool)throw failure('E_TOOL_CHANGED','Tool uninstalled or unavailable');
     if(!sidebarToolEnabled(owned.enabled,tool.id))throw failure('E_TOOL_DISABLED');
     if(tool.version!==identity.toolVersion||(owned.epochs[tool.id]??null)!==(identity.epoch??null)||
-       await digestTool(tool)!==identity.packageHash)throw failure('E_TOOL_CHANGED','Tool package or install epoch changed');
+       await installedPackageHash(owned,tool)!==identity.packageHash)throw failure('E_TOOL_CHANGED','Tool package or install epoch changed');
     const op=browserOperation(operation);
     if(!op||!op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap)))throw failure('E_TOOL_CAPABILITY_REQUIRED');
     if(op.requiredCapabilities.includes('browser.bookmarks.full')){
@@ -291,22 +392,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
          record.installEpoch!==(owned.epochs[tool.id]??null))
         throw failure('E_BOOKMARK_FULL_CONSENT_REQUIRED','Independent Full Bookmarks consent required');
     }
-    for(const permission of op.requiredChromePermissions){
-      // Chrome permission loss must not hide an owned STOP or prevent its
-      // durable intent. These two methods cannot mutate native proxy config
-      // without the Driver independently checking permission and exact PAC.
-      if(permission==='proxy'&&['browser.proxy.managed.getStatus',
-        'browser.proxy.managed.requestDisable'].includes(operation))continue;
-      if(!api.permissions?.contains||!await api.permissions.contains({permissions:[permission]}))
-        throw failure('E_CHROME_PERMISSION_REQUIRED');
-    }
-    if(origin!==null){
-      const site=parsedHttp(origin);
-      if(!site||site.origin!==origin||!api.permissions?.contains||
-         !await api.permissions.contains({origins:[permissionPattern(origin+'/')]}))
-        throw failure('E_SITE_PERMISSION_REVOKED');
-    }
-    return tool;
+    return {tool,op};
   }
 
   const cookieCapabilities=Object.freeze({
@@ -321,11 +407,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // Explicit Cookie consent does not depend on current catalog contents.
   const isCookieEditor=tool=>tool.id==='cookie-editor'&&
     tool.capabilities.includes('browser.cookies.write');
-  async function authorizedCookie(identity,operation,url,options={}){
-    const parsed=parsedHttp(url);
-    if(!parsed)throw failure('E_SCHEMA','A specific HTTP(S) Cookie URL is required');
-    const origin=parsed.origin,tool=await verifyBrowserOwner(identity,operation,origin);
-    const source=await readSources(api),record=source.grants[tool.id];
+  function cookieGrant(identity,operation,origin,options,source,tool){
+    const record=source.grants[tool.id];
     if(record?.version!==tool.version||record.packageHash!==identity.packageHash||
        record.installEpoch!==(source.epochs[tool.id]??null))
       throw failure('E_SITE_GRANT_REQUIRED','Cookie site grant invalidated by a package change');
@@ -340,6 +423,20 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_COOKIE_VALUES_REQUIRED','Current trusted Cookie consent does not include sensitive values');
     if(options.storeId!==undefined&&options.storeId!==grant.storeId)
       throw failure('E_COOKIE_STORE');
+    return {grant,allSites};
+  }
+  async function authorizedCookie(identity,operation,url,options={},packageProof,readDocument,clearTarget){
+    const parsed=parsedHttp(url);
+    if(!parsed)throw failure('E_SCHEMA','A specific HTTP(S) Cookie URL is required');
+    const exactClear=isExactCookieClear(operation,options);
+    if(exactClear){
+      verifyCookieClearTarget(clearTarget);
+      readDocument=clearTarget.document;
+    }
+    const origin=parsed.origin,source=await readInstallation(api,packageProof);
+    const tool=await verifyBrowserOwner(identity,operation,origin,source);
+    const {grant,allSites}=cookieGrant(identity,operation,origin,options,source,tool);
+    if(exactClear&&!allSites)await verifyCookieDocument(readDocument,origin);
     let partitionKey=grant.partitionKey??null;
     if(allSites){
       const stores=await chromeCall(api,api.cookies,'getAllCookieStores');
@@ -350,51 +447,75 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       // Resolve partitioned access from the real, regular current document.
       if(operation==='browser.cookies.getPartitionKey'||options.partitionKey||options.scope==='site-exact-host'||
          options.cookies?.some(row=>row.partitionKey)){
-        const tabs=await api.tabs.query({active:true,currentWindow:true});
-        const tab=Array.isArray(tabs)&&tabs.length===1?tabs[0]:null;
-        if(!tab||tab.incognito||tab.pendingUrl||parsedHttp(tab.url)?.origin!==origin||
-           !regular[0].tabIds?.includes(tab.id))throw failure('E_COOKIE_PARTITION');
-        const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
-        if(!frame?.documentId||frame.url!==tab.url||
-           frame.documentLifecycle&&frame.documentLifecycle!=='active')throw failure('E_DOCUMENT_CHANGED');
-        const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:tab.id,frameId:0});
-        if(!parsedHttp(receipt?.partitionKey?.topLevelSite))throw failure('E_COOKIE_PARTITION');
-        const after=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
-        if(after?.documentId!==frame.documentId||after.url!==frame.url)
-          throw failure('E_DOCUMENT_CHANGED');
-        partitionKey=receipt.partitionKey;
+        if(readDocument||exactClear){
+          // The packaged Side Panel captures its own window. The service
+          // worker's currentWindow can be a different browser window.
+          await verifyCookieDocument(readDocument,origin);
+          if(!regular[0].tabIds?.includes(readDocument.tabId))throw failure('E_COOKIE_PARTITION');
+          const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:readDocument.tabId,frameId:0});
+          if(!parsedHttp(receipt?.partitionKey?.topLevelSite))throw failure('E_COOKIE_PARTITION');
+          await verifyCookieDocument(readDocument,origin);
+          partitionKey=receipt.partitionKey;
+        }else{
+          const tabs=await api.tabs.query({active:true,currentWindow:true});
+          const tab=Array.isArray(tabs)&&tabs.length===1?tabs[0]:null;
+          if(!tab||tab.incognito||tab.pendingUrl||parsedHttp(tab.url)?.origin!==origin||
+             !regular[0].tabIds?.includes(tab.id))throw failure('E_COOKIE_PARTITION');
+          const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+          if(!frame?.documentId||frame.url!==tab.url||
+             frame.documentLifecycle&&frame.documentLifecycle!=='active')throw failure('E_DOCUMENT_CHANGED');
+          const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:tab.id,frameId:0});
+          if(!parsedHttp(receipt?.partitionKey?.topLevelSite))throw failure('E_COOKIE_PARTITION');
+          const after=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+          if(after?.documentId!==frame.documentId||after.url!==frame.url)
+            throw failure('E_DOCUMENT_CHANGED');
+          partitionKey=receipt.partitionKey;
+        }
       }
     }
     if(options.partitionKey&&(!partitionKey||
        options.partitionKey.topLevelSite!==partitionKey.topLevelSite||
        Boolean(options.partitionKey.hasCrossSiteAncestor)!==
          Boolean(partitionKey.hasCrossSiteAncestor)))throw failure('E_COOKIE_PARTITION');
+    if(exactClear)verifyCookieClearTarget(clearTarget);
     return {origin,storeId:grant.storeId,partitionKey,grantEpoch:grant.grantEpoch};
   }
   // Only the checked Side Panel can mint the exact Host approval following
   // the official Cookie Editor's real import click. Imported destination
   // origins use Chrome's actual host permissions, not unrelated site grants.
-  async function authorizedImportedCookie(identity,operation,url,sourceOrigin,options={}){
+  async function authorizedImportedCookie(identity,operation,url,sourceOrigin,options,document,owned){
     const destination=parsedHttp(url),source=parsedHttp(sourceOrigin);
     if(identity.toolId!=='cookie-editor'||operation!=='browser.cookies.setMany'||
        !destination||!source||source.origin!==sourceOrigin)
       throw failure('E_OWNER','A trusted Cookie Editor import is required');
-    // Pin the source tab's existing grant, Store and installation epoch.
-    const anchor=await authorizedCookie(identity,operation,sourceOrigin);
-    await verifyBrowserOwner(identity,operation,destination.origin);
-    if(options.storeId!==undefined&&options.storeId!==anchor.storeId)
-      throw failure('E_COOKIE_STORE');
-    return {origin:destination.origin,storeId:anchor.storeId,
-      partitionKey:options.partitionKey??null,grantEpoch:anchor.grantEpoch};
+    const {tool,op}=await verifyInstalledBrowserOwner(identity,operation,owned);
+    const {grant,allSites}=cookieGrant(identity,operation,sourceOrigin,{},owned,tool);
+    if(options.storeId!==undefined&&options.storeId!==grant.storeId)throw failure('E_COOKIE_STORE');
+    async function verifyRegularStore(){
+      if(!allSites)return;
+      const stores=await chromeCall(api,api.cookies,'getAllCookieStores');
+      const regular=Array.isArray(stores)?stores.filter(row=>row.id===grant.storeId&&!row.incognito):[];
+      if(regular.length!==1)throw failure('E_COOKIE_STORE');
+    }
+    // These checks need separate live Chrome evidence, but none depends on
+    // the response to another. Finish all of them before the native boundary.
+    await Promise.all([
+      verifyCookieDocument(document,sourceOrigin),verifyRegularStore(),
+      ...op.requiredChromePermissions.map(verifyChromePermission),
+      verifyBrowserSitePermission(sourceOrigin),
+      ...(destination.origin===sourceOrigin?[]:[verifyBrowserSitePermission(destination.origin)])
+    ]);
+    return {origin:destination.origin,storeId:grant.storeId,
+      partitionKey:options.partitionKey??null,grantEpoch:grant.grantEpoch};
   }
      // Chrome document binding is checked on approval and before every native write.
-   async function verifyCookieImportDocument(document,origin){
+   async function verifyCookieDocument(document,origin){
      const url=parsedHttp(document?.url);
      if(!url||url.origin!==origin||document.origin!==origin||
        !Number.isSafeInteger(document.tabId)||document.tabId<0||
        !Number.isSafeInteger(document.windowId)||document.windowId<0||
        typeof document.documentId!=='string'||!document.documentId)
-       throw failure('E_DOCUMENT_CHANGED','Original Cookie import document is invalid');
+       throw failure('E_DOCUMENT_CHANGED','Original Cookie document is invalid');
      const [tabs,frame]=await Promise.all([
        api.tabs.query({active:true,windowId:document.windowId}),
        api.webNavigation.getFrame({tabId:document.tabId,frameId:0})
@@ -405,7 +526,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        ['loading','unloaded'].includes(tab.status)||
        !frame||frame.documentId!==document.documentId||frame.url!==document.url||
        frame.documentLifecycle&&frame.documentLifecycle!=='active')
-       throw failure('E_DOCUMENT_CHANGED','Original Cookie import document changed');
+       throw failure('E_DOCUMENT_CHANGED','Original Cookie document changed');
      return true;
    }
    const currentPageRefs=createCurrentPageReferences({api});
@@ -518,6 +639,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     discardResource:ref=>screenshotResources.discardResource(ref)
   });
   function revokeBrowserOperations(){
+    ++cookieAuthorityEpoch;
     trustedCookies.revoke();
     networkObserver.revokeAll();
     screenshotResources.revokeAll();
@@ -612,13 +734,43 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   // A deactivated tab must not retain a hidden debugger override while the
   // user works in another page. No new tab receives the old session.
-  const noteActiveTab=(tabId,windowId)=>fingerprintDriver?.invalidateInactiveTab(windowId,tabId);
+  const noteActiveTab=(tabId,windowId)=>{
+    cookieWindowEpochs.set(windowId,(cookieWindowEpochs.get(windowId)||0)+1);
+    fingerprintDriver?.invalidateInactiveTab(windowId,tabId);
+  };
   const captureEpoch=(tabId,frameId)=>documentEpochs.get(epochKey(tabId,frameId))||0;
+  function captureCookieClearTarget(document){
+    if(!Number.isSafeInteger(document?.tabId)||!Number.isSafeInteger(document?.windowId))return null;
+    return {document:Object.fromEntries(cookieDocumentFields.map(key=>[key,document[key]])),
+      activation:cookieWindowEpochs.get(document.windowId)??0,navigation:captureEpoch(document.tabId,0)};
+  }
+  function verifyCookieClearTarget(target){
+    // A window focus change alone does not activate a different tab in this window.
+    if(!target||target.activation!==(cookieWindowEpochs.get(target.document.windowId)??0)||
+       target.navigation!==captureEpoch(target.document.tabId,0))
+      throw failure('E_DOCUMENT_CHANGED','Original Cookie document changed during cleanup');
+  }
+  function cookieImportGuard(document){
+    const {tabId,windowId}=document??{};
+    const authority=cookieAuthorityEpoch,activation=cookieWindowEpochs.get(windowId),navigation=captureEpoch(tabId,0);
+    return ()=>{
+      if(authority!==cookieAuthorityEpoch)throw failure('E_GRANT_REVOKED','Cookie authority changed during import');
+      if(activation!==cookieWindowEpochs.get(windowId)||navigation!==captureEpoch(tabId,0))
+        throw failure('E_DOCUMENT_CHANGED','Original Cookie document changed during import');
+    };
+  }
   const serial=work=>{const result=chain.catch(()=>{}).then(work);chain=result.catch(()=>{});return result;};
-  const runLocked=(id,work)=>{
+  const runLocked=(id,work,admission)=>{
     const locks=lockManager;
     if(!locks?.request)throw failure('E_TOOL_LOCK','Web Locks unavailable for installed tool identity');
-    return locks.request('opendesk.sidebar-tools:tool:'+id,()=>locks.request('opendesk.sidebar-tools:catalog',work));
+    const withLock=(key,task)=>admission?locks.request(key,{signal:admission.signal},task):locks.request(key,task);
+    return withLock('opendesk.sidebar-tools:tool:'+id,()=>{
+      admission?.check();
+      return withLock('opendesk.sidebar-tools:catalog',()=>{
+        admission?.check();
+        return work();
+      });
+    });
   };
   const apiMenu=async(type,args)=>{
     try{return await chromeMenuCall(api,type,...args);}
@@ -839,17 +991,39 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_TOOL_CAPABILITY_REQUIRED','Unapproved menu action ID');
     return actions;
   }
-  async function handleTool({operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch,packageHash,approvalRef},sender){
+  async function handleTool(request,sender){
+    // Keep the generation at ingress, before sender checks, queueing or locks.
+    if(isExactCookieClear(request.operation,request.args)&&request.args.preview===true)
+      return dispatchTool(request,sender,undefined,captureCookieClearTarget(request.cookieReadDocument));
+    const intent=request.operation==='browser.cookies.setMany'?browserIntents.get(request.approvalRef):null;
+    if(!intent?.cookieImportSource)return dispatchTool(request,sender);
+    // Queueing and Web Lock acquisition are still before any effects. A late
+    // task cannot write once this pre-dispatch deadline has been reported.
+    const admission=cookieBatchAdmission(intent);
+    try{return await Promise.race([dispatchTool(request,sender,admission),admission.expiry]);}
+    finally{admission.stop();}
+  }
+  async function dispatchTool({operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch,packageHash,approvalRef,cookieReadDocument},sender,admission,clearPreviewTarget){
+    const checkAdmission=()=>admission?.check();
+    const readAdmission=read=>admission?admission.wait(read):read();
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId||!validId(toolId)||
        typeof toolInstance!=='string'||!/^[0-9a-f-]{36}$/i.test(toolInstance))
       throw failure('E_OWNER','Browser operation is not bound to active tool document');
-    return serial(()=>runLocked(toolId,async()=>{
-      const owned=await readSources(api),tool=admittedTool(owned.tools,toolId);
+    checkAdmission();
+    return serial(()=>{
+      checkAdmission();
+      return runLocked(toolId,async()=>{
+      // Enable, revocation, grant and Chrome permission are read live even
+      // when the freshly read package bytes match the proof.
+      const packageProof=cookieCapabilities[operation]?cookiePackageProof:undefined;
+      const owned=await readAdmission(()=>cookieCapabilities[operation]?readInstallation(api,packageProof):readSources(api));
+      const tool=owned.tools.find(row=>row.id===toolId);
+      if(!tool)throw failure('E_TOOL_CHANGED','Tool uninstalled or unavailable');
       if(!sidebarToolEnabled(owned.enabled,toolId))
         throw failure('E_TOOL_DISABLED','Tool was disabled; existing menu and launch authority revoked');
       if(tool.version!==toolVersion||(owned.epochs[toolId]??null)!==(installEpoch??null)||
-         packageHash!==await digestTool(tool))
+         packageHash!==await readAdmission(()=>installedPackageHash(owned,tool)))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
 
       if(operation.startsWith('browser.fingerprint.')){
@@ -866,8 +1040,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           installEpoch:String(installEpoch??'initial-install'),hostInstanceId,toolInstance});
       }
       if(cookieCapabilities[operation]){
-        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
-        const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
+        const checked=normalizeBrowserOperation(operation,args);
+        const owner={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null,
           hostInstanceId,toolInstance};
         const needsClick=intentOperations.has(operation)&&
@@ -878,29 +1052,62 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           browserIntents.delete(approvalRef);
           if(!intent||Date.now()>=intent.expiresAt||intent.operation!==operation||
              intent.toolId!==toolId||intent.toolVersion!==toolVersion||
-             intent.packageHash!==hash||intent.epoch!==(installEpoch??null)||
+             intent.packageHash!==packageHash||intent.epoch!==(installEpoch??null)||
              intent.toolInstance!==toolInstance||intent.hostInstanceId!==hostInstanceId||
              intent.args!==canonicalJSON(checked))
             throw failure('E_USER_GESTURE_REQUIRED','Exact Cookie change requires a new trusted click');
         }
         const importSource=intent?.cookieImportSource;
-         const importDocument=intent?.cookieImportDocument;
-         if(importSource)await verifyCookieImportDocument(importDocument,importSource);
-         const importOptions={storeId:checked.cookies?.[0]?.storeId,
+        const importDocument=intent?.cookieImportDocument;
+        const exactClear=isExactCookieClear(operation,checked);
+        // Commit uses only the trusted click's stored target. A later tool
+        // request cannot refresh the captured document or its generations.
+        const clearTarget=exactClear?(checked.preview===true?clearPreviewTarget:intent?.cookieClearTarget):null;
+        const readDocument=['browser.cookies.getPartitionKey','browser.cookies.getAllPage',
+          'browser.cookies.getAll','browser.cookies.get'].includes(operation)?cookieReadDocument:undefined;
+        const importOptions={storeId:checked.cookies?.[0]?.storeId,
           partitionKey:checked.cookies?.[0]?.partitionKey??null};
+        const guardImport=intent?.guardImport;
+        guardImport?.();
         const allowed=importSource
-          ?await authorizedImportedCookie(owner,operation,checked.url,importSource,importOptions)
-          :await authorizedCookie(owner,operation,checked.url,checked);
+          ?await readAdmission(()=>
+            authorizedImportedCookie(owner,operation,checked.url,importSource,importOptions,importDocument,owned))
+          :await authorizedCookie(owner,operation,checked.url,checked,packageProof,readDocument,clearTarget);
         if(intent&&intent.cookieGrantEpoch!==allowed.grantEpoch)
           throw failure('E_GRANT_REVOKED','Cookie site consent changed since approval');
-        const ownerKey=canonicalJSON([toolId,toolVersion,hash,owner.epoch,toolInstance,hostInstanceId,allowed.grantEpoch]);
+        const ownerKey=canonicalJSON([toolId,toolVersion,packageHash,owner.epoch,toolInstance,hostInstanceId,allowed.grantEpoch,
+          // A new approval cannot spend a preview from an earlier document or activation.
+          ...(exactClear?[clearTarget]:[])]);
+        // From here the installed driver owns the deadline and can distinguish
+        // an undispatched row from one whose Chrome receipt is unknown.
+        checkAdmission();
+        guardImport?.();
+        admission?.stop();
         return trustedCookies.executeInstalled(operation,checked,{origin:allowed.origin,
           storeId:allowed.storeId,partitionKey:allowed.partitionKey,ownerKey,
+          ...(importSource?{deadlineRemaining:admission.remaining,
+            beforeNativeSet:()=>{
+              guardImport();
+              checkPendingCookieRevocation(owner,importSource);
+            },
+            withNativeSet:start=>lockManager.request(sidebarToolStopLock(toolId,owner.epoch),
+              {ifAvailable:true},lock=>{
+                if(!lock)throw failure('E_TOOL_DISABLED','Tool is being stopped');
+                return start();
+              })}:{}),
           authorize:async({url,includeValues})=>{
-             if(importSource)await verifyCookieImportDocument(importDocument,importSource);
-             const now=importSource
-              ?await authorizedImportedCookie(owner,operation,url,importSource,{...importOptions,includeValues})
-              :await authorizedCookie(owner,operation,url,{...checked,includeValues});
+            // Both install/update and uninstall take the same tool/catalog
+            // Web Locks already held by this dispatch. Package bytes were read
+            // and verified inside those locks, and no package snapshot is
+            // carried to the next batch. Authority and the Chrome document
+            // still need current checks at each native boundary.
+            guardImport?.();
+            const now=importSource
+              ?await authorizedImportedCookie(owner,operation,url,importSource,importOptions,importDocument,{
+                tools:owned.tools,packageHashes:owned.packageHashes,
+                ...installationAuthority(await api.storage.local.get(installationAuthorityKeys))})
+              :await authorizedCookie(owner,operation,url,{...checked,includeValues},packageProof,readDocument,clearTarget);
+            guardImport?.();
             if(now.grantEpoch!==allowed.grantEpoch||now.storeId!==allowed.storeId||
                canonicalJSON(now.partitionKey)!==canonicalJSON(allowed.partitionKey))
               throw failure('E_GRANT_REVOKED','Cookie site/store/partition grant changed during operation');
@@ -1144,10 +1351,45 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           selection:row.selection,selectionMarkdown:row.selectionMarkdown??null,linkUrl:row.linkUrl??null,expiresAt:row.expiresAt};
       }
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
-    }));
+      },admission);
+    });
   }
-  async function handleHost({operation,toolId,enabled,scope,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,proxyConsent,args},sender){
-    const actualHost=await checkedSender(api,sender);
+  async function handleHost(request,sender){
+    if(request.operation==='browser.intent.confirm'&&isExactCookieClear(request.targetOperation,request.targetArgs))
+      return dispatchHost(request,sender,undefined,undefined,captureCookieClearTarget(request.document));
+    const approvingImport=request.operation==='browser.intent.confirm'&&
+      request.targetOperation==='browser.cookies.setMany'&&request.cookieImportSource!==undefined;
+    if(!approvingImport){
+      const revokingWrite=request.operation==='browser.cookies.userGrant'&&request.enabled===false&&
+        ['write','all'].includes(request.cookieCapability)&&validId(request.toolId)&&
+        typeof request.toolVersion==='string'&&/^[a-f0-9]{64}$/.test(request.packageHash??'')&&
+        (request.scope==='all-http-sites'&&request.cookieCapability==='all'||
+          request.scope===undefined&&parsedHttp(request.origin)?.origin===request.origin);
+      if(!revokingWrite)return dispatchHost(request,sender);
+      // Accept the existing trusted host decision before entering its normal
+      // queue. The pending signal grants nothing and only fences matching writes.
+      const actualHost=await checkedSender(api,sender);
+      if(actualHost!==request.hostInstanceId)throw failure('E_OWNER','Wrong OpenDesk tool host');
+      const {toolId,toolVersion,installEpoch,packageHash,scope,origin}=request;
+      const pending={toolId,toolVersion,installEpoch,packageHash,scope,origin};
+      pendingCookieWriteRevocations.add(pending);
+      try{return await dispatchHost(request,sender,undefined,actualHost);}
+      finally{pendingCookieWriteRevocations.delete(pending);}
+    }
+    // The same budget covers approval, queueing and dispatch. Waiting for
+    // authority must never renew an old gesture or leave an invisible import.
+    const now=Date.now(),panelDeadline=request.cookieImportDeadlineAt;
+    if(!Number.isSafeInteger(panelDeadline)||panelDeadline<=now)throw cookieBatchExpired();
+    const budget=Math.min(INTENT_TTL,panelDeadline-now);
+    const deadline={expiresAt:now+budget,elapsedDeadline:performance.now()+budget};
+    const admission=cookieBatchAdmission(deadline),guardImport=cookieImportGuard(request.document);
+    try{return await Promise.race([
+      dispatchHost(request,sender,{...deadline,admission,guardImport}),admission.expiry]);}
+    finally{admission.stop();}
+  }
+  async function dispatchHost({operation,toolId,enabled,scope,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,proxyConsent,args},sender,importApproval,checkedHost,clearApprovalTarget){
+    const admission=importApproval?.admission;
+    const actualHost=checkedHost??await checkedSender(api,sender);
     if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
     if(operation==='browser.history.searchTrusted')
@@ -1162,7 +1404,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         :trustedCookies.execute({approvalRef,hostInstanceId},caller));
     }
     if(!validId(toolId))throw failure('E_OWNER','Wrong OpenDesk tool host');
-    return serial(()=>runLocked(toolId,async()=>{
+    const dispatch=async()=>{
 
       if(operation==='browser.page.getContext'){
         // HOST_ONLY: the approved Side Panel is the only sender that may
@@ -1284,7 +1526,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            (source.epochs[toolId]??null)!==(installEpoch??null))
           throw failure('E_TOOL_CHANGED');
         const hash=await digestTool(tool);
-        if(allSites&&packageHash!==hash)throw failure('E_TOOL_CHANGED');
+        if((allSites||packageHash!==undefined)&&packageHash!==hash)throw failure('E_TOOL_CHANGED');
         if(allSites&&enabled&&!isCookieEditor(tool))
           throw failure('E_OWNER','All-site Cookie consent requires an installed Cookie Editor');
         if(siteCapability==='all'
@@ -1408,19 +1650,23 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(!intentOperations.has(targetOperation)||typeof toolInstance!=='string'||
            !/^[0-9a-f-]{36}$/i.test(toolInstance))throw failure('E_SCHEMA','Invalid trusted action');
         const args=normalizeBrowserOperation(targetOperation,targetArgs);
-        const source=await readSources(api),tool=admittedTool(source.tools,toolId);
+        const cookieOperation=cookieCapabilities[targetOperation];
+        const source=await (cookieOperation?readInstallation(api,cookiePackageProof):readSources(api));
+        const tool=admittedTool(source.tools,toolId);
         if(!sidebarToolEnabled(source.enabled,toolId))throw failure('E_TOOL_DISABLED');
         if(tool.version!==toolVersion||(source.epochs[toolId]??null)!==(installEpoch??null))
           throw failure('E_TOOL_CHANGED','Tool updated during approval');
         const requestedPackageHash=packageHash;
-        const currentPackageHash=await digestTool(tool);
-        const origin=cookieCapabilities[targetOperation]?new URL(args.url).origin:
+        const currentPackageHash=await installedPackageHash(source,tool);
+        const origin=cookieOperation?new URL(args.url).origin:
           targetOperation==='browser.network.observe.start'?args.origins[0]:
           ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.createOwned'].includes(targetOperation)
             ?new URL(args.url).origin:null;
         const identity={toolId,toolVersion,packageHash:currentPackageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
-        await verifyBrowserOwner(identity,targetOperation,origin);
+        // The Cookie grant check below performs the same owner, Chrome and
+        // exact-Origin checks, with the source and destination for an import.
+        if(!cookieOperation)await verifyBrowserOwner(identity,targetOperation,origin);
         let proxyGrantId=null;
         if(proxyConsent!==undefined){
           if(targetOperation!=='browser.proxy.managed.requestEnable'||
@@ -1449,14 +1695,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(cookieImportSource!==undefined){
            if(targetOperation!=='browser.cookies.setMany'||toolId!=='cookie-editor')
              throw failure('E_OWNER','Import scope cannot authorize other Browser operations');
-           await verifyCookieImportDocument(document,cookieImportSource);
          }
-        const cookieGrant=cookieCapabilities[targetOperation]
+        const exactClear=isExactCookieClear(targetOperation,args);
+        const cookieGrant=cookieOperation
           ?cookieImportSource!==undefined
             ?await authorizedImportedCookie(identity,targetOperation,args.url,cookieImportSource,{
               storeId:args.cookies?.[0]?.storeId,
-              partitionKey:args.cookies?.[0]?.partitionKey??null})
-            :await authorizedCookie(identity,targetOperation,args.url,args):null;
+              partitionKey:args.cookies?.[0]?.partitionKey??null},document,source)
+            :await authorizedCookie(identity,targetOperation,args.url,args,cookiePackageProof,undefined,clearApprovalTarget):null;
         if(targetOperation==='browser.scheduler.create'&&args.service==='background'){
           validateTrustedAppServiceScheduleIntent(schedulerIntent,args);
           await readAppServiceInstallation(api,identity.toolId);
@@ -1499,13 +1745,17 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         for(const [ref,intent] of browserIntents)if(Date.now()>=intent.expiresAt)browserIntents.delete(ref);
         if(browserIntents.size>=16)throw failure('E_LIMIT','Too many pending approvals');
         if(cookieImportSource!==undefined)
-           await verifyCookieImportDocument(document,cookieImportSource);
-         const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
+           await verifyCookieDocument(document,cookieImportSource);
+         admission?.check();
+         importApproval?.guardImport();
+         if(exactClear)verifyCookieClearTarget(clearApprovalTarget);
+         const approvalRef=crypto.randomUUID(),expiresAt=importApproval?.expiresAt??Date.now()+INTENT_TTL;
          browserIntents.set(approvalRef,{operation:targetOperation,args:canonicalJSON(args),toolId,toolVersion,
           packageHash:currentPackageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt,
           ...(proxyGrantId?{proxyGrantId}:{}),
           cookieGrantEpoch:cookieGrant?.grantEpoch??null,
-          ...(cookieImportSource!==undefined?{cookieImportSource,
+          ...(exactClear?{cookieClearTarget:clearApprovalTarget}:{}),
+          ...(importApproval?{cookieImportSource,elapsedDeadline:importApproval.elapsedDeadline,guardImport:importApproval.guardImport,
              cookieImportDocument:Object.fromEntries(['tabId','windowId','documentId','url','origin']
                .map(key=>[key,document[key]]))}:{}),
           ...(targetOperation==='browser.scheduler.create'?{schedulerIntent:structuredClone(schedulerIntent)}:{})});
@@ -1575,7 +1825,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         return {bound:true,ticketId:launchId};
       }
       throw failure('E_SERVICE_UNSUPPORTED','Unknown trusted host operation');
-    }));
+    };
+    return serial(()=>{
+      admission?.check();
+      return runLocked(toolId,()=>admission?admission.wait(dispatch):dispatch(),admission);
+    });
   }
   async function clicked(info,tab,clickEpoch,sourceDocument){
     const id=String(info.menuItemId||'');
@@ -1673,6 +1927,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     // Cookie site changes revoke only Cookie sessions and ephemeral approvals.
     // Never dispose unrelated owned Tabs/Network/Screenshot on a Cookie grant.
     if(area==='local'&&Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE)){
+      ++cookieAuthorityEpoch;
       trustedCookies.revoke();currentPageRefs.revokeAll();fingerprintDriver?.revokeAll();
     }
     if(area==='local'&&Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE))

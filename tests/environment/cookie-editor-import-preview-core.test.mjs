@@ -62,7 +62,7 @@ test('pasting remains private and read-only until the single explicit import con
   assert.ok(!app.text().includes(secret));assert.ok(!app.state().includes(secret));
   assert.doesNotMatch(app.text(),/预览导入/);
   await app.click('确认导入');
-  assert.equal(app.calls.begin,1);assert.deepEqual(app.calls.write,[{text:json,options:{overwrite:true}}]);
+  assert.equal(app.calls.begin,1);assert.deepEqual(app.calls.write,[{text:json,options:{overwrite:false}}]);
   assert.equal(app.input.value,json,'failure keeps original input');
   await app.flush();assert.equal(app.calls.write.length,1,'no automatic replay');
 });
@@ -82,9 +82,9 @@ test('staged files stay unread until confirmation and trusted admission starts b
 test('editing text, replacing files and changing overwrite stage only the latest input',async()=>{
   const app=mount();await app.paste(json);await app.file(json);
   assert.equal(app.input.value,'');
-  await app.paste('changed='+secret);await app.overwrite(false);
+  await app.paste('changed='+secret);await app.overwrite(true);
   assert.equal(app.calls.begin,0);assert.equal(app.calls.write.length,0);
-  await app.click('确认导入');assert.equal(app.calls.write[0].options.overwrite,false);
+  await app.click('确认导入');assert.equal(app.calls.write[0].options.overwrite,true);
   assert.equal(app.calls.write[0].text,'changed='+secret);
   assert.deepEqual(app.calls.order,['begin'],'replaced files must not be read');
 });
@@ -112,7 +112,8 @@ test('unknown and thrown writes lock further attempts; a denied intent never wri
     const app=mount({onImportText:async()=>{writes++;if(result==='throw')throw Error(secret);return result;}});
     await app.paste(json);await app.click('确认导入');
     await app.click('确认导入');assert.equal(writes,1);assert.equal(app.calls.begin,1);
-    assert.equal(app.input.value,json);assert.ok(!JSON.stringify(app.calls.notices).includes(secret));
+    assert.equal(app.input.value,'','unknown result clears the submitted secret');
+    assert.ok(!JSON.stringify(app.calls.notices).includes(secret));
   }
   const denied=mount({onBeginImport:()=>false});await denied.paste(json);
   await denied.click('确认导入');assert.equal(denied.calls.write.length,0);

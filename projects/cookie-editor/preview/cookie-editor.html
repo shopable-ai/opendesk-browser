@@ -788,7 +788,37 @@ function renderEditor(c){
  <p class="cookie-edit-error" id="editCookieError" role="alert" hidden></p>
  <div class="editor-actions">${isNew?'':`<button type="button" class="textbtn danger" data-action="remove-cookie" data-id="${htmlEscape(c.id)}">删除</button>`}<button type="button" class="textbtn" data-action="cancel-cookie">取消</button><button class="textbtn primary" type="submit">保存</button></div></form>`;
 }
-function renderExportPopover(){return `<div class="popover" role="dialog" aria-label="导出 Cookie"><h3>导出 Cookie</h3><div class="row"><button class="chip ${exportFormat==='json'?'on':''}" data-action="export-format" data-value="json">JSON</button><button class="chip ${exportFormat==='header'?'on':''}" data-action="export-format" data-value="header">Cookie Header</button></div><label class="toggleline"><input type="checkbox" id="exportValues" ${includeValues?'checked':''} disabled><span>包含 Cookie 值（真实功能需敏感授权；本原型禁用）</span></label><div class="row"><button class="textbtn" data-action="export-copy">${icon('copy')} 复制</button><button class="textbtn primary" data-action="export-download">${icon('down')} 下载</button></div></div>`;}
+
+const exportFormats={json:'JSON',header:'Cookie Header',netscape:'Netscape'};
+function exportBlocker(rows){
+  if(!rows.length)return '当前没有可导出的 Cookie。';
+  if(exportFormat==='json')return '';
+  const label=exportFormats[exportFormat];
+  if(rows.some(c=>c.partition||c.partitionKey))return `当前网站存在分区 Cookie，${label} 无法完整导出。请选择 JSON。`;
+  if(!includeValues)return `${label} 需要包含 Cookie 值。`;
+  if(exportFormat==='netscape'&&rows.some(c=>[c.name,c.domain,c.path].some(v=>/[\t\r\n\x00]/.test(v))))
+    return 'Netscape 无法表示包含制表符或换行的字段，请使用 JSON。';
+  return '';
+}
+function renderExportPopover(){
+  const blocker=exportBlocker(data().cookies),disabled=blocker?'disabled':'';
+  const choices=Object.entries(exportFormats).map(([key,label])=>`<button type="button" class="chip ${exportFormat===key?'on':''}" aria-pressed="${exportFormat===key}" data-action="export-format" data-value="${key}">${label}</button>`).join('');
+  return `<div class="popover" role="dialog" aria-label="导出 Cookie"><h3>导出 Cookie</h3>
+    <div class="row" role="group" aria-label="导出格式">${choices}</div>
+    <label class="toggleline"><input type="checkbox" id="exportValues" ${includeValues?'checked':''}><span>包含 Cookie 值（仅使用虚构值）</span></label>
+    ${blocker?`<p class="field-note" role="alert">${blocker}</p>`:
+      exportFormat==='netscape'?'<p class="field-note">cookies.txt 格式，适用于 curl 等工具。完整备份请用 JSON。</p>':''}
+    <div class="row"><button class="textbtn" data-action="export-copy" ${disabled}>${icon('copy')} 复制</button><button class="textbtn primary" data-action="export-download" ${disabled}>${icon('down')} 下载</button></div></div>`;
+}
+function previewExportText(rows){
+  const value='fictional_preview_value';
+  if(exportFormat==='header')return rows.map(c=>c.name+'='+value).join('; ')+'\n';
+  if(exportFormat==='netscape')return '# Netscape HTTP Cookie File\n'+rows.map(c=>[
+    (c.httpOnly?'#HttpOnly_':'')+c.domain,c.domain.startsWith('.')?'TRUE':'FALSE',c.path,
+    c.secure?'TRUE':'FALSE',c.session?'0':Math.floor(c.expirationDate),c.name,value
+  ].join('\t')).join('\n')+'\n';
+  return JSON.stringify(rows.map(({id,value:ignored,...c})=>includeValues?{...c,value}:c),null,2)+'\n';
+}
 
 function importNotice(message){const el=$('importError');el.textContent=message||'';el.hidden=!message;}
 function importHasDraft(){return Boolean(importFile||$('importText').value.trim());}
@@ -1025,9 +1055,21 @@ if(action==='copy-auto-example'){copyText($('autoLinkInput')?.value||'','autoLin
 if(action==='filter-panel'){filtersOpen=!filtersOpen;render();return;}
 if(action==='filter'){filter=button.dataset.filter;render();return;}
 if(action==='import'){openImport();return;}
-if(action==='export'){if(importOpen){requestCloseImport();return;}exportOpen=!exportOpen;render();return;}
-if(action==='export-format'){exportFormat=button.dataset.value;render();return;}
-if(action==='export-copy'||action==='export-download'){let s=data().cookies.map(c=>({name:c.name,domain:c.domain,path:c.path,secure:c.secure,httpOnly:c.httpOnly,sameSite:c.sameSite,session:c.session,...(c.session?{}:{expirationDate:c.expirationDate})}));let payload=exportFormat==='json'?JSON.stringify(s,null,2):s.map(c=>c.name+'=<not-included>').join('; ');if(action==='export-copy'){copyText(payload);return;}const blob=new Blob([payload],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='cookie-preview-metadata.'+(exportFormat==='json'?'json':'txt');a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('仅下载模拟 Cookie 元数据，不含值');return;}
+if(action==='export'){if(importOpen){requestCloseImport();return;}exportOpen=!exportOpen;if(exportOpen){exportFormat='json';includeValues=false;}render();return;}
+if(action==='export-format'){
+  exportFormat=button.dataset.value;renderCookies();
+  $('viewCookies').querySelector('[data-action="export-format"][aria-pressed="true"]')?.focus({preventScroll:true});return;
+}
+if(action==='export-copy'||action==='export-download'){
+  const rows=data().cookies;
+  if(exportBlocker(rows))return;
+  const payload=previewExportText(rows);
+  if(action==='export-copy'){void copyText(payload);return;}
+  const blob=new Blob([payload],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=exportFormat==='netscape'?'cookie-preview-netscape.txt':
+    'cookie-preview'+(includeValues?'':'-metadata')+'.'+(exportFormat==='json'?'json':'txt');
+  a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('已下载模拟 Cookie 文件');return;
+}
 if(action==='new-cookie'){editingNew=true;cookieOpened='';render();return;}
 if(action==='open-cookie'){cookieOpened=cookieOpened===id?'':id;editingNew=false;render();return;}
 if(action==='cancel-cookie'){cookieOpened='';editingNew=false;render();return;}
@@ -1106,7 +1148,12 @@ $('viewCustom').addEventListener('input',e=>{if(e.target.id==='customNote')custo
 $('viewCustom').addEventListener('change',e=>{if(e.target.id==='customNeed')customForm.need=e.target.value;});
 $('viewAccounts').addEventListener('submit',e=>{if(e.target.id!=='profileForm')return;e.preventDefault();const value=$('profileName').value.trim(),err=$('profileError'),d=data();if(!value||value.length>28||d.accounts.some(a=>a.name===value&&a.id!==profileForm.id)){err.textContent='请输入 1–28 字且与当前网站不重复的名称';err.hidden=false;return;}if(profileForm.kind==='rename')account(profileForm.id).name=value;else{let n=d.accounts.length+1;d.accounts.push(profile('new'+n+Date.now(),value,'profile_'+n,d.cookies.length,'mint'));}profileForm=null;render();toast('演示账号已保存');});
 $('viewCookies').addEventListener('input',e=>{if(e.target.id==='searchCookie'){search=e.target.value;const pos=e.target.selectionStart;renderCookies();const input=$('searchCookie');input?.focus();input?.setSelectionRange(pos,pos);}else if(e.target.id==='editExpiryAt'){updateExpirationFields();}});
-$('viewCookies').addEventListener('change',e=>{if(['editExpirationMode','editDuration','editExpiryAt'].includes(e.target.id))updateExpirationFields();});
+$('viewCookies').addEventListener('change',e=>{
+  if(['editExpirationMode','editDuration','editExpiryAt'].includes(e.target.id))updateExpirationFields();
+  if(e.target.id==='exportValues'){
+    includeValues=e.target.checked;renderCookies();$('exportValues')?.focus({preventScroll:true});
+  }
+});
 $('viewCookies').addEventListener('submit',e=>{
  if(e.target.id!=='cookieEditForm')return;e.preventDefault();
  const form=e.target,oldid=form.dataset.editor,n=form.querySelector('#editName').value.trim();

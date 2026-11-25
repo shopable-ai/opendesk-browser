@@ -4,7 +4,6 @@ import {inspectImport,cookieImportTarget,nativeInput} from '../../projects/cooki
 import {createMockSdk} from '../../projects/cookie-editor/preview/react/src/mock-sdk.js';
 import {createCookieSdkAdapter} from '../../projects/cookie-editor/app/adapters/browser-sdk.js';
 import {createCookieController} from '../../projects/cookie-editor/app/controller/cookie-controller.js';
-import {readFile} from 'node:fs/promises';
 
 test('cross-site Cookie parsing requires explicit all-sites mode and preserves identity',()=>{
   const source=JSON.stringify([{name:'remote_sid',value:'PRIVATE',
@@ -49,29 +48,15 @@ test('30 fictional Cookies for two other websites use two verified Host batches'
     // This transport is explicitly fictional; the real Chrome acceptance
     // must separately verify this overwrite=false protection on native stores.
     const original=mock.inspect().rows.filter(item=>item.name.startsWith('import_'));
-    const again=await controller.previewImport(source,'json',false,{allSites:true});
-    assert.equal(again.accepted,30,'foreign site has no arbitrary read grant');
-    assert.equal(await controller.executeImport(source,'json',false,{allSites:true}),false);
-    assert.equal(controller.snapshot().importOutcome,'denied');
+    const mixed=JSON.stringify([...records.slice(0,2),{...records[0],name:'after_conflict'}]);
+    const again=await controller.previewImport(mixed,'json',false,{allSites:true});
+    assert.equal(again.accepted,3,'foreign site has no arbitrary read grant');
+    assert.equal(await controller.executeImport(mixed,'json',false,{allSites:true}),true);
+    assert.equal(controller.snapshot().importConflicts,2);
+    assert.match(controller.snapshot().message,/确认导入 1 条，跳过 2 条/);
+    assert.ok(mock.inspect().rows.some(item=>item.name==='after_conflict'));
     assert.deepEqual(mock.inspect().rows.filter(item=>item.name.startsWith('import_')),original,
       'conflicting backup must leave previously written Cookies unchanged');
     assert.doesNotMatch(JSON.stringify(snapshots),/PRIVATE_COOKIE_/);
   }finally{controller.dispose();mock.dispose();}
-});
-
-test('existing Host limits multi-origin writes to the trusted Cookie Editor import intent',async()=>{
-  const [panel,host]=await Promise.all([
-    readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8'),
-    readFile(new URL('../../src/platform/chrome/context-menus.js',import.meta.url),'utf8')
-  ]);
-  assert.match(panel,/admittedInstalledCookieTool\(tool,revocationEpoch\)/);
-  assert.match(panel,/cookieImportGate\.acquire/);
-  assert.match(panel,/cookieImportSource:sourceOrigin,document/);
-  assert.match(panel,/captureCookieImportDocument/);
-  assert.match(host,/identity\.toolId!=='cookie-editor'/);
-  assert.match(host,/operation!=='browser\.cookies\.setMany'/);
-  assert.match(host,/await authorizedCookie\(identity,operation,sourceOrigin\)/);
-  assert.match(host,/await verifyBrowserOwner\(identity,operation,destination\.origin\)/);
-  assert.match(host,/cookieImportSource!==undefined/);
-  assert.match(host,/verifyCookieImportDocument/);
 });

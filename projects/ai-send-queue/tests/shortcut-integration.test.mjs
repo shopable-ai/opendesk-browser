@@ -660,6 +660,47 @@ test('another item dispatch cannot release the latest queued draft provenance',a
   assert.deepEqual(h.sent,['A']);
 });
 
+for(const change of ['first reply','foreign user','replaced reply']){
+  test('paused FIFO preserves exact admission and verifies the '+change,async()=>{
+    const h=await fixture();
+    for(const body of ['A','B']){
+      h.edit(body);assert.equal(h.actions.enqueue({paused:true}),true);h.poll();
+    }
+    const [a,b]=h.engine.view().items.map(item=>item.id);
+    assert.deepEqual(h.sent,[]);
+    assert.equal(h.actions.resume(a),true);
+    h.step(100);h.step(1400);h.step(2100);
+    assert.deepEqual(h.sent,['A']);
+    h.admit('A');
+    const reply=h.assistants.pop();h.history.pop();h.state.busy=false;
+    h.step(2200);
+    assert.equal(h.engine.view().lastConfirmed,a);
+    assert.equal(h.engine.view().items[0].state,'paused');
+
+    // Native send admission, Stop and the reply element need not appear in
+    // separate poll results. No busy signal existed at exact admission.
+    h.state.busy=true;
+    if(change==='foreign user')h.admit('unverified follow-up');
+    else {h.assistants.push(reply);h.history.push(reply);}
+    h.step(2400);
+    if(change==='replaced reply'){
+      const replacement={...reply};h.assistants[0]=replacement;h.history[1]=replacement;
+      h.step(2500);
+    }
+    if(change!=='first reply'){
+      assert.equal(h.engine.view().items[0].state,'unknown');
+      assert.equal(h.actions.resume(b),false);
+      h.finishReply();h.step(10000);h.step(20000);
+      assert.deepEqual(h.sent,['A']);
+      return;
+    }
+    assert.equal(h.engine.view().items[0].state,'paused');
+    assert.equal(h.actions.resume(b),true);
+    h.step(20000);assert.deepEqual(h.sent,['A']);
+    finishAndClickNext(h,21000);assert.deepEqual(h.sent,['A','B']);
+  });
+}
+
 for(const text of ['A','new native draft']){
   test(`trusted native draft ${text} preserves the original queued authorization`,async()=>{
     const h=await fixture();queue(h,'A');h.edit(text);h.admit(text);h.poll();

@@ -62,7 +62,8 @@ const cookieSetFields={name:str(256),value:str(4096),domain:str(256),path:str(51
 export const COOKIE_BATCH_ERROR_CODES=Object.freeze([
   'E_OUTCOME_UNKNOWN','E_COOKIE_CONFLICT','E_COOKIE_SCOPE','E_COOKIE_STORE','E_COOKIE_PARTITION',
   'E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_SITE_GRANT_REQUIRED','E_GRANT_REVOKED',
-  'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_PERMISSION','E_SCHEMA','E_LIMIT'
+  'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_PERMISSION','E_SCHEMA','E_LIMIT',
+  'E_DOCUMENT_CHANGED','E_SITE_PERMISSION_REVOKED','E_COOKIE_EXPIRED','E_COOKIE_BATCH_EXPIRED'
 ]);
 const cookieRecord=obj({name:str(256),domain:str(253),path:str(512),hostOnly:bool,
   secure:bool,httpOnly:bool,sameSite:{enum:['unspecified','lax','strict','no_restriction']},
@@ -291,8 +292,8 @@ const ops=Object.freeze({
    obj({cookies:arr(cookieRecord,50),nextCursor:str(70,'^[a-f0-9]{64}:[1-9][0-9]{0,4}$')},['cookies'])],
  'browser.cookies.set':[obj({url:http,...cookieSetFields},['url','name','value']),
    obj({saved:bool,verified:bool,cookie:cookieRecord},['saved','verified'])],
- 'browser.cookies.setMany':[obj({url:http,cookies:{...arr(obj(cookieSetFields,['name','value']),50),minItems:1}},['url','cookies']),
-   obj({saved:num(0,50),verified:num(0,50),results:arr(obj({index:num(0,49),saved:bool,verified:bool,code:{enum:COOKIE_BATCH_ERROR_CODES}},
+ 'browser.cookies.setMany':[obj({url:http,cookies:{...arr(obj(cookieSetFields,['name','value']),50),minItems:1},skipConflicts:{const:true}},['url','cookies']),
+   obj({saved:num(0,50),verified:num(0,50),results:arr(obj({index:num(0,49),saved:bool,verified:bool,skipped:{const:true},code:{enum:COOKIE_BATCH_ERROR_CODES}},
      ['index','saved','verified']),50),stopped:{const:true}},['saved','verified','results'])],
  'browser.cookies.remove':[obj({url:http,name:str(256),domain:str(256),path:str(512),storeId:str(128),partitionKey:cookiePartition},['url','name','domain','path']),
    obj({removed:bool,verified:bool},['removed','verified'])],

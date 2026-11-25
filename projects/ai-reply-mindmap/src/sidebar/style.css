@@ -1,0 +1,21 @@
+:root{color-scheme:light dark}
+.mindmap-settings{display:grid;gap:12px;padding:12px;color:CanvasText;font:14px/1.5 system-ui,sans-serif}
+.mindmap-settings *{box-sizing:border-box}
+.mindmap-settings header,.mindmap-settings section,.mindmap-settings form{margin:0;padding:12px;border:1px solid color-mix(in srgb,CanvasText 19%,Canvas);border-radius:12px;background:Canvas}
+.mindmap-settings h1,.mindmap-settings h2,.mindmap-settings p{margin:0}
+.mindmap-settings h1{font-size:20px;margin-bottom:5px}
+.mindmap-settings h2,.mindmap-settings legend{font-size:14px;font-weight:650}
+.mindmap-settings .eyebrow{font-size:12px;color:LinkText;margin-bottom:3px}
+.mindmap-settings .row,.mindmap-settings .buttons{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.mindmap-settings .row{justify-content:space-between;margin-bottom:5px}
+.mindmap-settings fieldset{border:0;margin:0;padding:0;min-inline-size:0}
+.mindmap-settings legend{padding:0;margin-bottom:4px}
+.mindmap-settings label{display:block;margin-top:9px;margin-bottom:2px}
+.mindmap-settings input,.mindmap-settings button{border:1px solid color-mix(in srgb,CanvasText 30%,Canvas);border-radius:7px;padding:5px 8px;font:inherit;color:CanvasText;background:Canvas}
+.mindmap-settings input{width:100%;min-width:0;font:12px/1.55 ui-monospace,monospace}
+.mindmap-settings button:not(:disabled){cursor:pointer}
+.mindmap-settings button:disabled,.mindmap-settings fieldset:disabled input{opacity:.55}
+.mindmap-settings .buttons{margin-top:12px}
+.mindmap-settings .primary:enabled{background:Highlight;color:HighlightText;border-color:Highlight}
+.mindmap-settings :focus-visible{outline:2px solid Highlight;outline-offset:2px}
+.mindmap-settings #feedback:not(:empty){margin-top:8px;overflow-wrap:anywhere}

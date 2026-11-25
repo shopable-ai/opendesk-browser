@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as conversation from '../src/conversation.js';
+import {findSiteConversation} from '../src/site-adapters.js';
 
 const {findConversationScroller, jumpConversationTop, chooseConversationHeader,
   findHeaderAction} = conversation;
@@ -71,6 +72,8 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
         const tagMatch = simple.match(/^[a-z][a-z0-9-]*/i);
         if (tagMatch && tagMatch[0].toUpperCase() !== node.tagName) return false;
         const attributes = [...simple.matchAll(/\[([\w-]+)(?:([\^$]?=)"([^"]*)")?\]/g)];
+        const id = simple.match(/^#([a-z0-9_-]+)$/i)?.[1];
+        if (id) return node.id === id;
         if (!tagMatch && !attributes.length && !classes.length) return false;
         return attributes.every(([, name, operator, value]) => {
           const actual = node.getAttribute(name);
@@ -166,6 +169,48 @@ function environment({rootHeight = 3200, rootTop = 1200, rootLeft = 41} = {}) {
   return {root, doc, view};
 }
 
+test('DeepSeek pages use native speaker structure and reject an ambiguous message', () => {
+  const {doc, view} = environment();
+  const main = element({parent: doc.body});
+  const add = (speaker, top) => {
+    const user = speaker === 'user';
+    const message = element({parent: main, top, attributes: {
+      class: user ? 'ds-message d29f3d7d' : 'ds-message'
+    }});
+    const body = element({parent: message, attributes: {
+      class: user ? 'fbb737a4' : 'ds-markdown ds-assistant-message-main-content'
+    }});
+    return {message, body};
+  };
+  const first = add('user', 0), reply = add('assistant', 100), second = add('user', 800);
+  const binding = {main, scroller: doc.scrollingElement, selector: '.ds-message', site: 'deepseek'};
+  const pageTargets = () => conversation.findConversationPages(binding, doc, view)?.pages.map(page => page.target);
+  assert.deepEqual(pageTargets(), [first.message, second.message]);
+  assert.equal(conversation.deepSeekMessage(reply.message).body, reply.body);
+  element({parent: reply.message, attributes: {class: 'fbb737a4'}});
+  assert.equal(conversation.deepSeekMessage(reply.message), null);
+  assert.equal(pageTargets(), undefined);
+});
+
+test('DeepSeek selects the transcript scrollport inside a zero-height app wrapper', () => {
+  const {doc, view} = environment();
+  view.location = {href:'https://chat.deepseek.com/a/chat/s/1234-1234'};
+  const root = element({parent:doc.body,height:0,attributes:{id:'root'}});
+  const list = className => element({parent:root,overflowY:'auto',scrollHeight:2100,
+    attributes:{class:className}});
+  const addQuestion = parent => {
+    const question = element({parent,attributes:{class:'ds-message d29f3d7d'}});
+    element({parent:question,attributes:{class:'fbb737a4'}});
+  };
+  const transcript = list('ds-virtual-list ds-virtual-list--printable');
+  addQuestion(transcript);
+  addQuestion(list('ds-virtual-list'));
+  const empty = list('ds-virtual-list ds-virtual-list--printable');
+  assert.equal(findSiteConversation(doc,view)?.scroller,transcript);
+  addQuestion(empty);
+  assert.equal(findSiteConversation(doc,view),null);
+});
+
 function controlledEditors(count = 1) {
   const env = environment();
   const main = element({tag: 'main', parent: env.doc.body, overflowY: 'auto',
@@ -256,6 +301,152 @@ test('region jump defaults to kind region', () => {
   const {target, main, scroller, doc, view} = region();
   assert.equal(conversation.jumpRegionTop({target, header: null, main}, doc, view), true);
   assertScroll(scroller, 748);
+});
+
+test('reply jumps preserve context below a fixed toolbar in a clipped scrollport', () => {
+  const {binding, target, scroller, root, doc, view} = region({scrollerTop: -30});
+  binding.kind = 'reply';
+  const clip = element({parent: doc.body, top: 30, height: 230, overflowY: 'hidden'});
+  clip.append(scroller);
+  view.visualViewport = {offsetTop: 42, offsetLeft: 0, width: 1200, height: 200};
+  const toolbar = element({tag: 'header', parent: doc.body, top: 20, height: 66, position: 'fixed'});
+  assert.equal(conversation.jumpRegionTop(binding, doc, view), true);
+  const top = target.getBoundingClientRect().top;
+  assert.ok(top >= toolbar.getBoundingClientRect().bottom + 20, 'context clears the overlay');
+  assert.ok(top + 20 <= 242, 'the first line stays inside the visible viewport');
+  assert.equal(conversation.jumpRegionTop(binding, doc, view), true);
+  assert.equal(target.getBoundingClientRect().top, top, 'the same click lands at the same place');
+  assert.equal(scroller.scrollLeft, 63);
+  assert.deepEqual(clip.calls, []);
+  assert.deepEqual(root.calls, []);
+});
+
+test('first reply gives up unavailable context at the scroll origin', () => {
+  const {binding, target, scroller, root, doc, view} = region({contentTop: 26});
+  binding.kind = 'reply';
+  assert.equal(conversation.jumpRegionTop(binding, doc, view), true);
+  assertScroll(scroller, 0);
+  assert.equal(target.getBoundingClientRect().top, scroller.getBoundingClientRect().top + 26);
+  assert.deepEqual(root.calls, []);
+});
+
+test('ChatGPT reply bottom clears the overlapping thread composer without moving the outer page', () => {
+  const {binding, target, scroller, root, doc, view} = region();
+  binding.kind = 'reply';
+  binding.answerRoot = target;
+  const footer = element({parent: scroller, top: 468, height: 112, position: 'absolute'});
+  const composer = element({tag: 'form', parent: footer, top: 474, height: 87,
+    attributes: {'data-chatgpt-composer': '', 'data-composer-placement': 'thread'}});
+
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view), true);
+  assertScroll(scroller, 578);
+  assert.equal(target.getBoundingClientRect().bottom, composer.getBoundingClientRect().top - 12);
+  assert.deepEqual(root.calls, []);
+
+  delete binding.answerRoot;
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view), true);
+  assertScroll(scroller, 472);
+});
+
+test('ChatGPT reply bottom also clears a fixed peer just above the composer', () => {
+  const {binding, target, scroller, root, doc, view} = region();
+  binding.kind = 'reply';
+  binding.answerRoot = target;
+  const footer = element({parent: scroller, top: 468, height: 112, position: 'absolute'});
+  element({tag: 'form', parent: footer, top: 474, height: 87,
+    attributes: {'data-chatgpt-composer': '', 'data-composer-placement': 'thread'}});
+  const peer = element({parent: doc.documentElement, top: 422, height: 48, position: 'fixed'});
+  // A fixed host can be pointer-transparent while its closed shadow isn't.
+  peer.style.pointerEvents = 'none';
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view), true);
+  assert.equal(target.getBoundingClientRect().bottom, peer.getBoundingClientRect().top - 12);
+  peer.style.visibility = 'hidden';
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view), true);
+  assertScroll(scroller, 578);
+  assert.deepEqual(root.calls, []);
+});
+
+test('ChatGPT reply bottom clears the Dock when it appears after the first landing', () => {
+  const {binding, target, scroller, root, doc, view} = region();
+  binding.kind = 'reply';
+  binding.answerRoot = target;
+  const footer = element({parent: scroller, top: 468, height: 112, position: 'absolute'});
+  element({tag: 'form', parent: footer, top: 474, height: 87,
+    attributes: {'data-chatgpt-composer': '', 'data-composer-placement': 'thread'}});
+  const dock = element({tag: 'nav', parent: doc.documentElement, top: 413, height: 58,
+    position: 'fixed', attributes: {'data-opendesk-ai-scroll-navigation': 'dock'}});
+  dock.style.visibility = 'hidden';
+  const landings = [];
+
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view, () => {
+    landings.push(target.getBoundingClientRect().bottom);
+    dock.style.visibility = 'visible';
+  }), true);
+  assert.deepEqual(landings, [462]);
+  assert.equal(target.getBoundingClientRect().bottom, 401);
+  assert.equal(scroller.scrollLeft, 63);
+  assert.deepEqual(root.calls, []);
+});
+
+test('ChatGPT reply bottom stays readable above a compact Dock separated from a tall composer', () => {
+  const {binding, target, scroller, root, doc, view} = region();
+  binding.kind = 'reply';
+  binding.answerRoot = target;
+  const footer = element({parent: scroller, top: 468, height: 112, position: 'absolute'});
+  element({tag: 'form', parent: footer, top: 474, height: 87,
+    attributes: {'data-chatgpt-composer': '', 'data-composer-placement': 'thread'}});
+  const dock = element({parent: doc.documentElement, top: 321, height: 42, position: 'fixed',
+    attributes: {'data-opendesk-ai-scroll-navigation': 'dock'}});
+
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view, () => {}), true);
+  assert.equal(target.getBoundingClientRect().bottom, dock.getBoundingClientRect().top - 12);
+  assert.equal(scroller.scrollLeft, 63);
+  assert.deepEqual(root.calls, []);
+});
+
+test('Gemini reply bottom clears only the unique overlaid input in the current chat', () => {
+  const {binding, target, scroller, root, doc, view} = region();
+  const chat = element({tag: 'chat-window', parent: doc.body});
+  chat.append(scroller);
+  binding.main = chat;
+  binding.kind = 'reply';
+  function composer(parent, position = 'absolute') {
+    const shell = element({tag: 'input-container', parent, top: 424, height: 156, position});
+    const area = element({tag: 'input-area-v2', parent: shell, top: 448, height: 96});
+    return element({parent: area, top: 456, height: 88,
+      attributes: {class: 'text-input-field'}});
+  }
+  composer(element({tag: 'chat-window', parent: doc.body}));
+  const field = composer(chat, 'static');
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view), true);
+  assertScroll(scroller, 472, 63);
+
+  field.closest('input-container').style.position = 'absolute';
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view), true);
+  assertScroll(scroller, 596, 63);
+  assert.equal(target.getBoundingClientRect().bottom, field.getBoundingClientRect().top - 12);
+  assert.deepEqual(root.calls, []);
+
+  // The dock's host is transparent to clicks, but its shadow buttons aren't.
+  const dock = element({tag: 'nav', parent: doc.documentElement, top: 426, height: 42,
+    position: 'fixed', attributes: {'data-opendesk-ai-scroll-navigation': 'dock'}});
+  dock.style.pointerEvents = 'none';
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view), true);
+  assert.equal(target.getBoundingClientRect().bottom, dock.getBoundingClientRect().top - 12);
+
+  dock.style.position = 'static';
+  composer(chat);
+  assert.equal(conversation.jumpRegionEnd(binding, doc, view), true);
+  assertScroll(scroller, 472, 63);
+});
+
+test('a fully obstructed reply scrollport keeps the previous reading position', () => {
+  const {binding, scroller, root, doc, view} = region();
+  binding.kind = 'reply';
+  element({tag: 'header', parent: doc.body, top: 100, height: 470, position: 'fixed'});
+  assert.equal(conversation.jumpRegionTop(binding, doc, view), false);
+  assertScroll(scroller, 940);
+  assert.deepEqual(root.calls, []);
 });
 
 for (const position of ['sticky', 'fixed']) {
@@ -775,10 +966,12 @@ test('current DIL assistant footer uses More without requiring a closed regenera
     .find(item => item.answerRoot === f.original);
   assert.ok(binding()?.header === f.toolbar);
   assert.ok(binding()?.target === f.original);
+  f.buttons[1].setAttribute('aria-label', '反馈');
+  assert.ok(binding()?.target === f.original, 'the live ChatGPT Feedback menu still owns this reply');
   const viewer = f.open();
   assert.ok(binding()?.target === viewer, 'the new body marker also survives mindmap replacement');
   f.close(viewer);
-  for (const label of ['复制', '评价回复', '更多操作']) {
+  for (const label of ['复制', '评价回复', '反馈', '更多操作']) {
     const duplicate=element({tag:'button',parent:f.toolbar,attributes:{'aria-label':label}});
     assert.equal(binding(), undefined, `reject duplicate ${label}`);
     duplicate.remove();
@@ -827,15 +1020,15 @@ test('native assistant sibling footer targets assistant content instead of prece
   const bindings = conversation.findRegionBindings(doc, view);
   assert.deepEqual(bindings, [
     {header: userActions.toolbar, anchor: userActions.anchor, target: user, main, kind: 'region'},
-    {header: toolbar, anchor, target, main, kind: 'region', answerRoot: target}
+    {header: toolbar, anchor, target, main, kind: 'reply', answerRoot: target}
   ]);
   const session = conversation.installJumpToTop({doc, win: view, owner: observerOwner()});
   t.after(() => session.dispose());
   assert.equal(toolbar.querySelector(jumpHostSelector)?.parentElement, toolbar.lastElementChild);
   assert.ok(toolbar.lastElementChild.hasAttribute('data-ai-answer-tools'));
   assert.equal(conversation.jumpRegionTop(bindings[1], doc, view), true);
-  assertScroll(main, 1388);
-  assert.equal(target.getBoundingClientRect().top, main.getBoundingClientRect().top + 12);
+  assertScroll(main, 1328);
+  assert.equal(target.getBoundingClientRect().top, main.getBoundingClientRect().top + 72);
   assert.notEqual(user.getBoundingClientRect().top, target.getBoundingClientRect().top);
   assert.deepEqual(root.calls, []);
 });
@@ -1058,7 +1251,7 @@ test('DIL concealed content keeps exact reply navigation live in mindmap, restor
     owner.click(bottom);
     assert.equal(original.getBoundingClientRect().bottom, main.getBoundingClientRect().top + main.clientHeight - 12);
     owner.click(top);
-    assert.equal(original.getBoundingClientRect().top, main.getBoundingClientRect().top + 12);
+    assert.equal(original.getBoundingClientRect().top, main.getBoundingClientRect().top + 72);
   }
   const clone = element({tag: 'span', parent: group,
     attributes: {'data-opendesk-chatgpt-jump-top': 'host'}});
@@ -1282,7 +1475,7 @@ test('mindmap transition and uncertain mapping retain disabled controls and rest
     assert.equal(f.original.getBoundingClientRect().bottom,
       f.main.getBoundingClientRect().top + f.main.clientHeight - 12);
     owner.click(controls[0]);
-    assert.equal(f.original.getBoundingClientRect().top, f.main.getBoundingClientRect().top + 12);
+    assert.equal(f.original.getBoundingClientRect().top, f.main.getBoundingClientRect().top + 72);
   }
   // A replaced native action wrapper must not inherit the old reply's controls.
   f.open();

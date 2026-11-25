@@ -81,11 +81,13 @@ npm run verify
 | Site Authorized | 现有逐工具、逐 HTTP(S) origin 的专用授权存储 | 网站 A 不授权网站 B；不同 capability 不相互借权 |
 | Active | 实际存活的工具 iframe，或已授权的可信网页组件 | 不能通过一个全局 `enabled` 布尔值推断 |
 
-首次安装策略以仓库源码 Catalog 为准。Web Flow 和 AI 消息发送队列随 Browser 分发，使用各自项目的唯一正式包。Web Flow 在首次安装后可从「扩展」打开，预装不会开启任务自动触发。AI 消息发送队列由可信 Side Panel 安装同包绑定的 ChatGPT 网页模块，仍要求 Chrome 已允许访问 ChatGPT 并开启用户脚本；条件未满足时保持待完成，其他不依赖该权限的侧栏工具仍会安装。
+首次安装策略以仓库源码 Catalog 为准。Web Flow 和 AI 消息发送队列随 Browser 分发，使用各自项目的唯一正式包。Web Flow 在首次安装后可从「扩展」打开，预装不会开启任务自动触发。当前正式包的 AI 消息发送队列由 Browser 内已审阅的固定网页入口接管，仍要求 Chrome 允许访问 ChatGPT，无需开启「允许用户脚本」。旧动态版本的注册撤销继续按原安装合同核对。
 
-AI 对话滚动导航沿用 [Page 官方目录](../../official-pages/sources.json) 的默认预装策略。只有通过发行门禁的 Page 包才参与预装；目录若标为 `blocked`，构建只包含其说明，不包含安装包。
+AI 对话滚动导航沿用 [Page 官方目录](../../official-pages/sources.json) 的默认预装策略。只有通过发行门禁的 Page 包才参与预装；目录若标为 `blocked`，构建只包含其说明，不包含安装包。有网站访问权但未开启「允许用户脚本」时，可以先完成预装，网页功能在自己的详情页显示待启用说明。
 
-读取官方 JSON 本身不会创建工具 iframe 或执行包 JavaScript。工具安装、启停和网站访问分别管理：内置 `reading-toc` 安装并启用后默认可用于 HTTP(S) 网页，支持网站停用和单页排除；其他工具仍使用各自显式网站授权。关闭 Side Panel 销毁工具 iframe，网页组件按其原合同继续管理，网站停用或撤权应立即清除相关网页能力。默认预装与卸载后的不自动重装规则见 [Side Panel API](sidebar-tools.zh-CN.md)。
+阅读目录随 Browser 分发项目的唯一正式组合包，首次安装默认预装，从「扩展」打开，无需手动导入。网页目录仍需 Chrome 允许访问相应 HTTP(S) 网页并开启「允许用户脚本」；可在应用设置中停用网站或单页。Browser 更新不覆盖已有安装，用户卸载后也不会自动装回。默认预装规则见 [Side Panel API](sidebar-tools.zh-CN.md)。
+
+读取官方 JSON 本身不会创建工具 iframe 或执行包 JavaScript。其他工具仍按各自规则申请网站访问。关闭 Side Panel 销毁工具 iframe，网页组件按其原合同继续管理，网站停用或撤权应清除相关网页能力。
 
 ## 5. 共用安装、升级和卸载
 

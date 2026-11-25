@@ -1,7 +1,7 @@
 import {runQueue} from '../src/page/main.js';
 import queueCss from '../assets/queue.css?raw';
 import crown from '../assets/crown-premium.webp?inline';
-import {FIXED_QUEUE_PROTOCOL,FIXED_QUEUE_TOOL_ID} from '../../../src/scripting/user-scripts/fixed-send-queue.js';
+import {FIXED_QUEUE_PROTOCOL,FIXED_QUEUE_TOOL_ID,fixedSendQueueOrigin} from '../../../src/scripting/user-scripts/fixed-send-queue.js';
 import {SIDEBAR_TOOL_STORE} from '../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -9,18 +9,21 @@ const assets=Object.freeze({'assets/queue.css':{kind:'css',text:queueCss},
   'assets/crown-premium.webp':{kind:'image',url:crown}});
 const existingQueue='[data-opendesk-ui-owner]:is([data-od-id="app.ai-send-queue.lifecycle"],'+
   '[data-od-id="opendesk.ai-send-queue.lifecycle"],[data-od-id="opendesk.chatgpt-send-queue.lifecycle"])';
-const reload=()=>Object.assign(new Error('当前网页可能还有旧版队列。请先保留草稿并刷新 ChatGPT。'),
+const reload=()=>Object.assign(new Error('当前网页可能还有旧版队列。请先保留草稿并刷新对话页。'),
   {code:'E_APP_PAGE_RELOAD_REQUIRED'});
 const initialized=new WeakSet();
 
 export function initFixedSendQueue({api=globalThis.chrome,win=globalThis.window}={}){
-  if(win?.top!==win||win.location.origin!=='https://chatgpt.com'||!api?.runtime?.id)return;
+  if(!win||win.top!==win||!api?.runtime?.id)return;
+  const deepseek=win.location.origin==='https://chat.deepseek.com';
+  if(!fixedSendQueueOrigin(win.location.href)&&!(deepseek&&win.location.pathname==='/'))return;
+  const canAuthorize=()=>!!fixedSendQueueOrigin(win.location.href);
   const doc=win.document,runtimeId=api.runtime.id;
   if(initialized.has(doc))return;
   initialized.add(doc);
-  let owner,handler,token,pending,epoch=0,paused=false;
+  let owner,handler,token,pending,epoch=0,paused=false,deepSeekHome=false;
   const current=(stamp,url)=>!paused&&api.runtime.id===runtimeId&&epoch===stamp&&win.location.href===url;
-  const dispose=()=>{epoch++;owner?.destroy();owner=null;handler=null;token=null;};
+  const dispose=()=>{epoch++;owner?.destroy();owner=null;handler=null;token=null;deepSeekHome=false;};
   async function readGrant(previous){
     const url=win.location.href,stamp=epoch;
     const response=await api.runtime.sendMessage({protocol:FIXED_QUEUE_PROTOCOL,kind:'authorize',url,
@@ -28,12 +31,12 @@ export function initFixedSendQueue({api=globalThis.chrome,win=globalThis.window}
     if(!current(stamp,url))throw Object.assign(new Error('网页或队列授权已改变，请重新检查'),{code:'E_DOCUMENT_STALE'});
     if(response?.ok!==true||typeof response.data?.token!=='string')throw Object.assign(
       new Error(response?.error?.message??'网页队列尚未确认授权'),{code:response?.error?.code??'E_PAGE_AUTHORIZATION'});
-    return response.data.token;
+    return response.data;
   }
   async function authorize(){
     const stamp=epoch;
-    if(!token||!owner?.active())return false;
-    try{return await readGrant(token)===token&&stamp===epoch&&owner?.active();}
+    if(!token||!owner?.active()||!canAuthorize()||deepseek&&win.location.pathname==='/'&&!deepSeekHome)return false;
+    try{return (await readGrant(token)).token===token&&stamp===epoch&&owner?.active();}
     catch(error){
       if(stamp===epoch&&!['E_DOCUMENT_STALE','E_DEV_RELOADING'].includes(error.code))dispose();
       return false;
@@ -41,6 +44,7 @@ export function initFixedSendQueue({api=globalThis.chrome,win=globalThis.window}
   }
   function ensure(){
     if(paused)return Promise.reject(reload());
+    if(!canAuthorize())return Promise.reject(Object.assign(new Error('请打开支持的对话页'),{code:'E_DOCUMENT_STALE'}));
     if(pending)return pending;
     const url=win.location.href,stamp=epoch;
     pending=(async()=>{
@@ -51,8 +55,8 @@ export function initFixedSendQueue({api=globalThis.chrome,win=globalThis.window}
       if(doc.querySelector(existingQueue))throw reload();
       const grant=await readGrant(null);
       if(!current(stamp,url)||doc.querySelector(existingQueue))throw reload();
-      token=grant;
-      const result=await runQueue({assets,fixed:{authorize,own(ui){owner=ui;},bridge:{onRequest(callback){
+      token=grant.token;deepSeekHome=grant.deepSeekHome===true;
+      const result=await runQueue({assets,fixed:{authorize,deepSeekHome,own(ui){owner=ui;},bridge:{onRequest(callback){
         handler=callback;return ()=>{if(handler===callback)handler=null;};
       }}}});
       if(!current(stamp,url)||result?.status!=='active'||!owner?.active()||!handler){
@@ -88,6 +92,15 @@ export function initFixedSendQueue({api=globalThis.chrome,win=globalThis.window}
     return true;
   });
   api.storage.onChanged.addListener(onStorage);
+  if(deepseek){
+    const onRoute=()=>{
+      if(!canAuthorize()||owner?.active())return;
+      // An earlier grant may still be settling for a different committed URL.
+      if(pending)void pending.then(wake,wake);else wake();
+    };
+    if(win.navigation)win.navigation.addEventListener('currententrychange',onRoute);
+    else win.addEventListener('popstate',onRoute);
+  }
   win.addEventListener('pagehide',()=>{paused=true;dispose();});
   win.addEventListener('pageshow',()=>{paused=false;wake();});
   // Active work checks the grant before each poll; idle widgets periodically
@@ -96,5 +109,5 @@ export function initFixedSendQueue({api=globalThis.chrome,win=globalThis.window}
     if(api.runtime.id!==runtimeId){dispose();win.clearInterval(timer);return;}
     if(!paused&&owner?.active())void authorize();
   },5000);
-  wake();
+  if(canAuthorize())wake();
 }

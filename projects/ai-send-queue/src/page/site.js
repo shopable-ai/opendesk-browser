@@ -1,4 +1,3 @@
-// Conservative, DOM-only ChatGPT adapter. All selectors require real-site acceptance.
 const URL_ORIGIN = 'https://chatgpt.com';
 const EDITOR = '#prompt-textarea,[data-testid="composer-input"],form [contenteditable="true"][role="textbox"],form textarea[data-testid]';
 const USER = '[data-message-author-role="user"],[data-message-role="user"],[data-content-search-unit-key$=":user"]';
@@ -24,9 +23,7 @@ function role(button) {
   return null;
 }
 function one(nodes) { return nodes.length === 1 ? nodes[0] : null; }
-// ChatGPT can unmount the oldest turns. Accept only a detached prefix,
-// followed by the exact original tail and exactly `appended` new nodes.
-// Never substitute text/IDs for node identity or proceed without an old anchor.
+// Allow detached prefixes and exact appends anchored to surviving DOM nodes.
 function matchesHistoryTail(before,current,appended=0,requireAnchor=true) {
   const retained=current.length-appended, dropped=before.length-retained;
   if(retained<0 || dropped<0 || (requireAnchor&&before.length>0&&retained===0))return false;
@@ -40,23 +37,20 @@ function matchesConversationTail(before,snapshot,minAdded,maxAdded=minAdded) {
   return added>=minAdded && added<=maxAdded &&
     matchesHistoryTail(before.history,snapshot.history,added);
 }
-function matchesReplyHistory(before,snapshot) {
+function matchesReplyHistory(before,snapshot,requireRoleAnchor) {
   if(!Array.isArray(before?.users)||!Array.isArray(before.assistants)||
     !Array.isArray(snapshot.users)||!Array.isArray(snapshot.assistants)||
     !Array.isArray(snapshot.history))return false;
   const usersAdded=snapshot.users.filter(node=>!before.users.includes(node)).length;
   const assistantsAdded=snapshot.assistants.filter(node=>!before.assistants.includes(node)).length;
-  return matchesHistoryTail(before.users,snapshot.users,usersAdded) &&
-    matchesHistoryTail(before.assistants,snapshot.assistants,assistantsAdded) &&
+  return matchesHistoryTail(before.users,snapshot.users,usersAdded,requireRoleAnchor) &&
+    matchesHistoryTail(before.assistants,snapshot.assistants,assistantsAdded,requireRoleAnchor) &&
     matchesConversationTail(before,snapshot,usersAdded+assistantsAdded);
 }
 function editorText(editor) {
   if(typeof editor?.value==='string')return editor.value;
   if(editor?.isContentEditable && editor.childNodes){
-    // Serialize logical paragraphs, not CSS layout. Chromium innerText can add
-    // an extra newline for an empty DIV/P after native insertText. Each block
-    // boundary is one newline; BR is one newline except an empty-block/caret
-    // placeholder. Preserve every text node, space and intentional final line.
+    // Serialize logical line breaks, ignoring only empty-block/caret placeholders.
     const read=node=>{
       if(node.nodeType===3)return node.nodeValue??node.textContent??'';
       if(node.nodeName==='BR')return node.classList?.contains('ProseMirror-trailingBreak')?'':'\n';
@@ -80,8 +74,7 @@ function routeFor(win) {
   if (win.location.origin !== URL_ORIGIN) return null;
   const match = win.location.pathname.match(/(?:^|\/)c\/([a-z0-9-]{8,})(?:\/|$)/i);
   if(match)return {route:'c/' + match[1].toLowerCase()};
-  // Discover the composer before the first native send creates a conversation.
-  // A home/project URL is never a queue identity or a refresh-cache key.
+  // Home/project composers have no queue or refresh-cache identity.
   if(/^\/$/.test(win.location.pathname)||
     /^\/g\/g-p-[a-z0-9-]+\/project\/?$/i.test(win.location.pathname))
     return {route:null};
@@ -108,56 +101,253 @@ function explicitStreaming(root) {
   return Boolean(root?.matches('[data-is-streaming="true"],[aria-busy="true"],.result-streaming') ||
     root?.querySelector('[data-is-streaming="true"],[aria-busy="true"],.result-streaming'));
 }
-export function createChatGPTSite({doc = document, win = window, isComposing = () => false} = {}) {
+const chatgpt = Object.freeze({
+  routeFor, editors:EDITOR, users:USER, assistants:ASSISTANT, attachments:ATTACHMENTS,
+  composer:editor=>editor.closest('form'), controlRole:role, messageText, assistantCompleted, streaming,
+  placement(anchor,form,editor){
+    const trailing=anchor?.closest('[data-composer-trailing-controls]');
+    const grid=trailing?.parentElement;
+    const field=grid&&[...grid.children].find(node=>node.contains(editor));
+    const leading=grid?.querySelector(':scope > [data-composer-leading-controls]');
+    return {toolbar:anchor?.parentElement,
+      ...(field&&leading&&form.contains(grid)?{grid,field,leading,trailing}:{})};
+  },
+  unsupported:'只支持 ChatGPT 新聊天、项目或已有对话', allowLocalStopReceipt:true,
+  idleControls:'button[data-testid="composer-speech-button"],button[data-testid="voice-mode-button"],' +
+    'button[aria-label="Start voice mode"],button[aria-label="开始语音模式"],' +
+    'button[aria-label="Start voice"],button[aria-label="开始语音"],' +
+    'button[aria-label="Dictate button"]',
+  stoppedIdleControls:'button[data-testid="voice-mode-button"],button[aria-label="Start voice mode"],' +
+    'button[aria-label="开始语音模式"],button[aria-label="Start voice"],button[aria-label="开始语音"]'
+});
+
+export const createChatGPTSite=options=>createConversationSite(chatgpt,options);
+
+export const geminiRoute=location=>{
+  if(location?.origin!=='https://gemini.google.com')return null;
+  const match=/^\/app(?:\/([a-z0-9_-]+))?\/?$/i.exec(location.pathname);
+  // Keep the site's exact conversation ID spelling.
+  return match?{route:match[1]?'app/'+match[1]:null}:null;
+};
+const geminiHidden='[hidden],[inert],[aria-hidden="true"],[role="dialog"],[aria-modal="true"]';
+const geminiCopy='button.copy-button,button[aria-label="Copy"],button[aria-label="Copy response"],button[aria-label="复制"],button[aria-label="复制回复"]';
+const geminiAttachments='file-preview,file-carousel,attachment-preview,attachments-preview,'+
+  '[data-test-id="file-preview"],[data-test-id="attachment-preview"],'+
+  '[data-attachment-id],[data-file-id],img[src^="blob:"],img[src^="data:"]';
+function geminiStoppedBody(reply,win,user,historyRoot,body) {
+  const turn=user?.parentElement;
+  if(!body?.textContent.trim()||!visible(body,win)||!turn?.matches('div.conversation-container')||
+    !/^[a-f0-9]{16}$/i.test(turn.id)||reply.parentElement!==turn||user.nextElementSibling!==reply||
+    !visible(user,win)||reply.closest(geminiHidden)||reply.querySelector('model-response,user-query')||
+    historyRoot.querySelectorAll('div.conversation-container[id="'+turn.id+'"]').length!==1)return null;
+  const status=one([...reply.querySelectorAll(
+    '.response-content > div.response-footer.gap.complete > response-info-line[role="status"]')]);
+  return status&&!status.closest('message-content,'+geminiHidden)&&visible(status,win)&&
+    normal(status.innerText??status.textContent)==='You stopped this response'?body:null;
+}
+const geminiBody=reply=>one([...reply.querySelectorAll('message-content .markdown')].filter(el=>!el.closest(geminiHidden)));
+const gemini=Object.freeze({
+  routeFor:win=>geminiRoute(win.location),
+  editors:'rich-textarea .ql-editor[role="textbox"][contenteditable="true"]',
+  users:'user-query',assistants:'model-response',attachments:geminiAttachments,
+  historyRoot:(doc,win)=>one([...doc.querySelectorAll('chat-window')].filter(el=>visible(el,win))),
+  composer:editor=>editor.closest('input-area-v2,input-area'),
+  controlRole(button){
+    const label=button.getAttribute('aria-label')?.trim()||'';
+    if(button.matches('button.stop-button,send-button.stop button')||/^(Stop response|Stop generating|停止回复|停止生成)$/i.test(label))return 'stop';
+    if(button.matches('button.send-button,send-button button:has(mat-icon[data-mat-icon-name="send"])')||/^(Send message|发送消息)$/i.test(label))return 'send';
+    return null;
+  },
+  idleControls:'.speech_dictation_mic_button button,button.speech-button,button[aria-label="Use microphone"],button[aria-label="使用麦克风"]',
+  // The toolbar outlives the native microphone/send/stop nodes.
+  placement(_button,form,editor){
+    const toolbar=one([...form.querySelectorAll('.input-buttons-wrapper-bottom')]);
+    const trailing=toolbar?.closest('.trailing-actions-wrapper');
+    const grid=trailing?.parentElement;
+    const field=grid&&[...grid.children].find(node=>node.contains(editor));
+    const leading=grid?.querySelector(':scope > .leading-actions-wrapper');
+    return {toolbar,gemini:true,...(field&&leading&&form.contains(grid)?{grid,field,leading,trailing}:{})};
+  },
+  insertText:(doc,text)=>doc.execCommand('insertText',false,text),
+  hasAttachment:form=>[...form.querySelectorAll('input[type="file"]')].some(node=>node.files?.length),
+  blocked(form,root,win){
+    const notices='[role="alert"],mat-error,[data-test-id="quota-limit-message"]';
+    return [...form.querySelectorAll(notices),...root.querySelectorAll(':scope > '+notices.replaceAll(',',',:scope > '))]
+      .some(el=>visible(el,win)&&el.textContent.trim())?'网站输入框有提示，请先检查原生页面':null;
+  },
+  messageText(root){
+    if(root.closest(geminiHidden)||root.querySelector(geminiAttachments))return null;
+    const text=one([...root.querySelectorAll('[data-test-id="query-text"],.query-text')]
+      .filter(el=>el.closest('user-query')===root&&!el.closest(geminiHidden)));
+    if(!text)return null;
+    const children=[...text.children];
+    // Strip Gemini's screen reader heading and one template space per side.
+    const padded=children[0]?.matches('h5.cdk-visually-hidden.screen-reader-user-query-label')===true;
+    const lines=padded?children.slice(1):children;
+    if(padded&&!lines.length)return null;
+    if(!lines.length)return text.textContent;
+    if(lines.some(line=>!line.matches('p.query-text-line')||line.childElementCount>0)||
+      [...text.childNodes].some(node=>node.nodeType===3&&node.textContent.trim()))return null;
+    const values=lines.map(line=>line.textContent);
+    if(padded&&values.some(value=>value.length<2||!value.startsWith(' ')||!value.endsWith(' ')))return null;
+    return values.map(value=>padded?value.slice(1,-1):value).join('\n');
+  },
+  admissionIssue(user,snapshot){
+    // Gemini replaces the optimistic turn and user node when the service
+    // assigns a response ID. Never anchor the reply gate to the temporary node.
+    const turn=user.parentElement;
+    if(!turn?.matches('div.conversation-container')||!/^[a-f0-9]{16}$/i.test(turn.id)||
+      snapshot.users.some(other=>other!==user&&other.parentElement?.id===turn.id))
+      return '尚未找到 Gemini 已确认的消息回合';
+    return null;
+  },
+  assistantCompleted(root,win,user,historyRoot){
+    if(!root||root.closest(geminiHidden)||root.querySelector('model-response,user-query'))return false;
+    const body=geminiBody(root);
+    if(geminiStoppedBody(root,win,user,historyRoot,body))return true;
+    const actions=one([...root.querySelectorAll('message-actions')].filter(el=>!el.closest(geminiHidden)));
+    if(!body?.textContent.trim()||!actions||body.contains(actions)||actions.contains(body))return false;
+    const copy=one([...actions.querySelectorAll(geminiCopy)].filter(el=>!el.closest(geminiHidden)));
+    return !!copy&&!copy.disabled&&copy.getAttribute('aria-disabled')!=='true';
+  },
+  streaming(root,win,user,historyRoot){
+    if(!explicitStreaming(root))return false;
+    const body=geminiStoppedBody(root,win,user,historyRoot,geminiBody(root));
+    if(!body)return true;
+    // Gemini leaves aria-busy on this markdown after its native Stop receipt.
+    // Any other streaming evidence, including the composer's Stop, still vetoes.
+    const signals='[data-is-streaming="true"],[aria-busy="true"],.result-streaming';
+    return root.matches(signals)||[...root.querySelectorAll(signals)].some(el=>
+      el!==body||el.matches('[data-is-streaming="true"],.result-streaming'));
+  },
+  requiresTrailingReply:true,
+  unsupported:'只支持 Gemini 新聊天或已有对话'
+});
+
+export const createGeminiSite=options=>createConversationSite(gemini,options);
+
+export const deepSeekConversationKey=/^a\/chat\/s\/[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+export const deepSeekRoute=(location,allowHome=false)=>{
+  if(location?.origin!=='https://chat.deepseek.com'||!location.pathname.startsWith('/'))return null;
+  if(allowHome&&location.pathname==='/'&&!location.search)return {route:null};
+  const route=location.pathname.slice(1);
+  return deepSeekConversationKey.test(route)?{route}:null;
+};
+const deepSeekControl='div.ds-button[role="button"].ds-button--primary.ds-button--circle';
+const deepSeekUser='.ds-message.d29f3d7d > .fbb737a4';
+const deepSeekAssistant='.ds-message > .ds-assistant-message-main-content';
+const deepSeekAttachments=':scope > .b40079d7,:scope._1d5e44c,[data-attachment-id],[data-file-id]';
+const deepSeekPath=(node,box,prefix)=>{
+  const svg=one([...node.querySelectorAll('svg')]);
+  const path=svg&&one([...svg.querySelectorAll('path')]);
+  return svg?.getAttribute('viewBox')===box&&path?.getAttribute('d')?.startsWith(prefix);
+};
+const deepSeek=Object.freeze({
+  routeFor:(win,allowHome)=>deepSeekRoute(win.location,allowHome),editors:'#root textarea[name="search"]',
+  users:deepSeekUser,assistants:deepSeekAssistant,attachments:deepSeekAttachments,
+  composer:editor=>editor.closest('._77cefa5'),
+  historyRoot:(doc,win)=>one([...doc.querySelectorAll('#root .ds-virtual-list.ds-virtual-list--printable > .ds-virtual-list-items')]
+    .filter(el=>visible(el,win))),
+  ownsComposer:(list,form)=>!list.contains(form)&&list.closest('#root')===form.closest('#root'),
+  controlSelector:deepSeekControl,requiresKnownControl:true,requiresTrailingReply:true,requiresSendForIdle:true,
+  // The virtual list can detach the only old user while its reply stays mounted.
+  allowDetachedRolePrefixes:true,
+  placement(button){
+    return {toolbar:button?.closest('.bf38813a'),controls:'button,[role="button"]'};
+  },
+  controlRole(button){
+    if(deepSeekPath(button,'0 0 16 16','M8.3125 0.980206C8.66767'))return 'send';
+    if(deepSeekPath(button,'0 0 16 16','M2 4.88C2 3.68009'))return 'stop';
+    if(deepSeekPath(button,'0 0 36 36','M34,18 C34,9.163444'))return 'loading';
+    return null;
+  },
+  disabled:button=>button.classList.contains('ds-button--disabled'),
+  hasAttachment:form=>form.classList.contains('_1d5e44c')||
+    [...form.querySelectorAll('input[type="file"]')].some(node=>node.files?.length),
+  messageText(root){
+    if(root.childElementCount!==1||root.querySelector(RICH+','+deepSeekAttachments))return null;
+    const body=one([...root.querySelectorAll(':scope > .ds-collapsible-text > div')]);
+    if(!body||body.parentElement.childElementCount!==1||root.textContent!==body.textContent||
+      [...body.querySelectorAll('*')].some(node=>!node.matches('span,br')))return null;
+    return body.innerText??body.textContent;
+  },
+  assistantCompleted(body,win){
+    if(!visible(body,win)||!body.textContent.trim())return false;
+    const row=one([...body.parentElement.parentElement.querySelectorAll(':scope > div.ds-flex._0a3d93b')]
+      .filter(el=>visible(el,win)));
+    if(!row)return false;
+    const copy=one([...row.querySelectorAll('div.ds-button[role="button"]')]
+      .filter(el=>visible(el,win)&&deepSeekPath(el,'0 0 16 16','M6.14929 4.02032')));
+    return !!copy&&!copy.classList.contains('ds-button--disabled')&&copy.getAttribute('aria-disabled')!=='true';
+  },
+  streaming:explicitStreaming,
+  unsupported:'只支持 DeepSeek 新对话或已有对话'
+});
+export const createDeepSeekSite=options=>createConversationSite(deepSeek,options);
+
+export function createConversationSite(profile,{doc=document,win=window,isComposing=()=>false,allowHome=false}={}) {
+  const {users:userSelector,assistants:assistantSelector}=profile;
+  const historySelector=userSelector+','+assistantSelector;
+  const requireRoleAnchor=!profile.allowDetachedRolePrefixes;
   let interrupted=null;
+  const disabled=button=>button.disabled||button.getAttribute('aria-disabled')==='true'||profile.disabled?.(button);
   function inspect() {
-    const context = routeFor(win);
-    if (!context || win !== win.top) return {ok:false,reason:'只支持 ChatGPT 新聊天、项目或已有对话'};
+    const context = profile.routeFor(win,allowHome);
+    if (!context || win !== win.top) return {ok:false,reason:profile.unsupported};
     const {route}=context;
-    const candidates = [...new Set([...doc.querySelectorAll(EDITOR)].filter(el =>
+    const candidates = [...new Set([...doc.querySelectorAll(profile.editors)].filter(el =>
       (el.isContentEditable || typeof el.value === 'string') && visible(el,win) &&
       !el.closest('[data-opendesk-ui-owner]')))];
     const editor = one(candidates);
     if (!editor) return {ok:false,route,reason:'原生输入框不存在或不唯一'};
-    const form = editor.closest('form');
+    const form = profile.composer(editor);
     if (!form || !form.isConnected) return {ok:false,route,reason:'原生输入表单无法确认'};
-    // Public DOM state can only veto our writes. Its absence grants no
-    // permission and never substitutes for the bridge's trusted Host checks.
+    // Ignore stale conversation turns when DeepSeek returns home.
+    const historyless=profile===deepSeek&&route===null;
+    const historyRoot=historyless?doc:profile.historyRoot?profile.historyRoot(doc,win):doc;
+    if(!historyRoot||(historyRoot!==doc&&!(profile.ownsComposer?
+      profile.ownsComposer(historyRoot,form):historyRoot.contains(form))))
+      return {ok:false,route,reason:'原生会话区域不存在或不唯一'};
+    const blocked=profile.blocked?.(form,historyRoot,win);
+    if(blocked)return {ok:false,route,reason:blocked};
+    // DOM ownership only vetoes; the trusted Host authorizes writes.
     if(form.hasAttribute('data-opendesk-composer-owner'))
       return {ok:false,route,reason:'等待其他操作释放原生输入框'};
-    const nativeButtons = [...form.querySelectorAll('button')].filter(el => visible(el,win) && !el.closest('[data-opendesk-ui-owner]'));
-    const stopButtons = nativeButtons.filter(el => role(el)==='stop');
-    const sendButtons = nativeButtons.filter(el => role(el)==='send');
+    const nativeButtons = [...form.querySelectorAll(profile.controlSelector||'button')].filter(el => visible(el,win) && !el.closest('[data-opendesk-ui-owner]'));
+    if(profile.requiresKnownControl&&(!one(nativeButtons)||!profile.controlRole(nativeButtons[0])))
+      return {ok:false,route,reason:'无法确认原生发送状态'};
+    const stopButtons = nativeButtons.filter(el => profile.controlRole(el)==='stop');
+    const sendButtons = nativeButtons.filter(el => profile.controlRole(el)==='send');
     if (stopButtons.length > 1 || sendButtons.length > 1) return {ok:false,route,reason:'原生发送按钮存在歧义'};
     const stopButton = one(stopButtons), sendButton = one(sendButtons);
-    const nearby=nativeButtons.filter(el=>el.matches(
-      'button[data-testid="composer-speech-button"],button[data-testid="voice-mode-button"],' +
-      'button[aria-label="Start voice mode"],button[aria-label="开始语音模式"],' +
-      'button[aria-label="Start voice"],button[aria-label="开始语音"],' +
-      'button[aria-label="Dictate button"]'));
-    const anchorButton=stopButton||sendButton||one(nearby);
-    const users = [...doc.querySelectorAll(USER)].filter(el=>!el.parentElement?.closest(USER));
-    const assistants = [...doc.querySelectorAll(ASSISTANT)].filter(el=>!el.parentElement?.closest(ASSISTANT));
-    const history = [...doc.querySelectorAll(USER+','+ASSISTANT)]
-      .filter(el=>!el.parentElement?.closest(USER+','+ASSISTANT));
+    const nearby=profile.idleControls?nativeButtons.filter(el=>el.matches(profile.idleControls)):[];
+    const loadingButton=nativeButtons.find(el=>profile.controlRole(el)==='loading');
+    const anchorButton=stopButton||sendButton||loadingButton||one(nearby);
+    const findHistory=selector=>historyless?[]:[...historyRoot.querySelectorAll(selector)];
+    const users = findHistory(userSelector).filter(el=>!el.parentElement?.closest(userSelector));
+    const assistants = findHistory(assistantSelector).filter(el=>!el.parentElement?.closest(assistantSelector));
+    const history = findHistory(historySelector)
+      .filter(el=>!el.parentElement?.closest(historySelector));
     const last = assistants.at(-1) || null;
-    // ChatGPT can leave a stopped turn marked in_progress indefinitely.
-    // Only our explicit stop, the exact same history, and a returned native
-    // idle control can override that stale marker. Live streaming still vetoes.
-    const nativeIdle=!!sendButton || nearby.some(el=>el.matches(
-      'button[data-testid="voice-mode-button"],button[aria-label="Start voice mode"],'+
-      'button[aria-label="开始语音模式"],button[aria-label="Start voice"],button[aria-label="开始语音"]'));
-    const stopped=!!interrupted && interrupted.route===route && !stopButton && nativeIdle &&
+    // Override ChatGPT's stale turn marker only with a local stop receipt and unchanged history.
+    const nativeIdle=!!sendButton || !!profile.stoppedIdleControls &&
+      nearby.some(el=>el.matches(profile.stoppedIdleControls));
+    const stopped=profile.allowLocalStopReceipt && !!interrupted && interrupted.route===route && !stopButton && nativeIdle &&
       !explicitStreaming(last) && last===interrupted.assistants.at(-1) &&
       matchesHistoryTail(interrupted.users,users) &&
       matchesHistoryTail(interrupted.assistants,assistants) &&
       matchesConversationTail(interrupted,{history},0);
-    const busy = !!stopButton || (!stopped && streaming(last));
-    const completed = !last || stopped || assistantCompleted(last);
+    const currentUser=users.at(-1);
+    const busy = !!(stopButton||loadingButton) || (!stopped && profile.streaming(last,win,currentUser,historyRoot));
+    const trailingReply=!profile.requiresTrailingReply||(!history.length&&route===null)||
+      (history.at(-1)===last&&!!last&&history.at(-2)===currentUser&&!!currentUser);
+    const completed = trailingReply && (!profile.requiresSendForIdle||!!sendButton) &&
+      (!last || stopped || profile.assistantCompleted(last,win,currentUser,historyRoot));
     return {ok:true,route,newConversation:route===null,form,editor,sendButton,stopButton,anchorButton,users,assistants,history,
+      placement:profile.placement?.(anchorButton,form,editor),
       busy,idle:!busy && completed,answerComplete:!!last && completed && !busy,
       draft:editorText(editor),composing:isComposing(),
-      rich:!!editor.querySelector?.(RICH) || !!form.querySelector(ATTACHMENTS)};
+      rich:!!editor.querySelector?.(RICH) || !!form.querySelector(profile.attachments) || !!profile.hasAttachment?.(form)};
   }
   function setDraft(editor,text,initial) {
     if (!editor?.isConnected || editor.readOnly || editor.getAttribute('aria-disabled')==='true') return false;
@@ -183,15 +373,15 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       const selection = win.getSelection(), range = doc.createRange();
       range.selectNodeContents(editor);
       selection.removeAllRanges(); selection.addRange(range);
-      if(text){
-        // Use the website editor's own plain-text paste handler. insertText
-        // expands long multiline text into many native blocks and can stall
-        // ChatGPT's editor. This event never reads/writes the system clipboard.
+      if(text&&profile.insertText){
+        // Gemini's native edit command writes synchronously; Quill paste does not.
+        if(!profile.insertText(doc,text))return false;
+      }else if(text){
+        // Use site-local paste: long multiline insertText can stall ChatGPT.
         if(typeof win.DataTransfer!=='function'||typeof win.ClipboardEvent!=='function')return false;
         const clipboardData=new win.DataTransfer();clipboardData.setData('text/plain',text);
         editor.dispatchEvent(new win.ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData}));
-        // An ignored/partial/asynchronous paste is ambiguous. Do not follow it
-        // with another write; the caller keeps the full source and stops.
+        // Ambiguous paste stops the caller with the full source preserved.
       }else if(!doc.execCommand('delete',false,null))return false;
     } else return false;
     return editorText(editor) === text;
@@ -223,9 +413,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     return after.ok && after.route===snapshot.route && after.form===snapshot.form &&
       after.editor===snapshot.editor && !after.rich && !after.composing && after.draft===text;
   }
-  // Reclaim a queued message for editing in the actual website composer.
-  // The old draft must be EXACTLY empty, including whitespace-only drafts.
-  // A failed/ambiguous insertion never authorizes removing the queue item.
+  // Reclaim only into an exactly empty composer; ambiguous writes keep the item.
   function reclaimToComposer(text,initial) {
     const fresh=inspect();
     if(!initial?.ok||!fresh.ok||!initial.route||
@@ -256,8 +444,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       return {ok:false,mayHaveWritten:false,reason:'会话、输入框或原生草稿已改变'};
     const before={users:fresh.users,assistants:fresh.assistants,history:fresh.history,
       assistantCount:fresh.assistants.length,route:fresh.route};
-    // Once setDraft is attempted, a false result or throwing website handler
-    // cannot prove that the user has not received (and manually sent) the text.
+    // Once attempted, even a failed draft write may have reached the page.
     try {
       if(!setDraft(fresh.editor,text,fresh))
         return {ok:false,mayHaveWritten:true,reason:'网页编辑器未确认完整接收待发内容'};
@@ -272,9 +459,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       text,before}};
   }
   function commit(token) {
-    // All checks are repeated on a separate poll to allow React to enable the
-    // native button. A changed editor, draft, route, or prior user messages is
-    // a hard failure before any send; it is never repaired with a second click.
+    // Recheck on the poll after the draft write; identity changes forbid a click.
     const fresh=inspect();
     if(!token.route || !fresh.ok || fresh.route!==token.route || fresh.form!==token.form ||
       fresh.editor!==token.editor || fresh.rich || fresh.composing ||
@@ -285,7 +470,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     if(fresh.busy)return {ok:false,stage:'before-click',reason:'网站开始了其他回复'};
     if(!fresh.sendButton)return {ok:false,retry:true,reason:'未找到原生发送按钮'};
     if(!fresh.idle)return {ok:false,retry:true,reason:'上一条回复尚未确认完成'};
-    if(fresh.sendButton.disabled || fresh.sendButton.getAttribute('aria-disabled')==='true')
+    if(disabled(fresh.sendButton))
       return {ok:false,retry:true,reason:'原生发送按钮尚未启用'};
     // After this click the outcome is UNKNOWN until an exact new user turn is seen.
     try {fresh.sendButton.click();}
@@ -301,25 +486,28 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   }
   function confirmationIssue(before,text,snapshot) {
     if (!before.route || !snapshot.ok || snapshot.route!==before.route) return '原对话或输入框已不可确认';
-    if (!matchesHistoryTail(before.users,snapshot.users,1))
+    if (!matchesHistoryTail(before.users,snapshot.users,1,requireRoleAnchor))
       return snapshot.users.length!==before.users.length+1?
         '用户消息数量与发送前记录不符':'历史用户消息节点已变化';
     if(!matchesConversationTail(before,snapshot,1,2))return '历史对话节点或顺序已变化';
     const newMessage=snapshot.users.at(-1);
     if(before.users.includes(newMessage))return '未找到唯一新增用户消息';
-    if(messageText(newMessage)!==text)return '新增用户消息正文与队列不完全一致';
-    return null;
+    if(!requireRoleAnchor){
+      const added=snapshot.history.filter(node=>!before.history.includes(node));
+      if(added[0]!==newMessage || (added.length===2&&!snapshot.assistants.includes(added[1])))
+        return '新增消息未按用户、回复顺序出现';
+    }
+    if(profile.messageText(newMessage)!==text)return '新增用户消息正文与队列不完全一致';
+    return profile.admissionIssue?.(newMessage,snapshot)??null;
   }
-  function sameHistory(before,snapshot) {
-    // The combined timeline must retain an old anchor; each role separately
-    // may lose all its older nodes when eviction cuts between user and reply.
+  function sameHistory(before,snapshot,confirmedQueueUser) {
+    // Require a timeline anchor even if either role loses its entire prefix.
     if(!matchesHistoryTail(before.users,snapshot.users,0,false))return false;
     if(matchesHistoryTail(before.assistants,snapshot.assistants,0,false) &&
       matchesConversationTail(before,snapshot,0))return true;
-    // A native reply may mount after enqueue; it can only append after the
-    // retained latest user. Prefix eviction still needs the original tail.
+    // A late native reply must follow the retained latest user.
     const user=before.users.at(-1),reply=snapshot.assistants.at(-1);
-    return !!before.busy&&!!user&&!!reply&&before.history?.at(-1)===user&&
+    return !!user&&(!!before.busy||user===confirmedQueueUser)&&!!reply&&before.history?.at(-1)===user&&
       snapshot.history?.at(-2)===user&&snapshot.history.at(-1)===reply&&
       matchesHistoryTail(before.assistants,snapshot.assistants,1,false)&&
       matchesConversationTail(before,snapshot,1);
@@ -330,16 +518,14 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   function replyComplete(before,confirmedUser,snapshot,gate) {
     if(gate?.historyInvalid || !confirmedUser || !snapshot.ok || snapshot.route!==before?.route)return false;
     const rejectHistory=()=>{
-      // Once identity continuity is lost, replaying an old snapshot cannot
-      // restore this gate's proof. This latch lives only in the existing gate.
+      // Loss of identity latches for the lifetime of this reply gate.
       if(gate)gate.historyInvalid=true;
       return false;
     };
-    if(!matchesReplyHistory(before,snapshot) ||
-      (gate?.observed && !matchesReplyHistory(gate.observed,snapshot)))return rejectHistory();
+    if(!matchesReplyHistory(before,snapshot,requireRoleAnchor) ||
+      (gate?.observed && !matchesReplyHistory(gate.observed,snapshot,requireRoleAnchor)))return rejectHistory();
     const {users,assistants,history}=snapshot;
-    // The combined history must contain each role node exactly once, in DOM
-    // order. Extra users are native follow-ups, never admission evidence.
+    // Require order and uniqueness; native follow-ups cannot prove admission.
     if(new Set(history).size!==history.length || history.length!==users.length+assistants.length ||
       history.some(node=>users.includes(node)===assistants.includes(node)) ||
       [users,assistants].some(nodes=>{
@@ -349,8 +535,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     const added=history.filter(node=>!before.history.includes(node));
     if(added[0]!==confirmedUser || !users.includes(confirmedUser) ||
       added.some((node,i)=>assistants.includes(node) && !users.includes(added[i-1])))return rejectHistory();
-    // Observe valid growth even while busy. Later polls cannot replace or
-    // reorder an already observed follow-up; only detached prefixes may go.
+    // Record growth while busy so later polls cannot replace observed follow-ups.
     if(gate)gate.observed={users:[...users],assistants:[...assistants],history:[...history]};
     const latestUser=users.at(-1),reply=assistants.at(-1);
     if(snapshot.busy || !snapshot.idle || !snapshot.answerComplete ||
@@ -366,7 +551,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       fresh.editor!==snapshot.editor || fresh.rich || fresh.composing ||
       snapshot.draft!=='' || fresh.draft!=='' ||
       !fresh.busy || !fresh.stopButton || fresh.stopButton!==snapshot.stopButton ||
-      fresh.stopButton.disabled || fresh.stopButton.getAttribute('aria-disabled')==='true') return false;
+      disabled(fresh.stopButton)) return false;
     try { fresh.stopButton.click(); interrupted=fresh; return true; } catch { return false; }
   }
   return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,canReclaimPrepared,confirm,confirmationIssue,sameHistory,replyComplete,stop,normal});

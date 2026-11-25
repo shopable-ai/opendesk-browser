@@ -19,6 +19,8 @@ export function installDevelopmentPage({api,prepareReload,canReload=()=>true,doc
         attempt=0;showRevision(message.revision);
        } else if(message.type==='revision'){
          showRevision(message.revision);
+      } else if(message.type==='detail-memory-observation'){
+        report({detailMemory:message.observation});
       } else if(message.type==='css'){
         const link=doc.querySelector('link[href*="tool-shell.css"]');
         if(link){const url=new URL(link.href);url.searchParams.set('opendesk-dev',message.hash);link.href=url.href;}

@@ -1,7 +1,6 @@
 import {normalizeQueueCache} from './cache.js';
 // Single-document queue with guarded refresh-cache recovery. Unknown effects never auto-retry.
 const MAX_ITEMS=20, MAX_TEXT=8192, IDLE_MS=1100, ACK_MS=15000, STOP_MS=12000;
-const REPLY_WAIT='等待已确认消息及后续原生消息的回复完成（需保持原对话历史可核验）';
 const REPLY_HISTORY_CHANGED='原对话历史节点已变化，已停止自动发送；请核对原对话';
 const STORAGE_ERROR='队列缓存保存失败，已阻止网页操作；请保留原文并检查存储后重试';
 export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, checkpoint=()=>true}) {
@@ -291,7 +290,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(state.inFlight?.phase==='await-stop') {
       // Stop does not waive the exact history/latest-user proof for our prior send.
       if(state.answerGate && !answerReady(snap)){
-        wait(state.answerGate.historyInvalid?REPLY_HISTORY_CHANGED:REPLY_WAIT);return;
+        wait(state.answerGate.historyInvalid?REPLY_HISTORY_CHANGED:'');return;
       }
       if(!canSubmit){idleSince=null;return;}
       if(snap.busy||!snap.idle){idleSince=null;return;}
@@ -332,7 +331,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(state.answerGate) {
       state.answerGate.sawBusy ||= snap.busy;
       if(!answerReady(snap)){
-        wait(state.answerGate.historyInvalid?REPLY_HISTORY_CHANGED:REPLY_WAIT);return;
+        wait(state.answerGate.historyInvalid?REPLY_HISTORY_CHANGED:'');return;
       }
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
@@ -347,7 +346,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(snap.busy || !snap.idle || (snap.assistants.length>0&&!snap.answerComplete) || snap.rich || snap.composing || snap.draft!=='') {
       const draftReason=site.normal(snap.draft)?'':
         '输入框有空白字符，清空后队列会自动继续';
-      const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?draftReason:'等待当前回复结束';
+      const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?draftReason:'';
       wait(reason);
       return;
     }

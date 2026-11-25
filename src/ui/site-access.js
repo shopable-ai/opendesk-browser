@@ -48,8 +48,8 @@ export function createSiteAccess({api, onState = () => {}}) {
       snapshot = actual;
       publish(siteAccessSatisfies(snapshot) ? 'granted' : 'limited', snapshot.websites
         ? (siteAccessSatisfies(snapshot)
-          ? 'Chrome 已授予默认全网站和核心 API 权限'
-          : '全网站权限可用，但核心 API 权限不完整；请检查扩展的权限设置')
+          ? 'Chrome 已授予全网站访问权限'
+          : '全网站访问已授权；Cookie 或通知权限不完整')
         : 'Chrome 已限制网站访问；可点击恢复或在扩展详情中选择所有网站');
       return snapshot;
     } catch (cause) {

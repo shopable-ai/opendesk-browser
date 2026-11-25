@@ -9,7 +9,13 @@ test('installed Page identifies the switch without conflating suspended, disable
     const state=describeInstalledPageControl(page);
     assert.equal(state.state,'restricted');
     assert.match(state.note,/允许用户脚本.*刷新可信状态/);
-    for(const override of [{enabled:false},{authorization:{status:'suspended'}},{error:{code:'E_EFFECT_UNKNOWN'}}]){
+    // Authority can suspend the installation specifically because the
+    // browser switch is off. Keep that cause distinct from a withdrawn site grant.
+    const browserBlocked=describeInstalledPageControl({...page,authorization:{status:'suspended'}});
+    assert.match(browserBlocked.note,/允许用户脚本/);
+    const siteBlocked=describeInstalledPageControl({...page,authorization:{status:'suspended'},error:{code:'E_PERMISSION'}});
+    assert.match(siteBlocked.note,/恢复已安装网站的访问权限/);
+    for(const override of [{enabled:false},{error:{code:'E_EFFECT_UNKNOWN'}}]){
       const result=describeInstalledPageControl({...page,...override});
       assert.doesNotMatch(result.note,/允许用户脚本/);
     }
@@ -28,7 +34,7 @@ test('approved Page installations waiting for browser capability or readback do 
     const page={programId,enabled:true,authorization:{status:'active'},pageRules:{matches:['https://example.com/*']}};
     const waiting=describeInstalledPageControl({...page,nativeState:'waiting-user-scripts'});
     assert.equal(waiting.state,'pending');assert.equal(waiting.canRestore,false);
-    assert.match(waiting.note,/浏览器当前无法运行用户脚本.*无需重新安装或授权/);
+    assert.match(waiting.note,/允许用户脚本.*无需重新安装或授权/);
     const unknown=describeInstalledPageControl({...page,nativeState:'activation-unconfirmed'});
     assert.equal(unknown.canRestore,false);assert.match(unknown.note,/不会自动重新提交/);
     const revoked=describeInstalledPageControl({...page,nativeState:'waiting-user-scripts',authorization:{status:'suspended'}});

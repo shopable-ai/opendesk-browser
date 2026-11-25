@@ -2,6 +2,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {translateUiText} from '../../../i18n/strings.js';
+import {extensionCenterText} from '../../extension-center-localization.js';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
 import {ExtensionAbout} from '../components/extension-about.tsx';
 import {UninstallDialog} from './tools.tsx';
@@ -241,6 +242,8 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
   const marketReviewRef = React.useRef(marketReview);
   marketReviewRef.current = marketReview;
   const importOpen = marketReview !== null || snapshot.fields['sidebar-tool-import']?.hidden === false;
+  const fixedOfficial = snapshot.fields['sidebar-tool-import']?.data?.fixedOfficial === true;
+  const fixedReviewTitle = extensionCenterText(locale,'reviewOfficialInstall');
   const dismissImport = () => {
     if (marketReviewRef.current) {
       if (!marketReviewRef.current.busy) view.marketInstallActions?.dismiss();
@@ -248,6 +251,11 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
   };
   const reviewing = snapshot.fields['sidebar-tool-preview']?.hidden === false;
   const scriptsRecovery = snapshot.fields['sidebar-tool-user-scripts-recovery'];
+  const pageScriptsRecovery = !scriptsRecovery.hidden&&scriptsRecovery.data.kind==='page-import';
+  const scriptsHelpLink = !scriptsRecovery.hidden&&scriptsRecovery.data.helpHref&&
+    <a className="od-import-scripts-help" href={scriptsRecovery.data.helpHref} target="_blank" rel="noopener noreferrer">
+      {extensionCenterText(locale,'webFeaturesHelpLink')}
+    </a>;
   const scriptsSettings = React.useRef(null);
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
   const secondaryAction = snapshot.fields['sidebar-tool-secondary-action']?.data?.action || '';
@@ -301,12 +309,11 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
         const doc=nodes.current.frameRoot?.ownerDocument;
         if(Object.hasOwn(options??{},'extensionToolId')){
           if(snapshot.fields['sidebar-tool-display'].hidden===false)continue;
-          const {extensionToolId,...focusOptions}=options;options=focusOptions;
+          const {extensionToolId,extensionAction,...focusOptions}=options;options=focusOptions;
           const controls=[...(doc?.querySelectorAll('#extension-center-list button[data-extension-key]')??[])]
             .filter(button=>button.dataset.extensionKey==='app:'+extensionToolId);
-          target=controls.find(button=>button.dataset.extensionAction==='primary')||
-            controls.find(button=>button.dataset.extensionAction==='more')||
-            controls.find(button=>button.dataset.extensionAction==='main')||
+          target=controls.find(button=>!button.disabled&&button.dataset.extensionAction===(extensionAction||'main'))||
+            controls.find(button=>!button.disabled&&button.dataset.extensionAction==='main')||
             doc?.getElementById('extension-center-search');
         }
         target??=doc?.getElementById('sidebar-tool-import-trigger')??doc?.getElementById('extension-center-import');
@@ -317,9 +324,17 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
   React.useLayoutEffect(() => {
     if(!importOpen||scriptsRecovery.hidden)return;
     const button=scriptsSettings.current,doc=button?.ownerDocument;
-    if(doc&&(doc.activeElement===doc.body||doc.activeElement===refs.current.get('sidebar-tool-install')))
-      button.focus();
-  },[importOpen,scriptsRecovery.hidden]);
+    if(doc&&(doc.activeElement===doc.body||doc.activeElement===refs.current.get('sidebar-tool-install'))){
+      button.focus({preventScroll:pageScriptsRecovery});
+      if(pageScriptsRecovery){
+        const summary=button.closest('.od-import-page-warning');
+        const body=summary?.parentElement;
+        if(summary&&body&&(summary.getBoundingClientRect().bottom>body.getBoundingClientRect().bottom||
+          summary.getBoundingClientRect().top<body.getBoundingClientRect().top))
+          button.scrollIntoView({block:'center',inline:'nearest'});
+      }
+    }
+  },[importOpen,scriptsRecovery.hidden,pageScriptsRecovery]);
   // Keep the trusted installer single-owned; the drawer changes only its layout.
   React.useEffect(() => {
     if(!importOpen)return;
@@ -345,9 +360,10 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
         .filter(node=>!node.closest('[hidden]')&&node.getClientRects().length);
       const first=focusable[0],last=focusable.at(-1);
       if(!first){event.preventDefault();panel.focus({preventScroll:true});return;}
-      if(event.shiftKey&&(doc.activeElement===first||!panel.contains(doc.activeElement))){
+      const atDialog=doc.activeElement===panel||!panel.contains(doc.activeElement);
+      if(event.shiftKey&&(doc.activeElement===first||atDialog)){
         event.preventDefault();last.focus({preventScroll:true});
-      }else if(!event.shiftKey&&(doc.activeElement===last||!panel.contains(doc.activeElement))){
+      }else if(!event.shiftKey&&(doc.activeElement===last||atDialog)){
         event.preventDefault();first.focus({preventScroll:true});
       }
     };
@@ -385,7 +401,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
   return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack">
 {!inlineActionReview&&<Confirmation {...actionReview}/>}
 
-<ImportSheet open={importOpen} blockFiles={marketReview !== null} busy={Boolean(marketReview?.busy)}
+<ImportSheet open={importOpen} blockFiles={marketReview !== null||fixedOfficial} busy={Boolean(marketReview?.busy)}
   onBackdrop={event=>marketReview ? dismissImport() : view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}
   onFileDrop={event=>{if(!marketReview)view.dispatch('sidebar-tool-file','drop',event.nativeEvent);}}>
 {marketReview ? <section id="sidebar-tool-import" className="sidebar-tool-import od-surface od-market-install-sheet"
@@ -530,9 +546,10 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
   role="dialog" aria-modal={importOpen} aria-labelledby="sidebar-tool-import-heading" hidden={true} tabIndex={-1}>
 <div className="sidebar-tool-import-head od-toolbar">
 <strong id="sidebar-tool-import-heading">
-{"导入扩展"}
+{fixedOfficial ? fixedReviewTitle : "导入扩展"}
 </strong>
-<ToolField as="button" type="button" id="sidebar-tool-import-close" className="sidebar-tool-icon-action od-icon-button" title="取消导入" aria-label="取消导入">
+<ToolField as="button" type="button" id="sidebar-tool-import-close" className="sidebar-tool-icon-action od-icon-button"
+  title={fixedOfficial?extensionCenterText(locale,'close'):"取消导入"} aria-label={fixedOfficial?extensionCenterText(locale,'close'):"取消导入"}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M5 5l14 14M19 5 5 19">
 
@@ -544,25 +561,31 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 
 </div>
 <div className="od-import-sheet-body">
+{!fixedOfficial&&<>
 <label htmlFor="sidebar-tool-file">
 {reviewing ? "更换安装包" : "选择安装包"}
 </label>
 <ToolFileInput value={snapshot.fields['sidebar-tool-file'].value} disabled={snapshot.fields['sidebar-tool-file'].disabled}
   onChoose={actions.chooseFile} onCancel={actions.cancelFile}/>
+</>}
+{fixedOfficial&&!reviewing&&snapshot.fields['sidebar-tool-file-error']?.hidden!==false&&
+  <p className="sidebar-tool-import-hint" role="status">{extensionCenterText(locale,'checkingPackage')}</p>}
 <ToolField as="p" id="sidebar-tool-file-error" className="sidebar-tool-file-error" role="alert" hidden={true}/>
-<ToolField as="div" id="sidebar-tool-user-scripts-recovery" className="od-import-scripts-recovery">
+{!pageScriptsRecovery&&<ToolField as="div" id="sidebar-tool-user-scripts-recovery" className="od-import-scripts-recovery">
   <div>
     <strong className="od-title" role="alert">需要核对旧版网页功能</strong>
     <p>请在<button ref={scriptsSettings} type="button" className="od-import-scripts-settings"
-      aria-label="打开 Chrome 扩展设置" aria-describedby="sidebar-tool-user-scripts-guide" aria-disabled={scriptsRecovery.data.opening}
+      aria-label="打开 Chrome 扩展设置" aria-describedby="sidebar-tool-user-scripts-guide"
+      aria-disabled={scriptsRecovery.data.opening||scriptsRecovery.data.check==='checking'}
       onClick={event=>view.dispatch('sidebar-tool-user-scripts-recovery','settings',event.nativeEvent)}>
       Chrome 扩展设置
-    </button>中<span id="sidebar-tool-user-scripts-guide">开启「允许用户脚本」，然后返回重试。更新前需要核对旧版网页功能已撤销。已选安装包会保留。</span></p>
+    </button>中<span id="sidebar-tool-user-scripts-guide">开启「允许运行用户脚本」，然后返回重试。更新前需要核对旧版网页功能已撤销。已选安装包会保留。</span></p>
   </div>
+  {scriptsHelpLink}
   {scriptsRecovery.data.openFailed&&
     <p role="status">无法打开设置。请在 Chrome 地址栏输入 <code>chrome://extensions</code>，找到当前扩展，点击「详情」后开启该开关。</p>}
-</ToolField>
-{!reviewing && <p className="sidebar-tool-import-hint">也可将 .opendesk-tool.json 或 .opendesk-page.json 拖入此窗口。</p>}
+</ToolField>}
+{!fixedOfficial&&!reviewing && <p className="sidebar-tool-import-hint">也可将 .opendesk-tool.json 或 .opendesk-page.json 拖入此窗口。</p>}
 <ToolField as="div" id="sidebar-tool-preview" className="sidebar-tool-preview" hidden={true}>
 <div className="sidebar-tool-preview-heading">
 <ToolField as="strong" id="sidebar-tool-preview-title"/>
@@ -573,11 +596,14 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 <ToolField as="p" id="sidebar-tool-update-impact"/>
 <ToolField as="p" id="sidebar-tool-update-warning" className="sidebar-tool-update-warning" hidden={true}/>
 </ToolField>
-<ToolField as="p" id="sidebar-tool-preview-description"/>
+<ToolField as="p" id="sidebar-tool-preview-description" forceHidden={pageScriptsRecovery}/>
 <ToolField as="details" id="sidebar-tool-permissions-details" className="sidebar-tool-permissions-details od-disclosure od-disclosure--flat">
 <summary><ToolField as="span" id="sidebar-tool-permission-summary"/></summary>
 <div className="sidebar-tool-permission-body">
-<ToolField as="p" id="sidebar-tool-preview-capabilities"/>
+{fixedOfficial&&snapshot.fields['sidebar-tool-preview-capabilities'].rows.length>0?
+  <ul id="sidebar-tool-preview-capabilities" className="od-import-capability-list">
+    {snapshot.fields['sidebar-tool-preview-capabilities'].rows.map(({label},index)=><li key={index}>{label}</li>)}
+  </ul>:<ToolField as="p" id="sidebar-tool-preview-capabilities"/>}
 <ToolField as="p" id="sidebar-tool-update-capabilities"/>
 </div>
 </ToolField>
@@ -586,9 +612,6 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 <summary>技术详情 · 文件与校验信息</summary>
 <ToolField as="p" id="sidebar-tool-preview-file" className="sidebar-tool-preview-file"/>
 </ToolField>
-</ToolField>
-<ToolField as="p" id="page-install-import-status" role="status" aria-live="polite" hidden={true}>
-
 </ToolField>
 <ToolField as="details" id="page-install-import-receipt" className="od-disclosure" hidden={true}>
 <summary>
@@ -599,11 +622,62 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 </ToolField>
 
 </ToolField>
+{pageScriptsRecovery ? <>
+  <ToolField as="div" id="sidebar-tool-user-scripts-recovery"
+    className="od-import-scripts-recovery od-import-page-warning od-alert od-alert--warning">
+    <div role="alert" aria-atomic="true" className="od-import-page-warning-summary">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10.4 4.6 2.9 17.5A1.7 1.7 0 0 0 4.4 20h15.2a1.7 1.7 0 0 0 1.5-2.5L13.6 4.6a1.85 1.85 0 0 0-3.2 0Z"/>
+        <path d="M12 9v4m0 3h.01"/>
+      </svg>
+      <div>
+        <h3>{scriptsRecovery.data.installedWaiting?(scriptsRecovery.data.check==='available'?'已安装，请检查网页功能':'已安装，网页功能待开启'):
+          scriptsRecovery.data.updating?'更新结果需要核对':'安装结果需要核对'}</h3>
+        <p>{scriptsRecovery.data.installedWaiting?'安装已保存。':
+          '确认时 Chrome 无法运行用户脚本。'+(scriptsRecovery.data.retainedRevision==null?'已选安装包仍保留。':
+          '旧版 r'+scriptsRecovery.data.retainedRevision+' 和已选安装包仍保留。')}
+          {' 检测不会重新安装。'}</p>
+      </div>
+    </div>
+    <div className="od-import-page-warning-actions">
+      <button ref={scriptsSettings} type="button" className="od-button od-button--secondary"
+        aria-label="打开 Chrome 扩展设置"
+        aria-disabled={scriptsRecovery.data.opening||scriptsRecovery.data.check==='checking'}
+        onClick={event=>view.dispatch('sidebar-tool-user-scripts-recovery','settings',event.nativeEvent)}>
+        打开 Chrome 扩展设置
+      </button>
+      <button type="button" className="od-button od-button--secondary"
+        aria-disabled={scriptsRecovery.data.opening||scriptsRecovery.data.check==='checking'}
+        onClick={event=>view.dispatch('sidebar-tool-user-scripts-recovery','check',event.nativeEvent)}>重新检测</button>
+      {scriptsHelpLink}
+    </div>
+    <p role="status" className="od-import-page-warning-status">
+      {{checking:'正在检测…',
+        available:scriptsRecovery.data.installedWaiting?'Chrome 开关已开启。点「完成」后，在「扩展」打开「'+
+          snapshot.fields['sidebar-tool-preview-title'].textContent+'」的详情，确认网页功能状态。':
+          'Chrome 开关已开启。请到「扩展」核对已安装版本。',
+        unavailable:'Chrome 尚未允许用户脚本。',
+        unknown:'无法确认 Chrome 状态，请稍后重新检测。'}[scriptsRecovery.data.check]}
+      {scriptsRecovery.data.check!=='checking'&&scriptsRecovery.data.check!=='available'&&
+        (scriptsRecovery.data.openFailed?
+          <> 无法打开设置。请在 Chrome 地址栏输入 <code>chrome://extensions</code>，找到当前扩展并打开「详细信息」，开启「允许运行用户脚本」后返回检测。</>:
+          (!scriptsRecovery.data.check||scriptsRecovery.data.check==='unavailable')&&
+          ' 在 Chrome 扩展设置中开启「允许运行用户脚本」，再返回检测。')}
+    </p>
+  </ToolField>
+  <details className="sidebar-tool-technical-details od-disclosure od-disclosure--flat">
+    <summary>安装状态详情</summary>
+    <ToolField as="p" id="page-install-import-status"/>
+  </details>
+</> : <ToolField as="p" id="page-install-import-status" role="status" aria-live="polite" hidden={true}/>}
 </div>
 <div className="od-import-sheet-footer" hidden={snapshot.fields['sidebar-tool-preview'].hidden}>
+{pageScriptsRecovery&&scriptsRecovery.data.installedWaiting?
+  <button type="button" className="od-button" onClick={event=>view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}>完成</button>:
 <ToolField as="button" type="button" id="sidebar-tool-install" className="od-button" disabled={true}>
 {"确认安装"}
-</ToolField>
+</ToolField>}
 </div>
 </ToolField>}
 </ImportSheet>
@@ -708,12 +782,11 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 </ToolField>
 
 </ToolField>
-<ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
-{snapshot.extensionAbout&&<ExtensionAbout {...snapshot.extensionAbout}/>}
-<section className="sidebar-tool-settings-product" aria-label="扩展设置">
+<ToolField as="section" id="sidebar-tool-settings-view" aria-label="工具设置" hidden={true}>
+<section className="sidebar-tool-settings-product" aria-label={snapshot.labels.extensionSettings}>
 <ToolField as="button" type="button" id="sidebar-tool-adblock-product-settings"
   className="od-button od-button--secondary" hidden={true}>{"广告拦截设置"}</ToolField>
-<ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
+<ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-tool-language-row" hidden={true}>
 <label htmlFor="sidebar-tool-toc-language-select">
 <ToolLabel name="languageLabel"/>
 </label>
@@ -847,7 +920,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 </ToolField>
 <TimeReviewSettings model={snapshot.trustedSettings.timeReview} actions={view.trustedSettingsActions.timeReview}/><StayFocusSettings model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/>
 </section>
-<section className="sidebar-tool-settings-permissions" aria-label="权限管理" hidden={!permissionVisible}>
+<section className="sidebar-tool-settings-permissions" aria-label={snapshot.labels.permissionsManagement} hidden={!permissionVisible}>
 <BookmarkSettings/>
 <ToolField as="section" id="sidebar-tool-proxy-consent" className="od-surface od-surface--padded" aria-label="代理线路授权">
 <strong>代理线路授权</strong>
@@ -856,7 +929,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 </ToolField>
 {!cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}
 </section>
-<section className="sidebar-tool-management" aria-label="应用管理">
+<section className="sidebar-tool-management od-surface od-surface--padded" aria-label={snapshot.labels.appManagement}>
 <div className="sidebar-toc-settings-row">
 <span className="sidebar-tool-prompt-enable-info">
 <ToolField as="strong" id="sidebar-tool-prompt-enable-label">
@@ -870,7 +943,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 <ToolField as="button" type="button" id="sidebar-tool-enable" className="od-tool-management-switch"
   role="switch" aria-label="启用工具" aria-checked="true"/>
 <ToolField as="button" type="button" id="sidebar-tool-enable-retry"
-  className="od-button od-button--secondary" hidden={true}>{"重新读取"}</ToolField>
+  className="od-button od-button--secondary" hidden={true}><ToolLabel name="retryRead"/></ToolField>
 
 </div>
 <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status">
@@ -881,6 +954,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,lo
 <ToolLabel name="openTabLabel"/>
 </ToolField>
 </section>
+{snapshot.extensionAbout&&<ExtensionAbout key={snapshot.fields['sidebar-tool-display'].data.toolId} {...snapshot.extensionAbout}/>}
 
 </ToolField>
 

@@ -10,12 +10,13 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 const project='projects/ai-knowledge-answers';
 const reviewed={
   'src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
+  'trusted/recovery-data.js':'169d0684b63f7d0ece42c172d6dea0333c457cb4',
   'trusted/host.js':'02bdd31fdcb2292196c849bd0a4c13e9bde78c0c',
   'trusted/ai-request.js':'d74df23166adc1ee10952db847cbd1202bdeb3ae',
   'trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
   'trusted/local-test-adapter.js':'25c43a64db60933c61f16a569afbfd376a5f8ac5',
-  'trusted/Workspace.jsx':'9fa5a0e47805bfbbd092dbab7f78bb346588058b',
-  'trusted/workspace.css':'3f11650babfd3e1a490907b33e2f722bd97fa53d',
+  'trusted/Workspace.jsx':'ccb99469d9226c021f7356f1872caa63453474ae',
+  'trusted/workspace.css':'72f369bb4bdd2e8064c17c4e084f01f1c4d6a5c4',
   'trusted/multi-intent.js':'82d4b49d194783e04844e36df78d757955e31378'
 };
 const examine=(path,{root=process.cwd(),target='ui/tool-shell.js'}={})=>
@@ -23,7 +24,7 @@ const examine=(path,{root=process.cwd(),target='ui/tool-shell.js'}={})=>
     modules:{[resolve(root,project,path)+(path.endsWith('.css')?'?raw':'')]:
       {renderedLength:1,originalLength:1}}}}).modules[0];
 
-test('Knowledge source review admits exactly eight fixed inputs to tool-shell only',()=>{
+test('Knowledge source review admits the reviewed inputs to tool-shell only',()=>{
   const otherTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS),'ui/unknown-host.js']);
   otherTargets.delete('ui/tool-shell.js');
   for(const [path,blob] of Object.entries(reviewed)){

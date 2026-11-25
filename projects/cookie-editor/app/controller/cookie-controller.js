@@ -29,12 +29,15 @@ const exportFailureHelp=error=>({
   E_TOOL_RUNTIME_UNAVAILABLE:'当前安装版本无法使用一键导出；请从扩展列表审阅更新 Cookie Editor。'
 })[safeCode(error,'E_COOKIE_EXPORT')]||cookieFailureHelp(error)||'请检查授权或选择其他格式。';
 const bounded=(text,limit)=>new Blob([text]).size<=limit;
+const importSkipLabels={expired:'已过期',store:'存储区不匹配',partition:'分区无效或不匹配',
+  invalid:'格式或属性无效',existing:'已有记录且未启用覆盖'};
 // These codes are rejected before the affected native Cookie write.
 const importPrewriteDenials=new Set([
   'E_COOKIE_CONFLICT','E_COOKIE_SCOPE','E_COOKIE_STORE','E_COOKIE_PARTITION',
   'E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_SITE_GRANT_REQUIRED',
   'E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT',
-  'E_PERMISSION','E_SCHEMA','E_LIMIT'
+  'E_PERMISSION','E_SCHEMA','E_LIMIT','E_DOCUMENT_CHANGED','E_SITE_PERMISSION_REVOKED','E_COOKIE_EXPIRED',
+  'E_COOKIE_BATCH_EXPIRED'
 ]);
 const accessLossCodes=new Set(['E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED',
   'E_SITE_PERMISSION_REVOKED','E_CHROME_PERMISSION_REQUIRED','E_TOOL_CHANGED','E_TOOL_DISABLED',
@@ -46,7 +49,9 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
   if(!adapter||typeof adapter.list!=='function')throw Error('E_COOKIE_CONTROLLER_ADAPTER');
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',problem=null,
     message='',messageType='info',importPlan=null,clearPlan=null;
-  let importRevision=0,clearRevision=0,valueRevision=0,importOutcome=null;
+  let importRevision=0,clearRevision=0,valueRevision=0,importOutcome=null,importConflicts=0;
+  let pendingClear=null;
+  let clearRecovery=null,clearRecoveryPending=false;
   let syncStale=false,syncPending=null,syncGeneration=0,activeEffect=null,previousReceipt=null;
   let navigationPending=false,navigationQueued=false,navigationRun=null,verifiedScope=null;
   let dispatchRevision=0,retryQueued=null;
@@ -59,22 +64,29 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
   const snapshot=()=>({epoch,busy:busy||Boolean(activeEffect),target:target?{...target}:null,rows:structuredClone(rows),
     phase,problem,message,messageType,syncStale,navigationPending,readDiagnostic,verifiedScope,
     settlingPrevious:Boolean(activeEffect&&activeEffect.ticket!==epoch),previousReceipt,
-    importOutcome,unknownEffects:[...unknownEffects],changes:structuredClone(changes)});
+    importOutcome,importConflicts,unknownEffects:[...unknownEffects],
+    clearRecovery:clearRecovery&&{hostname:clearRecovery.at.hostname,
+      available:phase==='ready'&&target?.url===clearRecovery.at.url&&verifiedScope===clearRecovery.scope,
+      pending:clearRecoveryPending},changes:structuredClone(changes)});
   const notify=()=>{if(!closed)onChange(snapshot());};
-  function report(text='',type='info'){
-    message=text;messageType=type;notify();
+  function publishSuccess(text,notice){
     // Feedback cannot change a verified native outcome or trigger its replay.
-    if(type==='success')try{onSuccess(text);}catch{}
+    try{onSuccess(text,notice);}catch{}
   }
-  function reportEffect(guard,text,type){
-    if(current(guard.ticket,guard.at))return report(text,type);
+  function report(text='',type='info',notice){
+    message=text;messageType=type;notify();
+    if(type==='success')publishSuccess(text,notice);
+  }
+  function reportEffect(guard,text,type,notice){
+    if(current(guard.ticket,guard.at))return report(text,type,notice);
     if(closed)return;
+    if(type==='success'&&notice)return publishSuccess(text,notice);
     previousReceipt={text,type};notify();
   }
-  function reportPartialImport(verified,total,reason=''){
+  function reportPartialImport(verified,total,reason='',counts=''){
     importOutcome='partial';
     previousReceipt={type:'warning',text:'Chrome 已确认导入 '+verified+'/'+total+
-      ' 条；'+reason+'其余条目未写入。请先核对 Chrome。'};
+      ' 条；'+reason+'其余条目未写入。'+counts+'请先核对 Chrome。'};
     notify();
   }
   async function readScope(at,live){
@@ -114,7 +126,7 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
     unresolvedSince=null;
     epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';problem=null;
     importPlan=null;importOutcome=null;
-    clearPlan=null;
+    discardClear();
     report(text);
   }
   // SDK revocation is authoritative even before the bridge/UI event arrives.
@@ -154,7 +166,7 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
     }
     return load('',{replaceRead:true,preserveMessage:true});
   }
-  async function load(input='',{preserveMessage=false,automatic=false,replaceRead=false}={}){
+  async function load(input='',{preserveMessage=false,automatic=false,replaceRead=false,reconcileClear=null}={}){
     if(closed||(busy&&!(replaceRead&&phase==='loading')))return false;
     // A manual read can resume checks after an invalidation. Unknown effects
     // remain visible until acknowledged, including clipboard/download effects.
@@ -206,6 +218,13 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
       verifiedScope=scope;
       rows=found.map(row=>({...row,id:key(row)}));
       phase='ready';problem=null;readDiagnostic=null;if(!preserveMessage)message='';
+      if(reconcileClear&&clearRecovery===reconcileClear.record&&at.url===clearRecovery.at.url&&
+         scope===clearRecovery.scope&&dispatchRevision===reconcileClear.revision){
+        clearRecovery=null;
+        unknownEffects.delete('clear');
+        report('已重新读取本站 Cookie。列表显示当前记录，上次清理的结果仍无法确认。','verification');
+        return true;
+      }
       notify();
       return true;
     }catch(error){
@@ -220,7 +239,7 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
           await waitForNavigation();
           if(ticket!==epoch||closed)return;
           busy=false;
-          return load(input,{automatic:true,preserveMessage,replaceRead});
+          return load(input,{automatic:true,preserveMessage,replaceRead,reconcileClear});
         }
         phase='error';problem=safeCode(error,'E_COOKIE_READ');rows=[];
         report('读取未确认'+formatCode(error,'E_COOKIE_READ')+
@@ -238,7 +257,10 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
       message='';messageType='info';notify();
     }
   }
-  function discardClear(){clearPlan=null;clearRevision++;}
+  function discardClear(){
+    clearPlan=null;clearRevision++;
+    pendingClear?.cancel();
+  }
   function getRow(id){const row=rows.find(row=>row.id===id);return row?structuredClone(row):null;}
   async function readValue(id){
     const row=getRow(id),at=target,ticket=epoch;
@@ -365,12 +387,27 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
     return removed;
   }
   async function previewClear(includeShared=true){
+    if(clearRecovery)return null;
     const guard=lock();if(!guard)return null;
     clearPlan=null;
     const revision=++clearRevision;
+    // This deadline only applies to a read. Never let a late preview republish
+    // a plan, or release the lock of a newer operation after dismissal.
+    let cancel;
+    const cancelled=new Promise(resolve=>{cancel=()=>resolve(null);});
+    const pending={cancel:()=>{cancel();finish();}};
+    let timer;
+    const finish=()=>{
+      if(pendingClear!==pending)return;
+      pendingClear=null;clearTimeout(timer);unlock(guard);
+    };
+    pendingClear=pending;
     try{
       const scope=includeShared?'site-exact-host':undefined;
-      const p=await adapter.clearPreview(guard.at,scope);
+      const deadline=new Promise((_,reject)=>{
+        timer=setTimeout(()=>reject(failure('E_COOKIE_PREVIEW_TIMEOUT')),2800);
+      });
+      const p=await Promise.race([cancelled,deadline,adapter.clearPreview(guard.at,scope)]);
       if(!canDispatch(guard)||revision!==clearRevision)return null;
       if(p?.scope!==(scope?'SITE_EXACT_HOST':'EXACT_HOST_HOST_ONLY')||
         scope&&(!Number.isSafeInteger(p.excluded)||p.excluded<0)||
@@ -380,16 +417,20 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
       clearPlan={epoch:guard.ticket,url:guard.at.url,
         previewRef:p.previewRef,count:p.matched,scope};
       return {count:p.matched,excluded:p.excluded??0,hostname:guard.at.hostname};
-    }catch(error){if(ownsOperation(guard)){
+    }catch(error){if(ownsOperation(guard)&&revision===clearRevision){
       if(rejectOperationAccess(guard,error))return null;
-      if(revision===clearRevision)
-        report('清理预览被拒绝'+formatCode(error,'E_COOKIE_CLEAR')+'。','error');
+      const text=error?.code==='E_COOKIE_PREVIEW_TIMEOUT'?'清理预览超时。可以重试或取消。':
+        error?.code==='E_LIMIT'?'当前范围超过 50 条或超过核对上限。请缩小清理范围。':
+          '清理预览未能完成'+formatCode(error,'E_COOKIE_CLEAR')+'。';
+      return {problem:text};
     }
       return null;
-    }finally{unlock(guard);}
+    }finally{finish();}
   }
   async function executeClear(){
+    if(clearRecovery)return false;
     const plan=clearPlan,guard=lock();if(!guard)return false;
+    const scopeAtDispatch=verifiedScope;
     clearPlan=null;let verified=false,dispatched=false,ref=null;
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url)
@@ -410,8 +451,10 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
         !Number.isSafeInteger(p.remaining)||p.removed!==plan.count||
         p.remaining<0||p.remaining>50||plan.scope&&
         (!Number.isSafeInteger(p.excluded)||p.excluded<0))throw badReceipt();
-      guard.effect=false;verified=true;reportEffect(guard,'已清理 '+p.removed+' 条，当前范围剩余 '+p.remaining+' 条。'+
-        (p.excluded?' 已保留 '+p.excluded+' 条超出当前清理范围的 Cookie。':''),'success');
+      guard.effect=false;verified=true;
+      const message='已清理 '+guard.at.hostname+' 的 '+p.removed+' 条 Cookie，本次清理范围剩余 '+p.remaining+' 条。';
+      const caption=p.excluded?'已保留 '+p.excluded+' 条超出本次清理范围的 Cookie。':'';
+      reportEffect(guard,caption?message+' '+caption:message,'success',caption?{message,caption}:{message});
     }catch(error){if(ownsOperation(guard)){
       if(error?.code==='E_COOKIE_NOT_SUBMITTED'){
         guard.effect=false;reportEffect(guard,'本次清理未提交。请重新核对当前网页。','warning');return false;
@@ -422,11 +465,12 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
       }
       if(rejectOperationAccess(guard,error))return false;
       if(!canDispatch(guard)&&!dispatched)return false;
-      if(dispatched)unknownEffects.add('clear');
-      reportEffect(guard,(dispatched?'清理可能部分生效':'清理尚未执行')+
-        formatCode(error,'E_COOKIE_CLEAR')+
-        (dispatched?'；重新预览前请先核对，勿自动重试。':
-          '；请检查授权或网页状态后重新预览。'),'error');
+      if(dispatched){
+        clearRecovery={at:guard.at,scope:scopeAtDispatch};
+        unknownEffects.add('clear');
+        notify();
+      }else reportEffect(guard,'清理尚未执行'+formatCode(error,'E_COOKIE_CLEAR')+
+        '；请检查授权或网页状态后重新预览。','error');
     }
     }finally{
       if(ref!==null)void adapter.finishClearIntent(ref).catch(()=>{});
@@ -435,6 +479,15 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
     if(verified&&current(guard.ticket,guard.at)&&!navigationPending&&!navigationQueued)
       await load(guard.at.url,{preserveMessage:true});
     return verified;
+  }
+  async function verifyClearCurrentRecords(){
+    if(!clearRecovery||clearRecoveryPending||closed||busy||activeEffect||navigationPending||
+       phase!=='ready'||target?.url!==clearRecovery.at.url||verifiedScope!==clearRecovery.scope)return;
+    const reconcileClear={record:clearRecovery,revision:dispatchRevision};
+    clearRecoveryPending=true;
+    try{
+      return await load('',{replaceRead:true,reconcileClear});
+    }finally{clearRecoveryPending=false;notify();}
   }
   async function exportTo({format='json',metadata=false,method='download'}={}){
     const guard=lock();if(!guard)return false;
@@ -504,45 +557,59 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
     }
     return done;
   }
-  async function previewImport(source,format='auto',overwrite=false,{allSites=false}={}){
+  async function previewImport(source,format='auto',overwrite=false,{allSites=false,submitDirectly=false}={}){
     const guard=lock();if(!guard)return null;
     importPlan=null;importOutcome=null;
     const revision=++importRevision;
     let stage='parse';
     try{
       const plan=inspectImport(source,format,guard.at.hostname,allSites);
+      const nativeConflicts=submitDirectly&&adapter.supportsWriteMany();
       stage='scope';
       const store=await adapter.getStore(guard.at);
       if(!canDispatch(guard)||revision!==importRevision)return null;
-      const partition=await adapter.getPartition(guard.at);
+      const needsPartition=!nativeConflicts||plan.records.some(item=>
+        item.status==='ready'&&item.cookie.partitionKey);
+      const partition=needsPartition?await adapter.getPartition(guard.at):null;
       if(!canDispatch(guard)||revision!==importRevision)return null;
       if(typeof store?.storeId!=='string'||!store.storeId||
-        !partition?.partitionKey?.topLevelSite)throw Error('E_COOKIE_SCOPE');
+        needsPartition&&!partition?.partitionKey?.topLevelSite)throw Error('E_COOKIE_SCOPE');
       for(const item of plan.records){
         if(item.status!=='ready')continue;
         try{
           const row=item.cookie;
-          if(row.storeId!==undefined&&row.storeId!==store.storeId)throw Error('E_COOKIE_STORE');
+          if(row.storeId!==undefined&&row.storeId!==store.storeId)throw failure('E_COOKIE_STORE');
           if(!allSites&&row.partitionKey&&
             (row.partitionKey.topLevelSite!==partition.partitionKey.topLevelSite||
             Boolean(row.partitionKey.hasCrossSiteAncestor)!==
               Boolean(partition.partitionKey.hasCrossSiteAncestor)))
-            throw Error('E_COOKIE_PARTITION');
+            throw failure('E_COOKIE_PARTITION');
           if(row.partitionKey){
-            const partitionSite=new URL(row.partitionKey.topLevelSite);
+            const site=row.partitionKey.topLevelSite;
+            if(!URL.canParse(site))throw failure('E_COOKIE_PARTITION');
+            const partitionSite=new URL(site);
             if(!['http:','https:'].includes(partitionSite.protocol)||
                partitionSite.username||partitionSite.password||
-               partitionSite.origin!==row.partitionKey.topLevelSite)
-              throw Error('E_COOKIE_PARTITION');
+               partitionSite.origin!==site)
+              throw failure('E_COOKIE_PARTITION');
           }
           item.cookie={...row,storeId:store.storeId};
           item.target=allSites?cookieImportTarget(item.cookie,guard.at):guard.at;
           nativeInput(item.cookie,item.target);
-        }catch{item.status='invalid';item.reason='Cookie 的 Store、Partition、Path 或域名属性不受支持';}
+        }catch(error){
+          item.status='invalid';
+          if(error?.code==='E_COOKIE_STORE'){
+            item.skipReason='store';item.reason='Cookie 存储区与当前窗口不匹配';
+          }else if(error?.code==='E_COOKIE_PARTITION'){
+            item.skipReason='partition';item.reason='Cookie 分区无效或与当前分区不匹配';
+          }else item.reason='Cookie 的分区、路径或域名属性不受支持';
+        }
       }
       rejectImportDuplicates(plan.records);
-      stage='read';const seen=new Map();let created=0,replaced=0;
-      for(const item of plan.records){
+      stage='read';const seen=new Map();let created=nativeConflicts?null:0,replaced=created;
+      // Single-click imports have no conflict preview. Let the Host report
+      // exact conflicts from the live Store immediately before writing.
+      for(const item of nativeConflicts?[]:plan.records){
         if(item.status!=='ready')continue;
         const r=item.cookie,at=item.target,route=new URL(at.origin);route.pathname=r.path;
         const scope=JSON.stringify([route.href,r.partitionKey||null]);
@@ -567,13 +634,20 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
       }
       const accepted=plan.records.filter(item=>item.status==='ready').map(item=>({cookie:item.cookie,target:item.target}));
       if(revision!==importRevision)return null;
-      importPlan={epoch:guard.ticket,url:guard.at.url,source,format,accepted,
-        total:plan.records.length,created,replaced,overwrite,allSites};
       // Show only preflight status and fixed validation reasons. Never return
       // source text, Cookie Values, or accepted raw cookies to React.
       const issues=plan.records.filter(item=>item.status!=='ready'&&item.status!=='existing');
+      const skipCounts={expired:0,store:0,partition:0,invalid:0,existing:0};
+      for(const item of plan.records){
+        if(item.status!=='ready')skipCounts[item.skipReason||item.status]++;
+      }
+      const skipDetails=Object.entries(importSkipLabels).filter(([key])=>skipCounts[key]>0)
+        .map(([key,label])=>label+' '+skipCounts[key]+' 条').join('、');
+      importPlan={epoch:guard.ticket,url:guard.at.url,source,format,accepted,
+        total:plan.records.length,skipDetails,overwrite,allSites};
       const result={total:plan.records.length,accepted:accepted.length,
         skipped:plan.records.length-accepted.length,created,replaced,
+        skipCounts,skipDetails,
         issueCount:issues.length,
         issues:issues.slice(0,30).map(item=>({
           index:item.index,status:item.status,
@@ -615,13 +689,21 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
   }
   async function executeImport(source,format='auto',overwrite=false,{allSites=false}={}){
     const plan=importPlan,guard=lock();if(!guard)return false;
-    importPlan=null;importOutcome=null;let verified=0,complete=false,stage='validate';
+    importPlan=null;importOutcome=null;importConflicts=0;
+    let verified=0,complete=false,stage='validate',pending=0,knownStop=false;
+    const accepted=plan?.accepted.length||0,inputCount=plan?.total||0;
+    const counts=(failed,unknown)=>{
+      const details=[plan?.skipDetails,importConflicts?'精确冲突 '+importConflicts+' 条':''].filter(Boolean).join('、');
+      return '跳过 '+(inputCount-accepted+importConflicts)+' 条，失败 '+failed+' 条，未知 '+unknown+
+        ' 条，未执行 '+(accepted-verified-importConflicts-failed-unknown)+' 条。'+
+        (details?'跳过原因：'+details+'。':'');
+    };
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url||
         plan.source!==source||plan.format!==format||plan.overwrite!==overwrite||
-        plan.allSites!==allSites||!plan.accepted.length||
-        plan.accepted.some(({cookie})=>!cookie.session&&cookie.expirationDate<=Date.now()/1000))
-        throw Error('E_COOKIE_CONFLICT');
+        plan.allSites!==allSites||!accepted)throw failure('E_COOKIE_NOT_SUBMITTED');
+      if(plan.accepted.some(({cookie})=>!cookie.session&&cookie.expirationDate<=Date.now()/1000))
+        throw failure('E_COOKIE_EXPIRED');
       const batchSupported=adapter.supportsWriteMany();
       // The single-write adapter accepts normalized Cookie records, NOT the
       // already-serialized SDK payload produced by batches(). Re-serializing
@@ -630,31 +712,33 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
         plan.accepted.map(({cookie,target})=>({target,cookie}));
       for(const chunk of chunks){
         if(!canDispatch(guard)){
-          if(verified)warnCookieFailure('import','write',{code:'E_DOCUMENT_CHANGED'},'E_COOKIE_IMPORT','partial');
-          if(verified)reportPartialImport(verified,plan.accepted.length,'页面已变化，');
-          return false;
+          throw failure('E_COOKIE_NOT_SUBMITTED');
         }
         stage='write';beginEffect(guard,'import');
+        pending=batchSupported?chunk.cookies.length:1;
+        knownStop=false;
         if(batchSupported){
-          const receipt=await adapter.writeMany({url:chunk.url},chunk.cookies);
+          const receipt=await adapter.writeMany({url:chunk.url},chunk.cookies,{skipConflicts:!plan.overwrite});
           if(!ownsOperation(guard))return false;
           stage='receipt';
-          // The Host stops at the first failed entry. Its genuine partial
-          // receipt is a verified prefix followed by ONE failed row; it is
-          // intentionally shorter than the requested batch.
+          // A receipt accounts for a prefix of confirmed or skipped rows,
+          // optionally followed by one stopping failure.
           const results=receipt?.results;
           if(!Array.isArray(results)||!results.length||results.length>chunk.cookies.length)
             throw badReceipt();
-          let succeeded=0,failedCode=null;
+          let succeeded=0,skipped=0,failedCode=null;
           for(let i=0;i<results.length;i++){
             const part=results[i];
             if(part?.index!==i)throw badReceipt();
-            if(isVerified(part)){
+            if(isVerified(part)&&part.skipped===undefined&&part.code===undefined){
               if(failedCode!==null)throw badReceipt();
               succeeded++;
+            }else if(!plan.overwrite&&failedCode===null&&part?.skipped===true&&
+              part.saved===false&&part.verified===false&&part.code==='E_COOKIE_CONFLICT'){
+              skipped++;
             }else{
               if(failedCode!==null||receipt.stopped!==true||
-                part?.saved!==false||part?.verified!==false)
+                part?.saved!==false||part?.verified!==false||part?.skipped!==undefined)
                 throw badReceipt();
               failedCode=safeCode(part,'E_OUTCOME_UNKNOWN');
             }
@@ -663,65 +747,76 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
             (receipt.verified!==undefined&&receipt.verified!==succeeded))
             throw badReceipt();
           if(failedCode!==null){
-            if(results.length!==succeeded+1)throw badReceipt();
+            if(results.length!==succeeded+skipped+1)throw badReceipt();
             // Commit the known-good prefix only after validating the entire
             // Host receipt and its counters; malformed receipts stay unknown.
             verified+=succeeded;
+            importConflicts+=skipped;
+            knownStop=true;
             throw Object.assign(badReceipt(),{code:failedCode});
           }
           if(results.length!==chunk.cookies.length||receipt.stopped===true)
             throw badReceipt();
           verified+=succeeded;
+          importConflicts+=skipped;
         }else{
-          const receipt=await adapter.write(chunk.target,chunk.cookie,
-            {ifAbsent:!plan.overwrite});
+          const receipt=await adapter.write(chunk.target,chunk.cookie,{ifAbsent:!plan.overwrite}).catch(error=>{
+            if(plan.overwrite||error?.code!=='E_COOKIE_CONFLICT')throw error;
+            return {skipped:true};
+          });
           if(!ownsOperation(guard))return false;
           stage='receipt';
-          if(!isVerified(receipt))throw badReceipt();
-          verified++;
+          if(receipt?.skipped===true&&!plan.overwrite)importConflicts++;
+          else if(isVerified(receipt))verified++;
+          else throw badReceipt();
         }
         guard.effect=false;
       }
       complete=true;reportEffect(guard,'Chrome 回读确认导入 '+verified+' 条，跳过 '+
-        (plan.total-plan.accepted.length)+' 条。','success');
+        (plan.total-plan.accepted.length+importConflicts)+' 条。','success');
     }catch(error){if(ownsOperation(guard)){
-      if(error?.code==='E_COOKIE_NOT_SUBMITTED'){
+      const preflightExpired=stage==='validate'&&error?.code==='E_COOKIE_EXPIRED';
+      if(error?.code==='E_COOKIE_NOT_SUBMITTED'||error?.code==='E_COOKIE_BATCH_EXPIRED'||preflightExpired){
         warnCookieFailure('import',stage,error,'E_COOKIE_IMPORT',verified?'partial':'failed');
         guard.effect=false;
-        if(verified)reportPartialImport(verified,plan.accepted.length,'页面已变化，');
+        const expired=error.code==='E_COOKIE_BATCH_EXPIRED';
+        const reason=expired?'确认时限已到，':preflightExpired?'待导入的 Cookie 已过期，':'本次导入未提交，';
+        if(verified||importConflicts)reportPartialImport(verified,inputCount,reason,counts(0,0));
         else{
           importOutcome='denied';
-          reportEffect(guard,'本次导入未提交。请核对当前网页。','warning');
+          reportEffect(guard,reason+'本次未写入。'+counts(0,0)+'请核对后重新确认。','warning');
         }
         return false;
       }
       const prewriteDenied=importPrewriteDenials.has(error?.code);
-      if(verified>0&&prewriteDenied){
+      if((verified||importConflicts)&&prewriteDenied){
         warnCookieFailure('import',stage,error,'E_COOKIE_IMPORT','partial');
         rejectOperationAccess(guard,error);
         guard.effect=false;
         // Keep the count after hiding the revoked scope, without site or Cookie details.
-        reportPartialImport(verified,plan.accepted.length);
+        reportPartialImport(verified,inputCount,'',counts(knownStop?1:0,0));
         return false;
       }
       const denied=prewriteDenied;
       warnCookieFailure('import',stage,error,'E_COOKIE_IMPORT',
         !denied&&guard.effect?'unknown':'failed');
-      if(rejectOperationAccess(guard,error))return false;
+      if(denied)guard.effect=false;
+      rejectOperationAccess(guard,error);
       importOutcome=denied?'denied':'unknown';
       if(guard.effect&&importOutcome==='unknown')unknownEffects.add('import');
-      reportEffect(guard,'已确认 '+verified+'/'+(plan?.accepted.length||0)+
+      reportEffect(guard,'已确认 '+verified+'/'+inputCount+
         ' 条；'+(importOutcome==='denied'
           ?'本次写入被明确拒绝，后续未执行'
           :'其余结果未知或未执行，可能部分生效')+
-        formatCode(error,'E_COOKIE_IMPORT')+
+        formatCode(error,'E_COOKIE_IMPORT')+'。'+counts(denied&&knownStop?1:0,
+          !denied&&guard.effect?(knownStop?1:pending):0)+
         (importOutcome==='denied'
-          ?'。检查 Cookie 冲突或权限后，可重新发起新的导入。'
-          :'。先核对 Chrome，不能盲目重试。'),'error');
+          ?'检查 Cookie 冲突或权限后，可重新发起新的导入。'
+          :'先核对 Chrome，不能盲目重试。'),'error');
     }
     }finally{unlock(guard);}
     if(complete&&current(guard.ticket,guard.at)&&!navigationPending&&!navigationQueued)
-      await load(guard.at.url,{preserveMessage:true});
+      void syncMetadata({afterImport:true});
     return complete;
   }
   // A read started before any operation must stay retired even if that
@@ -729,9 +824,10 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
   function retireSync(){syncGeneration++;syncPending=null;}
   // Passive list refresh uses the public SDK and returns metadata only. It must
   // never erase a live editor, re-read Cookie values or trigger a write.
-  async function syncMetadata({canApply=()=>true,events=[]}={}){
+  async function syncMetadata({canApply=()=>true,events=[],afterImport=false}={}){
     if(closed||busy||navigationPending||phase!=='ready'||!target||!canApply()||
-      syncPending?.ticket===epoch||Date.now()<Math.max(nextAutomaticReadAt,rateLimitedUntil))return false;
+      syncPending?.ticket===epoch||Date.now()<rateLimitedUntil||
+      (!afterImport&&Date.now()<nextAutomaticReadAt))return false;
     nextAutomaticReadAt=Date.now()+navigationIntervalMs;
     const at=target,ticket=epoch,token={ticket,generation:syncGeneration},markRevision=changeRevision;
     syncPending=token;
@@ -905,14 +1001,14 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
     retryQueued?.(false);retryQueued=null;
     navigationPending=false;navigationQueued=false;navigationRun=null;verifiedScope=null;
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;importOutcome=null;
-    clearPlan=null;activeEffect=null;
+    discardClear();activeEffect=null;
   }
   // Initial state is available synchronously through snapshot(). Do not
   // dispatch a React setState from within App's first render.
   return {snapshot,load,retry,invalidate,getRow,readValue,save,remove,
     dismissPreviousReceipt:()=>{if(previousReceipt){previousReceipt=null;notify();}},
-    acknowledgeUnknown:effect=>{if(unknownEffects.delete(effect))notify();},
-    previewClear,executeClear,discardClear,previewImport,executeImport,
+    acknowledgeUnknown:effect=>{if(effect!=='clear'&&unknownEffects.delete(effect))notify();},
+    previewClear,executeClear,discardClear,verifyClearCurrentRecords,previewImport,executeImport,
     discardImport,dismissImportReport,exportTo,
     syncMetadata,syncNavigation,clearChanges,
     observationAccessLost:rejectLostAccess,dispose};

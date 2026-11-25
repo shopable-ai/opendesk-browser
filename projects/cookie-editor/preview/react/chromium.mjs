@@ -514,7 +514,9 @@ try{
   assert.equal(await page.locator('.cookie-row').count(),8);
   assert.equal(await page.locator('.cookie-import-panel').count(),0);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
-  assert.equal(await workspace.getByRole('checkbox',{name:'覆盖已有 Cookie'}).isChecked(),true);
+  const overwrite=workspace.getByRole('checkbox',{name:'覆盖已有 Cookie'});
+  assert.equal(await overwrite.isChecked(),false);
+  await overwrite.check();
   const input=workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'});
   await input.fill(JSON.stringify([{name:'import_a',value:'fictional A'},
     {name:'import_b',value:'fictional B'},{name:'bad name',value:'invalid'},
@@ -528,15 +530,15 @@ try{
   await row('theme').click();await valueInput().waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='overwrite existing');
   assert.equal(await valueInput().inputValue(),'overwrite existing',
-    'default checked import must replace the exact existing Cookie');
+    'explicit overwrite must replace the exact existing Cookie');
   await reset();
  });
- await test('unchecked overwrite skips existing and each fresh sheet restores checked default',async()=>{
+ await test('unchecked overwrite skips existing and each fresh sheet restores unchecked default',async()=>{
   await button('导入 Cookie').click();
   let sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
   const option=sheet.getByRole('checkbox',{name:'覆盖已有 Cookie'});
-  assert.equal(await option.isChecked(),true);
-  await option.uncheck();
+  assert.equal(await option.isChecked(),false);
+  await option.check();
   await sheet.getByRole('button',{name:'取消'}).click();
   await sheet.waitFor({state:'detached'});
   assert.equal(await page.getByRole('group',{name:'放弃导入内容'}).count(),0,
@@ -544,8 +546,7 @@ try{
   await button('导入 Cookie').click();sheet=page.getByRole('dialog',{name:'导入 Cookie'});
   await sheet.waitFor();
   const checkbox=sheet.getByRole('checkbox',{name:'覆盖已有 Cookie'});
-  assert.equal(await checkbox.isChecked(),true);
-  await checkbox.uncheck();
+  assert.equal(await checkbox.isChecked(),false);
   await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
     JSON.stringify([{name:'unchecked_added',value:'added'},
       {name:'theme',value:'must not overwrite'}]));
@@ -555,7 +556,7 @@ try{
   await row('theme').click();await valueInput().waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='light');
   assert.equal(await valueInput().inputValue(),'light',
-    'manually unchecked import must preserve existing Cookie');
+    'default import must preserve existing Cookie');
   await button('取消').click();await reset();
  });
  await test('invalid-domain errors stay in workspace; real file chooser click imports once',async()=>{
@@ -654,20 +655,19 @@ try{
    await sheet.waitFor({state:'detached'});
    await page.emulateMedia({reducedMotion:'no-preference'});
   });
-await test('export floats above the list, uses two tabs and closes on outside focus',async()=>{
+await test('export floats above the list, supports three keyboard tabs and closes on outside focus',async()=>{
   for(const width of atWidths([320,360,400,440])){
    await page.setViewportSize({width,height:760});
    await button('导出 Cookie').click();
    const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
    assert.equal(await page.locator('.cookie-row').count(),8,'list remains mounted');
-   assert.equal(await popup.getByRole('tab').count(),2);
-   assert.equal(await popup.getByRole('tab',{name:'Netscape'}).count(),0);
+   assert.deepEqual(await popup.getByRole('tab').allTextContents(),['JSON','Cookie Header','Netscape']);
    assert.equal(await popup.getByRole('tab',{name:'JSON'}).getAttribute('aria-selected'),'true');
    assert.equal(await page.locator('dialog:modal').count(),0);
    const box=await page.locator('.cookie-export-popover').boundingBox();
    const segment=await popup.locator('.cookie-export-tabs').boundingBox();
    const format=await popup.getByRole('tab',{name:'Cookie Header'}).boundingBox();
-   assert.ok(segment.width<230,'format control must be compact');
+   assert.ok(segment.x+segment.width<=box.x+box.width,'all format choices fit inside the popover');
    assert.ok(Math.abs(format.height-24)<=1,'format choice follows approved 24px chip');
    assert.ok(box.width<=317,'popover follows approved 316px maximum');
    if(width>=360)assert.ok(Math.abs(box.width-316)<=1,'popover is 316px when space permits');
@@ -687,6 +687,13 @@ await test('export floats above the list, uses two tabs and closes on outside fo
   await page.keyboard.press('ArrowRight');
   assert.equal(await popup.getByRole('tab',{name:'Cookie Header'}).getAttribute('aria-selected'),'true');
   assert.equal(await popup.getByRole('button',{name:'复制'}).isDisabled(),true,'partitioned data cannot export as header');
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await popup.getByRole('tab',{name:'Netscape'}).getAttribute('aria-selected'),'true');
+  await popup.getByRole('alert').filter({hasText:/分区 Cookie，Netscape/}).waitFor();
+  assert.equal(await popup.getByRole('button',{name:'复制'}).isDisabled(),true);
+  assert.equal(await popup.getByRole('button',{name:'下载'}).isDisabled(),true);
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await popup.getByRole('tab',{name:'JSON'}).getAttribute('aria-selected'),'true');
   // The anchored popover must not geometrically cover the search field.
   // A single real pointer click focuses search and dismisses the menu.
   const search=page.getByRole('searchbox',{name:'搜索 Cookie'});
@@ -697,6 +704,28 @@ await test('export floats above the list, uses two tabs and closes on outside fo
   await search.click();
   await popup.waitFor({state:'detached'});
   assert.equal(await search.evaluate(el=>el===el.ownerDocument.activeElement),true);
+ });
+ await test('Netscape export keeps opt-out and downloads a seven-column Cookie file',async()=>{
+  await page.getByTestId('site').selectOption('docs.example.org');await row('session_id').waitFor();
+  await button('导出 Cookie').click();
+  const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
+  const values=popup.getByRole('checkbox',{name:/包含 Cookie 值/});
+  await values.uncheck();
+  await popup.getByRole('tab',{name:'Netscape'}).click();
+  await popup.getByRole('alert').filter({hasText:/Netscape 需要包含 Cookie 值/}).waitFor();
+  assert.equal(await values.isChecked(),false);
+  assert.equal(await popup.getByRole('button',{name:'下载'}).isDisabled(),true);
+  await values.check();
+  const downloadEvent=page.waitForEvent('download');
+  await popup.getByRole('button',{name:'下载'}).click();
+  const download=await downloadEvent;await download.saveAs(join(output,'fictional-cookies.txt'));
+  const [header,...rows]=(await readFile(join(output,'fictional-cookies.txt'),'utf8')).trimEnd().split('\n');
+  assert.equal(header,'# Netscape HTTP Cookie File');
+  assert.deepEqual(rows.map(line=>line.split('\t')), [
+   ['docs.example.org','FALSE','/','TRUE','0','session_id','fictional_docs.example.org'],
+   ['docs.example.org','FALSE','/','FALSE','1839061800','theme','light']
+  ]);
+  await reset();
  });
  await test('export preserves search, list scroll and pending Host receipts',async()=>{
   await page.setViewportSize({width:360,height:420});

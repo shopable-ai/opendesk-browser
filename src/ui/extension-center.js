@@ -7,9 +7,11 @@ import {requireCompleteInstalledSidebarTools,requirePendingToolCleanups,MARKET_P
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE,requireToolRevocationEpochs} from './sidebar-tools/lifecycle.js';
 import {inspectUserScriptsAccess,userScriptsSettingsURL} from './user-scripts-access.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
+import {createExtensionRecovery} from '../sidebar-tools/recovery/controller.js';
+import {recoveryText} from './extension-recovery-localization.js';
 import {loadOfficialPageCatalog} from '../scripting/user-scripts/official-page-catalog.js';
 import {installedPageEnableAction,setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,isPinnedQueueRelease,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeInstalledPageControl,describePageDisableStatus,prioritizePinnedExtensionEntries,EXTENSION_CENTER_PIN_STORAGE_PREFIX,extensionCenterPinStorageKey} from './extension-center-model.js';
+import {composeExtensionEntries,isPinnedQueueRelease,filterExtensionEntries,describeInstalledAppSource,resolveExtensionPrimaryAction,describeInstalledPageControl,describePageDisableStatus,pageRequiresInstallReview,prioritizePinnedExtensionEntries,EXTENSION_CENTER_PIN_STORAGE_PREFIX,extensionCenterPinStorageKey} from './extension-center-model.js';
 import readingTocCatalog from '../../projects/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
@@ -22,30 +24,50 @@ import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
 import {SCROLL_CONFIG_PROGRAM_ID,scrollProgramUrlMatches} from '../scripting/user-scripts/scroll-config-contract.js';
 import {loadSendQueuePageCandidate,queuePageIdentity,sameQueuePageIdentity} from './send-queue-product.js';
 import {SEND_QUEUE_PIN} from '../platform/host/send-queue-admission.js';
+import {createExtensionDetailMemory,SIDEBAR_LAST_EXTENSION_DETAIL_KEY,
+  detailMemoryPreferenceKey,isExtensionDetailKey as isDetailKey} from './sidebar-extension-detail-memory.js';
+
+export {SIDEBAR_LAST_EXTENSION_DETAIL_KEY} from './sidebar-extension-detail-memory.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,currentPageTarget,localeController=null,toolLocaleService=null,extensionList=null,
   createScrollConversation=null,openAIProviderSettings=null,notify=null,
-  openTrustedUpdateReview=null}){
+  openTrustedUpdateReview=null,isSidePanel=()=>false,lockManager=doc.defaultView?.navigator?.locks}){
   const get=id=>doc.getElementById(id);
+  const extensionRecovery=createExtensionRecovery({api,lockManager,
+    notify:typeof notify==='function'?key=>{
+      notify(recoveryText(language(),key),{type:'success',position:'bottom-center'});
+      return true;
+    }:null,
+    async readPages(){
+      const response=await client.request('listPagePrograms',{});
+      return Array.isArray(response?.installed)?response.installed.filter(row=>row&&!row.appOwner):null;
+    },
+    openReview:(id,release)=>sidebarTools.openOfficialReview(id,release),openImport:()=>sidebarTools.openImport()});
+  const stopExtensionRecovery=extensionRecovery.start();
   const list=get('extension-center-list'),search=get('extension-center-search');
   const more=get('extension-center-more'),workspace=get('workspace-content');
+  const listScroller=get('extension-center-results')||workspace;
   if(!extensionList||extensionList.owner!=='extension-list'||list?.dataset.opendeskReactOwner!=='extension-list')
     throw new Error('E_REACT_LIST_OWNERSHIP');
   let disposed=false,sequence=0,officialSequence=0,pageOfficialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[],officialPages=[];
-  let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set(),freshPageCleanupIds=new Set();
+  let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set(),freshPageCleanupIds=new Set(),appEpochs={};
   let lastPageDiagnostics=[],pageDiagnosticsKnown=false,pageDiagnosticsRead=0;
   let appPages=[],appPageOwners={};
   const appPageFeedback=new Map();
   let companionSettingsOpening=false,companionSettingsFailed=false,companionChromeAccess;
   let pinnedKeys=new Set(),pinStateKnown=false,pinReadSequence=0;
   let connectionSeen=false,pendingPageReads=0,pageReadPending=false;
+  let appReadPending=false,detailRestoreStarted=false,detailRestoreCancelled=false,pendingDetailKey=null;
+  let detailBeforePanelVerification,detailRestoreChecking=false,detailRestoreClearing=false;
+  const detailPreferences=new Map();
   let pageRemovalPending=false,deferredInstallationRefresh=false;
   let toolbarMenuOpen=false,searchText='',languageManager=null,languageSession=0;
   let sources={};
   let catalogError='',pageCatalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
   let siteUpgradeError='',scrollDraft=null,scrollAwaitingReview=false,scrollWriteUnknown=false;
+  let scrollDetailSnapshot=null;
   // An unresolved turn remains fenced across closing/reopening its detail view.
   const scrollAIUnknown=new Set();
   let pageDiscovery=null,discoveryGeneration=0;
@@ -59,9 +81,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const scrollError=(key,code,parameters={})=>Object.assign(
     new Error(scrollNavigationMessageText(language(),{key,parameters})),{code,scrollMessage:{key,parameters}});
   const scrollErrorDetail=error=>error?.scrollMessage||errorText(error);
-  const pageActionLabel=page=>{
+  const pageActionLabel=(page,compact=false)=>{
+    if(page?.authorization?.status==='suspended')return t(compact?'restoreAction':'restoreAuto');
     const action=installedPageEnableAction(page);
-    return t(page?.authorization?.status==='suspended'?'restoreAuto':action.enabled?'enableAuto':'disableAuto');
+    return t(compact?(action.enabled?'enableApp':'disableApp'):(action.enabled?'enableAuto':'disableAuto'));
   };
   const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
     row.title===readingTocCatalog.messages['zh-CN'].title&&
@@ -83,7 +106,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     row.description===readingTocCatalog.messages['zh-CN'].description?
       uiMessage(readingTocCatalog,language(),'description'):row.description||'';
   const installedAppUsage=row=>{
-    if(row.record?.pageModule)return t('appInstalledUsage');
+    if(row.record?.pageModule)return row.enabled===false?t('appDisabledUsage'):'';
     if(row.queueProduct)return row.queueProduct.summary+' 官方发布仍受原目录状态限制；候选审阅不代表上架。';
     if(row.id===SEND_QUEUE_PIN.toolId&&!row.record?.pageModule&&row.enabled===false)
       return '队列管理界面已停用；已安装的网页发送能力由 Page 单独运行，不会因此自动停用。';
@@ -101,8 +124,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     if(row.enabled===false&&!readingTocOfficial(row))
       return t('appDisabledUsage');
-    if(!readingTocOfficial(row))
-      return t('appInstalledUsage');
+    if(!readingTocOfficial(row))return '';
     if(row.stateKnown===false)return '安装状态尚待核对；不会据此自动恢复目录。';
     if(row.enabled===false)return '阅读目录已被主动停用；可在设置中恢复。';
     return '阅读目录安装后会在符合条件的网页自动显示；无需再次启用或逐站授权。“打开”仅查看侧边栏目录。';
@@ -113,8 +135,142 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const all=()=>composeExtensionEntries({locale:language(),installed,pages,official:appStatusKnown?official:[],
     pageReleases:pageStatusKnown?officialPages:[],
     enabled,appStatusKnown,pageStatusKnown,cleanupPendingIds:[...pendingCleanups],
-    queueToolHash:sources[SEND_QUEUE_PIN.toolId]?.sha256??null});
+    queueToolHash:sources[SEND_QUEUE_PIN.toolId]?.sha256??null})
+    .map(row=>row.kind==='app'&&row.installed?{...row,installEpoch:appEpochs[row.id]??null}:row);
   const find=key=>all().find(row=>row.key===key);
+  function cancelDetailRestore(){
+    detailRestoreCancelled=true;
+    pendingDetailKey=null;
+  }
+  const detailMemory=createExtensionDetailMemory({storage:api.storage.local,locks:lockManager});
+  function detailMemoryFailed(error){
+    console.warn('Sidebar extension detail preference unavailable',error);
+    if(!disposed)message(()=>t('detailMemorySaveFailed'),'error','action');
+  }
+  function recordDetail(key,exitingKey=null){
+    const sidePanel=isSidePanel();
+    // Installed rows can load before Chrome finishes verifying this document.
+    // Retain only the latest choice (including Back) until proof is available.
+    if(sidePanel===undefined)detailBeforePanelVerification={key,exitingKey};
+    if(sidePanel!==true)return;
+    void (key===null?detailMemory.clear(saved=>saved===exitingKey):detailMemory.record(key)).catch(detailMemoryFailed);
+  }
+  function clearStoredDetail(matches,canClear=()=>true){
+    if(isSidePanel()!==true)return Promise.resolve(false);
+    return detailMemory.clear(matches,canClear).catch(error=>{detailMemoryFailed(error);return false;});
+  }
+  function forgetUninstalledDetail(key){
+    if(detailBeforePanelVerification?.key===key)detailBeforePanelVerification=undefined;
+    detailPreferences.delete(key);
+    // Installation lifecycle cleanup also applies when uninstalling from a tab.
+    void detailMemory.forget(key).catch(detailMemoryFailed);
+  }
+  async function readDetailPreference(key){
+    const previous=detailPreferences.get(key);
+    if(disposed||isSidePanel()!==true)return;
+    if(previous?.saving){previous.readAfterSaving=true;return;}
+    const state={...previous,loading:true,error:null,readAfterSaving:false};
+    detailPreferences.set(key,state);
+    if(selectedKey===key)renderDetail();
+    try{
+      const enabled=await detailMemory.readPreference(key);
+      if(disposed||detailPreferences.get(key)!==state)return;
+      Object.assign(state,{enabled,known:true});
+    }catch{
+      if(disposed||detailPreferences.get(key)!==state)return;
+      Object.assign(state,{known:false,error:'detailMemoryReadFailed'});
+    }finally{
+      state.loading=false;
+      if(!disposed&&detailPreferences.get(key)===state&&selectedKey===key)renderDetail();
+    }
+  }
+  async function setDetailPreference(key,enabled){
+    const previous=detailPreferences.get(key);
+    if(disposed||isSidePanel()!==true||previous?.saving||previous?.loading||!previous?.known)return;
+    const state={...previous,saving:true,error:null};
+    detailPreferences.set(key,state);renderDetail();
+    try{
+      const confirmed=await detailMemory.setEnabled(key,enabled);
+      if(disposed||detailPreferences.get(key)!==state)return;
+      if(state.readAfterSaving)return;
+      Object.assign(state,{enabled:confirmed,known:true});
+      message(()=>t(confirmed?'detailMemoryEnabled':'detailMemoryDisabled'),'success','action',{notifyOnly:true});
+    }catch{
+      if(disposed||detailPreferences.get(key)!==state)return;
+      // The write may have happened. Recheck is read-only, never an automatic retry.
+      Object.assign(state,{known:false,error:'detailMemorySaveFailed'});
+    }finally{
+      state.saving=false;
+      if(!disposed&&detailPreferences.get(key)===state){
+        if(state.readAfterSaving)void readDetailPreference(key);
+        else if(selectedKey===key)renderDetail();
+      }
+    }
+  }
+  function clearUnrestorableDetail(matches){
+    const stillRestoring=()=>!disposed&&!detailRestoreCancelled;
+    detailRestoreClearing=true;
+    void clearStoredDetail(matches,stillRestoring).then(cleared=>{
+      if(cleared&&stillRestoring())message(()=>t('detailRestoreUnavailable'),'info','action',{notifyOnly:true});
+    }).finally(()=>{detailRestoreClearing=false;});
+  }
+  function onSidePanelVerified(){
+    if(disposed||isSidePanel()!==true)return;
+    const pending=detailBeforePanelVerification;
+    detailBeforePanelVerification=undefined;
+    if(pending)recordDetail(pending.key,pending.exitingKey);
+    if(selectedInstalled)void readDetailPreference(selectedKey);
+  }
+  function restoreDetailIfReady(){
+    if(disposed||!pendingDetailKey||detailRestoreChecking)return;
+    if(doc.documentElement.dataset.opendeskTab!=='tools'||selectedKey||languageManager||busy||pendingKey||
+      get('sidebar-tool-list-view')?.hidden||sidebarTools.canPresentMarketReview?.()===false){
+      cancelDetailRestore();return;
+    }
+    const key=pendingDetailKey,isPage=key.startsWith('page:');
+    if(isPage?pageReadPending:appReadPending)return;
+    // A failed read is not evidence of removal. A later successful read can
+    // still restore the detail, unless the user has already chosen a view.
+    if(!(isPage?pageStatusKnown:appStatusKnown))return;
+    detailRestoreChecking=true;
+    let waiting=false;
+    void detailMemory.restore(key,()=>{
+      if(disposed||detailRestoreCancelled||pendingDetailKey!==key||
+        doc.documentElement.dataset.opendeskTab!=='tools'||selectedKey||languageManager||busy||pendingKey||
+        get('sidebar-tool-list-view')?.hidden||sidebarTools.canPresentMarketReview?.()===false)return false;
+      // The installation source may have refreshed while this lock waited.
+      // Unknown is still pending; only an authoritative absence can forget it.
+      waiting=(isPage?pageReadPending:appReadPending)||!(isPage?pageStatusKnown:appStatusKnown);
+      if(waiting)return false;
+      if(find(key)?.installed===true)return true;
+      detailRestoreClearing=true;
+      return 'invalid';
+    },()=>{openDetail(key,'main',{restore:true});cancelDetailRestore();})
+      .then(result=>{
+        if(pendingDetailKey!==key||waiting)return;
+        pendingDetailKey=null;
+        if(result==='invalid')message(()=>t('detailRestoreUnavailable'),'info','action',{notifyOnly:true});
+      })
+      .catch(detailMemoryFailed).finally(()=>{
+        detailRestoreChecking=false;detailRestoreClearing=false;
+        if(waiting)restoreDetailIfReady();
+      });
+  }
+  async function restoreLastDetail(){
+    if(disposed||isSidePanel()!==true||detailRestoreStarted||detailRestoreCancelled||
+      doc.documentElement.dataset.opendeskTab!=='tools')return;
+    detailRestoreStarted=true;
+    try{
+      const saved=await detailMemory.readLast();
+      if(disposed||detailRestoreCancelled||saved==null)return;
+      if(!isDetailKey(saved)){
+        clearUnrestorableDetail(current=>current!=null&&!isDetailKey(current));
+        return;
+      }
+      pendingDetailKey=saved;
+      restoreDetailIfReady();
+    }catch(error){console.warn('Sidebar extension detail preference unavailable',error);}
+  }
   function appPagePresentation(row){
     if(row.kind!=='app'||!row.installed||!row.record?.pageModule)return null;
     const owner=appPageOwners[row.id],module=row.record.pageModule;
@@ -145,12 +301,15 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const error=!appStatusKnown||!pageStatusKnown;
     const completed=presentations.some(row=>row.state==='ready'&&
       appPageFeedback.get(appPageOwners[row.key.slice(4)]?.installEpoch)?.completed===true);
-    return {rows,completed,loading:!hasLoaded,error:hasLoaded&&error,chromeAccess:companionChromeAccess,
+    return {rows,completed,loading:!hasLoaded,error:hasLoaded&&error,...webFeatureSettings(),
+      onRead:event=>{if(event?.isTrusted===true&&!disposed&&!busy&&!pendingKey&&!companionChecking())void refresh();}};
+  }
+  function webFeatureSettings(){
+    return {chromeAccess:companionChromeAccess,
       busy:Boolean(busy||pendingKey||companionChecking()||companionSettingsOpening),
       settingsFailed:companionSettingsFailed,
       settingsURL:userScriptsSettingsURL(api),
-      onSettings:event=>void openCompanionSettings(event),
-      onRead:event=>{if(event?.isTrusted===true&&!disposed&&!busy&&!pendingKey&&!companionChecking())void refresh();}};
+      onSettings:event=>void openCompanionSettings(event)};
   }
   function ownsCompanion(key,owner){
     return !disposed&&owner&&find(key)?.installed&&appPageOwners[owner.toolId]===owner;
@@ -164,7 +323,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(!url)throw uiError('companionManual');
       await api.tabs.create({url});companionSettingsFailed=false;
     }catch{companionSettingsFailed=true;}
-    finally{companionSettingsOpening=false;if(!disposed)syncFilters();}
+    finally{companionSettingsOpening=false;if(!disposed){syncFilters();if(selectedKey)renderDetail();}}
   }
   async function checkCompanion(key,owner,event,button){
     if(!event?.isTrusted||!ownsCompanion(key,owner)||!appPagePresentation(find(key))?.onCheck||
@@ -173,6 +332,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const hadFocus=doc.activeElement===button;
     appPageFeedback.set(owner.installEpoch,feedback);
     feedback.checking=true;feedback.completed=false;feedback.result=null;syncFilters();
+    if(selectedKey===key)renderDetail();
     let registrationConfirmed=false,pageReadback=false;
     try{
       const receipt=await client.request('checkAppPage',owner);
@@ -199,11 +359,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           }
         }
         syncFilters();
+        if(selectedKey===key)renderDetail();
         if(hadFocus&&button&&!button.isConnected&&(doc.activeElement===doc.body||doc.activeElement===button)){
-          const view=get('extension-center-web-features-view');
+          const view=get(selectedKey===key?'extension-center-detail-body':'extension-center-web-features-view');
           const row=[...view?.querySelectorAll('[data-web-feature-key]')||[]]
             .find(node=>node.dataset.webFeatureKey===key);
-          const target=row?.querySelector('h4')||get('extension-center-web-features-title');
+          const target=row?.querySelector('h4')||get(selectedKey===key?'extension-center-back':'extension-center-web-features-title');
           if(target?.getClientRects().length&&!target.closest('[hidden],[inert]'))target.focus({preventScroll:true});
         }
       }
@@ -246,7 +407,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(notifyOnly)return;
     lastMessage={value,state,origin};
     statusOrigin=origin;
-    extensionList.renderStatus({text:typeof value==='function'?value():value,state});
+    extensionList.renderStatus({text:typeof value==='function'?value():value,state,
+      pageReadOnly:origin==='read'&&Array.isArray(dataError)&&dataError.length===1&&dataError[0].key==='pagesError'});
   };
   function clearActionMessage(){
     if(statusOrigin!=='action')return;
@@ -300,10 +462,16 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       storeWebsiteStatus:OFFICIAL_STORE_WEBSITE.status,locale:language(),
       language:localeController?.getPreference?.()||language(),
       webFeatures:webFeaturesModel(),
+      extensionRecovery,
       onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
       onMarket(){if(!disposed)openStoreWebsite();},
       onLanguageSettings(event){if(event?.isTrusted===true&&!disposed)openLanguageSettings();},
       onDiscover(event){if(!disposed)void detectPageInstall(event);},
+      onDiscoverFromMenu(event){
+        if(event?.isTrusted!==true||disposed||!marketDiscoveryAvailable||scope!=='smart'||kind==='page'||busy||pendingKey)return;
+        scope='available';closeMenu(true);draw();void detectPageInstall(event);
+        requestAnimationFrame(()=>{if(!disposed&&document.activeElement===more)get('extension-center-discover')?.focus({preventScroll:true});});
+      },
       onToggleMenu(){if(disposed)return;closeRowMenu();toolbarMenuOpen=!toolbarMenuOpen;syncFilters();},
       onCloseMenu:closeMenu,
       onKind(value){if(disposed)return;kind=value;draw();},
@@ -408,22 +576,20 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const activate=event=>{
         const current=find(row.key);
         if(!event?.isTrusted||disposed||busy||pendingKey||(row.kind==='page'
-          ?!samePageIdentity(current,pageIdentity(row)):current?.record!==row.record))return;
+          ?!samePageIdentity(current,pageIdentity(row)):current?.record!==row.record||current?.installEpoch!==row.installEpoch))return;
         closeRowMenu(true);fn(event);
       };
       menuItems.push({id:actionId,label,onClick:activate});
     };
     if(row.kind==='app'){
-      if(row.queueProduct){
-        add(t('manageAction'),()=>openDetail(key,'more'),'product');
-      }
       if(!row.queueProduct&&row.stateKnown!==false&&typeof sidebarTools.toggleEnabled==='function')
         add(row.enabled?t('disableApp'):t('enableApp'),event=>{
           if(pendingKey)return;
           // Dispatch under the originating trusted click, before any Promise
           // or await; the original Sidebar Host keeps package/epoch/draft authority.
           let result;
-          try{result=sidebarTools.toggleEnabled(row.id,event);}
+          try{result=sidebarTools.toggleEnabled(row.id,event,{expectedPackage:row.record,
+            expectedEpoch:row.installEpoch,expectedEnabled:row.enabled});}
           catch(error){message((error?.code||'E_TOOL')+'：'+errorText(error),'error');return;}
           pendingKey=row.key;draw();
           // Host false may mean an unsaved-draft confirmation is pending.
@@ -452,20 +618,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           })();
         },'toggle');
       if(row.stateKnown!==false)
-        add(t('settingsAction'),()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
+        add(t('settingsAction'),()=>{backIfNeeded();openAppSettings(row,'more');},'settings');
       if(row.queueReviewRelease)
         add(t('reviewUpdateAction'),event=>{void reviewQueueProduct(row,event);},'queue-review');
       else if(row.update&&row.release)add(t('reviewUpdateAction'),event=>openReview(row.key,event),'update');
     }else if(row.kind==='page'){
-      if(row.stateKnown!==false)add(pageActionLabel(row.record.installed),
+      if(row.stateKnown!==false&&!pageRequiresInstallReview(row.record.installed))add(pageActionLabel(row.record.installed,true),
         event=>{void togglePage(row,event);},'toggle');
-      if(row.id!==SCROLL_CONFIG_PROGRAM_ID&&row.update&&row.release?.status==='available')
-        add(row.officialReview?t('reviewOfficialRelease'):t('reviewOfficialUpdate'),
-          ()=>openPageReview(row.key),'update');
-      else add(t('updateImport'),()=>{backIfNeeded();sidebarTools.openImport();},'update');
-      add(t('goDevelop'),()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
+      add(t(pageUpdateAction(row)),()=>openPageUpdateReview(row),'update');
+      add(t('developAction'),()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
-    add(t('viewAction'),()=>openDetail(key,'more'),'detail');
+    if(row.queueProduct)add('管理发送队列',()=>openDetail(key,'more'),'queue-manage');
+    else if(row.kind==='app'&&row.stateKnown===false)
+      add(t('refreshTrusted'),event=>{if(event?.isTrusted===true)void refresh();},'refresh-status');
     // Keep the destructive uninstall action last for existing keyboard End behavior.
     if(pinStateKnown&&row.stateKnown!==false){
       const pinned=pinnedKeys.has(row.key);
@@ -543,14 +708,16 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       try{
         outcome=await sidebarTools.uninstallFromList(review.id,review.package,event);
       }catch(error){operationError=error;}
-      try{readback=await refresh();}catch(error){operationError??=error;}
+      try{readback=await refresh({appReadback:true});}catch(error){operationError??=error;}
       if(disposed)return;
       if(operationError)message(()=>(operationError.code||'E_TOOL_UNINSTALL')+'：'+
         String(operationError.message||operationError)+
         t('noAutoRetry'),'error');
       else if(outcome===true&&readback&&appStatusKnown&&!find(review.key)?.installed&&
-        !pendingCleanups.has(review.id))
+        !pendingCleanups.has(review.id)){
+        forgetUninstalledDetail(review.key);
         message(()=>t('uninstallComplete'),'success','action',{hostNotified:true});
+      }
       else if(readback&&appStatusKnown&&!find(review.key)?.installed&&pendingCleanups.has(review.id))
         message(()=>t('uninstallCleanupPending'),'error');
       else if(outcome===false)
@@ -618,10 +785,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             /^[a-f0-9]{64}$/.test(row.release?.sha256||'')?
             {id:row.id,fromVersion:row.version,source:row.release.id,
               version:row.release.version,sha256:row.release.sha256}:null,
-          primaryAction:resolveExtensionPrimaryAction(row)?t('open'):null
+          primaryAction:resolveExtensionPrimaryAction(row)?t('open'):
+            row.kind==='page'&&row.installed?t('managePageAction'):
+            row.kind==='app'&&row.installed&&row.stateKnown!==false&&!row.queueProduct?t('settingsAction'):null,
+          onSelect:event=>openRow(row,event)
         })),
         busy:Boolean(busy||pendingKey),pendingKey,
-        onOpenRow:openRow,onMore:showRowMenu
+        onMore:showRowMenu
       });
     const showEmpty=rows.length===0&&orphaned.length===0&&hasLoaded;
     const emptyText=dataError?
@@ -630,7 +800,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       kind==='page'?t('noInstalledPages'):t('noInstalled');
     const countText=!hasLoaded?t('loading'):
       dataError?t('partialStatus'):t('count',{count:rows.length});
-    extensionList.renderFeedback({showEmpty,emptyText,countText});
+    const showLoading=!hasLoaded&&!dataError&&rows.length===0&&orphaned.length===0;
+    extensionList.renderFeedback({showLoading,showEmpty,emptyText,countText});
     syncFilters();
     syncListUninstallReview();
     if(!busy&&!pendingKey){
@@ -652,18 +823,30 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     syncFilters();
   }
+  function discoveredAppInstalled(release){
+    return appStatusKnown&&release&&installed.some(tool=>tool.id===release.toolId&&tool.version===release.version)&&
+      sources[release.toolId]?.kind==='market'&&sources[release.toolId].sha256===release.sha256;
+  }
   function renderPageDiscovery(){
     if(disposed)return;
+    const alreadyInstalled=discoveredAppInstalled(pageDiscovery?.release);
     extensionList.renderDiscovery?.(pageDiscovery?{
-      state:pageDiscovery.state,title:pageDiscovery.release?.packageTitle||pageDiscovery.title||t('currentPage'),
+      state:alreadyInstalled?'installed':pageDiscovery.state,title:pageDiscovery.release?.packageTitle||pageDiscovery.title||t('currentPage'),
       version:pageDiscovery.subject?.version||null,origin:pageDiscovery.pageOrigin||null,
-      message:typeof pageDiscovery.message==='function'?pageDiscovery.message():pageDiscovery.message||'',busy:Boolean(pageDiscovery.busy),
-      onReview:reviewDiscoveredPage,onRetry:detectPageInstall,onDismiss(){
+      message:alreadyInstalled?t('installed'):
+        typeof pageDiscovery.message==='function'?pageDiscovery.message():pageDiscovery.message||'',
+      busy:Boolean(pageDiscovery.busy),code:alreadyInstalled?null:pageDiscovery.code||null,
+      onReview:reviewDiscoveredPage,onInstalled:openDiscoveredApp,onRetry:detectPageInstall,onDismiss(){
         discoveryGeneration++;pageDiscovery=null;renderPageDiscovery();
         // Return keyboard focus to the persistent contextual action after close.
         get('extension-center-discover')?.focus({preventScroll:true});
       }
     }:null);
+  }
+  function openDiscoveredApp(event){
+    const release=pageDiscovery?.release;
+    if(event?.isTrusted!==true||!discoveredAppInstalled(release))return;
+    void openInstalledAppDetail({id:release.toolId,marketId:release.id,version:release.version,sha256:release.sha256});
   }
   async function detectPageInstall(event){
     if(disposed||busy||pendingKey||pageDiscovery?.busy||
@@ -675,8 +858,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     let target;
     try{target=currentPageTarget.capture();}
     catch(error){
-      pageDiscovery={state:'error',message:(error?.code||'E_DISCOVERY_TARGET')+'：'+
-        String(error?.message||t('pageNotReady'))};
+      pageDiscovery={state:'error',code:error?.code||'E_DISCOVERY_TARGET',
+        message:String(error?.message||t('pageNotReady'))};
       renderPageDiscovery();return;
     }
     pageDiscovery={state:'loading',target,message:()=>t('checkingDeclaration')};renderPageDiscovery();
@@ -695,15 +878,17 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       // The existing target subscription clears stale results after navigation.
       pageDiscovery=error?.code==='E_DISCOVERY_MISSING'
         ?{state:'empty',target,message:()=>t('noDeclaration')}
-        :{state:'error',target,message:(error?.code||'E_DISCOVERY')+'：'+
-          String(error?.message||t('invalidDeclaration'))};
+        :{state:'error',target,code:error?.code||'E_DISCOVERY',
+          message:String(error?.message||t('invalidDeclaration'))};
     }
     renderPageDiscovery();
   }
   async function reviewDiscoveredPage(event){
     const selected=pageDiscovery;
-    if(event?.isTrusted!==true||disposed||busy||pendingKey||selected?.state!=='found'||selected.busy)return;
+    if(event?.isTrusted!==true||disposed||busy||pendingKey||selected?.state!=='found'||selected.busy||
+      discoveredAppInstalled(selected.release))return;
     const generation=discoveryGeneration;
+    const isCurrent=()=>!disposed&&generation===discoveryGeneration&&pageDiscovery?.subject===selected.subject;
     pageDiscovery={...selected,busy:true};renderPageDiscovery();
     try{
       await currentPageTarget.revalidate(selected.target);
@@ -718,17 +903,27 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       // Channel, page DOM and release bytes are all rechecked on the trusted
       // review gesture. Stale discoveries cannot open a different app.
       await currentPageTarget.revalidate(selected.target);
-      if(disposed||generation!==discoveryGeneration||pageDiscovery?.subject!==selected.subject)return;
+      if(!isCurrent())return;
+      if(discoveredAppInstalled(fresh.release)){
+        pageDiscovery={...selected,busy:false};renderPageDiscovery();return;
+      }
       // Discovery is already inside the native Side Panel. Keep its verified
       // document, release and editor intact; use the original ImportSheet host.
       if(!sidebarTools.canPresentMarketReview()||
-        sidebarTools.openOfficialReview(selected.release.toolId)!==true)
+        sidebarTools.openOfficialReview(fresh.release.toolId,fresh.release,{fixedOfficial:true,onInstalled(){
+          if(!isCurrent())return;
+          discoveryGeneration++;pageDiscovery=null;renderPageDiscovery();
+        }})!==true)
         throw Object.assign(new Error(t('reviewDeferred')),{code:'E_REVIEW_DEFERRED'});
-      if(pageDiscovery?.subject===selected.subject)pageDiscovery={...selected,busy:false,
-        message:()=>t('reviewStarted')};
+      if(isCurrent())pageDiscovery={...selected,busy:false,
+        message:()=>t('matchedDeclaration'),code:null};
     }catch(error){
-      if(pageDiscovery?.subject===selected.subject)pageDiscovery={...selected,busy:false,
-        message:(error?.code||'E_DISCOVERY_REVIEW')+'：'+errorText(error)};
+      if(isCurrent()){
+        const failure={code:error?.code||'E_DISCOVERY_REVIEW',message:errorText(error)};
+        pageDiscovery=error?.code==='E_DISCOVERY_CHANGED'
+          ?{...failure,state:'error',target:selected.target}
+          :{...selected,...failure,busy:false};
+      }
     }
     renderPageDiscovery();
   }
@@ -791,28 +986,55 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(sidebarTools.openOfficialPageReview?.(row.release)!==true)
       message(()=>t('pageReviewUnavailable'),'error');
   }
-  // Product management opens in the existing trusted root; Page code is never
-  // passed to the sandbox ToolHost or executed by this presentation action.
-  function openRow(key){
-    const row=find(key);if(disposed||!row||busy||pendingKey||(scope!=='available'&&!row.installed&&!row.queueProduct?.pageInstalled))return;
-    if(resolveExtensionRowIntent(row)==='detail'){openDetail(key,'main');return;}
-    if(resolveExtensionPrimaryAction(row)?.id==='manage'){openDetail(key,'main');return;}
-    if(resolveExtensionPrimaryAction(row)?.id==='open'){
-      try{
-        if(!sidebarTools.openTool(row.id))
-          message(()=>t('appOpenDeferred'),'error');
-      }catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+errorText(error),'error');}
+  function pageUpdateAction(row){
+    return row.id!==SCROLL_CONFIG_PROGRAM_ID&&row.update&&row.release?.status==='available'?
+      'reviewUpdate':'importPagePackageAction';
+  }
+  function openPageUpdateReview(row){
+    if(!samePageIdentity(find(row.key),pageIdentity(row)))return;
+    if(pageUpdateAction(row)==='reviewUpdate')openPageReview(row.key);
+    else{
+      backIfNeeded();
+      if(sidebarTools.openImport?.()!==true)message(()=>t('pageReviewUnavailable'),'error');
     }
   }
-  function openDetail(key,returnAction='main'){
+  function openAppSettings(row,returnAction){
+    if(sidebarTools.openSettings(row.id,{returnAction,expectedPackage:row.record,expectedEpoch:row.installEpoch})===false)
+      message(()=>t('appOpenDeferred'),'error');
+  }
+  function openRow(baseline,event){
+    if(event?.isTrusted!==true||disposed||busy||pendingKey||selectedKey)return;
+    const row=find(baseline.key);
+    if(!row||row.enabled!==baseline.enabled||row.stateKnown!==baseline.stateKnown)return;
+    if(row.kind==='page'&&row.installed?!samePageIdentity(row,pageIdentity(baseline)):
+        row.record!==baseline.record||row.release!==baseline.release||row.installEpoch!==baseline.installEpoch)return;
+    if(!resolveExtensionPrimaryAction(row)){
+      if(row.kind==='app'&&row.installed&&row.stateKnown!==false&&!row.queueProduct){
+        openAppSettings(row,'main');
+        return;
+      }
+      openDetail(row.key,'main');
+      return;
+    }
+    try{
+      if(!sidebarTools.openTool(row.id,{expectedPackage:row.record,expectedEpoch:row.installEpoch}))
+        message(()=>t('appOpenDeferred'),'error');
+    }catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+errorText(error),'error');}
+  }
+  function openDetail(key,returnAction='main',{restore=false}={}){
     const row=find(key);if(disposed||!row||(scope!=='available'&&!row.installed&&!row.queueProduct?.pageInstalled))return;
+    if(!restore){
+      cancelDetailRestore();
+      if(row.installed)recordDetail(row.key);
+      else if(selectedInstalled)recordDetail(null,selectedKey);
+    }
     closeRowMenu();
     clearActionMessage();
     selectedInstalled=row.installed;uninstallReview=null;siteUpgradeError='';
     // A detail belongs to one reviewed package/revision, not merely a reusable ID.
     // Enable/disable and Page authorization may change without replacing that identity.
     selectedIdentity=row.kind==='app'?
-      (row.installed?{kind:'app-installed',package:structuredClone(row.record)}:
+      (row.installed?{kind:'app-installed',package:structuredClone(row.record),installEpoch:row.installEpoch}:
         {kind:'app-release',version:row.version,sha256:row.release?.sha256}):
       (row.installed?{kind:'page-installed',manifestHash:row.record?.manifestHash,
         revision:row.record?.installed?.revision,sourceHash:row.record?.installed?.sourceHash,
@@ -820,11 +1042,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         {kind:'page-release',version:row.release?.version,revision:row.release?.revision,
           sha256:row.release?.sha256??null,status:row.release?.status});
     focusKey=key;focusAction=returnAction;
-    listScroll=workspace?.scrollTop||0;selectedKey=key;detailFocusAction=null;
+    listScroll=listScroller?.scrollTop||0;selectedKey=key;detailFocusAction=null;
+    scrollDetailSnapshot=row.kind==='page'&&row.installed&&row.id===SCROLL_CONFIG_PROGRAM_ID?row:null;
     closeMenu();
     extensionList.renderView('detail');
-    if(row.kind==='page'&&row.installed&&!busy&&!pendingKey&&!pendingPageReads)void refresh();
+    if(!restore&&row.kind==='page'&&row.installed&&!busy&&!pendingKey&&!pendingPageReads)void refresh();
     renderDetail();workspace?.scrollTo?.({top:0});
+    if(row.installed)void readDetailPreference(row.key);
     get('extension-center-back')?.focus({preventScroll:true});
   }
   async function openInstalledAppDetail({marketId,id,version,sha256}={}){
@@ -860,7 +1084,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       row.enabled!==true||row.version!==version||source?.kind!=='market'||source.sha256!==sha256)
       return false;
     if(taskWorkbench.navigate('tools')===false)return false;
-    try{return Boolean(sidebarTools.openTool(id,{userInitiated:true}));}
+    try{
+      if(!sidebarTools.openTool(id,{userInitiated:true}))return false;
+      backIfNeeded();return true;
+    }
     catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+errorText(error),'error');return false;}
   }
   async function openInstalledLocalTool({id,version}={}){
@@ -870,21 +1097,27 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(!row||row.kind!=='app'||row.installed!==true||row.stateKnown!==true||
       row.enabled!==true||row.version!==version)return false;
     if(taskWorkbench.navigate('tools')===false)return false;
-    try{return Boolean(sidebarTools.openTool(id,{userInitiated:true}));}
+    try{
+      if(!sidebarTools.openTool(id,{userInitiated:true}))return false;
+      backIfNeeded();return true;
+    }
     catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+errorText(error),'error');return false;}
   }
-  function back(reason){
+  function back(reason,{remember=reason!==true}={}){
     if(disposed)return;
+    cancelDetailRestore();
+    if(remember&&selectedInstalled)recordDetail(null,selectedKey);
     if(reason!==true&&scrollDraft&&selectedKey==='page:'+SCROLL_CONFIG_PROGRAM_ID){
       scrollDraft=null;scrollAwaitingReview=false;
     }
     clearActionMessage();
     selectedKey=null;selectedInstalled=null;selectedIdentity=null;detailFocusAction=null;uninstallReview=null;
+    scrollDetailSnapshot=null;
     // Retire the actual detail consumer, including its pending AI lease, when
     // leaving or uninstalling it. Hiding a stale model keeps effects alive.
     extensionList.renderDetail(null);
     extensionList.renderView('list');
-    workspace?.scrollTo?.({top:listScroll});
+    listScroller?.scrollTo?.({top:listScroll});
     if(!restoreRowFocus(focusKey,focusAction))search.focus({preventScroll:true});
   }
   // UI requests may create only a draft package. The original Installer owns
@@ -937,12 +1170,15 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   function renderDetail(){
     if(disposed)return;
-    const row=find(selectedKey);
+    const currentRow=find(selectedKey);
+    // Keep only the open AI Scroll view on a read failure. This snapshot never
+    // participates in registry lookup, uninstall, or any write identity check.
+    const row=currentRow||(!pageStatusKnown&&scrollDetailSnapshot?.key===selectedKey?scrollDetailSnapshot:null);
     const identityChanged=Boolean(row&&row.installed===selectedInstalled&&(
       row.kind==='app'?
         (row.installed?
           (selectedIdentity?.kind!=='app-installed'||
-            !sameSidebarToolPackage(row.record,selectedIdentity.package)):
+            !sameSidebarToolPackage(row.record,selectedIdentity.package)||row.installEpoch!==selectedIdentity.installEpoch):
           (selectedIdentity?.kind!=='app-release'||row.version!==selectedIdentity.version||
             row.release?.sha256!==selectedIdentity.sha256)):
         (row.installed?(selectedIdentity?.kind!=='page-installed'||
@@ -957,17 +1193,24 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           row.release?.status!==selectedIdentity.status))
     ));
     if(!row||row.installed!==selectedInstalled||identityChanged){
-      back();
+      back(undefined,{remember:false});
       if(row&&!pageRemovalPending)message(()=>t('returnedToList'),'info');
       return;
     }
-    if(uninstallReview&&!pageRemovalPending&&!samePageIdentity(row,uninstallReview)){
+    const scrollDetail=Boolean(scrollDetailSnapshot);
+    if(scrollDetail&&currentRow)scrollDetailSnapshot=currentRow;
+    if(uninstallReview&&!pageRemovalPending&&!samePageIdentity(currentRow,uninstallReview)){
       uninstallReview=null;
       message(()=>t('pageReviewExpired'),'error');
     }
     const pendingReview=uninstallReview?.key===row.key?uninstallReview:null;
     const page=row.kind==='page'?row.record?.installed:null;
     const pageControl=page&&pageStatusKnown&&!pageReadPending?describeInstalledPageControl(page,pages,language()):null;
+    const scriptsBlocked=page?.error?.code==='E_USER_SCRIPTS_UNAVAILABLE';
+    const scriptsReadyForRecovery=scriptsBlocked&&companionChromeAccess===true&&pageControl?.canRestore;
+    const companion=appPagePresentation(row);
+    const localCompanion=companion?.requiresUserScripts===true&&!['ready','disabled'].includes(companion.state)
+      ?{...webFeatureSettings(),row:companion}:null;
     const confirmation=pendingReview?{
       text:t('pageUninstallConsequence'),
       onConfirm:confirmPageUninstall,onCancel:cancelPageUninstall
@@ -979,17 +1222,17 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(!busy&&!pendingKey)detailFocusAction=null;
       const actions=[];
       const identity=selectedIdentity;
-      const add=(label,id,onClick)=>actions.push({label,id,onClick(event){
+      const isCurrentDetail=()=>{
+        if(disposed||busy||pendingKey||selectedIdentity!==identity)return false;
         const current=find(row.key);
         // Page rows are fresh projections. Compare the pinned installation
         // identity, including its authorization generation, rather than wrappers.
-        if(disposed||busy||pendingKey||selectedIdentity!==identity||
-          (row.kind==='page'&&row.installed
-            ?!samePageIdentity(current,pageIdentity(row))
-            :row.kind==='page'
-              ?current?.installed!==false||current?.release!==row.release
-              :current?.record!==row.record||current?.release!==row.release))return;
-        onClick(event);
+        if(row.kind==='page')return row.installed?samePageIdentity(current,pageIdentity(row)):
+          current?.installed===false&&current.release===row.release;
+        return current?.record===row.record&&current?.release===row.release;
+      };
+      const add=(label,id,onClick)=>actions.push({label,id,onClick(event){
+        if(isCurrentDetail())onClick(event);
       }});
       if(row.kind==='app'){
         if(row.queueReviewRelease)
@@ -1023,7 +1266,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             });
           }
           if(row.stateKnown!==false)
-            add(t('settings'),'settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
+            add(t('settings'),'settings',()=>{const origin=focusAction;backIfNeeded();openAppSettings(row,origin);});
+          else add(t('reload'),'refresh-status',event=>{
+            if(event?.isTrusted===true)void refresh();
+          });
           if(row.update&&row.release&&!row.queueReviewRelease)add(t('reviewUpdate'),'update',event=>openReview(row.key,event));
         }
       }else if(row.kind==='page'&&!row.installed){
@@ -1034,23 +1280,52 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           add(pageActionLabel(row.record.installed),'toggle',
             event=>{void togglePage(row,event);});
         add(t('uninstallPageAction'),'uninstall',event=>openUninstallReview(row,event));
-        if(!pageControl)
-          add(t('goDevelop'),'develop',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();});
+        if(!pageControl&&!scrollDetail)add(t('refreshTrusted'),'refresh-status',event=>{
+          if(event?.isTrusted===true)void refresh();
+        });
       }
       extensionList.renderDetail({
         key:row.key,title:titleOf(row),type:typeOf(row),kind:row.kind,locale:language(),
         about:describeExtensionAbout(row),
-        description:row.kind==='page'?descriptionOf({...row,description:row.release?.description||''}):rowDescription(row),actions,busy:Boolean(busy||pendingKey),
+        detailMemory:row.installed&&isSidePanel()===true?{
+          ...detailPreferences.get(row.key),
+          onChange:(enabled,event)=>{
+            if(event?.isTrusted===true&&isCurrentDetail())void setDetailPreference(row.key,enabled);
+          },
+          onRetry:event=>{
+            if(event?.isTrusted===true&&isCurrentDetail())void readDetailPreference(row.key);
+          }
+        }:null,
+        description:row.kind==='page'?descriptionOf({...row,description:
+          page?.description||row.release?.description||''}):descriptionOf(row),actions,busy:Boolean(busy||pendingKey),
         focusAction:focused,
+        companion:localCompanion,
+        scrollStatusRead:scrollDetail&&!pageControl?{
+          state:pageReadPending?'checking':'failed',
+          onRetry:event=>{
+            if(event?.isTrusted!==true||disposed||busy||pendingKey||pageReadPending||pageStatusKnown||
+              selectedIdentity!==identity)return false;
+            void refresh();return true;
+          }
+        }:null,
         pageControl:pageControl?{
           ...pageControl,
+          ...(scriptsReadyForRecovery?{status:t('pageScriptsReadyForRecovery'),note:t('pageScriptsRestoreNote')}:null),
           busy:Boolean(busy||pendingKey),
+          canRestore:pageControl.canRestore&&(!scriptsBlocked||companionChromeAccess===true),
+          scriptsSettings:page.enabled===true&&companionChromeAccess!==true&&
+            ((page.authorization?.status==='active'&&page.nativeState==='waiting-user-scripts')||
+              page.error?.code==='E_USER_SCRIPTS_UNAVAILABLE')?webFeatureSettings():null,
+          onReview:pageControl.needsInstallReview?event=>{
+            if(event?.isTrusted===true&&isCurrentDetail())openPageUpdateReview(row);
+          }:null,
+          reviewLabel:pageControl.needsInstallReview?t(pageUpdateAction(row)):null,
           officialBlock:row.release?.status==='blocked'?row.release.blockedReason||t('releaseNotApproved'):null,
           onToggle:(value,event)=>{
             if(typeof value==='boolean'&&value!==page.enabled)void togglePage(row,event,value);
           },
           onRestore:event=>{
-            if(pageControl.canRestore)void togglePage(row,event,true);
+            if(pageControl.canRestore&&(!scriptsBlocked||companionChromeAccess===true))void togglePage(row,event,true);
           },
           onRefresh:event=>{
             if(event?.isTrusted===true&&!disposed&&!busy&&!pendingKey)void refresh();
@@ -1173,7 +1448,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
                   origin+(pathScope||'/'));
               }catch{return false;}
             },
-            disabledReason:!page?.enabled?scrollText('disabledApp'):
+            disabledReason:!pageControl?scrollText('autoRunUnavailable'):
+              !page?.enabled?scrollText('disabledApp'):
               page?.authorization?.status!=='active'||page?.nativeState!=='registered'||page?.error?
                 scrollText('disabledAuthorization'):null,
             async onRead(){
@@ -1259,8 +1535,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         }:null,
         suspended:page?.authorization?.status==='suspended',
         confirmation,
-        pageInfo:page?{
+        pageInfo:page&&(!scrollDetail||pageControl)?{
           source:t('unknownSource'),excluded:page.pageRules?.excludeMatches||[],
+          revision:page.revision,
           capabilities:page.authorization?.scope?.capabilities||[],
           networkOrigins:page.authorization?.scope?.networkOrigins||[],
           authorization:page.authorization?.status||t('unknown'),
@@ -1271,10 +1548,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           error:page.error?.message||null,
           dataRule:t('pageDataRule')
         }:null,
-        appDataText:row.kind==='app'&&row.installed?
-          t('appStorageUnknown'):'',
-        installationText:row.queueProduct?row.queueProduct.summary:row.installed?
-          (t('installedState',{state:row.stateKnown===false?t('stateUnverified'):
+        installationText:row.installed?
+          (t('installedState',{state:row.stateKnown===false||scrollDetail&&!pageControl?t('stateUnverified'):
             row.kind==='page'&&row.enabled&&
               (page?.nativeState!=='registered'||page?.authorization?.status!=='active'||page?.error)
               ?t('autorunNotReady'):row.enabled?t('enabled'):t('disabled')})):
@@ -1327,6 +1602,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         if(receipt?.error||!confirmedPageRemoval(receipt,review.pageIdentity)||
           !read||find('page:'+SEND_QUEUE_PIN.pageProgramId)?.installed)
           throw new Error('网页卸载未完整确认；侧栏保留，请核对部分状态');
+        forgetUninstalledDetail('page:'+SEND_QUEUE_PIN.pageProgramId);
         pageCleanupPending=receipt.cleanupPending===true;
       }
       const current=find(review.key);
@@ -1337,6 +1613,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(outcome!==true||!read||find(review.key)?.installed||pendingCleanups.has(review.id)||
         find('page:'+SEND_QUEUE_PIN.pageProgramId)?.installed)
         throw new Error('侧栏卸载或清理未完整确认，请核对部分状态');
+      forgetUninstalledDetail(review.key);
       if(pageCleanupPending)message(()=>t('pageRemovedCleanupNotice'),'info','action',{notifyOnly:true});
       else message('两份安装记录均已读回确认卸载；旧网页效果可能需要刷新。','success');
     }catch(error){
@@ -1351,6 +1628,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   async function toggleQueueProduct(row,event,desiredEnabled){
     if(!event?.isTrusted||disposed||busy||pendingKey||!row.queueProduct||
       !appStatusKnown||!pageStatusKnown)return;
+    const matchesApp=current=>current?.installed&&sameSidebarToolPackage(current.record,row.record)&&
+      current.installEpoch===row.installEpoch&&current.enabled===row.enabled;
+    if(!matchesApp(find(row.key)))return;
     const page=find('page:'+SEND_QUEUE_PIN.pageProgramId),identity=queuePageIdentity(page?.record?.installed);
     const target=desiredEnabled??(row.queueProduct.state!=='ready');
     if(page?.installed?!sameQueuePageIdentity(page.record.installed,row.pageCompanion.identity):row.pageCompanion.installed){
@@ -1375,9 +1655,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           throw new Error('网页启停尚未确认，侧栏保持原状态');
       }
       const current=find(row.key);
-      if(!current?.installed||!sameSidebarToolPackage(current.record,row.record)||current.enabled!==row.enabled)
+      if(!matchesApp(current))
         throw new Error('侧栏安装或启停状态已变化，请重新核对');
-      const outcome=current.enabled===target?true:await sidebarTools.toggleEnabled(row.id,event);
+      const outcome=current.enabled===target?true:await sidebarTools.toggleEnabled(row.id,event,{
+        expectedPackage:row.record,expectedEpoch:row.installEpoch,expectedEnabled:row.enabled});
       const read=await refresh();
       const confirmed=find('page:'+SEND_QUEUE_PIN.pageProgramId)?.record?.installed;
       const pageConfirmed=identity?confirmed?.manifestHash===identity.manifestHash&&
@@ -1430,6 +1711,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         t('verifyBeforeRetry'),'error');
       else if(confirmedPageRemoval(outcome,expected)&&
         readback&&pageStatusKnown&&!find(expected.key)?.installed){
+        forgetUninstalledDetail(expected.key);
         // Historical cleanup only selects optional recovery advice after success.
         if(freshPageCleanupIds.has(expected.programId))
           message(()=>t('pageRemovedCleanupNotice'),'info','action',{notifyOnly:true});
@@ -1452,6 +1734,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const installationId=installed.authorization?.installationId;
     const generation=installed.authorization?.generation;
     const targetEnabled=typeof desiredEnabled==='boolean'?desiredEnabled:installedPageEnableAction(installed).enabled;
+    if(targetEnabled&&pageRequiresInstallReview(installed))return;
     if(typeof desiredEnabled==='boolean'&&desiredEnabled===installed.enabled&&
       !(desiredEnabled&&describeInstalledPageControl(installed,pages)?.canRestore))return;
     const inDetail=selectedKey===row.key;
@@ -1542,7 +1825,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const id=++sequence;
     const current=()=>!disposed&&id===sequence;
     let appsDone=false,pagesDone=false,appsError=null,pagesError=null;
-    pageReadPending=true;
+    appReadPending=true;pageReadPending=true;
+    if(scrollDetailSnapshot)renderDetail();
     function publish(){
       if(!current())return;
       const errors=[appsError,pagesError].filter(Boolean);
@@ -1564,6 +1848,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         }
       }
       if(selectedKey)renderDetail();
+      restoreDetailIfReady();
     }
     // Local applications do not depend on the Page Authority's connection or
     // native readback. Publish each validated source as soon as it is ready;
@@ -1582,7 +1867,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const nextOwners=Object.fromEntries(await Promise.all(nextInstalled.filter(tool=>tool.pageModule&&epochs[tool.id]).map(async tool=>
         [tool.id,{toolId:tool.id,installEpoch:epochs[tool.id],packageHash:await sidebarToolPackageHash(tool)}])));
       if(!current())return;
-      installed=nextInstalled;enabled=nextEnabled;sources=nextSources;
+      installed=nextInstalled;enabled=nextEnabled;sources=nextSources;appEpochs=epochs;
       appPageOwners=nextOwners;
       const retained=new Set(Object.values(nextOwners).map(owner=>owner.installEpoch));
       for(const epoch of appPageFeedback.keys())if(!retained.has(epoch))appPageFeedback.delete(epoch);
@@ -1590,10 +1875,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }catch(error){
       if(!current())return;
       // Do not advertise a previously cached registry as a current installation.
-      installed=[];enabled={};sources={};appPageOwners={};pendingCleanups=new Set();appStatusKnown=false;
+      installed=[];enabled={};sources={};appEpochs={};appPageOwners={};pendingCleanups=new Set();appStatusKnown=false;
       appsError={key:'appsError',error};
     }
-    appsDone=true;publish();})();
+    appReadPending=false;appsDone=true;renderPageDiscovery();publish();})();
     const readPages=(async()=>{const finishDiagnostics=startPageDiagnosticsRead();pendingPageReads++;try{
       const response=await client.request('listPagePrograms',{});
       if(!current())return;
@@ -1627,6 +1912,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     await readPinnedState();
     if(!current())return false;
     draw();
+    if(selectedKey)renderDetail();
     return appReadback?appStatusKnown:pageReadback?pageStatusKnown:!dataError;
   }
   async function readOfficial(){
@@ -1657,7 +1943,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       draw();if(selectedKey)renderDetail();
     }
   }
-  const syncLanguage=()=>{if(disposed)return;draw();if(selectedKey)renderDetail();
+  const syncLanguage=()=>{if(disposed)return;draw();renderPageDiscovery();if(selectedKey)renderDetail();
     if(typeof lastMessage?.value==='function')message(lastMessage.value,lastMessage.state,lastMessage.origin);
   };
   const stopLanguage=localeController?.subscribe?.(syncLanguage);
@@ -1670,7 +1956,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   });
   void localeController?.ready?.then(syncLanguage);
   extensionList.connectBack(back);
-  function backIfNeeded(){if(selectedKey)back(true);}
+  function backIfNeeded(){if(selectedKey)back(true,{remember:true});}
   // The action owns its fresh readback. Coalesce passive notifications until
   // it finishes so they cannot supersede confirmation or lose later changes.
   function refreshFromInstallationChange(){
@@ -1682,6 +1968,18 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(deferredInstallationRefresh){deferredInstallationRefresh=false;if(!disposed)void refresh();}
   }
   const storageChanged=(changes,area)=>{
+    if(area==='local'){
+      const last=changes[SIDEBAR_LAST_EXTENSION_DETAIL_KEY];
+      // A newer document's navigation wins over a choice awaiting native proof.
+      if(last)detailBeforePanelVerification=undefined;
+      // Our successful invalidation can notify this document before set()
+      // resolves. It must not cancel its own single unavailable notice.
+      if(last&&pendingDetailKey&&last.newValue!==pendingDetailKey&&
+        !(last.newValue===null&&detailRestoreClearing))cancelDetailRestore();
+      if(selectedInstalled&&detailMemoryPreferenceKey(selectedKey) in changes)void readDetailPreference(selectedKey);
+      for(const key of detailPreferences.keys())if(key!==selectedKey&&detailMemoryPreferenceKey(key) in changes)
+        detailPreferences.delete(key);
+    }
     if(area==='local'&&Object.keys(changes).some(key=>key.startsWith(EXTENSION_CENTER_PIN_STORAGE_PREFIX)))
       void readPinnedState().then(()=>{if(!disposed)draw();});
     if(area==='local'&&(SIDEBAR_TOOL_STORE in changes||SIDEBAR_TOOL_ENABLE_STORE in changes||MARKET_PROVENANCE_STORE in changes||
@@ -1691,7 +1989,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const pageInstallationChanged=refreshFromInstallationChange;
   const refreshCompanionOnReturn=()=>{
     if(!busy&&!pendingKey&&!companionSettingsOpening&&!companionChecking()&&
-      (appPages.length||get('extension-center-web-features-view')))
+      (appPages.length||selectedKey?.startsWith('page:')||get('extension-center-web-features-view')))
       refreshFromInstallationChange();
   };
   const languageSettingsRequested=event=>openLanguageSettings(event.detail?.toolId);
@@ -1707,11 +2005,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     connectionSeen=true;
     if(state.connected&&!initialReadOwnsConnection)refreshFromInstallationChange();
   });
-  message(()=>t('loadingInstalled'),'loading','loading');draw();
+  draw();
   void readDiscoveryChannel();void readOfficial();void readPageOfficial();void refresh();
-  return {refresh,openInstalledAppDetail,openInstalledMarketApp,openInstalledLocalTool,
+  return {refresh,onSidePanelVerified,restoreLastDetail,cancelDetailRestore,exitDetail:backIfNeeded,openInstalledAppDetail,openInstalledMarketApp,openInstalledLocalTool,
     reportPanelNavigation:value=>message(value?String(value):()=>t('marketDeferred'),'error'),
-    dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;discoveryChannelGeneration++;
+    dispose(){if(disposed)return;disposed=true;stopExtensionRecovery();sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;discoveryChannelGeneration++;
     listUninstallReview=null;uninstallReview=null;closeRowMenu();
     doc.removeEventListener('opendesk-language-settings',languageSettingsRequested);
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);

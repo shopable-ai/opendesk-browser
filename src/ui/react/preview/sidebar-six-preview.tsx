@@ -29,7 +29,7 @@ get('develop-dock').replaceWith(developerDockHost);
 const developerView=createDeveloperPreviewView();
 const panels=names.map(key=>key==='develop'?developerPageHost:get('workbench-'+key));
 const controls=get('od-sidebar-preview-controls');
-const toolbar=get('extension-center-list-view').querySelector('.ec-toolbar');
+const toolbar=get('extension-center-toolbar');
 const extensionList=get('extension-center-list');
 const extensionDetail=get('extension-center-detail-body');
 const extensionEmpty=get('extension-center-empty');
@@ -178,9 +178,7 @@ function Preview(){
     extensionRecords.filter(row=>(kind==='all'||row.kind===kind)&&
       (scope!=='smart'||row.installed)&&
       (scope!=='available'||!row.installed||row.update)&&
-      (!search||[row.title,row.description,row.type].join(' ').includes(search)))
-      .map(row=>({...row,primaryAction:row.kind==='app'&&row.installed&&
-        row.enabled===true&&!['unknown','disconnected'].includes(scene)?'打开':''})),
+      (!search||[row.title,row.description,row.type].join(' ').includes(search))),
     [scene,kind,scope,search,extensionRecords]);
   const opened=extensionRecords.find(row=>row.key===openToolKey&&row.kind==='app'&&
     row.installed===true&&row.enabled===true)||null;
@@ -205,14 +203,16 @@ function Preview(){
     window.addEventListener('message',receive);frame?.addEventListener('load',loaded);
     return ()=>{window.removeEventListener('message',receive);frame?.removeEventListener('load',loaded);};
   },[clipperPreviewOpened]);
-  // Mirrors resolveExtensionRowIntent: an active installed app opens usage UI.
-  // All Host, install, permissions and Sandbox behavior remain unavailable here.
+  // Mirrors the product row; previews never start a real extension.
   const openExtensionRow=key=>{
     const row=extensionRecords.find(item=>item.key===key);
     if(row?.kind==='app'&&row.installed&&row.enabled===true&&
       !['unknown','disconnected'].includes(scene)){
       setSelected(null);setImportOpen(false);setOpenToolKey(key);
       setToolSettingsOpen(false);setToolFeedback('');
+    }else if(row?.kind==='app'&&row.installed&&!['unknown','disconnected'].includes(scene)){
+      setSelected(null);setImportOpen(false);setOpenToolKey(key);
+      setToolSettingsOpen(true);setToolFeedback('');
     }else{setOpenToolKey(null);setSelected(key);}
   };
   const detail=selected===null?null:(()=>{
@@ -332,7 +332,7 @@ function Preview(){
     taskDock.hidden=tab!=='tasks';
     workflowDock.hidden=true; // No real workflow RunHost in preview.
     dock.hidden=(tab!=='tasks'&&tab!=='develop')||(tab==='tasks'&&taskMode!=='list');
-    get('extension-center-list-view').hidden=!!detail;
+    toolbar.hidden=get('extension-center-list-view').hidden=!!detail;
     get('extension-center-detail').hidden=!detail;
     const intro=get('workflow-chat-intro');
     intro.hidden=transcript.length>0;
@@ -672,9 +672,11 @@ function Preview(){
         setNotice('仅预览 · 可审阅本地 JSON；不会触发真实安装');},
       onReload:()=>setNotice('仅预览 · 已展示当前内存状态；没有真实安装回读')
     }}/>,toolbar)}
-    {createPortal(<ExtensionRows rows={rows} busy={scene==='loading'}
+    {createPortal(<ExtensionRows rows={rows.map(row=>({...row,primaryAction:
+      row.kind==='app'&&row.installed&&!['unknown','disconnected'].includes(scene)?
+        row.enabled===true?'打开':'设置':null}))} busy={scene==='loading'}
       pendingKey={null} menuKey={null} onOpenRow={openExtensionRow}
-      onMore={setSelected}/>,extensionList)}
+      onMore={key=>setNotice('仅预览 · '+(extensionRecords.find(row=>row.key===key)?.title||'扩展')+'的管理菜单')}/>,extensionList)}
     {createPortal(opened&&<section className="od-preview-card od-stack"
       aria-label="已安装工具使用页面 · 仅预览">
       <strong>{clipperPreviewOpened?'网页剪藏 · 正式业务源码预览':'工具工作区 · '+opened.title}</strong>

@@ -136,7 +136,8 @@ const createCloudHosting=historyUI.createCloudHosting;
 if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
-let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,marketPanelIntents=null,livePreview=null,toolDevelopmentControls=null,marketInstallSheet=null;
+let trustedHistoryWorkbench=null,shellClosed=false,panelToolIntents=null,marketPanelIntents=null,livePreview=null,toolDevelopmentControls=null,marketInstallSheet=null;
+let verifiedSidePanel; // Pending until Chrome classifies this document.
 let panelPreviewId=null,panelPreviewKey=null,panelPreviewListener=null,panelPreviewEpoch=0;
 // Do not construct or query the privileged History controller while Extensions
 // (or any ordinary tab) is active. Leaving Debug also clears private results.
@@ -271,7 +272,10 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   notify:(message,options)=>toolView.showToast(message,{position:'bottom-center',...options}),
   debugEnabled,isAppDebugAllowed:()=>verifiedSidePanel&&Boolean(panelPreviewId),
   onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
-  onTabSelected:(view,options)=>tabMemory.record(view,options),
+  onTabSelected:(view,options)=>{
+    if(!options.initial&&view!=='tools')extensionCenter?.exitDetail();
+    tabMemory.record(view,options);
+  },
   reactNavigation,myView,developerView});
 extensionList.renderNavigation(pendingReactTab);
 // R1.2 is one business adapter on the existing trusted Client and exact RunHost.
@@ -291,7 +295,7 @@ const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:founda
     if(Object.values(rows||{}).some(row=>!['ACKNOWLEDGED','FAILED_CONFIRMED'].includes(row?.state)))return false;
     return providerRuntime.developmentIdle()&&nativeAgentHost.developmentIdle();
   },
-  isVerifiedSidePanel:()=>verifiedSidePanel&&!shellClosed});
+  isVerifiedSidePanel:()=>verifiedSidePanel===true&&!shellClosed});
 const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
   // New persistent candidates have one SW/Offscreen owner. Old manual and
   // already-in-flight panel requests retain this exact Host and transport.
@@ -403,7 +407,7 @@ workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptE
 extensionList.connectWorkflowPage(workflowView);
 // app.html owns only ToolHost; the Side Panel alone renders the list nodes.
 const extensionCenter=hostUrl.pathname===APP_DOCUMENT_PATHNAME?null:createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList,
-  openTrustedUpdateReview,
+  openTrustedUpdateReview,isSidePanel:()=>verifiedSidePanel,
   notify:(message,options)=>toolView.showToast(message,options),
   createScrollConversation:identity=>createBusinessConversation({api:chrome,providerRuntime,hostInstanceId,
     consumerId:'scroll-navigation',policy:scrollConversationPolicy,...identity}),
@@ -583,13 +587,14 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   // catalog-only layout from hiding them after an asynchronous reclassification.
   const actualSidePanel=await isActualSidePanelContext({api:chrome,href:hostUrl.href});
   if(shellClosed)return;
+  verifiedSidePanel=actualSidePanel;
   // Only the native Side Panel context can reinterpret a saved toolId
   // locator as a compact panel; legacy tab links stay PC presentation.
   currentToolSurface=verifiedToolSurface(hostUrl.pathname,hasToolLocator,actualSidePanel);
   if(actualSidePanel||!tab?.id){
     sidebarSurface=true;
     if(actualSidePanel){
-      verifiedSidePanel=true;
+      extensionCenter.onSidePanelVerified();
       // Count a verified Side Panel document, never React renders or SW wakeups.
       // The trusted collector deduplicates this canonical hostInstanceId on reload.
       try{void Promise.resolve(chrome.runtime.sendMessage({
@@ -615,10 +620,6 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     if(actualSidePanel){
       await sidebarTools.ready;
       if(shellClosed)return;
-      const panelWindow=await chrome.windows.getCurrent();
-      if(Number.isSafeInteger(panelWindow?.id))
-        void attachPanelPreview(panelWindow.id).catch(error=>
-          panelPreviewStatus('应用调试连接失败：'+String(error.message||error),true));
       marketInstallSheet=createMarketInstallSheet({api:chrome,view:toolView,pageClient:foundationClient,
         assertCanInstall:id=>sidebarTools.assertCanInstallMarketTool(id),
         hasOtherReview:()=>sidebarTools.hasInstallReview()||Boolean(document.querySelector('[role="dialog"][aria-modal="true"]')),
@@ -627,6 +628,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
         canAutoOpen:()=>sidebarTools.canPresentMarketReview(),
         openInstalledApp:async identity=>{
           if(shellClosed||!verifiedSidePanel||!sidebarTools.canPresentMarketReview())return false;
+          extensionCenter.cancelDetailRestore();
           return extensionCenter.openInstalledMarketApp(identity);
         }});
     }
@@ -641,6 +643,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
           if(shellClosed||!verifiedSidePanel)return blocked('真实 Side Panel 已关闭，原请求仍可恢复。');
           if(!await verifyMarketPanelNavigationSource(chrome,request))
             return changed('来源窗口或浏览器文档身份已变化，旧导航请求不会执行。');
+          extensionCenter.cancelDetailRestore();
           let reviewedRelease=null;
           if(request.source==='built-in'&&request.action!=='open-local'){
             const release=request.updateSource?await resolveOnlineUpdateRelease({toolId:request.toolId,
@@ -698,8 +701,11 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       });
       try{
         const currentWindow=await chrome.windows.getCurrent();
-        if(!shellClosed&&Number.isSafeInteger(currentWindow?.id))
+        if(!shellClosed&&Number.isSafeInteger(currentWindow?.id)){
           marketPanelIntents.start(currentWindow.id);
+          void attachPanelPreview(currentWindow.id).catch(error=>
+            panelPreviewStatus('应用调试连接失败：'+String(error.message||error),true));
+        }
       }catch(error){console.warn('Market panel receiver unavailable',error);}
     }
     // The React ToolHost already renders a selected installed app. A trusted,
@@ -708,8 +714,9 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       onOpen:async toolId=>{
         await sidebarTools.ready;
         if(shellClosed||!sidebarSurface)return;
+        extensionCenter?.cancelDetailRestore();
         if(taskWorkbench.navigate('tools')===false)return;
-        sidebarTools.openTool(toolId);
+        if(sidebarTools.openTool(toolId))extensionCenter?.exitDetail();
       },
       onError:error=>console.warn('Sidebar targeted tool navigation',error)
     });
@@ -718,6 +725,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       if(!shellClosed&&Number.isSafeInteger(currentWindow?.id))
         panelToolIntents.start(currentWindow.id);
     }catch(error){console.warn('Sidebar targeted tool navigation unavailable',error);}
+    if(actualSidePanel&&!hasToolLocator)void extensionCenter.restoreLastDetail();
     return;
   }
   if(takeWebFeaturesHelp(globalThis.sessionStorage,hostUrl.href)){
@@ -802,6 +810,7 @@ async function receiveMenuLaunch(){
   const row=Object.values(stored).filter(value=>value?.state==='pending'&&!value.boundTo&&
     value.windowId===windowId&&Date.now()<value.expiresAt).sort((a,b)=>b.issuedAt-a.issuedAt)[0];
   if(!row||row.ticketId===lastMenuTicket)return;
+  extensionCenter?.cancelDetailRestore();
   lastMenuTicket=row.ticketId;menuOpening=true;
   let binding=null;
   try{
@@ -814,6 +823,7 @@ async function receiveMenuLaunch(){
     void launchGate.catch(()=>{}); // A detached iframe still leaves a settled gate.
     const token=sidebarTools.openTool(row.toolId,{launchGate});
     if(!token)throw new Error('目标工具未启用、已切换或无法启动');
+    extensionCenter?.exitDetail();
     const result=await chrome.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
       operation:'browser.launch.bind',hostInstanceId,toolId:row.toolId,
       launchId:row.ticketId,toolInstance:token});
@@ -836,6 +846,11 @@ const listeners = [];
 const listen = (element, event, listener, options) => {
   element.addEventListener(event, listener, options); listeners.push({element, event, listener, options});
 };
+// Input can arrive before Chrome identifies this document or the saved detail is read.
+const cancelDetailOnInput=event=>{if(event.isTrusted)extensionCenter?.cancelDetailRestore();};
+listen(document,'pointerdown',cancelDetailOnInput,true);
+listen(document,'keydown',cancelDetailOnInput,true);
+listen(document,'click',cancelDetailOnInput,true);
 const developHostControls = createDeveloperHostControls({api:chrome, client:foundationClient, view:developerView, currentPageTarget});
 Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.freeze({
   snapshot: () => snapshotToolResources(scriptEditor.resourceSnapshot(),

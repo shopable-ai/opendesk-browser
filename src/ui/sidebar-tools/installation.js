@@ -11,7 +11,7 @@ import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_R
 import {CLIP_SITE_STORE} from '../../../projects/web-markdown-clipper/trusted/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue,stableStorageString} from './storage-state.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE,requirePendingToolCleanups,sidebarToolStopLock} from './lifecycle.js';
 import {toolLocaleStorageKey} from './locale-packs.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../platform/protocol.js';
 import {TIME_REVIEW_KEY} from '../../../projects/time-review/trusted/model.js';
@@ -111,16 +111,22 @@ async function stopInstalledToolOwnedServices(api,toolId){
   if(localFailure)throw localFailure;
 }
 
-export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabled,pageClient=null}){
+export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabled,pageClient=null,
+  expectedEpoch,expectedEnabled}){
   if(typeof enabled!=='boolean')throw error('工具启停状态无效','E_TOOL_SCHEMA');
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
-  return lockManager.request('opendesk.sidebar-tools:tool:'+tool.id,()=>
+  const transact=()=>lockManager.request('opendesk.sidebar-tools:tool:'+tool.id,()=>
     lockManager.request('opendesk.sidebar-tools:catalog',async()=>{
       const current=(await getInstalledSidebarTools(api)).find(row=>row.id===tool.id);
       if(!sameSidebarToolPackage(current,tool))throw error('工具已更新或卸载，请重新打开详情','E_TOOL_CHANGED');
       const raw=(await api.storage.local.get(SIDEBAR_TOOL_ENABLE_STORE))[SIDEBAR_TOOL_ENABLE_STORE];
       const previous=requireToolEnableRecords(raw);
       const currentlyEnabled=previous[tool.id]!==false;
+      const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
+      const epochs=requireToolRevocationEpochs(rawEpochs);
+      if((expectedEpoch!==undefined&&(epochs[tool.id]??null)!==expectedEpoch)||
+        (expectedEnabled!==undefined&&currentlyEnabled!==expectedEnabled))
+        throw error('工具安装或启停状态已变化，请返回列表重新核对','E_TOOL_CHANGED');
       if(currentlyEnabled===enabled){
         if(!enabled){
           // A previous STOP might have persisted the disabled flag before
@@ -131,11 +137,9 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
         }
         if(current.pageModule)await requestAppLifecycle(pageClient,'verifyAppPage',{
           toolId:tool.id,packageHash:await sidebarToolPackageHash(current),
-          installEpoch:requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE])[tool.id]},current);
+          installEpoch:epochs[tool.id]},current);
         return {enabled};
       }
-      const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
-      const epochs=requireToolRevocationEpochs(rawEpochs);
       const rawGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
       if(rawGrants!==undefined&&(!rawGrants||typeof rawGrants!=='object'||Array.isArray(rawGrants)))
         throw error('工具网站授权记录损坏；已停止修改','E_STORAGE_CORRUPT');
@@ -176,6 +180,9 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
       }
       return {enabled};
     }));
+  // The stop decision must be visible while the install locks are still held
+  // by an import. Hold this signal through the original durable transaction.
+  return enabled?transact():lockManager.request(sidebarToolStopLock(tool.id,expectedEpoch),transact);
 }
 function marketIdentity(value,candidate) {
   if(value==null)return null;
@@ -385,7 +392,7 @@ async function requestAppLifecycle(pageClient,type,payload,tool=null){
   }
   return result;
 }
-async function canonicalSha256(tool){
+export async function canonicalSha256(tool){
   const bytes=new TextEncoder().encode(serializeSidebarToolPackage(tool));
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
     value=>value.toString(16).padStart(2,'0')).join('');

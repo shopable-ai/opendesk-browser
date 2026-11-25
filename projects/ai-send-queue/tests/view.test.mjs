@@ -23,7 +23,8 @@ class Node {
   get isConnected(){return this===this.ownerDocument.body||!!this.parentElement?.isConnected;}
   get nextSibling(){const siblings=this.parentElement?.children||[];return siblings[siblings.indexOf(this)+1]||null;}
   append(...nodes){for(const node of nodes){node.remove();this.children.push(node);node.parentElement=this;}}
-  insertBefore(node,before){node.remove();this.children.splice(this.children.indexOf(before),0,node);node.parentElement=this;}
+  insertBefore(node,before){if(before===null)return this.append(node);
+    node.remove();this.children.splice(this.children.indexOf(before),0,node);node.parentElement=this;}
   remove(){if(this.parentElement){const siblings=this.parentElement.children;siblings.splice(siblings.indexOf(this),1);this.parentElement=null;}}
   replaceChildren(...nodes){for(const child of [...this.children])child.remove();this.append(...nodes);}
   contains(node){return this===node||this.children.some(child=>child.contains(node));}
@@ -31,12 +32,15 @@ class Node {
   getAttribute(key){return this.attributes[key];}
   closest(){return null;}
   querySelectorAll(selector){return this.children.flatMap(child=>[
-    ...(selector==='button'?child.tagName==='button':selector==='[data-id-row]'?
+    ...(selector==='button'||selector==='textarea'?child.tagName===selector:selector==='[data-id-row]'?
       !!child.dataset.idRow:selector==='[data-action]'?!!child.dataset.action:false)?[child]:[],
     ...child.querySelectorAll(selector)]);}
   getBoundingClientRect(){return this.measure?.()||rect(0,0,0,0);}
+  get offsetWidth(){return Math.round(this.getBoundingClientRect().width);}
+  get offsetHeight(){return Math.round(this.getBoundingClientRect().height);}
 }
-function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false,assetRecords,scrollOffset=null,sharedToast=false,backupText='  queued original\n🙂  '}={}){
+function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false,assetRecords,scrollOffset=null,
+  sharedToast=false,backupText='  queued original\n🙂  ',currentRoute=null,nativeWidth=34,nativeHeight=34}={}){
   const doc={defaultView:{getComputedStyle:node=>node.computed,matchMedia:()=>({matches:coarse})},
     createElement:tag=>new Node(doc,tag),createElementNS:(_ns,tag)=>new Node(doc,tag)};
   doc.body=new Node(doc,'body');
@@ -59,10 +63,10 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
   surface.measure=()=>rect(130,top()+20,560,140);
   wrapper.measure=surface.measure;
   editorShell.measure=()=>rect(146,top()+36,528,60);
-  editor.measure=()=>rect(146,top()+36-(scrollOffset??0),528-(shown('button')?(damage==='editor'?60:damage==='inline'?40:0):0),scrollOffset===null?60:10000);
+  editor.measure=()=>rect(146,top()+36-(scrollOffset??0),528-(shown('button')&&damage==='editor'?60:0),scrollOffset===null?60:10000);
   if(scrollOffset!==null)Object.assign(editorShell.computed,{overflowX:'hidden',overflowY:'auto'});
   toolbar.measure=()=>rect(146,top()+104,528,40);
-  native.measure=()=>rect(636,top()+106,shown('button')&&damage==='button'?20:34,34);
+  native.measure=()=>rect(636,top()+106,shown('button')&&damage==='button'?20:nativeWidth,nativeHeight);
   aux.measure=()=>rect(146,top()+106,34,34);
   Object.assign(surface.computed,{backgroundColor:paint?'rgb(255, 255, 255)':'transparent',
     borderTopLeftRadius:radius,borderTopRightRadius:rightRadius,
@@ -78,7 +82,8 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
       if(host.style.getPropertyValue('display')==='none')return rect(0,0,0,0);
       const width=parseFloat(host.style.getPropertyValue('width'))||0;
       return kind==='list'?rect(100+(parseFloat(host.style.getPropertyValue('margin-left'))||0),400,width,listHeight):
-        rect(damage==='overlap'?640:636-width-6,top()+(damage==='input-overlap'?40:106),width,width);
+        rect(damage==='overlap'?640:636-width-6,top()+(damage==='input-overlap'?40:106),width,
+          parseFloat(host.style.getPropertyValue('height'))||0);
     };
     // Shadow children are intentionally outside light-DOM queries/containment.
     const append=content.append.bind(content);
@@ -98,13 +103,42 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
     onDispose:fn=>disposals.push(fn),setTimeout(){}};
   if(sharedToast)owner.toast=options=>{notices.push(options);return {shown:true};};
   const engine={view:()=>state,wait:reason=>waits.push(reason)};
-  const view=createQueueView({owner,createPageUI,assets:[],engine,getBackup:()=>backupText,
+  const view=createQueueView({owner,createPageUI,assets:[],engine,getBackup:()=>backupText,currentRoute,
     actions:{sendNow:id=>calls.push(id),enqueue:options=>calls.push(options)}});
   return {view,doc,form,surface,wrapper,editor,native,toolbar,parent,managed,waits,calls,notices,
     snap:{ok:true,form,editor,sendButton:native},ui:getUI,
-    state:value=>{state={...state,...value};},dispose:()=>disposals.forEach(fn=>fn())};
+    state:value=>{state={...state,...value};},backupText:value=>{backupText=value;},
+    dispose:()=>disposals.forEach(fn=>fn())};
 }
 const panel=h=>h.ui('list').content.children[0];
+const cacheNotice=h=>panel(h).children.find(node=>node.tagName==='details');
+const openCacheNotice=(h,notice)=>{
+  notice.open=true;
+  h.ui('list').listeners.find(item=>item.event==='toggle').callback({target:notice});
+};
+
+test('Gemini masks another conversation as soon as its URL changes, before composer inspection',()=>{
+  let current={route:'app/first'};
+  const h=fixture({currentRoute:()=>current});
+  h.state({route:'app/first'});
+  const gemini={...h.snap,placement:{gemini:true,toolbar:h.toolbar}};
+  assert.equal(h.view.place(gemini),true);
+  const rows=()=>panel(h).querySelectorAll('[data-id-row]').map(row=>row.dataset.idRow);
+  assert.deepEqual(rows(),['q1']);
+  h.view.setCacheWarning('队列未保存');
+  for(const route of ['app/other',null]){
+    current={route};h.view.render();
+    assert.deepEqual(rows(),[]);
+    assert.equal(cacheNotice(h).hidden,true);
+    assert.equal(panel(h).getAttribute('aria-label'),'发送队列，暂无待发送消息');
+    assert.equal(h.ui('list').host.style.getPropertyValue('display'),'block');
+  }
+  current=null;h.view.render();
+  assert.equal(h.ui('list').host.style.getPropertyValue('display'),'none');
+  assert.equal(h.ui('button').host.style.getPropertyValue('display'),'none');
+  current={route:'app/first'};assert.equal(h.view.place(gemini),true);
+  assert.deepEqual(rows(),['q1']);
+});
 
 test('ordinary feedback uses the shared Page toast without replacing a recovery copy',()=>{
   const h=fixture({sharedToast:true});h.view.place(h.snap);
@@ -130,19 +164,41 @@ for(const action of ['copy','done']){
   });
 }
 
-test('a cache warning persists across renders and ordinary notifications, without repeated toasts',()=>{
+test('cache failure starts collapsed, and unrelated updates preserve the open details and draft recovery',()=>{
   const h=fixture({sharedToast:true});h.view.place(h.snap);h.view.render();
-  h.view.setCacheWarning('队列缓存未保存，请先复制备份');
-  const notice=panel(h).children.find(node=>node.className==='sq-cache-warning');
-  assert.ok(notice);assert.equal(notice.getAttribute('role'),'status');
-  assert.equal(notice.querySelectorAll('button').length,1);
-  h.view.setCacheWarning('队列缓存未保存，请先复制备份');
-  assert.equal(h.notices.length,1);
-  h.view.toast('其他操作完成');h.state({expanded:true});h.view.render();
-  assert.ok(panel(h).children.includes(notice));
+  assert.equal(cacheNotice(h),undefined);
+  const reason='队列未保存。刷新或关闭页面可能丢失待发消息。';
+  h.view.setCacheWarning(reason);
+  const notice=cacheNotice(h),[summary,details]=notice.children;
+  assert.equal(summary.tagName,'summary');
+  assert.equal(summary.children[0].textContent,'自动发送已暂停');
+  assert.equal(summary.children[0].getAttribute('role'),'status');
+  assert.ok(!notice.open);
+  assert.equal(details.children[0].textContent,reason);
+  assert.equal(notice.querySelectorAll('button')[0].hidden,true);
+  assert.equal(h.notices.length,0);
+  openCacheNotice(h,notice);
+  assert.equal(notice.querySelectorAll('button')[0].hidden,false);
+  h.view.setCacheWarning(reason);
+  h.view.toast('其他操作完成');h.state({expanded:true,reason:'队列缓存未保存'});h.view.render();
+  assert.equal(cacheNotice(h),notice);assert.equal(notice.open,true);
+  assert.equal(panel(h).children.some(node=>node.className==='sq-waiting'),false);
   h.view.offerRecovery('unsaved recovery','needs checking');
   h.view.setCacheWarning('');
   assert.equal(notice.isConnected,false);assert.equal(h.view.recovery().text,'unsaved recovery');
+});
+
+test('opening pause details with nothing to back up offers no copy action',()=>{
+  const h=fixture({backupText:''});h.state({items:[]});h.view.place(h.snap);
+  h.view.setCacheWarning('暂时无法读取已保存的队列。');
+  const notice=cacheNotice(h);
+  openCacheNotice(h,notice);
+  const copy=notice.querySelectorAll('button')[0];
+  assert.equal(copy.hidden,true);
+  h.backupText('now there is a draft');h.view.render();
+  assert.equal(copy.hidden,false);
+  h.backupText('');h.view.render();
+  assert.equal(copy.hidden,true);
 });
 
 for(const clipboard of ['allowed','denied']){
@@ -153,7 +209,7 @@ for(const clipboard of ['allowed','denied']){
       if(clipboard==='denied')throw Error('clipboard denied');copied=value;
     }}};
     const before=panel(h).children[0];
-    const notice=panel(h).children.find(node=>node.className==='sq-cache-warning');
+    const notice=cacheNotice(h);openCacheNotice(h,notice);
     const button=notice.querySelectorAll('button')[0];
     const listener=h.ui('list').listeners.find(item=>item.event==='click');
     listener.callback({target:{closest:()=>button},stopPropagation(){}});
@@ -161,7 +217,7 @@ for(const clipboard of ['allowed','denied']){
     if(clipboard==='allowed'){
       assert.equal(copied,text);assert.match(h.notices.at(-1).message,/已复制/);
     }else{
-      const manual=notice.children.find(node=>node.tagName==='textarea');
+      const manual=notice.querySelectorAll('textarea')[0];
       assert.equal(manual.value,text);assert.equal(manual.readOnly,true);
       assert.match(h.notices.at(-1).message,/手动复制/);
     }
@@ -177,7 +233,7 @@ test('a pending backup is not repeated and a late clipboard failure cannot reviv
   h.doc.defaultView.navigator={clipboard:{writeText(){copies++;
     return new Promise((_resolve,reject)=>{rejectCopy=reject;});
   }}};
-  const notice=panel(h).children.find(node=>node.className==='sq-cache-warning');
+  const notice=cacheNotice(h);openCacheNotice(h,notice);
   const button=notice.querySelectorAll('button')[0];
   const listener=h.ui('list').listeners.find(item=>item.event==='click');
   const event=()=>({target:{closest:()=>button},stopPropagation(){}});
@@ -436,10 +492,18 @@ test('walks through display:contents wrappers and follows replacement form/edito
   h.dispose();assert.equal(newForm.style.values.size,0);assert.equal(oldForm.style.values.size,0);
 });
 
-test('coarse-pointer button keeps its existing 42px hot area and native control stays intact',()=>{
-  const h=fixture({coarse:true});assert.equal(h.view.place(h.snap),true);
-  assert.equal(h.ui('button').host.getBoundingClientRect().width,42);
-  assert.equal(h.native.getBoundingClientRect().width,34);
+test('a wrapped native action defines both dimensions even with a coarse pointer',()=>{
+  const h=fixture({coarse:true,nativeWidth:32,nativeHeight:36});
+  const outer=h.doc.createElement('div'),inner=h.doc.createElement('div');
+  h.toolbar.append(outer);outer.append(inner);inner.append(h.native);
+  const snap={...h.snap,placement:{toolbar:h.toolbar}};
+  assert.equal(h.view.place(snap),true);
+  const host=h.ui('button').host;
+  assert.equal(host.nextSibling,outer);
+  const {width,height}=host.getBoundingClientRect();
+  assert.deepEqual([width,height],[32,36]);
+  assert.equal(h.view.place({...snap,sendButton:null}),false);
+  assert.equal(h.view.isPlaced(snap),false);
 });
 
 test('fresh empty queue keeps its decorative cue visible and never rewrites official corners',()=>{
@@ -521,13 +585,28 @@ test('product preview keeps the locked crown; historical calibration tool stays 
   assert.match(tool,/class="sq-crown"/);
 });
 
-test('single-line row allows only the added action width without shrinking the native shell or controls',()=>{
-  const h=fixture({damage:'inline'});
-  assert.equal(h.view.place(h.snap),true);h.view.render();
-  assert.equal(h.form.getBoundingClientRect().width,680);
-  assert.equal(h.editor.getBoundingClientRect().width,488);
-  assert.equal(h.native.getBoundingClientRect().width,34);
-  h.view.hide();assert.equal(h.editor.getBoundingClientRect().width,528);
+for(const gemini of [false,true])test(
+  (gemini?'Stable':'Send-anchored')+' bottom toolbar keeps one crown through draft changes and replacement',()=>{
+  const h=fixture();
+  Object.assign(h.form.computed,{borderTopLeftRadius:'20px',borderTopRightRadius:'20px'});
+  const snapshot=(toolbar,draft='')=>({...h.snap,draft,placement:gemini?{gemini,toolbar}:{toolbar,anchor:h.native}});
+  for(const draft of ['', 'Short', 'words and lines\n'.repeat(400), 'W'.repeat(1400), 'Short again']){
+    const snap=snapshot(h.toolbar,draft);
+    assert.equal(h.view.place(snap),true);
+    assert.equal(h.view.isPlaced(snap),true);
+    assert.equal(h.ui('button').host.parentElement,h.toolbar);
+    assert.equal(h.editor.getBoundingClientRect().width,528);
+    assert.equal(h.native.getBoundingClientRect().width,34);
+  }
+  h.toolbar.remove();
+  assert.equal(h.view.isPlaced(snapshot(h.toolbar)),false);
+  assert.equal(h.view.place(snapshot(h.toolbar)),false);
+  const replacement=h.doc.createElement('div');
+  h.wrapper.append(replacement);replacement.append(h.native);
+  const host=h.ui('button').host;
+  assert.equal(h.view.place(snapshot(replacement)),true);
+  assert.equal(host.parentElement,replacement);
+  assert.equal(h.managed.filter(ui=>ui.kind==='button').length,1);
 });
 
 test('one paused row has only its own resume action and cannot send early',()=>{

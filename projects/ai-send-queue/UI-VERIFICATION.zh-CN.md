@@ -1,5 +1,149 @@
 # AI 消息发送队列 UI 验证
 
+## 区域截图验收门槛
+
+在 Ego Lite 打开已登录的真实站点，用任务专用页面和合成草稿。开始前核对已审阅的安装版本、开发服务已应用的 revision，以及两站页面实际运行的固定脚本 SHA-256；结束时再次核对，避免把不同版本的证据拼成一次通过。桌面统一用 1280 CSS px，Gemini 窄窗用 390 CSS px。
+
+每个关键帧保存原始区域 PNG：从队列上缘截到输入框和原生工具栏的下缘，左右保留输入区完整边界；有提示、遮挡或溢出时把它一并截入。对照帧保持相同视口、缩放和取景范围，允许为多行输入增加截图高度。逐张打开并判定；截图用例、操作步骤和运行身份与同一份尺寸、命中及回执记录互相链接。
+
+| 必测用例 | 必留区域截图与目视通过条件 | 同次操作证据 |
+| --- | --- | --- |
+| D1 · DeepSeek 新对话，首条之前 | 拍空输入，以及填入合成草稿并点皇冠后。空输入时一处空队列、一枚皇冠，原生控件完整；点击后仍能看到原草稿和「先用原生发送」提示。 | 首页未提交会话，草稿逐字一致，零入队、零站点提交。 |
+| D2 · DeepSeek 首条与会话交接 | 拍原生首条提交且会话就绪后、Shift+皇冠暂停入队后、点恢复并排空后。每次仅一处队列和一枚皇冠；暂停行和恢复按钮清楚可见，排空后无残留行。 | 原生首条与恢复项各入站一次；同一文档提交到合法会话 UUID；暂停期间零入站。 |
+| D3 · DeepSeek 返回新对话 | 在已有会话放一条单独的暂停测试项，拍切换前和返回新对话后。新对话恢复空态，看不到旧条目。 | 暂停项没有入站；返回原测试会话时仍处于暂停，只清理本次测试项。 |
+| G1 · Gemini 短草稿，桌面与窄窗 | 两种宽度各拍新聊天中可发送的短草稿，并拍一次加入暂停项后的输入区。原生发送与皇冠同在原输入工具栏内并列，两枚按钮轮廓完整，无重叠、裁切或覆盖输入。 | 两个按钮中心各自命中；在已提交的测试会话 Shift+皇冠只加一条暂停项。另用合成草稿点原生发送，站点只收到一次，原暂停项零入站。 |
+| G2 · Gemini 多行长草稿，桌面与窄窗 | 同一视口拍短草稿、足以触发换行的长草稿和恢复短草稿。输入区可纵向增长，不能横溢；皇冠与原生发送仍在原工具栏中并列，轮廓完整，互不遮挡。 | 每个状态记录两个按钮的边界和命中。实点 Shift+皇冠，只暂停入队同一份长草稿，逐字一致、零入站；用另一份多行合成草稿实点原生发送，只入站一次，暂停项不变。 |
+
+**判定：** 截图和对应操作都通过才记 `PASS`。截图中缺按钮、重复挂载、按钮覆盖或裁切，即使能通过 DOM 找到也记 `FAIL`。缺图、未安装当前候选或缺操作回执时记 `NOT_TESTED`；发布无法进行时记 `BLOCKED`。历史版本、临时注入或本地夹具的截图只能定位问题。旧审阅、撤权、草稿隔离和防重仍须保留定向回归，并单列真站未测项。
+
+## 2026-11-24 · 长草稿宽度与底部发送
+
+在既有 Ego Lite 窗口的 TaskSpace 158 运行真实扩展。Gemini 载入长草稿后，皇冠占用原生工具栏空间；修复后跨行草稿的皇冠放到队列上方，给原生输入区和发送按钮留出空间。恢复短草稿后，空间足够时皇冠回到工具栏。
+
+| 条件 | 真实网页结果 |
+| --- | --- |
+| 窄窗和桌面 | ChatGPT 280、Gemini 390、DeepSeek 320 CSS px，以及三站各 1280 CSS px。每个视口检查短草稿、6,399 字符普通长文、1,400 个连续字符和回到短草稿。24/24 逐字一致、无页面横向溢出、皇冠仅一枚，两枚按钮各自可命中且无重叠。见 [尺寸记录](artifacts/long-draft-width-20261124/runtime-layout.json)。 |
+| Gemini 390 CSS px，等待布局稳定 | 四个状态的编辑区均为 310 px。原生发送按钮的左边界是 274 → 314 → 314 → 274 px，皇冠相应在工具栏内 → 队列上方 → 队列上方 → 工具栏内。见 [普通长文](artifacts/long-draft-width-20261124/runtime-p2-390-settled-long.png)、[连续长文](artifacts/long-draft-width-20261124/runtime-p2-390-settled-unbroken.png)、[恢复短草稿](artifacts/long-draft-width-20261124/runtime-p2-390-settled-recovered.png)。 |
+| Gemini 底部原生发送与皇冠 | 点击原生发送，站点仅收到一条合成短消息，编辑区清空，队列仍为空。长草稿的原生发送只验证了按钮命中；受信任的 Shift＋皇冠实际把原样长文加入一条暂停队列，站点未收到长文。仅移除本次暂停项，最后仍是空草稿、零队列项。见 [点击回执](artifacts/long-draft-width-20261124/runtime-actions.json)与[暂停项截图](artifacts/long-draft-width-20261124/runtime-p2-390-paused-long.png)。 |
+
+**运行与产物：** 实测固定网页脚本报告 **0.1.57**；其运行哈希与本机 `dist/development` 一致。开发目录最新读回 revision 为 `a7e7925d387ae69b6d00f37d1a659a3bc987f442f34aafa07560e673dbe47169`，目录中的正式工具资源已是 **0.1.58/r57**，三个测试页的固定脚本字节仍与实测 0.1.57 相同。侧栏「本地开发服务」状态未读回。唯一正式 [Tool JSON](ai-send-queue.opendesk-tool.json) 已晋升并通过 `--check-project`；SHA-256：`f1578421a6a318ab2879e67369c713aac1972993f6041400c8031a2d16b92af1`。包、布局、站点适配和快捷键定向验证 148 项通过。0.1.58 的安装审阅、固定脚本升版与 production 验收未实测。
+
+## 2026-11-24 · DeepSeek 首页与 Gemini 双入口（0.1.56/r55）
+
+**开发运行态：** Ego Lite 2.2.1、TaskSpace 155、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，原加载目录 `dist/development`。本轮采样时实际运行的是之前持续开发发布的 **0.1.55/r54**。Gemini 两个通过用例均由浏览器调试器读回固定脚本 SHA-256 `09d0a50c70855964586e3649ba4efd1aa8df6e1781194d0873c694dab54c0af5`，与磁盘一致；开发目录中的 Tool JSON SHA-256 为 `1ac74008ca6085ec276dff2ea0b260da9797b3b39658066c91e694a14f7a2097`。最后一次开发构建失败退出，未发布新的 `development-update.json`，r55 未应用、未安装。
+
+| 用例 | Ego Lite 结果 |
+| --- | --- |
+| DeepSeek 登录后的精确首页，空输入；网站原生输入仍可用，首条前应有且只有一处空队列和一个皇冠 | **r54 复现 FAIL**：1728 CSS px，已就绪输入框存在，队列 0、皇冠 0。[首页复现](artifacts/composer-ui-20261124/r55-ego-155-deepseek-baseline.json)。r55 真站 **BLOCKED**。 |
+| DeepSeek 首页填草稿、点皇冠：提示先原生发送，草稿原文保留、零入队、零提交；原生首条一次入站，提交 UUID 后交给唯一队列 | r55 定向 Node 检查通过；安装审阅和真站交接 **NOT_TESTED**。须在新固定脚本及范围审阅都生效后，从首页重新走一遍。 |
+| DeepSeek 提交会话后：Shift+皇冠一条暂停项、零入站；显式恢复后恰好一次入站、队列排空；返回首页不显示或重发旧会话条目 | r55 真站 **NOT_TESTED**；下节为 r54 既有会话的独立历史证据。 |
+| Gemini 桌面 1716 CSS px，新聊天 | **PASS（r54）**：原生发送与皇冠在同一个 `.input-buttons-wrapper-bottom` 内，矩形无交叠，中心各自命中。皇冠收一次可信点击，原生零点击，原文保留且零提交。随后原生按钮收一次可信点击，皇冠计数不变；输入清空，站点提交新会话，测试消息精确匹配一次并收到回复。[点击](artifacts/composer-ui-20261124/r55-ego-155-gemini-desktop.json) · [会话最终回读](artifacts/composer-ui-20261124/r55-ego-155-gemini-desktop-settled.json)。 |
+| Gemini 390 CSS px，已有测试会话 | **PASS（r54）**：同一原工具栏内两个按钮无交叠且各自命中。Shift+皇冠收一次可信点击，仅加入一条暂停项，原生零点击、该项零入站；换一条合成草稿点原生发送，只增加一次原生点击，站点收到一条及对应回复，暂停项仍零入站。精确删除本次暂停项后队列空。[窄窗操作](artifacts/composer-ui-20261124/r55-ego-155-gemini-narrow-existing.json)。窄窗新聊天只测了同工具栏、矩形和中心命中；后续输入已存在的非测试草稿未操作。 |
+
+**新版源码和包通过：** r55 仅为新审阅范围增加 DeepSeek 精确首页，路径不含查询参数。首页以站点原生编辑器和控件挂载，暂不绑定会话队列；路由提交后走原文档和队列授权。229 项定向 Node 检查通过，覆盖旧审阅不扩权、首页草稿不丢且不发送、会话绑定与暂停隔离，以及撤权和结果未知不重发。原打包器晋升唯一正式 Tool JSON，并用 `--check-project` 核对同源。包 SHA-256 `5fd61201f7e3d07a03cd059cb385f131716dc5c246dcac5d095374385303c7af`；Page 源 SHA-256 `c000baafdf284696685090ff76c5b9e1fef2dfa6b08a5cc63c14f7d0d69ed3f5`。Gemini 本轮实测未出现覆盖或误触，没有为此修改它的布局逻辑。
+
+**构建阻塞及剩余验证：** `npm run dev` 已通过本工具的可信来源检查，随后在 `tool-shell` 拒绝另一扩展 `projects/ai-scroll-navigation/trusted/host-localization.js` 与已审阅哈希不符的版本（本机日志 `/tmp/od-sq-r55-development.log`）。源码经该项目审阅并与校验对齐后，复用同一开发目录和原扩展审阅入口，先读回实际生效的 r55 再补上表的 DeepSeek 首条和交接。r55 同候选 Gemini 实站、真站主动撤权、回执丢失、用户原标签页和 production 均 **NOT_TESTED**。
+
+**后续候选：** 并行的 Gemini 长文本布局改动已合入本地 **0.1.57/r56** 候选。该项目先前触及的 131072 字节源码上限已解除，原打包器对 0.1.57 返回 `PROJECT_PACKAGE_MATCH`，SHA-256 `4811d6a5775041f71189ac7edbc296fae5a33a33f9bd1d380ccc22d659ee3791`；发送队列的 `view.js` 也已与固定入口的来源 pin 对齐。最新 [开发构建](artifacts/long-draft-width-20261124/dev.log) 通过发送队列的固定入口，在 `tool-shell` 再次被滚动导航的 `host-localization.js` 来源校验挡住；另一个 `react-controls.tsx` 也与已审阅哈希不符。服务退出，`dist/development` 保留 0.1.55，未发布新 revision。以实际安装并运行的新版本补验 DeepSeek；Gemini 上表只对应 r54 的操作和运行字节，组合版本须重新核对短文本双入口及长文本不遮挡。
+
+## 2026-11-24 · DeepSeek 关键 UI 实测（0.1.55/r54）
+
+**实际运行：** 已登录 DeepSeek 专用 Ego TaskSpace 148，原 main 和 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。首页至首条验证的开发 revision 为 `47c30cd726988e88fc3368d4bd9292b98f38d385694fa819c999b9c999f345fd`；后续操作为 `645ffb88c28ffabcca6ec7339caef5d63685738fc38977ffdfe344c24076ea83`。两次由浏览器调试器读回的固定脚本 SHA-256 均为 `79083d9f6733e0facb7385c9b7c451b07f912ec0f208861bed994d1c7abbf0d9`，与开发输出一致；正式 JSON 与开发目录副本均为 `1ac74008ca6085ec276dff2ea0b260da9797b3b39658066c91e694a14f7a2097`。
+
+| 操作 | 可见结果及证据 |
+| --- | --- |
+| 新聊天 | 首页无队列；实点原生发送，首条在网站历史恰出现一次。同一 `performance.timeOrigin` 下新会话已有一处队列和一个皇冠。见[首条操作原始记录](artifacts/deepseek-core-20261124/r54-first.json)和[历史回执](artifacts/deepseek-core-20261124/r54-history-receipts.json)。 |
+| 1280 / 390 CSS px | 各只有一处队列，无横向溢出。实点输入聚焦、Shift+皇冠暂停入队；再用原生发送生成独立回复，并实点停止。停止后原生发送恢复，暂停项依旧暂停且零入站。见 [1280 实点](artifacts/deepseek-core-20261124/r54-width1280.json)、[390 实点](artifacts/deepseek-core-20261124/r54-width390.json)和 [390 暂停截图](artifacts/deepseek-core-20261124/r54-crown-390.png)。 |
+| 两条按序续发 | 两次 Shift+皇冠点击后的首次稳定读回分别在 331 ms、1272 ms，均已清空原草稿并显示暂停行。逐条恢复后，A 在 3.695 s 入站，4.637 s 看到对应回复完成且 B 未入站；B 在 8.432 s 入站，10.740 s 两个过程结束且队列已空。站点历史各只有一条。见[时序](artifacts/deepseek-core-20261124/r54-fifo2.json)和[最终历史核对](artifacts/deepseek-core-20261124/r54-history-receipts.json)。 |
+| 无刷新切换 | 经真实站点历史侧栏切到第二个专用对话，旧行未出现；新草稿逐字读回且保持原文。返回时同一文档恢复原暂停项，未转为未知；后续等待约 4.5 s 仍无误发。见[切换记录](artifacts/deepseek-core-20261124/r54-spa.json)、[另一对话草稿](artifacts/deepseek-core-20261124/r54-spa-other-draft.png)和[返回原对话](artifacts/deepseek-core-20261124/r54-spa-return.png)。 |
+
+原始探针有两处误判：首条的回复完成选择器找错父节点；续发 B 入站后，站点虚拟列表卸载了 A 的用户节点，要求两者同时留在 DOM 的断言超时。历史核对重新读到完整样本并交叉验证了运行脚本、顺序、各一次和队列排空，未重发已提交样本。0.1.54/r53 的[切换失败记录](artifacts/deepseek-core-20261124/r53-spa.json)继续保留。
+
+后续迭代先在已有站点会话用最短操作链复现。只改工具侧栏时走「开发 → 本地项目 → 在侧栏调试」；改固定网页脚本时，先做定向适配与来源检查，再让原 watcher 发布同一开发目录，用浏览器读回确认后连测。这些证据不涵盖其他站点的同候选实站回归、正式安装、production、全量矩阵或评分。
+
+## 2026-11-24 · 输入框上方队列与双发送入口
+
+让队列区贴合聊天输入框的实际可见宽度，垂直间距为 **0 CSS px**。网站的「发送」和 OpenDesk 的「加入发送队列」（皇冠）是两个独立入口：原生动作直接发送，皇冠沿用原队列规则。改动限于本项目的站点适配；暂停状态沿用原 UI，只用恢复图标和原有样式表示，不显示「已暂停」文字。保留「结果未知」等原有反馈。
+
+### 当前阶段：正常网页，1280 CSS px
+
+#### 0.1.54/r53 · Gemini 原生 Stop 后恢复队列（独立接续）
+
+**PASS：** 在 Ego Lite TaskSpace 137 的新建任务对话 `/app/a343c9934a14a6c7`，实际视口为 1280 CSS px。合成样本 N4 用网站原生按钮发送且未入队；实点原生 Stop，网站在同一末尾回合 `e4423d54dc2c3852` 内显示 `You stopped this response`。Shift+皇冠将编辑器里的新草稿 Q4 逐字移入暂停队列项 `q1`；四次采样均为零提交，原恢复图标可点，无「已暂停」文字。点该项恢复后，事件链只记录一次队列触发的原生发送点击；Gemini 接收了唯一一条逐字匹配的用户消息（新回合 `0455b3333d01a0d8`），队列清除了对应项。五次续测仍只有这条消息、无重复点击、队列及编辑器为空。发送前逐字读回草稿，暂停项和站点回执均匹配。见[原生发送及 Stop](artifacts/composer-ui-20261124/v54-gemini-stop-1280-137-native.json)和[暂停、恢复、回执及续测](artifacts/composer-ui-20261124/v54-gemini-stop-1280-137-resume.json)。
+
+**旧版 0.1.53/r52：FAIL，已独立复现。** 任务对话 `/app/473cbdc8afe98930` 的回合 `7f9f9d5c017d2ab2` 有非空部分回复；网站在 `model-response` 内、正文外的 `div.response-footer.gap.complete > response-info-line[role=status]` 显示同一停止状态。该回合没有原判据所需的 Copy，正文一度残留 `aria-busy=true`。暂停零提交；点击恢复后等约 10 秒仍零提交并显示「等待当前回复结束」。本次旧样本最终状态未确认，保留旧页；更早的结果未知页及条目未操作。见[旧候选同回合诊断](artifacts/composer-ui-20261124/v53-gemini-stop-1280-137-native-existing.json)和[旧候选恢复失败](artifacts/composer-ui-20261124/v53-gemini-stop-1280-137-resume.json)。
+
+Gemini 适配仅在唯一、已获站点回合 ID 的末尾用户/回复对中接受这个可见、正文外的精确网站状态；仅忽略该回复正文自身残留的 busy 属性。Stop 消失、发送按钮恢复、时间经过均不单独放行；原生 Stop 可见、其他流式标记或身份不确定时仍等待。通用原生发送、暂停 UI、草稿、权限、IME、防重和结果未知保护沿用原路径。235 项定向 Node 检查通过，包括缺失、隐藏、正文仿冒、其他回合和重复回合 ID 的拒绝，以及草稿和未知结果保护；正式 JSON 经原打包器候选、门禁、晋升和同源检查。
+
+**实际运行身份：** 现有 `main`，原 watcher PID `90643`，`dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。正式 JSON 与开发目录副本 SHA-256 均为 `8d59a2538344851d3ebf1f2ae684834b576201ba433aa563039282d7a5bca288`；Page 源 SHA-256 为 `14e6cabcca21bf916fd8e1101c7bdfd70ed97fbb3978eedb8205a86a1a1d3c0c`。[开发服务已连接及已应用 revision](artifacts/composer-ui-20261124/v54-ego-development-status-137.json)为 `4b3674139bbbd18c4d6629b2edef39cc8090e84c00e33b2540c5b0ec06dc39be`，核心操作页的调试器读回字节与清单、磁盘相同。三站复验时共用 watcher 的全局 revision 变为 `9ea4f86b416d3d198eedcc059ca03e12c7b4e6db06c71bff1e2b33206d9fd438`；原任务页确认无草稿和在途操作后安全刷新，其队列脚本字节与核心候选相同：Gemini/DeepSeek `acf08ffc0ff960aeb280bbee202a86be35b4d68b4638c1775751b226276c7823`，ChatGPT `3e915c9e51aff3b3eda512bfa310d33a0103f8e3a3fe02b1e8f53e461d033ad8`。每站证据均保存实际读回值及测量前后 revision。
+
+| 1280 CSS px 浅色会话 | 单队列、左右及接缝、溢出及遮挡 | 双入口命中、Tab 焦点 | 证据 |
+| --- | --- | --- | --- |
+| ChatGPT | PASS：一处队列，三处误差均为 0 CSS px，无溢出或重叠 | PASS：各三点独立命中，两个按钮均有可见焦点 | [数值](artifacts/composer-ui-20261124/v54-chatgpt-desktop-1280-137-reattached.json) · [皇冠](artifacts/composer-ui-20261124/v54-chatgpt-desktop-1280-137-reattached-focus-crown-controls.png) · [原生](artifacts/composer-ui-20261124/v54-chatgpt-desktop-1280-137-reattached-focus-native-controls.png) |
+| Gemini | PASS：一处队列，三处误差均为 0 CSS px，无溢出或重叠 | PASS：各三点独立命中，两个按钮均有可见焦点 | [数值](artifacts/composer-ui-20261124/v54-gemini-desktop-1280-137-reattached.json) · [皇冠](artifacts/composer-ui-20261124/v54-gemini-desktop-1280-137-reattached-focus-crown-controls.png) · [原生](artifacts/composer-ui-20261124/v54-gemini-desktop-1280-137-reattached-focus-native-controls.png) |
+| DeepSeek | PASS：一处队列，三处误差均为 0 CSS px，无溢出或重叠 | PASS：各三点独立命中；原生按钮焦点环可见于截图 | [数值](artifacts/composer-ui-20261124/v54-deepseek-desktop-1280-137-reattached.json) · [皇冠](artifacts/composer-ui-20261124/v54-deepseek-desktop-1280-137-reattached-focus-crown-controls.png) · [原生](artifacts/composer-ui-20261124/v54-deepseek-desktop-1280-137-reattached-focus-native-controls.png) |
+
+三站布局复验的合成草稿均未提交，结束时已清除。**NOT_TESTED：** Gemini 非英语停止提示、真实 IME 和正式安装/权限矩阵；ChatGPT/DeepSeek 的发送代码未受本次适配影响，未在新版复点发送。响应式、深色、完整正式矩阵、独立评分及发布仍延期。
+
+TaskSpace 137 已释放，仅保留旧复现页 p1；未重发或删除状态未确认的条目。更早的旧未知标签及并行 Space 120 未操作。原 watcher 继续运行。
+
+#### 0.1.53/r52 · 桌面历史证据
+
+**桌面正常路径 PASS，三站均通过。** 样本为 1280 CSS px 的浅色普通网页，输入区无遮挡。输入合成草稿后，输入框上方只有一个队列；按原生外壳可见上沿的直边测量，左右误差和垂直接缝均为 **0 CSS px**。队列及页面无横向滚动，两个按钮无重叠，各有三个内部命中点；从编辑器按 Tab 分别聚焦两个按钮，截图中均有可见焦点。布局测试使用的草稿逐字读回并于测试后清除。此关另已实点验证原生发送、停止，以及已完成回复后的皇冠入队和恢复；停止后直接接续队列的异常见下方。
+
+持续开发候选为 **0.1.53/r52**。唯一正式 JSON、`dist/development` 中副本同源，包 SHA-256 为 `c87eb23a560b5aec1d03c6f85a4783b73f2bb0065a846c5302b267a2553bed03`；开发 revision 为 `b02b157661b2deb651d4507e230b94ef564d8eb10e2a0e1a5a4ec5c11feef1c9`。每站在此次实际文档中从调试器读取网页模块源码，计算的 SHA-256 与开发目录脚本匹配；证据中同时记录前后磁盘 revision。沿用原 watcher 和原包，桌面复测未发现需要修改源码的故障。
+
+| 站点 | 1280 CSS px 的样本与结果 | 证据 |
+| --- | --- | --- |
+| ChatGPT | **PASS**。任务专用已有对话，空队列；皇冠、原生发送依次可聚焦。 | [数值及命中](artifacts/composer-ui-20261124/v53-chatgpt-desktop-1280.json) · [完整输入区](artifacts/composer-ui-20261124/v53-chatgpt-desktop-1280-draft-composer.png) · [皇冠焦点](artifacts/composer-ui-20261124/v53-chatgpt-desktop-1280-focus-crown-controls.png) · [发送焦点](artifacts/composer-ui-20261124/v53-chatgpt-desktop-1280-focus-native-controls.png) |
+| Gemini | **PASS**。新聊天空队列，网站抽屉关闭；原生发送、皇冠依次可聚焦。已有专用对话也通过贴合、命中和 Tab，原暂停项与结果未知项均保留。 | [数值及命中](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-clean.json) · [动画结束后的完整输入区](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-paint-pointer-away.png) · [皇冠焦点](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-clean-focus-crown-controls.png) · [发送焦点](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-clean-focus-native-controls.png) · [已有对话复测](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-light-pointer.json) |
+| DeepSeek | **PASS**。已挂载的专用已有对话，有一条历史合成待发；皇冠、原生发送依次可聚焦。两个蓝色箭头形状近似，皇冠装饰仍可区分；视觉层级待后续评审。 | [数值及命中](artifacts/composer-ui-20261124/v53-deepseek-desktop-1280.json) · [完整输入区](artifacts/composer-ui-20261124/v53-deepseek-desktop-1280-draft-composer.png) · [皇冠焦点](artifacts/composer-ui-20261124/v53-deepseek-desktop-1280-focus-crown-controls.png) · [发送焦点](artifacts/composer-ui-20261124/v53-deepseek-desktop-1280-focus-native-controls.png) |
+
+Gemini 曾在输入后短时看不到原生发送。实际节点的站点祖先 `send-button-container` 处于 `ng-animating`，计算透明度为 0；动画结束变为 1，移开鼠标后仍可见。原生按钮的命中层在[隐藏 OpenDesk 控件的对照](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-hit-diagnosis.json)中不变；[动画及稳态数据](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-paint.json)显示未复现皇冠遮挡。旧会话仅作补充，桌面正常截图取无结果未知提示的新聊天。
+
+桌面实点使用替代的 Ego Lite TaskSpace 135（130 已关闭），在各专用已有对话复核调试器脚本与同一开发候选的字节一致。三站原生发送均恰有一次站点消息、无对应队列项，均实点原生 Stop，Stop 退出后草稿态恢复原生发送。Shift + 皇冠各加入一条暂停样本，暂停观察期提交数均为 0，接缝和左右误差仍为 0 CSS px；恢复图标三个命中点均有效，无「已暂停」文字。下表所列正常恢复样本，各确认一条站点消息、队列移除对应条目、草稿为空。
+
+| 站点 | 1280 原生发送与 Stop | 1280 皇冠入队、暂停、恢复 |
+| --- | --- | --- |
+| ChatGPT | [PASS · 事件与回执](artifacts/composer-ui-20261124/v53-chatgpt-desktop-1280-native-135.json) | [PASS · 事件与回执](artifacts/composer-ui-20261124/v53-chatgpt-desktop-1280-queue-135.json) · [暂停截图](artifacts/composer-ui-20261124/v53-chatgpt-desktop-1280-queue-135-paused.png) |
+| Gemini | [PASS · 动画结束后用新样本](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-native-135b.json) | [PASS · 上一条回复自然完成](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-queue-135e.json) · [暂停截图](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-queue-135e-paused.png) |
+| DeepSeek | [PASS · 事件与回执](artifacts/composer-ui-20261124/v53-deepseek-desktop-1280-native-135.json) | [PASS · 事件与回执](artifacts/composer-ui-20261124/v53-deepseek-desktop-1280-queue-135.json) · [暂停截图](artifacts/composer-ui-20261124/v53-deepseek-desktop-1280-queue-135-paused.png) |
+
+**Gemini 桌面状态切换 FAIL。** 停止原生回复后，另一条合成队列项可从暂停切为待发送，但仍[等待当前回复结束，提交数为 0](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-queue-135-followup.json)。将该样本重新暂停后，下一条原生基线消息自然完成时，原队列样本[转为「结果未知」，历史中未找到该样本](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-queue-135d.json)。原条目保留，未重试或删除；正常路径的 PASS 来自独立干净标签中的新样本。另有一次早期原生点击未捕获到按钮事件，[草稿仍完整、消息计数为零](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-native-135-diagnosis.json)，未重新提交该样本。
+
+[1280 下只读对照原生回合](artifacts/composer-ui-20261124/v53-gemini-desktop-1280-completion-markers-135.json)：原生 Stop 留下同一回合的非空回复，但没有回复操作区或复制按钮；自然完成的原生回合和正常队列回合都各有一个可用的复制按钮。Gemini 适配器将此按钮作为回复完成的必要证据之一；当停止的回合仍是最后一轮时，仅原生发送恢复不足以让队列继续。这与当时等待且零提交的回执一致。该对照没有新增发送。下一步若继续验收该状态，用新样本查找网站明确的停止完成信号、核对前后回合身份；禁止以「Stop 消失」单独放行，也不重试旧结果未知条目。本轮未修改完成判定或发送保护。
+
+**后续范围：** 当前交付只确认 1280 CSS px 的普通网页。窄屏、宽度往返、整站深色及完整状态矩阵未验收。已有只读预查在 [Gemini](artifacts/composer-ui-20261124/v53-gemini-narrow-timing-135.json) 和 [DeepSeek](artifacts/composer-ui-20261124/v53-deepseek-narrow-timing-135.json) 录到宽度切换后队列短时未贴合，部分样本在 Tab 聚焦时仍未对齐，稳定后才恢复；不计作通过，也未据此修改响应式布局。此前 0.1.53 的独立完整矩阵评分为 **92 / 91 / 89 / 89，FAIL**，含窄窗、状态切换和深色扣分；与桌面正常路径的通过判定分开。完整三站目标仍未结项。
+
+**0.1.52/r51 历史诊断。** 225 项定向检查与 2 项包检查通过；[三站网页脚本](artifacts/composer-ui-20261124/v52-runtime-identity.json)与开发输出一致。两条暂停样本仍在时，Gemini 从 1280 缩至 390/320，观察到两个队列控件 `display:none`，皇冠仍留在原工具栏，[没有观察到独立移位](artifacts/composer-ui-20261124/v52-gemini-detached-diagnosis.json)。当时未确认是哪一处守卫或分支。0.1.53 在[抽屉关闭并稳定后](artifacts/composer-ui-20261124/v53-gemini-closed-drawer-resize.json)观察到 320 下 `site.inspect()` 可用、原工具栏放置被拒后同一皇冠移到独立位置，宽度和接缝均无误差；抽屉过渡期仍需单独复验。此段不计入桌面第一关。
+
+### 完整验收合同（桌面第一关之后）
+
+| 优先级 | 关键 UI 测试条件 | 通过标准 |
+| --- | --- | --- |
+| P0 | 必须先定位原生按钮「看不见」的原因 | 用同状态的原生页面作对照。在症状现场检查原生发送节点是否存在、是否被网站切换成停止或语音控件、计算样式和可见矩形是否正常、祖先是否裁切，以及按钮中心和内部两侧实际命中的元素。若是遮挡，保存遮挡元素、堆叠上下文和可逆的临时样式验证；若未复现，记录具体场景，不推断为重叠。 |
+| P0 | 宽度与垂直贴合 | 队列只有一处。以原生输入框外壳的可见上沿为基准，圆角时取可对接的直边；左右边各相差 ≤1 CSS px，输入框上沿减去队列下沿为 0 CSS px（测量允许 ≤1 CSS px 子像素差）。没有可见空隙、内容重叠或横向滚动；原生输入框外壳不会被挤窄。队列从空态到多条长文本时仍满足。 |
+| P0 | 两个入口都可见、可用 | 在网站本应显示发送按钮的状态，以可发送草稿验证原生「发送」和皇冠各恰好一个，可见区域无重叠，按钮中心和内部两侧各自命中，Tab 可独立聚焦且焦点可见。窄窗需要换位时两个入口仍可达；不能靠隐藏任意一个通过。原生改为「停止」时，停止和皇冠均可操作；生成结束后自然恢复原生发送入口。 |
+| P0 | 动作实际分流且保留草稿 | 专用测试对话实点原生发送：恰好一次，且不建立队列条目；已有对话中实点皇冠：走原入队逻辑，生成中不提前发送。测试暂停入队时，提交次数为零、条目可见、恢复图标可操作、无「已暂停」文字；原生首条建会话前按既有站点规则，皇冠不代发、不丢草稿。保持原生停答、IME 与现有发送保护。只用合成测试消息。 |
+| P0 | 响应式与输入状态 | 真站至少核对 ChatGPT、Gemini；DeepSeek 在当前候选已有挂载的正式对话路由也核对，并单列无登录或未挂载的结果。覆盖 1280/390 CSS px、桌面到窄窗再返回、空队列、有待发、可发送草稿、生成中及结束后；现有支持 320px 的场景另复核挤压和命中。新聊天、已有对话按各站实际支持范围取样。 |
+| P0 | 独立 UI 视觉专家终评 | 由非实现者看同一候选的真实页面截图和交互证据，按「宽度、贴合及圆角」「双入口识别与视觉层级」「窄窗及状态切换稳定性」「焦点、对比与可读性」四项各打 100 分，逐项 **≥95/100**。证据需同时展示整块输入区及局部，包含桌面与窄窗、空态和待发状态；候选支持浅深主题时各给样本。任何核心实站用例 FAIL 或 NOT_TESTED，即使分数达标也不结项。 |
+
+证据绑定实际运行的网页模块版本和候选，标注站点、视口、草稿及回复状态；保存测量、命中结果、操作回执和专家扣分意见。先复现并验证临时布局调整，再做最小源码修复、复测和终评。旧版截图、离线夹具或实现者自评可以诊断，不能抵作终评。
+
+预查记录（不计入候选验收）：ChatGPT 空草稿时显示原生语音入口；输入合成草稿后，原生发送和皇冠均出现，在 1280、390、320 CSS px 的各三个内部采样点分别命中。没有复现皇冠遮挡原生发送。Gemini 旧布局桌面实测垂直间距为 6 CSS px；一次缩窄时，按钮仍存在，拦截点击的是 Gemini 自己的抽屉遮罩，临时隐藏 OpenDesk 控件后拦截仍在。关闭抽屉后，两个按钮分别命中；在 390 CSS px 临时调整队列宽度和间距后，左右边与垂直间距的误差均为 0 CSS px。正式候选仍须重新验证。下文旧轮次与整包验收属于各自候选，不作为本轮视觉证据。
+
+**持续开发候选 0.1.51/r50。** 正式 JSON 与开发目录包 SHA-256 均为 `6e34998db7bb141b1628dc7bb1d58cd80687b0c9b34029af97237ec8f9199090`；51 项视图、Gemini 站点与发送保护检查及 2 项包检查通过。三站专用对话的固定脚本经浏览器调试器读回，均与 [开发输出哈希](artifacts/composer-ui-20261124/v51-runtime-identity.json) 逐字匹配。此证据不代表普通标签已刷新、候选已单独安装或生产已验收。
+
+| 实测 | 0.1.51 结果 |
+| --- | --- |
+| 有草稿，390 CSS px | [ChatGPT](artifacts/composer-ui-20261124/v51-chatgpt-controls-390.json)、[Gemini](artifacts/composer-ui-20261124/v51-gemini-controls-390.json)、[DeepSeek](artifacts/composer-ui-20261124/v51-deepseek-controls-390.json) 的左右直边及垂直误差均 0 CSS px，两个按钮相距 6 CSS px、各三点独立命中，Tab 均有独立可见焦点，队列无横向溢出。 |
+| Gemini 原暂停 UI | [窄窗](artifacts/composer-ui-20261124/v51-gemini-390-light-paused.png)与[桌面](artifacts/composer-ui-20261124/v51-gemini-1280-light-paused.png)均无暂停标签，恢复图标与保护状态保留，暂停消息提交数 0；实测接缝与左右差值均为 0 CSS px。深色媒体 emulation 只确认队列配色，Gemini 原生页面仍为浅色。 |
+| 原生发送及停止 | [Gemini 当前候选](artifacts/composer-ui-20261124/v51-gemini-native-verified.json)实点原生发送，合成消息在站点历史中出现一次；点击前队列有原暂停条目，本次未捕获到可点击停止的证据。更早候选的停止实点不能计入本轮。 |
+
+320 CSS px、切换和停止的历史样本用于诊断；未把旧版、Gemini 抽屉遮罩、ChatGPT 的空草稿原生语音态或「结果未知」记录算作本候选的暂停/双发送通过样本。
+
+**独立视觉评审：未达逐项 95 分。** 宽度贴合及圆角 **97**、双入口识别与视觉层级 **90**、窄窗与状态切换 **90**、焦点、对比与可读性 **91**。DeepSeek 两个蓝色上箭头不易一眼区分；同候选的连续缩放、生成中停止操作和焦点、整站深色仍缺证据。评审后另验证了本候选 Gemini 原生单发一次（见上表），不据此提高专家评分。保留原图标和暂停交互，本轮不重画。
+
 ## 当前候选接续预检：0.1.37 / r36（2026-11-22 01:05，中国标准时间）
 
 - **磁盘身份已核对。** `main` HEAD 为 `13936b528`，原 watcher PID 79176 同时监听 43119（开发服务）和 43120（输出守卫）。工作树唯一正式包与 `dist/development/official-tools` 中的预装副本逐字节一致：应用 `ai-send-queue` 0.1.37，网页模块 `app.ai-send-queue` r36，包 SHA-256 `4970d71603648bde9d0e850ecf17010a21c226824e94e0f6230ce11f7275b282`。磁盘更新清单 revision 为 `96f250d6f5c904c3738a965393cf5ffaa002f68e083df5cdc15a3ce5d01faf0c`；Chrome 的实际 applied revision、新版安装审阅身份和固定桥均待实读。以上标识须在正式采样前重查。

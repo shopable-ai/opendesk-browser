@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "ai-proxy",
-  "version": "0.3.46",
+  "version": "0.3.47",
   "title": "AI Proxy",
   "description": "浏览器网络代理管理。点选即可切换已授权线路，新线路首次使用时审阅。配置与规则可独立保存，支持手动读取订阅和有界 HTTP 诊断。",
   "capabilities": [

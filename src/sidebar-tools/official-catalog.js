@@ -210,9 +210,11 @@ export async function verifyOfficialStayFocusRemoteDescriptor(value,{
   if(!trusted)throw error('Stay Focus 官方发行签名不可信','E_RELEASE_SIGNATURE');
   return verifiedRelease;
 }
+export async function loadBundledOfficialCatalog({api=globalThis.chrome,fetcher=globalThis.fetch}={}){
+  return validateOfficialReleaseCatalog(json(await resourceBytes(api,fetcher,OFFICIAL_CATALOG_PATH,128000)));
+}
 export async function loadOfficialCatalog({api=globalThis.chrome,fetcher=globalThis.fetch}={}){
-  const base=validateOfficialReleaseCatalog(json(
-    await resourceBytes(api,fetcher,OFFICIAL_CATALOG_PATH,128000)));
+  const base=await loadBundledOfficialCatalog({api,fetcher});
   let remoteBytes;
   try{
     remoteBytes=await resourceBytes(api,fetcher,OFFICIAL_STAY_FOCUS_RELEASE_URL,8192,

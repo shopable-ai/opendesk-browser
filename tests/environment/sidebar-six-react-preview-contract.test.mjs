@@ -62,7 +62,7 @@ test('R37 offline preview generates from the empty official root with working pr
   assert.match(previewSource,/app\.connectBack\(closeDetail\)/);
   assert.match(previewSource,/app\.renderRows\(\{rows:shown\.map/);
   assert.match(previewSource,/onSearch:value=>\{toolbar\.query=value;publishToolbar\(\);publishRows\(\)/);
-  assert.match(previewSource,/primaryAction:null/);
+  assert.match(previewSource,/primaryAction:!installed\?null/);
   assert.match(previewSource,/onMarket:previewNotice,onImport:previewOpenImport,onReload:previewNotice/);
   assert.match(previewSource,/toolView\.bind\('sidebar-tool-import-close'/);
   assert.match(previewSource,/else if\(id==='open'\)[\s\S]*?!marketDemoReceipt\.enabled[\s\S]*?closePreviewMarketReview\(\);\s*clipper\.open\(\)/,

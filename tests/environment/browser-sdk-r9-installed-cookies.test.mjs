@@ -130,6 +130,53 @@ test('setMany stops on ifAbsent conflict without retry or executing subsequent r
   assert.equal(f.state.native.filter(method=>method==='set').length,1);
 });
 
+test('timed out setMany preserves the prefix and fences the slot until the late native write settles',async t=>{
+  t.mock.timers.enable({apis:['setTimeout','Date'],now:1000});
+  const f=fixture(),nativeSet=f.api.cookies.set;
+  let finish,started;
+  const second=new Promise(resolve=>{started=resolve;});
+  f.api.cookies.set=(details,callback)=>{
+    if(details.name!=='late'||finish){nativeSet(details,callback);return;}
+    finish=()=>nativeSet(details,callback);
+    started();
+  };
+  const pending=f.run('setMany',{cookies:['verified','late','untouched'].map(name=>({name,value:'fixture'}))},
+    f.grant({deadlineAt:2000}));
+  await second;
+  t.mock.timers.tick(1000);
+  assert.deepEqual(await pending,{saved:1,verified:1,stopped:true,results:[
+    {index:0,saved:true,verified:true},{index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}]});
+  assert.equal(f.state.records.some(row=>row.name==='late'),false);
+  await assert.rejects(f.run('set',{name:'late',value:'new'}),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal((await f.run('set',{name:'late',path:'/sibling',value:'fixture'})).verified,true);
+  finish(); // The side effect itself is late, not just its callback.
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.state.native,['set','getAll','set','getAll','set']);
+  assert.equal(f.state.records.some(row=>row.name==='untouched'),false);
+  assert.equal((await f.run('set',{name:'late',value:'new'})).verified,true);
+});
+
+test('a late authorization after the batch deadline cannot dispatch the native write',async t=>{
+  t.mock.timers.enable({apis:['setTimeout','Date'],now:1000});
+  const f=fixture(),args={cookies:[{name:'never-started',value:'fixture'}]};
+  let finish,started;
+  const checking=new Promise(resolve=>{started=resolve;});
+  const pending=f.run('setMany',args,f.grant({deadlineAt:2000,authorize:async()=>{
+    await new Promise(resolve=>{finish=resolve;started();});
+  }}));
+  await checking;
+  t.mock.timers.tick(1000);
+  assert.deepEqual(await pending,{saved:0,verified:0,stopped:true,results:[
+    {index:0,saved:false,verified:false,code:'E_COOKIE_BATCH_EXPIRED'}]});
+  finish();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.state.native,[]);
+  assert.deepEqual(await f.run('setMany',args,f.grant({deadlineAt:2000})),
+    {saved:0,verified:0,stopped:true,results:[
+      {index:0,saved:false,verified:false,code:'E_COOKIE_BATCH_EXPIRED'}]});
+  assert.deepEqual(f.state.native,[]);
+});
+
 test('setMany fences revocation after an effect and preserves prior successes',async()=>{
   const f=fixture(),set=f.api.cookies.set;let writes=0;
   f.api.cookies.set=(details,cb)=>{if(++writes===2)f.state.revokeOnSet=true;return set(details,cb);};

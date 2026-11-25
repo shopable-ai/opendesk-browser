@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>三轮对话导航回归</title>
+<style>
+  body{margin:0;font:16px system-ui}
+  main{height:100vh;overflow:auto;overflow-anchor:none}
+  #timeline{position:relative;height:3600px}
+  .round{position:absolute;left:25%;right:12%}
+  article{box-sizing:border-box;height:72px;padding:16px;background:#eef2f8;margin-bottom:12px}
+  [data-answer="3"]{height:1250px}
+</style>
+<main role="region" aria-label="对话" data-app-action-timeline-scroll>
+  <div id="timeline"></div>
+</main>
+<script type="module">
+  import {installFloatingNavigation} from '../../src/floating-navigation.js';
+  import {resolveConfiguredConversation} from '../../src/site-configuration.js';
+  const main=document.querySelector('main'),timeline=document.querySelector('#timeline');
+  const win=new Proxy(window,{get(target,key){
+    if(key==='location')return new URL('https://chatgpt.com/c/virtualized-fixture');
+    const value=Reflect.get(target,key,target);
+    return typeof value==='function'?value.bind(target):value;
+  }});
+  const owner={
+    on:(target,...args)=>target.addEventListener(...args),setTimeout:(...args)=>setTimeout(...args),
+    observe(target,callback,options){
+      const observer=new MutationObserver(callback);observer.observe(target,options);return observer;
+    },onDispose(){}
+  };
+  const selector='[role="region"][aria-label="对话"]';
+  const rule={enabled:true,origin:'https://chatgpt.com',pathScope:'/',mainSelector:selector,
+    scrollSelector:selector,messageSelector:'[data-content-search-unit-key]'};
+  const rounds=[80,960,2200].map((top,i)=>{
+    const round=document.createElement('div');round.className='round';round.style.top=top+'px';
+    for(const [j,role] of ['user','assistant'].entries()){
+      const id='00000000-0000-0000-0000-00000000000'+(i*2+j);
+      const wrapper=document.createElement('div'),node=document.createElement('article');
+      wrapper.setAttribute('data-chatgpt-search-message-ids',id);
+      node.setAttribute('data-content-search-unit-key','fallback-turn-'+i+':'+j+':'+role);
+      node.dataset[role==='user'?'question':'answer']=String(i+1);
+      node.textContent=(role==='user'?'提问 ':'回复 ')+(i+1);
+      wrapper.append(node);round.append(wrapper);
+    }
+    return round;
+  });
+  timeline.append(...rounds);
+  main.scrollTop=main.scrollHeight;
+  const initial=main.scrollTop;
+  const dock=installFloatingNavigation({doc:document,win,owner,resolveNavigation:()=>({showTurnCount:true}),
+    resolveConversation:()=>resolveConfiguredConversation(rule,document,win)});
+  let moved=false;
+  main.addEventListener('scroll',()=>{
+    if(!moved&&main.scrollTop===initial)return;
+    moved=true;
+    const i=main.scrollTop<500?0:main.scrollTop<1600?1:2;
+    // Simulate a single mounted round and a spacer height correction.
+    if(timeline.firstElementChild!==rounds[i]||timeline.childElementCount!==1){
+      if(i===1){
+        const node=rounds[i].querySelector('[data-question]');
+        node.setAttribute('data-content-search-unit-key',node.parentElement.getAttribute('data-chatgpt-search-message-ids')+':0:user');
+      }
+      timeline.replaceChildren(rounds[i]);
+      timeline.style.height=i===0?'3400px':'3600px';
+      dock.refresh();
+    }
+  });
+</script>
+</html>

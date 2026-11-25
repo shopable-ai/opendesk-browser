@@ -12,9 +12,10 @@ export function requireXmindFrameFactory(factory){
 // NON-RELEASE integration seam. The caller owns a fixed test frame/bootstrap
 // and hands over a private port directly. Never discover a loader on the page.
 export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',identity,
-  frameFactory,timeoutMs=10000}){
+  frameFactory,timeoutMs=10000,frameCreateTimeoutMs=timeoutMs}){
   try{requireXmindFrameFactory(frameFactory);}catch(error){throw annotateMindmapError(error,'frame.create');}
-  if(!Number.isFinite(timeoutMs)||timeoutMs<=0)throw annotateMindmapError(frameError('E_XMIND_FRAME_TIMEOUT'),'frame.create');
+  if(![timeoutMs,frameCreateTimeoutMs].every(value=>Number.isFinite(value)&&value>0))
+    throw annotateMindmapError(frameError('E_XMIND_FRAME_TIMEOUT'),'frame.create');
   const binding=bindFrameIdentity({...identity,sessionId:window.crypto.randomUUID()});
   const abort=new AbortController(),pending=new Map(),retired=new WeakSet();
   let resource=null,port=null,sequence=0,disposed=false,closing=null,nodeCount=0;
@@ -101,9 +102,9 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
   },()=>{});
   const ready=(async()=>{
     let stage='frame.create';
-    const timer=setTimeout(()=>cancelConnect(annotateMindmapError(frameError('E_XMIND_FRAME_TIMEOUT'),stage)),timeoutMs);
+    const timer=setTimeout(()=>cancelConnect(annotateMindmapError(frameError('E_XMIND_FRAME_TIMEOUT'),'frame.create')),frameCreateTimeoutMs);
     try{
-      resource=await Promise.race([loading,cancelled]);
+      resource=await Promise.race([loading,cancelled]).finally(()=>clearTimeout(timer));
       if(disposed)throw destroyed();
       stage='frame.connect';
       if(typeof resource?.destroy!=='function')throw frameError('E_XMIND_FRAME_PORT');
@@ -112,7 +113,6 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
       stage='frame.init';
       await request('init',{tree,skinMode});
     }catch(error){throw annotateMindmapError(error,stage);}
-    finally{clearTimeout(timer);}
   })().catch(async error=>{
     if(!closing){
       disposed=true;abort.abort();rejectPending(error);

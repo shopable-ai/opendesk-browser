@@ -2,6 +2,7 @@
 export const SIDEBAR_TOOL_ENABLE_STORE='opendesk.sidebar-tools.enabled.v1';
 export const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
 export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
+export const sidebarToolStopLock=(id,epoch)=>'opendesk.sidebar-tools:stopping:'+JSON.stringify([id,epoch??null]);
 const toolIdPattern=/^[a-z][a-z0-9-]{1,39}$/;
 // Shared by the original Installer and Scheduler; corruption never authorizes cleanup.
 export function requirePendingToolCleanups(value){

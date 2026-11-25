@@ -23,12 +23,12 @@ test('offline preview preserves all four production navigation SVG paths',()=>{
   }
 });
 
-test('preview retains compact dock geometry and production viewport breakpoint',()=>{
+test('preview retains compact dock geometry at the production width threshold',()=>{
   assert.ok(source.includes('.stack.paging:not(.compact){gap:3px}'));
   assert.ok(source.includes('height:28px;border-radius:9px'));
   assert.ok(preview.includes('.sim-dock #sim-prev,.sim-dock #sim-next{height:28px'));
   assert.ok(preview.includes('.sim-dock{position:absolute;left:120px;bottom:84px;z-index:3;display:flex;align-items:center;flex-direction:column;gap:3px}'));
-  assert.ok(source.includes('const compact=win.innerWidth<600;'));
+  assert.ok(source.includes('const narrow=next.custom?win.innerWidth<600:portWidth<600;'));
   assert.ok(preview.includes('@media(max-width:599px)'));
 });
 

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {verifyManifest,SDK_AUTOMATIC_CONTENT_SCRIPTS,CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT}
+import {verifyManifest,SDK_AUTOMATIC_CONTENT_SCRIPTS,CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT,
+  GEMINI_FIXED_QUEUE_CONTENT_SCRIPT,PACKAGE_ENTRIES,FIXED_OUTPUTS}
   from '../../scripts/verify-package.mjs';
 import assert from 'node:assert/strict';
 import {createChatGPTBridgeTriggerLedger,validChatGPTBridgeSource,installChatGPTBridgeTriggerGate,CHATGPT_BRIDGE_LEDGER_KEY}
@@ -694,11 +695,11 @@ test('directory detects any installation drift while task preparation only fence
   }
 });
 
-test('root manifest retains two independent SDK scripts and one exact isolated ChatGPT bridge',()=>{
+test('root manifest retains the ChatGPT bridge and SDK scopes and limits the isolated queue to Gemini and DeepSeek chat',()=>{
   const manifest=JSON.parse(readFileSync(new URL('../../manifest.json',import.meta.url),'utf8'));
   assert.equal(SDK_AUTOMATIC_CONTENT_SCRIPTS.length,2);
   assert.deepEqual(manifest.content_scripts,
-    [CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT,...SDK_AUTOMATIC_CONTENT_SCRIPTS]);
+    [CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT,GEMINI_FIXED_QUEUE_CONTENT_SCRIPT,...SDK_AUTOMATIC_CONTENT_SCRIPTS]);
   assert.doesNotThrow(()=>verifyManifest(manifest,{source:true}));
   const badPath=structuredClone(manifest);
   badPath.content_scripts[0].js=['agents/page-relay.js'];
@@ -709,4 +710,14 @@ test('root manifest retains two independent SDK scripts and one exact isolated C
   const badWorld=structuredClone(manifest);
   badWorld.content_scripts[0].world='MAIN';
   assert.throws(()=>verifyManifest(badWorld,{source:true}),/Only the origin-limited/);
+  assert.deepEqual(manifest.content_scripts[1],{matches:['https://gemini.google.com/*','https://chat.deepseek.com/a/chat/s/*','https://chat.deepseek.com/'],
+    js:['agents/gemini-fixed-send-queue.js'],run_at:'document_idle',all_frames:false,world:'ISOLATED'});
+  assert.equal(PACKAGE_ENTRIES['agents/gemini-fixed-send-queue'],'./src/entrypoints/gemini-fixed-send-queue.js');
+  assert.equal(FIXED_OUTPUTS['gemini-fixed-send-queue'],'agents/gemini-fixed-send-queue.js');
+  for(const patch of [{matches:['https://*.google.com/*']},{matches:['https://gemini.google.com/*','https://chat.deepseek.com/*']},{world:'MAIN'},{all_frames:true},
+    {js:['agents/chatgpt-fixed-bridge.js']},{run_at:'document_start'}]){
+    const invalid=structuredClone(manifest);
+    Object.assign(invalid.content_scripts[1],patch);
+    assert.throws(()=>verifyManifest(invalid,{source:true}),/Only the origin-limited/);
+  }
 });

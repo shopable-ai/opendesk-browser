@@ -15,7 +15,7 @@ export function DevelopExecution({section='editor',children}={}){
     !snapshot.fields['script-user-scripts-recovery'].hidden;
   return <div className="developer-output od-stack" hidden={!showArea}>
         <div className="developer-run-area od-stack" hidden={!showArea}>
-          <DevelopField as="div" id="script-user-scripts-recovery" className="developer-execution-help od-alert od-alert--warning" data-state="blocked">
+          <div hidden={section==='diagnostics'}><DevelopField as="div" id="script-user-scripts-recovery" className="developer-execution-help od-alert od-alert--warning" data-state="blocked">
             <DevelopField as="p" id="script-user-scripts-recovery-status" role="status" aria-live="polite">
             </DevelopField>
             <div className="developer-execution-help-actions">
@@ -26,7 +26,7 @@ export function DevelopExecution({section='editor',children}={}){
                 {"重新检测"}
               </DevelopField>
             </div>
-          </DevelopField>
+          </DevelopField></div>
           {section==='editor'&&unknown&&<button type="button" id="developer-unknown-history" className="od-button od-button--quiet"
             onClick={()=>model.actions['developer-unknown-history']?.(snapshot.fields['script-task-status'].data.runId)}>查看原运行记录</button>}
           <div hidden={!['editor','history','diagnostics'].includes(section)}>

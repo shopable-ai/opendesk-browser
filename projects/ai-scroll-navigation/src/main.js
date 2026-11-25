@@ -41,12 +41,11 @@ export default async function main() {
         replies?.refresh();dock?.refresh();
       }
     });
-    // Reply actions are site-specific. Gemini has only proven transcript edge
-    // navigation; never guess its native per-answer toolbar.
-    if (builtIn&&origin!=='https://gemini.google.com') replies=installJumpToTop({
+    if (builtIn) replies=installJumpToTop({
       doc:document,win:window,owner,
       resolveBindings:findSiteBindings,resolveNavigation,
-      regionSelector:'main,[role="main"],header,#root,.ds-message',
+      refreshDock:()=>dock?.refresh(),
+      regionSelector:'main,[role="main"],header,#root,.ds-message,chat-window,model-response',
       regionDirections:{top:true,bottom:true},
       conversationDirections:{top:false,bottom:false}
     });

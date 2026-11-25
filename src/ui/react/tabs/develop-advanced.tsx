@@ -172,28 +172,6 @@ export function DevelopAdvanced({section='editor'}){
             <summary>
               {"高级脚本与目标设置"}
             </summary>
-            <DevelopField as="details" id="site-access" className="site-access-panel od-disclosure od-disclosure--flat">
-              <summary>
-                {"网站权限 · 默认全部网站"}
-              </summary>
-              <DevelopField as="p" id="site-access-status" role="status" data-state="checking">
-                {"正在查询 Chrome 网站权限…"}
-              </DevelopField>
-              <p className="hint">
-                {"安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。"}
-              </p>
-              <div className="row">
-                <DevelopField as="button" id="site-access-grant" type="button" className="od-button od-button--secondary">
-                  {"恢复全部网站访问"}
-                </DevelopField>
-                <DevelopField as="button" id="site-access-refresh" type="button" className="od-button od-button--secondary">
-                  {"刷新授权状态"}
-                </DevelopField>
-              </div>
-              <p className="hint">
-                {"如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。"}
-              </p>
-            </DevelopField>
             <p>
               <label>
                 <DevelopField as="input" id="script-allow-cookies" type="checkbox"/>
@@ -213,6 +191,53 @@ export function DevelopAdvanced({section='editor'}){
         </DevelopField>
         </div>
   );
+}
+
+export function DevelopBrowserPermissions({active}){
+  const {actions}=useDevelop();
+  const region=React.useRef(null);
+  React.useEffect(()=>{
+    if(!active)return;
+    const doc=region.current?.ownerDocument;
+    const win=doc?.defaultView;
+    const refresh=()=>{if(!doc?.hidden)actions['browser-user-scripts-refresh']?.();};
+    actions['browser-user-scripts-panel-active']?.(true);
+    win?.addEventListener('focus',refresh);
+    doc?.addEventListener('visibilitychange',refresh);
+    return ()=>{
+      actions['browser-user-scripts-panel-active']?.(false);
+      win?.removeEventListener('focus',refresh);
+      doc?.removeEventListener('visibilitychange',refresh);
+    };
+  },[active,actions]);
+  return <section ref={region} className="od-surface od-surface--padded od-stack" aria-labelledby="develop-chrome-permissions-title">
+    <h3 id="develop-chrome-permissions-title" className="od-title">Chrome 权限</h3>
+    <section className="od-stack" aria-labelledby="browser-user-scripts-title">
+      <h4 id="browser-user-scripts-title" className="od-page-title">允许用户脚本</h4>
+      <DevelopField as="p" id="browser-user-scripts-status" role="status"/>
+      <p id="browser-user-scripts-note" className="od-field-help">自定义网页脚本需要此设置。若未开放，请在 Chrome 扩展详情中开启「允许用户脚本」。每项脚本仍按已批准的网站范围运行。</p>
+      <DevelopField as="p" id="browser-user-scripts-reopen-hint" className="od-field-help">
+        如果开关已开启但仍显示不可用，请关闭并重新打开侧栏，再检测一次。
+      </DevelopField>
+      <div className="row">
+        <DevelopField as="button" id="browser-user-scripts-settings" className="od-button od-button--secondary"
+          aria-describedby="browser-user-scripts-note">打开 Chrome 扩展设置</DevelopField>
+        <DevelopField as="button" id="browser-user-scripts-refresh" className="od-button od-button--secondary">重新检测</DevelopField>
+      </div>
+      <DevelopField as="p" id="browser-user-scripts-settings-error" role="alert"/>
+    </section>
+    <DevelopField as="details" id="site-access" className="site-access-panel od-disclosure od-disclosure--flat">
+      <summary>网站访问权限</summary>
+      <div className="od-stack">
+        <DevelopField as="p" id="site-access-status" role="status"/>
+        <p className="od-field-help">Chrome 决定此扩展可访问哪些网站。扩展内每个应用或脚本的授权仍单独生效。</p>
+        <div className="row">
+          <DevelopField as="button" id="site-access-grant" className="od-button od-button--secondary"/>
+          <DevelopField as="button" id="site-access-refresh" className="od-button od-button--secondary"/>
+        </div>
+      </div>
+    </DevelopField>
+  </section>;
 }
 
 function DevelopScriptIdentity({section,page}){

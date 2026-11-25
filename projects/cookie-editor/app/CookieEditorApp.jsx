@@ -19,7 +19,7 @@ import cookiePackage from '../package.json';
 
 const PAGE_CHECK_GRACE_MS=4000;
 const outcomeHelp={save:'保存 Cookie，请核对 Chrome 中的记录。',remove:'删除 Cookie，请核对 Chrome 中的记录。',
-  clear:'清理本站 Cookie，请核对 Chrome 中的记录。',import:'导入 Cookie，请核对 Chrome 中的记录。',
+  import:'导入 Cookie，请核对 Chrome 中的记录。',
   copy:'复制 Cookie，请核对剪贴板。',download:'下载 Cookie，请核对下载记录。'};
 
 // The only transport is Controller -> Adapter -> public OpenDeskSDK.browser.
@@ -97,13 +97,19 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const setConfirmation=value=>{syncGate.current.confirmation=value;updateConfirmation(value);};
   const [status,setStatus]=React.useState('');
   const [importNotice,setImportNotice]=React.useState(null);
+  const [clearNotice,setClearNotice]=React.useState(null);
   const importSubmitting=React.useRef(false);
   const [working,updateWorking]=React.useState(false);
   const setWorking=value=>{syncGate.current.working=value;updateWorking(value);};
-  const clearScopeInFlight=React.useRef(false);
   const appliedSite=React.useRef('');
   const observationNotified=React.useRef(false);
-  const notifySuccess=text=>{
+  const notifySuccess=(text,notice)=>{
+    if(notice){
+      // The clear receipt has one owner. Losing a Host toast acknowledgment
+      // cannot hide this outcome or make us render a duplicate.
+      setClearNotice({text});
+      return;
+    }
     try{
       if(globalThis.OpenDeskTool?.ui?.notify?.({message:text,type:'success'})===true)return;
     }catch{}
@@ -153,6 +159,11 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const {controller,adapter}=data.current;
   const noteImport=(text,kind='error')=>setImportNotice(text?{text,kind}:null);
   const importDirtyRef=React.useRef(false);
+  React.useEffect(()=>{
+    if(!clearNotice)return;
+    const timer=window.setTimeout(()=>setClearNotice(null),5000);
+    return ()=>window.clearTimeout(timer);
+  },[clearNotice]);
   React.useEffect(()=>{
     if(!importNotice||importNotice.kind!=='success')return;
     const timer=window.setTimeout(()=>setImportNotice(null),3500);
@@ -854,7 +865,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     }
     const sessionRef=activeImportRef.current;
     try{
-    const plan=await controller.previewImport(text,'auto',overwrite,{allSites:true});
+    const plan=await controller.previewImport(text,'auto',overwrite,{allSites:true,submitDirectly:true});
     // Never report a stale success/error against a newly selected site.
     const currentSite=controller.snapshot();
     if(currentSite.navigationPending||generation!==navigationGeneration.current||initial.epoch!==currentSite.epoch||
@@ -864,14 +875,10 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       noteImport('无法导入：Cookie 格式不正确或网站授权不可用。');
       return false;
     }
+    const skippedDetails=plan.skipDetails;
     if(!plan.accepted){
-      const first=String(plan.issues?.[0]?.reason||'');
-      const reason=/域名|网站范围|Host-only/.test(first)
-        ?'Cookie 域名或 Host-only 属性无效。'
-        :/过期|expirationDate/.test(first)
-          ?'Cookie 已过期。':'内容不符合 Cookie 格式或权限要求。';
       controller.discardImport();controller.dismissImportReport();
-      noteImport('未导入 '+plan.total+' 条：'+reason);
+      noteImport('未写入任何 Cookie：'+skippedDetails+'。');
       return false;
     }
     importSubmitting.current=true;
@@ -879,9 +886,12 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       .finally(()=>{importSubmitting.current=false;});
     if(generation!==navigationGeneration.current)return 'unknown';
     if(ok){
+      const conflicts=controller.snapshot().importConflicts;
+      const skipped=plan.skipped+conflicts;
+      const details=[skippedDetails,conflicts?'精确冲突 '+conflicts+' 条':''].filter(Boolean).join('、');
       restoreImportFocus.current=true;
-      noteImport('已导入 '+plan.accepted+' 条'+
-        (plan.skipped?'，跳过 '+plan.skipped+' 条':'')+'。','success');
+      noteImport('浏览器已确认写入 '+(plan.accepted-conflicts)+' 条 Cookie'+
+        (skipped?'，跳过 '+skipped+' 条：'+details:'')+'。',skipped?'warning':'success');
       setPanel(null);
       return true;
     }
@@ -968,40 +978,41 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
        setWorking(false);
      }
    };
-  const clear=async()=>{
-    if(locked||controller.snapshot().navigationPending)return;
+  const requestClearPreview=async (dialog,includeShared)=>{
+    const pending={...dialog,includeShared,count:null,excluded:0,problem:null,pending:true};
     const generation=navigationGeneration.current;
+    setConfirmation(pending);
+    const result=await (includeShared?controller.previewClear():controller.previewClear(false));
+    if(syncGate.current.confirmation!==pending)return;
+    const state=controller.snapshot();
+    if(generation!==navigationGeneration.current||state.navigationPending){
+      controller.discardClear();setConfirmation(null);return;
+    }
+    setConfirmation({...pending,pending:false,...(result??{
+      problem:state.phase==='blocked'?state.message:'清理范围未能核对。可以重试或取消。'
+    })});
+  };
+  const clear=event=>{
+    const state=controller.snapshot();
+    if(locked||syncGate.current.confirmation||state.busy||state.navigationPending||state.clearRecovery||
+       state.phase!=='ready'||!state.target)return;
     if(dirty){setStatus('请先保存或取消当前修改，再清理本站 Cookie。');return;}
     setStatus('');
-    setWorking(true);
-    let result;
-    try{result=await controller.previewClear();}
-    finally{setWorking(false);}
-    if(!result||generation!==navigationGeneration.current||controller.snapshot().navigationPending)return;
-    if(!result.count){
-      controller.discardClear();
-      setStatus(result.excluded?'当前没有可清理的 Cookie，已保留超出清理范围的记录。':'当前清理范围内没有可删除的 Cookie。');
-      return;
-    }
-    ask('',
-      async()=>{setWorking(true);try{await controller.executeClear();}
-        finally{setWorking(false);}},
-      ()=>controller.discardClear(),'clear',
-      {hostname:result.hostname,count:result.count,excluded:result.excluded,includeShared:true,token:{}});
+    void requestClearPreview({kind:'clear',hostname:state.target.hostname,trigger:event?.currentTarget},true);
   };
-  const changeClearScope=async includeShared=>{
-    const current=syncGate.current.confirmation;
-    if(!current||current.kind!=='clear'||clearScopeInFlight.current)return;
-    clearScopeInFlight.current=true;
-    setConfirmation({...current,includeShared,count:null});
-    setWorking(true);
-    try{
-      const next=await controller.previewClear(includeShared);
-      const live=syncGate.current.confirmation;
-      if(!live||live.token!==current.token)return;
-      if(!next){setConfirmation(null);return;}
-      setConfirmation({...live,...next});
-    }finally{clearScopeInFlight.current=false;setWorking(false);}
+  const changeClearScope=(dialog,includeShared)=>{
+    if(syncGate.current.confirmation!==dialog||dialog.pending||controller.snapshot().phase!=='ready')return;
+    void requestClearPreview(dialog,includeShared);
+  };
+  const cancelClear=dialog=>{
+    if(syncGate.current.confirmation!==dialog)return;
+    controller.discardClear();setConfirmation(null);
+  };
+  const confirmClear=async dialog=>{
+    if(syncGate.current.confirmation!==dialog||dialog.pending||!dialog.count||
+       controller.snapshot().navigationPending)return;
+    setConfirmation(null);setWorking(true);
+    try{await controller.executeClear();}finally{setWorking(false);}
   };
   const select=id=>guarded(()=>{setPanel(null);setExportOpen(false);setSelected(id);setStatus('');});
   const editorIsCurrent=id=>{
@@ -1085,7 +1096,19 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         <p role="status">操作回执：{snapshot.previousReceipt.text}</p>
         <Button type="button" variant="secondary" onClick={()=>controller.dismissPreviousReceipt()}>关闭回执</Button>
       </div>}
-      {snapshot.unknownEffects?.map(effect=><div key={effect} className="cookie-message od-alert od-alert--warning">
+      {snapshot.clearRecovery&&<div className="cookie-message od-alert od-alert--warning">
+        <p role="alert">{snapshot.clearRecovery.hostname} 的 Cookie 清理结果未确认。请核对当前记录后再决定是否重新清理。</p>
+        {snapshot.clearRecovery.pending?<p role="status">正在读取当前 Cookie…</p>:
+          snapshot.clearRecovery.available?<Button type="button" variant="secondary" disabled={locked}
+            onClick={()=>guarded(()=>{
+              cleanEditor(true);setPage(1);
+              void controller.verifyClearCurrentRecords();
+            })}>核对当前 Cookie</Button>:
+            <p>请回到原网页和存储范围；如页面未就绪，请先重新检查权限或读取 Cookie。</p>}
+      </div>}
+      {snapshot.messageType==='verification'&&snapshot.message&&
+        <p role="status" className="cookie-message od-alert">{snapshot.message}</p>}
+      {snapshot.unknownEffects?.filter(effect=>effect!=='clear').map(effect=><div key={effect} className="cookie-message od-alert od-alert--warning">
         <p role="alert">操作结果未确认：{outcomeHelp[effect]}请勿直接重试。</p>
         <Button type="button" variant="secondary" onClick={()=>controller.acknowledgeUnknown(effect)}>已核对</Button>
       </div>)}
@@ -1128,8 +1151,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
               noteImport(method==='copy'?'已复制 Cookie':'Cookie 文件下载已发起','success');
             }}
             onClose={()=>closeExport(true)}/>:null}
-          onNew={()=>select('new')} onClear={()=>void clear()}
-          clearDisabled={!cookieReady||!snapshot.rows.length}
+          onNew={()=>select('new')} onClear={clear}
+          clearDisabled={!cookieReady||!snapshot.rows.length||Boolean(snapshot.clearRecovery)}
           newEditor={showCookieData&&selected==='new'?<CookieInlineEditor key="new" target={target}
             navigationRevision={navigationRevision} navigationPending={snapshot.navigationPending}
             disabled={locked} onSave={(...args)=>editorIsCurrent('new')&&save(...args)}
@@ -1278,7 +1301,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           if(locked&&!committed)return;
           restoreImportFocus.current=true;
           importDirtyRef.current=false;
-          if(importNotice?.kind==='warning')noteImport(null);
+          if(!committed&&importNotice?.kind==='warning')noteImport(null);
           if(!committed){controller.discardImport();finishImportIntent(activeImportRef.current);}
           setPanel(null);
         }}/>}
@@ -1289,18 +1312,25 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':'od-alert--warning')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
+    {clearNotice&&<div role="status" className="cookie-import-toast cookie-clear-toast">{clearNotice.text}</div>}
     {section==='accounts'&&!checkingPage&&accountNotice?.kind==='success'&&<div
       role="status" className="cookie-import-toast">{accountNotice.text}</div>}
     {panel!=='import'&&importNotice&&<div
       role={importNotice.kind==='error'?'alert':'status'}
       className={'cookie-import-toast'+
-        (importNotice.kind==='error'?' cookie-import-toast--error':'')}>
+        (importNotice.kind==='error'?' cookie-import-toast--error':'')+
+        (importNotice.kind==='warning'?' cookie-import-toast--dismissible':'')}>
       {importNotice.text}
+      {importNotice.kind==='warning'&&<CookieIconButton name="close" label="关闭导入回执"
+        onClick={()=>noteImport(null)}/>}
     </div>}
     {confirmation?.kind==='clear'&&<CookieClearDialog
-      hostname={confirmation.hostname} count={confirmation.count} excluded={confirmation.excluded} busy={working}
-      includeShared={confirmation.includeShared} onScopeChange={changeClearScope}
-      onCancel={()=>endConfirm(false)} onConfirm={()=>endConfirm(true)}/>}
+      trigger={confirmation.trigger} hostname={confirmation.hostname} count={confirmation.count}
+      excluded={confirmation.excluded} busy={confirmation.pending} problem={confirmation.problem}
+      canRetry={cookieReady} includeShared={confirmation.includeShared}
+      onScopeChange={includeShared=>changeClearScope(confirmation,includeShared)}
+      onRetry={()=>changeClearScope(confirmation,confirmation.includeShared)}
+      onCancel={()=>cancelClear(confirmation)} onConfirm={()=>void confirmClear(confirmation)}/>}
     {confirmation?.kind==='discard'&&<div className="discard-row" role="status">
       <span>{confirmation.text}</span>
       <Button type="button" variant="secondary" onClick={()=>endConfirm(false)}>继续编辑</Button>

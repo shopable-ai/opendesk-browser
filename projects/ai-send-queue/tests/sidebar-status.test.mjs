@@ -52,13 +52,27 @@ for(const status of ['ready','new-conversation','composer-unavailable','stopped'
   });
 }
 
-for(const url of ['https://example.com/','https://chatgpt.com.evil.test/','http://chatgpt.com/']){
+test('Gemini status is based on the mounted companion and names the actual site in recovery help',async()=>{
+  const info={status:'available',url:'https://gemini.google.com/app/0123456789abcdef'};
+  const f=fixture({info,result:{...ready,status:'composer-unavailable'}});
+  await f.checker.check();
+  assert.deepEqual(f.calls.map(call=>call.operation),['currentPage.info','page.request']);
+  assert.equal(f.states.at(-1).status,'composer-unavailable');
+  assert.match(f.states.at(-1).message,/Gemini/);
+  assert.doesNotMatch(f.states.at(-1).message,/ChatGPT/);
+  const g=fixture({info,result:ready});
+  await g.checker.check();
+  assert.equal(g.states.at(-1).status,'ready');
+});
+
+for(const url of ['https://example.com/','https://chatgpt.com.evil.test/','http://chatgpt.com/',
+  'https://gemini.google.com/library','https://gemini.google.com.evil.test/app']){
   test(`unsupported target never requests the page: ${url}`,async()=>{
     const f=fixture({info:{status:'available',url}});
     await f.checker.check();
     assert.equal(f.calls.length,1);
     assert.equal(f.states.at(-1).status,'unsupported');
-    assert.equal(f.states.at(-1).title,'请打开 ChatGPT');
+    assert.equal(f.states.at(-1).title,'请打开 ChatGPT、Gemini 或 DeepSeek 对话');
   });
 }
 
@@ -67,7 +81,7 @@ test('a browser-only page or missing active tab needs a site prompt, with no pag
     const f=fixture({info:{status:'unavailable',reasonCode,message:'内部网页诊断'}});
     await f.checker.check();
     assert.deepEqual(f.calls,[{operation:'currentPage.info',payload:{}}]);
-    assert.deepEqual(f.states.at(-1),{status:'unsupported',title:'请打开 ChatGPT',message:''});
+    assert.deepEqual(f.states.at(-1),{status:'unsupported',title:'请打开 ChatGPT、Gemini 或 DeepSeek 对话',message:''});
   }
 });
 
@@ -90,7 +104,7 @@ test('malformed target response fails before requesting the page',async()=>{
   }
 });
 
-for(const code of ['E_APP_PAGE_RELOAD_REQUIRED','E_APP_PAGE_NOT_READY','E_PAGE_AUTHORIZATION','E_CAPABILITY']){
+for(const code of ['E_APP_PAGE_NOT_READY','E_PAGE_AUTHORIZATION','E_CAPABILITY']){
   test(`request failure retains real code and safe recovery: ${code}`,async()=>{
     const f=fixture({error:Object.assign(Error('真实错误详情'),{code})});
     await f.checker.check();
@@ -99,10 +113,62 @@ for(const code of ['E_APP_PAGE_RELOAD_REQUIRED','E_APP_PAGE_NOT_READY','E_PAGE_A
     assert.equal(last.code,code);
     assert.equal(last.detail,'真实错误详情');
     assert.doesNotMatch(last.message,/重装|扩大权限/);
-    if(code.includes('RELOAD_REQUIRED'))assert.match(last.message,/保存草稿.*当前操作完成后刷新网页/);
-    else assert.match(last.message,/允许访问该网站后重试/);
+    assert.match(last.message,/允许访问该网站后重试/);
+    f.checker.dispose();
   });
 }
+
+test('late document, fixed listener and composer recover automatically through status reads only',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const calls=[],states=[];
+  let step=0;
+  const checker=createStatusCheck(async(operation,payload)=>{
+    calls.push({operation,payload});
+    if(operation==='currentPage.info')return step===0?{status:'unavailable',reasonCode:'E_DOCUMENT_UNRESOLVED'}:available;
+    if(step===1)throw Object.assign(Error('no status reply yet'),{code:'E_QUEUE_STATUS_PENDING'});
+    if(step===2)return {...ready,status:'composer-unavailable'};
+    return ready;
+  },state=>states.push(state));
+  await checker.check();
+  assert.equal(states.at(-1).status,'waiting-for-page');
+  for(const [delay,state] of [[350,'waiting-for-queue'],[800,'composer-unavailable'],[1600,'ready']]){
+    step++;t.mock.timers.tick(delay);
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(states.at(-1).status,state);
+  }
+  assert.equal(calls.length,7);
+  assert.ok(calls.filter(call=>call.operation!=='currentPage.info').every(call=>
+    call.operation==='page.request'&&call.payload.operation==='queue.status'));
+  t.mock.timers.tick(10000);
+  assert.equal(calls.length,7,'no polling after readiness');
+  checker.dispose();
+});
+
+test('a page that still needs a refresh stops retrying and keeps manual recovery available',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const calls=[],states=[];
+  let result=null;
+  const checker=createStatusCheck(async operation=>{
+    calls.push(operation);
+    if(operation==='currentPage.info')return available;
+    if(!result)throw Object.assign(Error('当前网页仍有旧队列'),{code:'E_APP_PAGE_RELOAD_REQUIRED'});
+    return result;
+  },state=>states.push(state));
+  await checker.check();
+  for(const delay of [350,800,1600,3200]){
+    t.mock.timers.tick(delay);
+    await new Promise(resolve=>setImmediate(resolve));
+  }
+  assert.equal(states.at(-1).code,'E_APP_PAGE_RELOAD_REQUIRED');
+  assert.match(states.at(-1).message,/保存草稿.*当前操作完成后刷新网页/);
+  assert.equal(calls.length,10);
+  t.mock.timers.tick(10000);
+  assert.equal(calls.length,10);
+  result=ready;
+  await checker.check();
+  assert.equal(states.at(-1).status,'ready');
+  checker.dispose();
+});
 
 test('currentPage failure also retains its real error; plain rejections remain visible',async()=>{
   for(const error of [Object.assign(Error('目标被拒绝'),{code:'E_TARGET'}),'桥连接已关闭']){

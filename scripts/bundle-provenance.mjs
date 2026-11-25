@@ -25,21 +25,33 @@ const packagedTaskInputs=Object.freeze({
   'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json':'627a671c3673985e5ed2f434f584cc8ca340698b',
   'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json':'acc7df905e0376a94385b7176c34a4081c536612'
 });
-// Queue Page source and assets are statically compiled into the scoped ChatGPT
-// script. Sidebar source and installation JSON may never enter this bundle.
+// Queue Page source and assets are statically compiled into the two scoped
+// Content entries. Sidebar source and installation JSON stay outside both.
+// 2026-11-23 review: cache recovery details and explicit local backup UI.
+// 2026-11-24 review: Gemini empty cue, route-scoped display and persisted turn admission.
+// 2026-11-24 review: align the queue with the visible composer top edge.
+// 2026-11-24 review: bind Gemini native Stop completion to its persisted turn.
+// 2026-11-24 review: wait for DeepSeek's first conversation and isolate paused queues during route changes.
+// The fixed Page entry now uses the same site admission as the authority, restoring ChatGPT.
+// 2026-11-24 review: mount DeepSeek home only under the new reviewed rule; native send still creates the conversation.
+// 2026-11-24 review: preserve the composer width when a draft wraps.
+// 2026-11-24 review: hide routine reply wait notices without changing send guards.
+// 2026-11-24 review: one crown in the native bottom controls, with separate editor space.
+// 2026-11-24 review: all queue buttons match the native action; keep the crown inside overflow clips.
 const compiledSendQueueInputs=Object.freeze({
   'projects/ai-send-queue/assets/crown-premium.webp':'46ea350497498f7854fcecc9c31b0593081c7e68',
-  'projects/ai-send-queue/assets/queue.css':'de1cb65f9627ca063e19717f1c9609fd5422e726',
-  'projects/ai-send-queue/src/page/cache.js':'9510781e472804494cb5576cb7d1b516292ddb8a',
-  'projects/ai-send-queue/src/page/engine.js':'a815c6792b75ddf6095bd9ee6d84913ad825edc8',
-  'projects/ai-send-queue/src/page/main.js':'54fa800c84309ee62f36ad8b36954f0950b5c8b2',
-  'projects/ai-send-queue/src/page/site.js':'f15404479bcf959d4cdbc6a0537919f2ddd2c030',
+  'projects/ai-send-queue/assets/queue.css':'dcf7b0bd310e583edb047479dc84adad6448167f',
+  'projects/ai-send-queue/src/page/cache.js':'6b3845894d3de10a31d525236ae6d060613cc035',
+  'projects/ai-send-queue/src/page/engine.js':'1fd9e1168a01328c153fd0002205306562f2c68f',
+  'projects/ai-send-queue/src/page/main.js':'678fe21528728ae33cd339e0ec8be220af30c513',
+  'projects/ai-send-queue/src/page/site.js':'d65c06b0606ddb500e19434650796559724460f0',
   'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
-  'projects/ai-send-queue/src/page/view.js':'2fe6edc7bacfd9e30ffc18e3d7f5fc291a837ad0',
-  'projects/ai-send-queue/trusted/fixed-page.js':'ab70981a9241f6af86cea411eadae0391816689f'
+  'projects/ai-send-queue/src/page/view.js':'8220bef929ff204dcd59d67ecb44f188183768df',
+  'projects/ai-send-queue/trusted/fixed-page.js':'f777652963c87a78c50d8032c272a64e78c63497'
 });
 function reviewedCompiledSendQueue(target,path,root){
-  if(target!=='agents/chatgpt-fixed-bridge.js'||!Object.hasOwn(compiledSendQueueInputs,path))return null;
+  if(!['agents/chatgpt-fixed-bridge.js','agents/gemini-fixed-send-queue.js'].includes(target)||
+    !Object.hasOwn(compiledSendQueueInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted Send Queue source must not be a symlink: '+path);
   const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
@@ -506,6 +518,8 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // remain enforced; no new output, origin, sandbox capability or replay path.
 const compiledKnowledgeInputs=Object.freeze({
   'projects/ai-knowledge-answers/src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
+  // Recovery validates only the authored FAQ library in the existing tool shell.
+  'projects/ai-knowledge-answers/trusted/recovery-data.js':'169d0684b63f7d0ece42c172d6dea0333c457cb4',
   'projects/ai-knowledge-answers/trusted/host.js':'02bdd31fdcb2292196c849bd0a4c13e9bde78c0c',
   'projects/ai-knowledge-answers/trusted/ai-request.js':'d74df23166adc1ee10952db847cbd1202bdeb3ae',
   'projects/ai-knowledge-answers/trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
@@ -575,7 +589,9 @@ const compiledPromptShortcutInputs=Object.freeze({
   'projects/prompt-shortcuts/trusted/policy.js':'6a837d85880378262b21b8e51bb18d81e52d0a90',
   // OD entry restored from ed7ceb65; first built-in rail button only, using already pinned SW gesture bridge.
   // No origin, permission, storage, navigation arrows, sender scope or injection surface changed.
-  'projects/prompt-shortcuts/trusted/page.js':'3a9d4aac86b5c5d7ba12e58100b8cdc3e2fbf602',
+  // Gemini keeps the fixed vertical rail clear of the native composer and Send Queue.
+  // The rail uses its existing composer layout when an inline reply map overlaps its gutter.
+  'projects/prompt-shortcuts/trusted/page.js':'e7847190fa1979aa9c5f847a652f2c285deadfda',
   'projects/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'projects/prompt-shortcuts/trusted/asset-host.js':'8de12e8e40c083392a58e07a5cc4a45eab79c56f',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
@@ -696,11 +712,18 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 // runtime diagnostics, with four-locale labels; no new authority or output target.
 // 2026-11-22 review: old webpage cleanup moved to the development Debug tab.
 // The scroll view keeps its original registration, permissions and actions.
+// 2026-11-23 review: four locale tables describe Gemini long-reply navigation;
+// the existing About panel renders in Scroll settings without a new authority.
+// 2026-11-24 review: Scroll Usage uses the shared disclosure and stays collapsed by default.
+// 2026-11-24 locale review: automatic-run status and read-only retry labels in
+// the four existing locale tables only; no imports, authority or behavior changed.
+// 2026-11-24 controls review: present those states and retain focus across the
+// existing read-only retry callback; trusted input, write guards and shell-only admission remain.
 const compiledExtensionSettingsInputs=Object.freeze({
   'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
   'projects/ai-scroll-navigation/trusted/ai-controls.tsx':'ba7e94499c399aba685b7c80cf004bb56e2888f0',
-  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'0716d19acbfc04edc418b8c5f43e0f78b3934266',
-  'projects/ai-scroll-navigation/trusted/host-localization.js':'e2d8f50cf676e4fc902202bfb24caa36de221837',
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'e9f27c08fd9bfdc053901c1514b832f7444c53cc',
+  'projects/ai-scroll-navigation/trusted/host-localization.js':'fbc3ee37df898dbb109a0b21ed83f8542157b6ac',
   'projects/time-review/trusted/react-controls.tsx':'2a9155f4a6c56969d1aebcd7420405b84fd4eaf4',
   'projects/time-review/trusted/localization.js':'7478e9c91f33317c8e1fe08f33d2e49c47b47818',
   'projects/prompt-shortcuts/trusted/host-localization.js':'8a83cf4b2fff65af0ff12656d3f4aeafe62111d4'

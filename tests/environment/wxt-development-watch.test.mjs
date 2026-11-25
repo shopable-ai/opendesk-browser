@@ -7,12 +7,12 @@ import {once} from 'node:events';
 import {watch} from 'chokidar';
 import {developmentWatchOptions} from '../../scripts/wxt-development.mjs';
 
-test('development skips historical artifacts while real source changes remain watched',async()=>{
+test('development skips published output and historical artifacts while watching source changes',async()=>{
   const root=await mkdtemp(join(tmpdir(),'opendesk-dev-watch-'));
   let watcher;
   try{
-    const artifacts=join(root,'artifacts'),source=join(root,'src','draft.js');
-    for(const dir of [join(artifacts,'browser-profile','Default'),join(root,'src'),join(root,'artifacts-source')])
+    const artifacts=join(root,'artifacts'),dist=join(root,'dist'),source=join(root,'src','draft.js');
+    for(const dir of [join(artifacts,'browser-profile','Default'),join(dist,'development'),join(root,'src'),join(root,'artifacts-source')])
       await mkdir(dir,{recursive:true});
     await writeFile(join(artifacts,'browser-profile','Default','Preferences'),'historical fixture');
     await writeFile(source,'before');
@@ -20,6 +20,7 @@ test('development skips historical artifacts while real source changes remain wa
     await once(watcher,'ready');
     const watched=Object.keys(watcher.getWatched());
     assert.equal(watched.some(path=>path===artifacts||path.startsWith(artifacts+'/')),false);
+    assert.equal(watched.some(path=>path===dist||path.startsWith(dist+'/')),false);
     assert.ok(watched.includes(join(root,'src')));
     assert.ok(watched.includes(join(root,'artifacts-source')));
     const change=once(watcher,'change',{signal:AbortSignal.timeout(3000)});

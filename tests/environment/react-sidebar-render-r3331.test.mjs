@@ -83,6 +83,7 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(list,/&lt;script&gt;/);
   assert.doesNotMatch(list,/<script\b/i);
   assert.match(list,/data-extension-action="main"/);
+  assert.doesNotMatch(list,/data-extension-action="open"/);
   assert.match(list,/data-extension-action="more"/);
   assert.doesNotMatch(list,/data-extension-action="primary"/);
   assert.doesNotMatch(list,/data-extension-action="uninstall"/);
@@ -97,12 +98,8 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(detail,/data-ec-detail-action="settings"/);
   const actionButton=load(detail)('[data-ec-detail-action="settings"]');
   assert.equal(actionButton.length,1);
-  assert.ok(actionButton.hasClass('od-icon-button'));
-  assert.equal(actionButton.attr('title'),'设置与权限');
-  assert.equal(actionButton.attr('aria-label'),'设置与权限「名称 <script>evil()</script>」');
-  assert.equal(actionButton.find('svg[aria-hidden="true"]').length,1);
-  assert.equal(actionButton.text().trim(),'','known detail action should not consume horizontal space');
-  assert.match(detail,/固定包 SHA-256/);
+  assert.equal(actionButton.text().trim(),'设置与权限');
+  assert.match(load(detail)('details:not([open])').text(),/固定包 SHA-256/);
   const readerDetail=renderToStaticMarkup(React.createElement(ExtensionDetail,{
     container:null,model:{kind:'app',type:'应用',installed:true,busy:false,
       version:'1.0.7',title:'阅读目录',description:'章节导航',

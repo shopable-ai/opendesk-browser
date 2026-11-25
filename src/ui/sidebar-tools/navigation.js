@@ -6,6 +6,12 @@ const SLUG=/^[a-z][a-z0-9-]{0,39}$/;
 const TASK_REVIEW_KEY='opendesk.task-catalog.review.v1';
 const WEB_FEATURES_KEY='opendesk.web-features.help.v1';
 
+export function webFeaturesHelpHref(runtime){
+  const url=new URL(runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
+  url.searchParams.set('panel','web-features');
+  return url.href;
+}
+
 // The copyable address selects UI only. Carry it across the redirect without
 // adding a new parameter to the trusted host's sender identity.
 export function stageWebFeaturesHelp(storage,address,canonicalAddress){

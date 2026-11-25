@@ -107,8 +107,10 @@ export function createReadingTocIndex(doc) {
     const headings=[];
     for(const heading of doc.querySelectorAll('h1,h2,h3,h4,h5,h6')){
       if(!visible(heading)||adapter==='chatgpt'&&!sourceRoot(heading,adapter))continue;
-      // Display components must not consume the quota or parent real sections.
-      if(adapter==='chatgpt'&&chatDisplayValue(heading))continue;
+      // Inline previews can render a button's label or value using H1-H6.
+      // Exclude headings inside buttons and keep section headings that
+      // contain their own expand button. Filter before building the tree.
+      if(adapter==='chatgpt'&&(heading.closest('button,[role="button"]')||chatDisplayValue(heading)))continue;
       headings.push(heading);
       if(headings.length>=300)break;
     }

@@ -10,12 +10,18 @@ const modulePath=process.env.OPENDESK_PLAYWRIGHT_MODULE;
 // The actual App Shell + ToolHost + controller, including hidden ancestors.
 // Only storage/catalog and the sandbox app contents are fixture services.
 async function fixture(){
+  // The real shell subscribes to Chrome update notices. This local fixture
+  // supplies no live extension APIs; the tool storage facade is below.
+  globalThis.chrome??={};
   const view=createSidebarToolsView();
   let app,host;
   app=mountSidebarApp(document,{toolView:view,onNavigate:tab=>app.renderNavigation(tab)});
   const tool={format:SIDEBAR_TOOL_FORMAT,id:'focus-return-test',version:'1.0.0',title:'返回焦点测试',
     description:'isolated fixture',capabilities:['storage.local'],html:'<main>Fixture</main>',css:'',js:'void 0;'};
-  const store={[SIDEBAR_TOOL_STORE]:[tool]};
+  const firstEpoch='test-install-first',nextEpoch='test-install-next';
+  const store={[SIDEBAR_TOOL_STORE]:[tool],[TOOL_REVOCATION_EPOCHS_STORE]:{[tool.id]:firstEpoch}};
+  const changes=new Set();
+  let visibleEpoch=firstEpoch;
   const enableIO={get:0,set:0,gate:null,release:null};
   async function beforeEnableIO(operation,keys){
     if(!(Array.isArray(keys)?keys:[keys]).includes(SIDEBAR_TOOL_ENABLE_STORE))return;
@@ -29,11 +35,17 @@ async function fixture(){
   const api={runtime:{getURL:p=>location.origin+'/'+p},storage:{
     local:{async get(keys){await beforeEnableIO('get',keys);return Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(store[key])]));},
       async set(values){await beforeEnableIO('set',Object.keys(values));Object.assign(store,structuredClone(values));},async remove(key){delete store[key];}},
-    session:{async get(){return {};},async remove(){}},onChanged:{addListener(){},removeListener(){}}}};
+    session:{async get(){return {};},async remove(){}},onChanged:{addListener:fn=>changes.add(fn),removeListener:fn=>changes.delete(fn)}}};
   host=createSidebarTools({api,doc:document,view,taskWorkbench:{},fetcher:fetch});
   await host.ready;host.setVisible(true);
   const f={view,app,host,tool,
     enableIO,
+    reinstallSamePackage(){
+      const key=TOOL_REVOCATION_EPOCHS_STORE,oldValue=store[key];
+      store[key]={[tool.id]:nextEpoch};
+      for(const changed of changes)changed({[key]:{oldValue,newValue:store[key]}},'local');
+    },
+    readCurrentRow(){visibleEpoch=store[TOOL_REVOCATION_EPOCHS_STORE][tool.id];f.rows();},
     enabled(){return store[SIDEBAR_TOOL_ENABLE_STORE]?.[tool.id]!==false;},
     holdEnableIO(operation,fail=false){
       const ready=new Promise(resolve=>{enableIO.release=resolve;});
@@ -42,7 +54,8 @@ async function fixture(){
     releaseEnableIO(){enableIO.release();},
     rows(include=true){app.renderRows({rows:include?[{key:'app:'+tool.id,title:tool.title,kind:'app',
       type:'应用',installed:true,description:'fixture',primaryAction:'打开'}]:[],
-      busy:false,pendingKey:null,onOpenRow:()=>host.openTool(tool.id),onMore:()=>host.openTool(tool.id)});},
+      busy:false,pendingKey:null,onOpenRow:()=>host.openTool(tool.id,{expectedPackage:tool,expectedEpoch:visibleEpoch}),
+      onMore:()=>host.openSettings(tool.id,{returnAction:'more',expectedPackage:tool,expectedEpoch:visibleEpoch})});},
     dispose(){host.dispose();app.dispose();view.dispose();}};
   window.fixture=f;f.rows();
 }
@@ -57,9 +70,10 @@ describe('IR02 tool return focus after the actual React visibility commit',{
       import {createSidebarToolsView} from './src/ui/sidebar-tools-view.js';
       import {createSidebarTools} from './src/ui/sidebar-tools.js';
       import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from './src/ui/sidebar-tools/package.js';
-      import {SIDEBAR_TOOL_ENABLE_STORE} from './src/ui/sidebar-tools/lifecycle.js';
+      import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from './src/ui/sidebar-tools/lifecycle.js';
       (${fixture.toString()})().catch(error=>{window.fixtureError=String(error.stack);});`,
-      resolveDir:new URL('../../',import.meta.url).pathname,loader:'tsx'},bundle:true,write:false,
+      resolveDir:new URL('../../',import.meta.url).pathname,loader:'tsx'},bundle:true,write:false,jsx:'automatic',
+      alias:{'@opendesk/ui':new URL('../../src/ui/react/components/ui/button.tsx',import.meta.url).pathname},
       outfile:'focus-return-fixture.js',
       format:'esm',platform:'browser',target:'es2022',logLevel:'silent',plugins:[{name:'raw-css',setup(builder){
         builder.onResolve({filter:/\.css\?raw$/},args=>({path:path.resolve(args.resolveDir,args.path)}));
@@ -91,7 +105,7 @@ describe('IR02 tool return focus after the actual React visibility commit',{
     t.after(async()=>{await page.close();assert.deepEqual(errors,[]);});
     await page.goto(`http://127.0.0.1:${server.address().port}/`);
     await page.waitForFunction(()=>window.fixture||window.fixtureError);
-    assert.equal(await page.evaluate(()=>window.fixtureError),undefined);
+    assert.equal(await page.evaluate(()=>window.fixtureError),undefined,errors.join(' | '));
     await control(page,'main').waitFor({state:'visible'});
     assert.deepEqual(await page.locator('[data-extension-key="app:focus-return-test"]')
       .evaluateAll(nodes=>nodes.map(node=>node.dataset.extensionAction)),['main','more'],
@@ -129,6 +143,19 @@ describe('IR02 tool return focus after the actual React visibility commit',{
     assert.equal(await page.locator('#sidebar-tool-settings-view').isVisible(),true);
     assert.equal(await page.locator('#sidebar-tool-list-view').isVisible(),false);
   }
+
+  test('stale row cannot open or manage a byte-identical reinstallation',async t=>{
+    const page=await open(t);
+    await page.evaluate(()=>fixture.reinstallSamePackage());
+    await control(page,'main').click();
+    assert.equal(await page.locator('#sidebar-tool-frame iframe').count(),0);
+    assert.equal(await page.locator('#sidebar-tool-list-view').isVisible(),true);
+    await control(page,'more').click();
+    assert.equal(await page.locator('#sidebar-tool-settings-view').isVisible(),false);
+    await page.evaluate(()=>fixture.readCurrentRow());
+    await control(page,'main').press('Enter');
+    await page.locator('#sidebar-tool-frame iframe').waitFor();
+  });
 
   test('gear switch retains keyboard focus after busy disables it during stop and resume',async t=>{
     const page=await openSettings(t);
@@ -168,24 +195,32 @@ describe('IR02 tool return focus after the actual React visibility commit',{
     assert.equal(await page.locator('#sidebar-tool-enable').getAttribute('aria-checked'),'true');
   });
 
-  test('Back from the main row entry focuses installed management after the list becomes visible',async t=>{
+  test('Back from the app returns to the initiating row after the list becomes visible',async t=>{
     const page=await open(t);await control(page,'main').click();
     assert.equal(await page.locator('#sidebar-tool-list-view').isVisible(),false);
+    await page.locator('#sidebar-tool-back').click();
+    await assertFocused(page,control(page,'main'));
+  });
+
+  test('Back from list Settings returns to More without mounting the app',async t=>{
+    const page=await open(t);await control(page,'more').press('Enter');
+    await page.locator('#sidebar-tool-settings-view').waitFor({state:'visible'});
+    assert.equal(await page.locator('#sidebar-tool-frame iframe').count(),0);
     await page.locator('#sidebar-tool-back').click();
     await assertFocused(page,control(page,'more'));
   });
 
-  test('Back resolves the current management node after the installed list is removed and rendered again',async t=>{
+  test('Back resolves the current row after the installed list is removed and rendered again',async t=>{
     const page=await open(t);
-    const original=await control(page,'more').elementHandle();
+    const original=await control(page,'main').elementHandle();
     await control(page,'main').click();
     await page.evaluate(()=>fixture.rows(false));
-    await control(page,'more').waitFor({state:'detached'});
+    await control(page,'main').waitFor({state:'detached'});
     await page.evaluate(()=>fixture.rows());
-    await control(page,'more').waitFor({state:'attached'});
+    await control(page,'main').waitFor({state:'attached'});
     assert.equal(await original.evaluate(node=>node.isConnected),false);
     await page.locator('#sidebar-tool-back').click();
-    await assertFocused(page,control(page,'more'));
+    await assertFocused(page,control(page,'main'));
   });
 
   test('Back falls back to the visible search when the original row is no longer present',async t=>{
@@ -196,7 +231,7 @@ describe('IR02 tool return focus after the actual React visibility commit',{
     await assertFocused(page,page.locator('#extension-center-search'));
   });
 
-  test('dirty cancel keeps the live tool; explicit Continue returns focus after React reveals the list',async t=>{
+  test('Back parks a dirty sandbox, returns focus, and reopening resumes the same draft',async t=>{
     const page=await open(t);await control(page,'main').click();
     const sandbox=await page.locator('#sidebar-tool-frame iframe').elementHandle();
     const frame=await sandbox.contentFrame();await frame.waitForFunction(()=>window.toolInit);
@@ -207,15 +242,14 @@ describe('IR02 tool return focus after the actual React visibility commit',{
     });
     // The bridge must have observed the actual sandbox message before Back.
     await frame.waitForFunction(()=>window.dirtyAck);
+    const instance=await frame.evaluate(()=>window.toolInit.instance);
     await page.locator('#sidebar-tool-back').click();
-    await page.locator('#sidebar-tool-action-review').waitFor({state:'visible'});
-    assert.equal(await page.locator('#sidebar-tool-list-view').isVisible(),false);
-    await page.locator('#sidebar-tool-action-cancel').click();
-    assert.equal(await page.locator('#sidebar-tool-list-view').isVisible(),false);
+    await page.locator('#sidebar-tool-list-view').waitFor({state:'visible'});
+    await page.waitForFunction(node=>node===document.activeElement,await control(page,'main').elementHandle());
     assert.equal(await page.locator('#sidebar-tool-frame iframe').count(),1);
-    await page.locator('#sidebar-tool-back').click();
-    await page.locator('#sidebar-tool-action-continue').click();
-    await assertFocused(page,control(page,'more'));
-    assert.equal(await page.locator('#sidebar-tool-action-review').isVisible(),false);
+    assert.equal(await page.getByRole('alertdialog').count(),0);
+    await control(page,'main').press('Enter');
+    await page.locator('#sidebar-tool-frame iframe').waitFor({state:'visible'});
+    assert.equal(await frame.evaluate(()=>window.toolInit.instance),instance);
   });
 });

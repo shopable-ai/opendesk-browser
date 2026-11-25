@@ -49,6 +49,16 @@ const extensionAbout=await compile('../../src/ui/react/components/extension-abou
   'react':import.meta.resolve('react'),
   '../../extension-about-localization.js':new URL('../../src/ui/extension-about-localization.js',import.meta.url).href
 });
+const confirmation=await compile('../../src/ui/react/components/confirmation.tsx',{
+  'react':import.meta.resolve('react'),'react-aria-components':import.meta.resolve('react-aria-components'),
+  './ui/button.tsx':button
+});
+const recoveryText=new URL('../../src/ui/extension-recovery-localization.js',import.meta.url).href;
+const extensionRecovery=await compile('../../src/ui/react/tabs/extension-recovery.tsx',{
+  'react':import.meta.resolve('react'),'../components/confirmation.tsx':confirmation,
+  '../components/ui/button.tsx':button,'../components/ui/switch.tsx':toggle,
+  '../../extension-recovery-localization.js':recoveryText
+});
 export const {ExtensionCenterPage,UninstallDialog}=await import(await compile('../../src/ui/react/tabs/tools.tsx',{
   'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
   '../../../../projects/ai-scroll-navigation/trusted/react-controls.tsx':scrollManager,
@@ -57,6 +67,8 @@ export const {ExtensionCenterPage,UninstallDialog}=await import(await compile('.
   '../components/conversation.tsx':conversation,
   '../components/page-cleanup.tsx':pageCleanup,
   '../components/extension-about.tsx':extensionAbout,
+  './extension-recovery.tsx':extensionRecovery,
+  '../../extension-recovery-localization.js':recoveryText,
   '../../extension-center-localization.js':new URL('../../src/ui/extension-center-localization.js',import.meta.url).href,
   '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href
 }));

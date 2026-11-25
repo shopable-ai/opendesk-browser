@@ -40,6 +40,27 @@ test('verified save, import and export keep success feedback and no Console diag
   assert.deepEqual(logs(),[]);
 });
 
+test('direct import defers conflict checks to the batch Host without preflight list reads',async t=>{
+  const {controller:c,adapter:a}=await fixture(t);
+  let batches=0;
+  a.supportsWriteMany=()=>true;
+  a.getPartition=async()=>assert.fail('No partition lookup for an unpartitioned import');
+  a.exactList=async()=>assert.fail('The batch Host owns exact conflict decisions');
+  a.writeMany=async(_target,items,options)=>{
+    batches++;
+    assert.equal(options.skipConflicts,true);
+    assert.equal(items[0].ifAbsent,true);
+    return {saved:0,verified:0,results:[{
+      index:0,saved:false,verified:false,skipped:true,code:'E_COOKIE_CONFLICT'}]};
+  };
+  const plan=await c.previewImport(source,'json',false,{submitDirectly:true});
+  assert.equal(plan.accepted,1);
+  assert.equal(batches,0);
+  assert.equal(await c.executeImport(source,'json',false),true);
+  assert.equal(batches,1);
+  assert.match(c.snapshot().message,/回读确认导入 0 条，跳过 1 条/);
+});
+
 test('save, import and export diagnostics contain only operation, stage, allowlisted code and result',async t=>{
   const {controller:c,adapter:a,calls,successes,logs}=await fixture(t);
   a.write=async()=>{calls.write++;throw fault('E_PRIVATE_'+row.value);};

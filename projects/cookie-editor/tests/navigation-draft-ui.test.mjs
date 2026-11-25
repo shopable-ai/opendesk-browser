@@ -44,7 +44,7 @@ function runtime(){
     dispose(){for(const slot of slots)slot?.cleanup?.();}};
 }
 const cookie={name:'sid',domain:'example.com',path:'/',hostOnly:true,storeId:'0',session:true};
-function mount(){
+function mount({notify}={}){
   const rt=runtime(),events=new Map(),secrets=[{value:'pasted secret'}],outputs=[{textContent:'secret',hidden:false}];
   let controller,url='https://example.com/start',permission=true,resolveTarget=null,tree;
   let rows=[cookie],storeId='0',partitionKey={topLevelSite:'https://example.com'};
@@ -66,7 +66,8 @@ function mount(){
     contains:node=>Boolean(node),querySelector:selector=>({focus:()=>{
       focus.push(selector);document.activeElement=null;
     }}),addEventListener:(name,fn)=>events.set(name,fn),removeEventListener:name=>events.delete(name)};
-  const Component=compile(appSource,rt.React,{window,document,cookieDraftBinding,warnCookieFailure,createCookieSdkAdapter:()=>adapter,
+  const Component=compile(appSource,rt.React,{window,document,globalThis:{OpenDeskTool:notify?{ui:{notify}}:undefined},
+    cookieDraftBinding,warnCookieFailure,createCookieSdkAdapter:()=>adapter,
     createCookieController:options=>(controller=createCookieController({...options,navigationIntervalMs:0}))});
   function render(){rt.render(Component,{hostRoot,request(){}});tree=rt.tree;}
   async function flush(){for(let i=0;i<45;i++){if(rt.changed)render();await Promise.resolve();}}
@@ -82,7 +83,13 @@ function mount(){
     event(name='opendesk-cookie-path-changed'){events.get(name)();},
     invalidate(name){events.get(name)();},
     setWriteBegin:fn=>{adapter.beginWriteIntent=fn;},
+    setClearExecute:fn=>Object.assign(adapter,{
+      clearPreview:async()=>({scope:'SITE_EXACT_HOST',matched:2,excluded:1,
+        previewRef:'12345678-1234-1234-1234-123456789abc'}),
+      beginClearIntent:async()=>({authorized:true,ref:1}),finishClearIntent:async()=>{},clearExecute:fn
+    }),
     setImportWrite:fn=>Object.assign(adapter,{exactList:async()=>[],supportsWriteMany:()=>true,writeMany:fn}),
+    setList:fn=>{adapter.list=fn;},
     setUrl:value=>{url=value;},setPermission:value=>{permission=value;},hold:fn=>{resolveTarget=fn;},
     setRows:value=>{rows=value;},setStore:value=>{storeId=value;},setPartition:value=>{partitionKey=value;},
     dispose(){rt.dispose();}};
@@ -200,6 +207,8 @@ for(const [outcome,expected] of [
 for(const [label,code,prefix,role,expected,locked] of [
   ['明确拒绝','E_COOKIE_CONFLICT',0,'alert',/已确认 0\/3 条；本次写入被明确拒绝/,false],
   ['部分成功','E_COOKIE_CONFLICT',1,'status',/已确认导入 1\/3 条；其余条目未写入/,true],
+  ['写入前超时','E_COOKIE_BATCH_EXPIRED',0,'alert',/本次未写入.*失败 0 条，未知 0 条，未执行 3 条/,false],
+  ['部分成功后超时','E_COOKIE_BATCH_EXPIRED',1,'status',/确认时限已到.*未执行 2 条/,true],
   ['结果未知','E_OUTCOME_UNKNOWN',1,'alert',/已确认 1\/3 条；其余结果未知/,true]
 ])test('导入弹窗显示'+label+'并按回执限制原批次',async t=>{
   const app=mount(),dialog=runtime();t.after(()=>{dialog.dispose();app.dispose();});
@@ -237,6 +246,129 @@ for(const [label,code,prefix,role,expected,locked] of [
   }
   assert.deepEqual(app.controller.snapshot().unknownEffects,code==='E_OUTCOME_UNKNOWN'?['import']:[]);
   assert.equal(writes,1);
+});
+
+test('navigation after a batch of conflicts preserves the late receipt and stops the next batch',async t=>{
+  const app=mount();t.after(()=>app.dispose());
+  const rows=Array.from({length:51},(_,i)=>({...cookie,name:'test_'+i,value:'synthetic'}));
+  const submitted=[];
+  let finish;
+  app.setImportWrite((_,batch)=>{
+    submitted.push(batch.length);
+    return new Promise(resolve=>{finish=()=>resolve({saved:0,verified:0,
+      results:batch.map((_,index)=>({index,saved:false,verified:false,skipped:true,code:'E_COOKIE_CONFLICT'}))});});
+  });
+  await app.flush();app.view().onImport();await app.flush();
+  const dialog=app.find('CookieImport');
+  assert.equal(await dialog.onBeginImport(),true);
+  const result=dialog.onImportText(JSON.stringify(rows));
+  await app.flush();assert.deepEqual(submitted,[50]);
+  app.setUrl('https://example.com/other');app.event();await app.flush();
+  finish();await result;await app.flush();
+  assert.deepEqual(submitted,[50]);
+  assert.equal(app.controller.snapshot().unknownEffects.includes('import'),false);
+  const messages=app.rendered().filter(n=>['alert','status'].includes(n.props.role))
+    .map(n=>n.children.filter(x=>typeof x==='string').join('')).join('\n');
+  assert.match(messages,/已确认导入 0\/51 条.*跳过 50 条，失败 0 条，未知 0 条，未执行 1 条/);
+});
+
+test('a mixed JSON import keeps a redacted receipt that explains which rows were skipped',async t=>{
+  const app=mount();t.after(()=>app.dispose());
+  const writes=[];
+  app.setImportWrite(async(_,batch)=>{
+    writes.push(...batch);
+    return {results:batch.map((_,index)=>({index,saved:true,verified:true}))};
+  });
+  await app.flush();app.view().onImport();await app.flush();
+  const dialog=app.find('CookieImport');
+  assert.equal(await dialog.onBeginImport(),true);
+  const json=JSON.stringify([
+    {...cookie,name:'test_preference',value:'fake-receipt-value'},
+    {...cookie,name:'expired_preference',value:'fake-expired-value',session:false,expirationDate:1},
+    {...cookie,name:'other_store',value:'fake-store-value',storeId:'1'}
+  ]);
+  assert.equal(await dialog.onImportText(json,{overwrite:true}),true);
+  await app.flush();app.elapse();await app.flush();
+  const findReceipt=()=>app.rendered().find(n=>n.props.className?.startsWith('cookie-import-toast'));
+  const receipt=findReceipt();
+  assert.ok(receipt,'the mixed receipt remains visible after ordinary success feedback would expire');
+  assert.equal(receipt.props.role,'status');
+  assert.match(receipt.children.join(''),/确认写入 1 条.*跳过 2 条.*已过期 1 条.*存储区不匹配 1 条/);
+  assert.doesNotMatch(receipt.children.join(''),/fake-.*-value|expired_preference|other_store/);
+  assert.deepEqual(writes.map(row=>row.name),['test_preference']);
+  app.rendered().find(n=>n.props.label==='关闭导入回执').props.onClick();
+  await app.flush();assert.equal(findReceipt(),undefined);
+});
+
+test('a row expiring after preflight invalidates confirmation before any write',async t=>{
+  const app=mount();t.after(()=>app.dispose());
+  let now=Date.now(),writes=0;
+  t.mock.method(Date,'now',()=>now);
+  app.setImportWrite(async()=>{writes++;});
+  await app.flush();
+  const source=JSON.stringify([{...cookie,value:'synthetic',session:false,expirationDate:now/1000+2}]);
+  const options={allSites:true,submitDirectly:true};
+  assert.equal((await app.controller.previewImport(source,'auto',false,options)).accepted,1);
+  now+=3000;
+  assert.equal(await app.controller.executeImport(source,'auto',false,options),false);
+  const state=app.controller.snapshot();
+  assert.equal(writes,0);
+  assert.equal(state.importOutcome,'denied');
+  assert.deepEqual(state.unknownEffects,[]);
+  assert.match(state.message,/已过期.*本次未写入.*失败 0 条，未知 0 条，未执行 1 条/);
+});
+for(const [code,expected] of [
+  ['E_SITE_GRANT_REQUIRED',/已确认导入 1\/4 条.*跳过 1 条，失败 0 条，未知 0 条，未执行 2 条/],
+  ['E_OUTCOME_UNKNOWN',/已确认 1\/4 条.*跳过 1 条，失败 0 条，未知 1 条，未执行 1 条/]
+])test('a mixed import preserves the confirmed prefix and preflight skip on '+code,async t=>{
+  const app=mount();t.after(()=>app.dispose());
+  let calls=0;
+  app.setImportWrite(async(_,rows)=>{
+    calls++;
+    if(calls===1)return {saved:1,verified:1,results:[{index:0,saved:true,verified:true}]};
+    if(code==='E_SITE_GRANT_REQUIRED')throw Object.assign(Error('fixture secret'),{code});
+    assert.equal(rows.length,2);
+    return {saved:0,verified:0,stopped:true,results:[{index:0,saved:false,verified:false,code}]};
+  });
+  await app.flush();app.view().onImport();await app.flush();
+  const dialog=app.find('CookieImport');
+  assert.equal(await dialog.onBeginImport(),true);
+  const source=JSON.stringify([
+    {...cookie,name:'fixture_confirmed',value:'fixture secret'},
+    {...cookie,name:'fixture_expired',value:'fixture secret',session:false,expirationDate:1},
+    {...cookie,name:'fixture_second',value:'fixture secret',path:'/later'},
+    {...cookie,name:'fixture_third',value:'fixture secret',path:'/later'}
+  ]);
+  assert.equal(await dialog.onImportText(source),code==='E_OUTCOME_UNKNOWN'?'unknown':'partial');
+  await app.flush();
+  const state=app.controller.snapshot(),receipt=state.previousReceipt?.text||state.message;
+  assert.match(receipt,expected);
+  assert.match(receipt,/跳过原因：已过期 1 条/);
+  assert.doesNotMatch(receipt,/fixture|example\.com/);
+  assert.deepEqual(state.unknownEffects,code==='E_OUTCOME_UNKNOWN'?['import']:[]);
+  assert.equal(calls,2);
+});
+test('verified import closes the dialog and keeps its visible receipt when the list refresh stalls and fails',async t=>{
+  const app=mount();t.after(()=>app.dispose());
+  app.setImportWrite(async(_,batch)=>({results:batch.map((_,index)=>({index,saved:true,verified:true}))}));
+  await app.flush();app.view().onImport();await app.flush();
+  const dialog=app.find('CookieImport');
+  assert.equal(await dialog.onBeginImport(),true);
+  let failRefresh;
+  app.setList(()=>new Promise((_,reject)=>{failRefresh=reject;}));
+  let submitted;
+  const pending=dialog.onImportText('synthetic_preference=fixture-value').then(value=>{submitted=value;});
+  await app.flush();
+  assert.equal(typeof failRefresh,'function','a list refresh is still attempted');
+  assert.equal(submitted,true,'the submit action settles while the list refresh is pending');
+  assert.equal(app.find('CookieImport'),undefined);
+  const receipt=()=>app.rendered().find(n=>n.props.className?.startsWith('cookie-import-toast'));
+  assert.match(receipt().children.join(''),/确认写入 1 条/);
+  failRefresh(Object.assign(Error(),{code:'E_TIMEOUT'}));
+  await pending;await app.flush();
+  assert.equal(app.controller.snapshot().syncStale,true);
+  assert.match(receipt().children.join(''),/确认写入 1 条/);
+  assert.equal(app.controller.snapshot().unknownEffects.includes('import'),false);
 });
 
 test('pending page notification immediately scrubs sensitive DOM and fences an existing editor',async t=>{
@@ -437,6 +569,93 @@ test('path events retire visible clear confirmation and an unfinished clear pref
     assert.equal(app.find('CookieClearDialog'),undefined);
     assert.equal(executed,0,'neither a stale confirmation nor preview may execute');
   }
+});
+
+test('confirmed clear reports verified counts once without depending on a Host toast, even after navigation',async t=>{
+  for(const navigates of [false,true]){
+    const notices=[];
+    // If called, the Host would show the toast but never acknowledge it.
+    const notify=Object.assign(options=>notices.push(options),{open:options=>{
+      notices.push(options);return {ready:Promise.resolve({status:'unknown'})};
+    }});
+    const app=mount({notify});t.after(()=>app.dispose());await app.flush();
+    const receipts=()=>app.rendered().filter(node=>node.props.className?.includes('cookie-clear-toast'));
+    let complete,clears=0;
+    app.setClearExecute(()=>{clears++;return new Promise(resolve=>{complete=resolve;});});
+    app.view().onClear();await app.flush();
+    assert.equal(app.find('CookieClearDialog').count,2);
+    app.find('CookieClearDialog').onConfirm();await app.flush();
+    assert.equal(clears,1);
+    assert.deepEqual(notices,[],'nothing is announced before a verified receipt');
+    assert.equal(receipts().length,0);
+    app.setRows([]);
+    if(navigates){
+      app.setUrl('https://new.example/');app.event('opendesk-page-changed');await app.flush();
+      assert.equal(app.controller.snapshot().settlingPrevious,true);
+    }
+    complete({preview:false,scope:'SITE_EXACT_HOST',matched:2,removed:2,remaining:0,excluded:1});
+    await app.flush();
+    assert.deepEqual(notices,[],'no competing Host toast, even when acknowledgments are unreliable');
+    assert.equal(receipts().length,1);
+    assert.equal(receipts()[0].props.role,'status');
+    assert.equal(receipts()[0].children.filter(child=>typeof child==='string').join(''),
+      '已清理 example.com 的 2 条 Cookie，本次清理范围剩余 0 条。 已保留 1 条超出本次清理范围的 Cookie。');
+    assert.equal(app.controller.snapshot().previousReceipt,null);
+    assert.equal(app.find('CookieClearDialog'),undefined);
+    assert.equal(app.rendered().some(node=>node.children.includes('关闭回执')),false);
+    assert.deepEqual(app.view().rows,[]);
+    assert.equal(clears,1);
+    app.elapse();await app.flush();
+    assert.equal(receipts().length,0);
+    assert.equal(clears,1);
+  }
+});
+
+test('clear opens pending immediately, suppresses repeat clicks, and retires late replies after cancel',async t=>{
+  const app=mount();t.after(()=>app.dispose());await app.flush();
+  const requests=[];let executions=0;
+  app.controller.previewClear=()=>new Promise(resolve=>requests.push(resolve));
+  app.controller.executeClear=async()=>{executions++;};
+  const trigger=app.view().onClear;
+  trigger();trigger();await app.flush();
+  const pending=app.find('CookieClearDialog');
+  assert.equal(pending.hostname,'example.com');
+  assert.equal(pending.busy,true);
+  assert.equal(pending.count,null);
+  assert.equal(requests.length,1);
+  pending.onConfirm();pending.onCancel();await app.flush();
+  assert.equal(app.find('CookieClearDialog'),undefined);
+  app.view().onClear();await app.flush();
+  requests[0]({count:5,hostname:'example.com'});await app.flush();
+  assert.equal(app.find('CookieClearDialog').count,null);
+  requests[1]({count:2,hostname:'example.com'});await app.flush();
+  assert.equal(app.find('CookieClearDialog').count,2);
+  assert.equal(executions,0);
+});
+
+test('clear scope change retires the old confirmation and retries only on demand',async t=>{
+  const app=mount();t.after(()=>app.dispose());await app.flush();
+  const requests=[];let executions=0;
+  app.controller.previewClear=(shared=true)=>new Promise(resolve=>requests.push({shared,resolve}));
+  app.controller.executeClear=async()=>{executions++;};
+  app.view().onClear();await app.flush();
+  requests[0].resolve({count:2});await app.flush();
+  const old=app.find('CookieClearDialog');
+  old.onScopeChange(false);old.onConfirm();await app.flush();
+  assert.equal(app.find('CookieClearDialog').count,null);
+  assert.equal(requests[1].shared,false);
+  requests[1].resolve({problem:'清理预览超时。可以重试或取消。'});await app.flush();
+  const failed=app.find('CookieClearDialog');
+  assert.equal(failed.busy,false);
+  assert.match(failed.problem,/超时/);
+  assert.equal(requests.length,2);
+  failed.onConfirm();failed.onRetry();await app.flush();
+  assert.equal(requests[2].shared,false);
+  requests[2].resolve({count:1});await app.flush();
+  const ready=app.find('CookieClearDialog');
+  assert.equal(ready.count,1);
+  ready.onConfirm();ready.onConfirm();await app.flush();
+  assert.equal(executions,1);
 });
 
 test('new editor keeps attributes but discards its unsaved sensitive value',async t=>{

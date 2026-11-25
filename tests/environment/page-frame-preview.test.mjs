@@ -60,7 +60,8 @@ function fixture(){
           return [{frameId,documentId,result:{url:f.message.url,portToken:f.message.portToken,confirmed:true}}];
         const id=request.worldId||'default';
         if(!f.contexts.has(id))f.contexts.set(id,vm.createContext({document:{},window:{},setTimeout,clearTimeout,
-          startFrame:()=>f.startFrame(),crypto:globalThis.crypto}));
+          startFrame:()=>f.startFrame(),crypto:globalThis.crypto,
+          chrome:f.configs.get(id)?.messaging?{runtime:{sendMessage(){}}}:{}}));
         const context=f.contexts.get(id);
         if(code.startsWith('const __opendeskFrameState=')){
           vm.runInContext('const __opendeskFrameState={port:{}};',context);
@@ -110,6 +111,7 @@ test('managed developer preview binds fixed bytes, keeps parent messaging throug
   assert.equal(f.parent().previewFrames.sourceHash,parent.sourceHash);
   const config=f.configs.get(parent.worldId);
   assert.equal(config.messaging,true);
+  assert.equal(vm.runInContext('typeof chrome.runtime?.sendMessage',f.contexts.get(parent.worldId)),'function');
   assert(f.calls.some(call=>call.js.some(row=>row.code.includes('const __opendeskPageFramesV1='))));
   const receipt=await f.frame();
   assert.equal(receipt.state,'evaluated');assert.equal(receipt.resourceSha256,hash(resourceCode));
@@ -118,6 +120,7 @@ test('managed developer preview binds fixed bytes, keeps parent messaging throug
   assert.equal(f.resets.includes(parent.worldId),false,'child allocation preserves the live preview parent channel');
   const childContext=[...f.contexts.values()].find(context=>context.resourceRuns===1);
   assert.equal(childContext.resourceData.title,'中文 English 123');
+  assert.equal(vm.runInContext('typeof chrome.runtime',childContext),'undefined');
   assert.equal(f.slot.preview,undefined);
 });
 

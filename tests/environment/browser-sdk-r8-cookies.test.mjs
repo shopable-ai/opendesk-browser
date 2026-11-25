@@ -97,6 +97,15 @@ test('R8 ambiguous native effect is never automatically retried',async()=>{
   assert.equal(f.calls.filter(x=>x==='set').length,2,'One create and one exact expiration; no retry');
   assert.equal(f.calls.filter(x=>x==='remove').length,0);
 });
+test('Cookie import expiry at the last dispatch check is reported as unexecuted',async()=>{
+  const f=fixture();
+  await assert.rejects(f.service.set({url,name:'fixture',value:'synthetic'},
+    {...context,beforeNativeSet(){
+      throw Object.assign(new Error('Import deadline expired'),{code:'E_COOKIE_BATCH_EXPIRED'});
+    }}),reject('E_COOKIE_BATCH_EXPIRED'));
+  assert.deepEqual(f.calls,[]);
+  assert.deepEqual(f.records,[]);
+});
 test('R8 Store/partition need real document and do not expose other tabId',async()=>{
   const f=fixture();
   assert.deepEqual(await f.service.getStores({url},context),{storeId:'0'});

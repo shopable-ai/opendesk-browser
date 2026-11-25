@@ -40,6 +40,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'agents/page-agent': './src/agents/page-agent.js',
   'agents/page-relay': './src/agents/page-relay.js',
   'agents/chatgpt-fixed-bridge': './src/entrypoints/chatgpt-fixed-bridge.js',
+  'agents/gemini-fixed-send-queue': './src/entrypoints/gemini-fixed-send-queue.js',
   'agents/web-task-content': './src/entrypoints/web-task-content.js',
   'framework/sdk-main': './src/framework/sdk/entry.js',
   'scripting/packaged/page-session': './src/scripting/packaged/page-session.js',

@@ -13,7 +13,7 @@ import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {PAGE_BROWSER_COMPILER} from '../../libs/page-frameworks/contract.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {createDependencyManager} from './dependency-manager.js';
-import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibraries, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_WORLD_CSP} from './execution-source.js';
+import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibraries, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS} from './execution-source.js';
 import {inspectPageSource} from './page-bundle.js';
 import {createPreviewWorlds} from './preview-worlds.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
@@ -223,7 +223,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     invariant(!frameResources.length||context,'E_UI_LIFECYCLE','固定资源预览需要原工作台的受管 UI 生命周期');
     // Both routes prove isolation, including the transitional packaged-library
     // checkbox. Legacy source-hash worlds can also exhaust Chromium's budget.
-    const worldId = await worlds.allocate(native,frozen.target);
+    const worldId = await worlds.allocate(native,frozen.target,{messaging:frameResources.length>0});
     await assertHost(sender);
     const tabId = frozen.target.tabId, documentId = frozen.target.documentId;
     await admission.reserve({nonce:receiptNonce,tabId,documentId,sourceHash:script.sourceHash},sender);
@@ -246,7 +246,6 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
           row.previewFrames={previewId:managedRecord.previewId,sourceHash:script.sourceHash,receiptNonce,state:'ready',frames:[]};
         });
         framePreviews.set(worldId,frameContext);
-        await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
         const bootstrap=pageFrameBootstrapSource({previewId:managedRecord.previewId,worldId,sourceHash:script.sourceHash,
           receiptNonce,resourceIds:frameResources.map(row=>row.resourceId)});
         js=[{code:bootstrap+';\n'+script.js.map(row=>row.code).join('\n;\n')}];
@@ -648,8 +647,11 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       checkpoint('consumePreparationMs');
       const nativeStartedAt=performance.now(),native=await nativeAPI();
       startupTimings.allocateNativeAvailabilityMs=performance.now()-nativeStartedAt;
+      const scrollConfig=installation.programId===SCROLL_CONFIG_PROGRAM_ID&&
+        installation.revision>=SCROLL_CONFIG_MIN_REVISION;
+      const messaging=Boolean(frameResources.length||scrollConfig||installation.appOwner||installation.delegatedTasks?.length);
       const worldId=await worlds.allocate(native,t,{injectImmediately,pendingBinding:receiptNonce,concurrentProof:true,
-        onTiming:(key,duration)=>{startupTimings[key]=duration;},firstLedger:observation?.firstLedger});
+        messaging,onTiming:(key,duration)=>{startupTimings[key]=duration;},firstLedger:observation?.firstLedger});
       allocatedWorld=worldId;
       checkpoint('allocateMs');
       let metadataAt=performance.now();
@@ -657,12 +659,6 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         sourceHash:script.sourceHash},installation,{exclusive});reserved=true;
       startupTimings.reserveAdmissionMs=performance.now()-metadataAt;
       invariant(script.sourceHash===installation.sourceHash,'E_SOURCE_HASH','安装源码已变化');
-      const scrollConfig=installation.programId===SCROLL_CONFIG_PROGRAM_ID&&
-        installation.revision>=SCROLL_CONFIG_MIN_REVISION;
-      const messagingStartedAt=performance.now();
-      if(frameResources.length||scrollConfig||installation.appOwner||installation.delegatedTasks?.length)
-        await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
-      startupTimings.worldMessagingConfigureMs=performance.now()-messagingStartedAt;
       const frameBootstrap=frameResources.length?pageFrameBootstrapSource({executionKey:installation.executionKey,
         receiptNonce,resourceIds:frameResources.map(row=>row.resourceId)}):'';
       const configBootstrap=scrollConfig?(()=>{
@@ -771,7 +767,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       }
     }
   }
-  return Object.freeze({preview,retire,query,prepareInstalled,beginInstalledAllocation,discardInstalledAllocation,executeInstalled,retireInstalled,executeFrame:pageFrames.execute,handlePreviewFrame,async cleanupWorlds(details){
+  return Object.freeze({preview,retire,query,prepareInstalled,beginInstalledAllocation,discardInstalledAllocation,executeInstalled,retireInstalled,withWorldDocuments:worlds.withWorldDocuments,executeFrame:pageFrames.execute,handlePreviewFrame,async cleanupWorlds(details){
     for(const [worldId,context] of framePreviews)if(context.target.tabId===details.tabId&&
       (details.removed||context.target.documentId!==details.documentId)){context.stopping=true;if(details.removed)framePreviews.delete(worldId);}
     if(details.removed)await admission.release({removedTabId:details.tabId});

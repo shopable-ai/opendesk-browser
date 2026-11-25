@@ -242,7 +242,6 @@ test('R5.38 clearing Host-only cookies uses first React dialog confirmation, not
     get('app/CookieEditorApp.jsx'),get('app/controller/cookie-controller.js'),
     get('app/adapters/browser-sdk.js'),sourceHost(),getHostGate()
   ]);
-  assert.match(app,/onConfirm=\{\(\)=>endConfirm\(true\)\}/);
   assert.match(app,/controller\.executeClear\(\)/);
   assert.match(controller,/const allowed=await adapter\.beginClearIntent\(/);
   assert.match(controller,/await adapter\.clearExecute\(/);

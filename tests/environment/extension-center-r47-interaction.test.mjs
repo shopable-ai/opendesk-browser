@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {reviewedQueue} from '../fixtures/ai-send-queue-reviewed.mjs';
 import {createExtensionCenter} from '../../src/ui/extension-center.js';
+import {extensionCenterText} from '../../src/ui/extension-center-localization.js';
 import {OFFICIAL_STORE_WEBSITE} from '../../src/marketplace/store-website.js';
 import {extensionCenterPinStorageKey,prioritizePinnedExtensionEntries} from '../../src/ui/extension-center-model.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
@@ -133,7 +134,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     return structuredClone(program.installed);
   }};
   const sidebarTools={
-    openTool(id){invocations.push(['open',id]);return true;},
+    openTool(id,options){invocations.push(['open',id,options]);return true;},
     openSettings(id){invocations.push(['settings',id]);return true;},
     async toggleEnabled(id,event){
       assert.equal(event.isTrusted,true);invocations.push(['toggle',id]);
@@ -240,10 +241,6 @@ for(const outcome of ['confirmed','receipt-lost','readback-unavailable'])test(
   const webRow=()=>f.nodes['extension-center-web-features-view']?.querySelector(selector);
   const readState=()=>f.state.toolbarModel.webFeatures.rows.find(item=>item.key===key);
   assertQuietWebFeatureList(f);
-  f.state.rowsModel.onMore(key,f.button(key,'more'));
-  f.state.rowMenuModel.items.find(item=>item.id==='detail').onClick({isTrusted:true});
-  assert.equal(f.nodes['extension-center-detail-body'].querySelector('.ec-companion'),null);
-  f.nodes['extension-center-back'].dispatch('click');
   f.nodes['extension-center-more'].dispatch('click');entry.dispatch('click');
   assert.equal(f.doc.activeElement.id,'extension-center-web-features-title');
   assert.equal(f.nodes['extension-center-list-view'].hidden,true);
@@ -347,12 +344,17 @@ test('web feature help stays in More without blocked apps and distinguishes the 
   assert.equal(view.querySelector('.ec-companion'),null,'no false ready or blocked row for the fixed queue');
   assert.ok(f.nodes['web-features-setup-title'],'the setting is discoverable even without affected apps');
   const settingNote=f.nodes['web-features-setting-note'];
-  const originalNote=settingNote.textContent;
+  assert.match(settingNote.textContent,/手动开启/);
+  const steps=view.querySelector('ol.ec-web-features-steps');
+  assert.equal(steps.children.length,3);
+  assert.match(steps.children[1].textContent,/打开对应扩展的详情.*切回原标签页或侧栏/);
+  assert.match(steps.children[2].textContent,/先保存.*再刷新/);
+  assert.ok([...view.querySelectorAll('summary')].some(summary=>summary.textContent.includes('网站访问权限')));
   f.api.userScripts={getScripts:async()=>[],execute(){throw Error('access read must not execute scripts');}};
   const window=f.doc.defaultView;
   window.dispatchEvent(new window.Event('focus'));
   await settle(()=>f.state.toolbarModel.webFeatures.chromeAccess===true);
-  assert.equal(settingNote.textContent,originalNote,'returning without pending apps updates the state and retains the instructions');
+  assert.match(settingNote.textContent,/已开启.*下一步/,'returning after enabling the switch updates the next step');
   const model=f.state.toolbarModel.webFeatures;
   model.onSettings({isTrusted:false});await tick();
   assert.equal(f.invocations.length,0,'synthetic clicks cannot navigate to Chrome settings');
@@ -428,7 +430,7 @@ test('web feature help reveals a copyable settings address only after navigation
   assert.equal(path.value,'chrome://extensions/?id='+f.api.runtime.id);
   assert.equal(path.closest('[hidden],[inert]'),null);
   assert.ok(view.querySelector('[role="alert"]')?.textContent.trim(),'opening failure stays visible alongside the manual path');
-  assert.match(view.textContent,/允许用户脚本/);
+  assert.match(view.textContent,/允许运行用户脚本/);
   assertWebFeatureSettings(f);
   f.api.tabs.create=async opts=>{f.invocations.push(['market',opts]);};
   view.querySelector('.ec-web-features-settings').dispatch('click');
@@ -604,8 +606,9 @@ for(const withCurrentCleanup of [false,true])test(
   ]);
   await f.ui.refresh();
   const key='app:'+tool.id;
-  f.state.rowsModel.onMore(key,f.button(key,'more'));
-  f.state.rowMenuModel.items.find(row=>row.id==='detail').onClick({isTrusted:true});
+  f.button(key,'more').dispatch('click');
+  assert.equal(f.rowMenu().querySelector('[data-ec-context-action="detail"]'),null);
+  f.menuItem('管理发送队列').dispatch('click');
   assert.equal(f.state.detailModel.key,key);
   assert.ok(f.state.detailModel.actions.some(row=>row.id==='queue-toggle'),
     'the actual package digest and Page identity must earn joint product management');
@@ -658,37 +661,47 @@ test('extension toolbar shop icon never opens the bundled marketplace as a publi
   assert.ok(marketTabs.every(row=>!row[1].url.includes('ui/marketplace.html')));
 });
 
-test('R5.11 each row has one main target and only an overflow secondary control',async t=>{
+test('Enabled app main opens the matching package; Page main opens its detail',async t=>{
   const f=fixture(t);
+  const expectedEpoch='app-install-generation';
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[app.id]:expectedEpoch});
   await f.ui.refresh();
   assert.equal(f.list.querySelector('[data-extension-id="app:quick-notes"] .ec-type')?.textContent,'应用',
     'ordinary app type must not append a redundant side-panel label');
   assert.equal(f.list.querySelector('[data-extension-id="page:reader"] .ec-type')?.textContent,'应用 · 网页增强',
     'page program type remains distinct');
-  const appButtons=f.buttons('app:quick-notes');
-  assert.deepEqual(appButtons.map(n=>n.dataset.extensionAction),['main','more']);
-  f.button('app:quick-notes','main').dispatch('click');
-  assert.deepEqual(f.invocations.filter(x=>x[0]==='open'),[['open','quick-notes']]);
-  const pageButtons=f.buttons('page:reader');
-  assert.deepEqual(pageButtons.map(n=>n.dataset.extensionAction),['main','more']);
-  assert.equal(f.button('page:reader','primary'),undefined);
-  f.button('page:reader','main').dispatch('click');
-  assert.equal(f.nodes['extension-center-detail'].hidden,false,'Page row opens detail, not code');
-  assert.equal(f.invocations.some(x=>x[0]==='navigate'),false);
-  f.nodes['extension-center-back'].dispatch('click');
+  const appKey='app:quick-notes',pageKey='page:reader';
+  assert.deepEqual(f.buttons(appKey).map(n=>n.dataset.extensionAction),['main','more']);
+  assert.deepEqual(f.buttons(pageKey).map(n=>n.dataset.extensionAction),['main','more']);
+  const appMain=f.button(appKey,'main'),appMore=f.button(appKey,'more');
+  appMore.dispatch('click');
+  assert.equal(f.rowMenu().querySelector('[data-ec-context-action="detail"]'),null);
+  assert.equal(f.menuItem('查看'),undefined);
+  f.doc.dispatch('keydown',{key:'Escape'});
+  assert.equal(f.doc.activeElement,appMore);
+  appMain.dispatch('click',{isTrusted:false});
+  assert.deepEqual(f.invocations,[]);
+  appMain.dispatch('click');
+  assert.deepEqual(f.invocations,[['open',app.id,{expectedPackage:app,expectedEpoch}]]);
   assert.equal(f.nodes['extension-center-detail'].hidden,true);
-  assert.equal(f.doc.activeElement.dataset.extensionAction,'main','Back restores the origin row');
+
+  f.button(pageKey,'main').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  assert.equal(f.state.detailModel.key,pageKey);
+  assert.equal(f.state.detailModel.title,'阅读增强');
+  assert.deepEqual(f.invocations,[['open',app.id,{expectedPackage:app,expectedEpoch}]],'Page navigation does not launch anything');
+  assert.deepEqual(f.writes,[],'Page navigation does not mutate authorization');
 });
 
-test('R4.7 stopped app has no fake Settings main; overflow enable uses the sole trusted host route',async t=>{
+test('R4.7 stopped app main opens Settings; overflow enable uses the sole trusted host route',async t=>{
   const f=fixture(t,{disabled:true});await f.ui.refresh();
   assert.deepEqual(f.buttons('app:quick-notes').map(n=>n.dataset.extensionAction),['main','more']);
   const row=f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes');
   assert.match(row.children[0].textContent,/已停用/);
   f.button('app:quick-notes','main').dispatch('click');
-  assert.equal(f.nodes['extension-center-detail'].hidden,false,'disabled row only navigates');
-  assert.equal(f.invocations.length,0,'row must neither enable nor open settings implicitly');
-  f.nodes['extension-center-back'].dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,true);
+  assert.deepEqual(f.invocations,[['settings',app.id]]);
+  assert.equal(f.store.get(SIDEBAR_TOOL_ENABLE_STORE)[app.id],false,'opening Settings does not enable the app');
   f.button('app:quick-notes','more').dispatch('click');
   assert.equal(f.rowMenu().hidden,false);
   assert.ok(f.menuItem('启用'));
@@ -804,6 +817,7 @@ test('Page success notification retains an unrelated installation read error',as
   await f.ui.refresh();f.setCorrupt(true);await f.ui.refresh();
   const error={...f.state.statusModel};
   f.button('page:reader','main').dispatch('click');
+  await settle(()=>Boolean(f.state.detailModel?.pageControl));
   f.state.detailModel.pageControl.onToggle(false,{isTrusted:true});
   await settle(()=>f.writes.length===1&&!f.state.detailModel.busy);
   assert.equal(notices.length,1);assert.equal(notices[0].options.type,'success');
@@ -1026,27 +1040,30 @@ test('R4.7 installed Page menu is keyboard usable, invokes original generation-b
   const more=f.button('page:reader','more');more.dispatch('click');
   assert.equal(more.getAttribute('aria-expanded'),'true');
   assert.equal(f.rowMenu().hidden,false);
-  assert.ok(f.menuItem('停用自动运行'));
   const menuLabels=[...f.rowMenu().children].map(node=>node.textContent);
-  const pinIndex=menuLabels.indexOf('置顶'),uninstallIndex=menuLabels.findIndex(label=>label.includes('卸载'));
-  assert.ok(pinIndex>=0&&pinIndex<uninstallIndex,'pin preference stays before the final destructive uninstall action');
-  assert.equal(f.rowMenu().dataset.align,'start','mixed-length Page actions share one reading edge');
+  assert.deepEqual(menuLabels,['停用','导入网页增强包…','开发','置顶','卸载']);
   f.doc.dispatch('keydown',{key:'End'});
   assert.match(f.doc.activeElement.textContent,/卸载/,'End moves to the last (destructive) menu item');
-  assert.ok(f.menuItem('查看'),'the detail item is retained in the menu');
+  assert.equal(f.menuItem('查看'),undefined,'Page main is the detail entry');
   f.doc.dispatch('keydown',{key:'Home'});
-  assert.match(f.doc.activeElement.textContent,/停用自动运行/);
+  assert.equal(f.doc.activeElement.textContent,'停用');
   const esc=f.doc.dispatch('keydown',{key:'Escape'});
   assert.equal(esc.prevented,true);
   assert.equal(f.rowMenu(),null);
   assert.equal(f.doc.activeElement,more);
   more.dispatch('click');
-  f.menuItem('停用自动运行').dispatch('click');
+  f.menuItem('导入网页增强包…').dispatch('click');
+  assert.deepEqual(f.invocations,[['import']]);
+  assert.equal(f.writes.length,0,'opening import does not change the installed Page');
+  more.dispatch('click');
+  f.menuItem('停用').dispatch('click');
   await settle(()=>f.writes.length===1);
   assert.deepEqual(f.writes[0],{programId:'reader',manifestHash:'a'.repeat(64),
     installationId:'original-installation',enabled:false,expectedGeneration:5});
-  await settle(()=>f.menuItem('停用自动运行')===undefined);
+  await settle(()=>f.button('page:reader','more')?.disabled===false);
   assert.equal(f.programs[0].installed.enabled,false);
+  f.button('page:reader','more').dispatch('click');
+  assert.equal(f.rowMenu().firstElementChild.textContent,'启用');
 });
 
 // DOM-double regression only; the Chromium fixture separately proves trusted clicks.
@@ -1058,7 +1075,7 @@ test('R33.3.4 extension menu arrows stay scoped and Tab restores focus',async t=
   assert.equal(unrelated.prevented,undefined,'Open menu must not hijack search keyboard input');
   assert.equal(f.doc.activeElement,search);
   assert.equal(f.rowMenu().hidden,false);
-  f.menuItem('查看').focus();
+  f.menuItem('导入网页增强包…').focus();
   const tab=f.doc.dispatch('keydown',{key:'Tab'});
   assert.equal(tab.prevented,undefined,'Native Tab traversal must remain available');
   assert.equal(f.rowMenu(),null);
@@ -1072,7 +1089,7 @@ test('R5.6 suspended Page offers direct restoration but cannot claim native succ
   f.programs[0].installed.authorization.status='suspended';
   f.programs[0].installed.nativeState='blocked';await f.ui.refresh();
   f.button('page:reader','more').dispatch('click');
-  const restore=f.menuItem('恢复自动运行');
+  const restore=f.menuItem('恢复');
   assert.ok(restore,'suspended installed Page must offer Restore, not Disable');
   restore.dispatch('click');
   await settle(()=>f.writes.length===1);
@@ -1091,7 +1108,7 @@ test('R5.6 suspended Page with missing Chrome permission cannot change the insta
   const f=fixture(t);f.programs[0].installed.authorization.status='suspended';
   await f.ui.refresh();f.setAllowed(false);
   f.button('page:reader','more').dispatch('click');
-  const restore=f.menuItem('恢复自动运行');assert.ok(restore);
+  const restore=f.menuItem('恢复');assert.ok(restore);
   restore.dispatch('click');
   await settle(()=>f.nodes['extension-center-status'].textContent.includes('E_PERMISSION'));
   assert.equal(f.writes.length,0);
@@ -1101,14 +1118,14 @@ test('R5.6 suspended Page with missing Chrome permission cannot change the insta
 test('R4.7 missing Page grant forbids enable; unreadable app status never fabricates primary or toggle',async t=>{
   const f=fixture(t);await f.ui.refresh();
   // First turn Page off through its installed authority.
-  f.button('page:reader','more').dispatch('click');f.menuItem('停用自动运行').dispatch('click');
+  f.button('page:reader','more').dispatch('click');f.menuItem('停用').dispatch('click');
   await settle(()=>f.programs[0].installed.enabled===false);
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   await f.ui.refresh();f.setAllowed(false);
   const pageMore=f.button('page:reader','more');
   assert.ok(pageMore,'Page menu trigger must survive authority refresh');
   pageMore.dispatch('click');
-  const enable=f.menuItem('启用自动运行');
+  const enable=f.menuItem('启用');
   assert.ok(enable,'Page re-enable menu missing: '+JSON.stringify({
     disabled:pageMore.disabled,expanded:pageMore.getAttribute('aria-expanded'),
     menuHidden:f.rowMenu().hidden,menuLabels:f.rowMenu().children.map(x=>x.textContent),
@@ -1130,17 +1147,15 @@ test('R4.7 missing Page grant forbids enable; unreadable app status never fabric
   assert.equal(f.invocations.some(x=>x[0]==='toggle'),false);
 });
 
-test('R5.0 uninstall from a second window retires installed details, search and old row actions',async t=>{
+test('R5.0 app uninstall from a second window retires the installed row and its old launch action',async t=>{
   const f=fixture(t);await f.ui.refresh();
-  f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('查看').dispatch('click');
-  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  const staleOpen=f.state.rowsModel.rows.find(row=>row.key==='app:quick-notes').onSelect;
   // Independent storage authority removes the installed package.
   f.store.set(SIDEBAR_TOOL_STORE,[]);
   await f.ui.refresh();
-  assert.equal(f.nodes['extension-center-detail'].hidden,true);
   assert.equal(f.button('app:quick-notes','main'),undefined);
-  assert.equal(f.doc.activeElement,f.nodes['extension-center-search']);
+  staleOpen({isTrusted:true});
+  assert.deepEqual(f.invocations,[],'a removed app cannot launch from an old row callback');
   f.nodes['extension-center-search'].value='quick-notes';
   f.nodes['extension-center-search'].dispatch('input');
   assert.equal(f.list.children.length,0,'search must not resurrect a catalog candidate');
@@ -1152,21 +1167,19 @@ test('R5.0 uninstall from a second window retires installed details, search and 
     'a new controller session must honor persistent removal');
 });
 
-test('R5.1 detail retires on same-ID package replacement or Page revision change',async t=>{
+test('R5.1 same-ID package replacement rejects stale launch; a Page revision change retires detail',async t=>{
   const f=fixture(t);await f.ui.refresh();
-  f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('查看').dispatch('click');
-  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  const staleOpen=f.state.rowsModel.rows.find(row=>row.key==='app:quick-notes').onSelect;
   // Same tool ID and version are NOT the same approved bytes.
-  f.store.set(SIDEBAR_TOOL_STORE,[{...app,html:'<main>Replaced outside this window</main>'}]);
+  const replacement={...app,html:'<main>Replaced outside this window</main>'};
+  f.store.set(SIDEBAR_TOOL_STORE,[replacement]);
   await f.ui.refresh();
-  assert.equal(f.nodes['extension-center-detail'].hidden,true,
-    'old settings/detail actions must not silently follow a replaced fixed package');
-  assert.match(f.nodes['extension-center-status'].textContent,/固定身份已变化/);
-  assert.deepEqual(f.invocations.filter(row=>row[0]==='settings'),[]);
+  staleOpen({isTrusted:true});
+  assert.deepEqual(f.invocations,[],'an old launch action must not follow replaced bytes');
+  f.button('app:quick-notes','main').dispatch('click');
+  assert.deepEqual(f.invocations,[['open',app.id,{expectedPackage:replacement,expectedEpoch:null}]]);
 
-  f.button('page:reader','more').dispatch('click');
-  f.menuItem('查看').dispatch('click');
+  f.button('page:reader','main').dispatch('click');
   assert.equal(f.nodes['extension-center-detail'].hidden,false);
   f.programs[0]={...f.programs[0],manifestHash:'c'.repeat(64),
     installed:{...f.programs[0].installed,manifestHash:'c'.repeat(64),
@@ -1207,14 +1220,37 @@ test('R5.0 catalog-offline cleanup remains recoverable only from discovery',asyn
 });
 
 test('R5.1 corrupt cleanup journal withdraws installed authority instead of hiding its unsafe entry',async t=>{
+  // Keep unrelated catalog reads from replacing the journal error in the shared status region.
+  const sources=JSON.parse(await readFile(new URL('../../official-pages/sources.json',import.meta.url),'utf8'));
+  const {sourceRepository}=sources;
+  const catalogs={
+    'chrome-extension://fixture/official-tools/catalog.json':{
+      schema:'opendesk.official-tools.releases.v1',sourceRepository,apps:[{
+        id:'opendesk/cookie-editor',toolId:'cookie-editor',kind:'sidebar-tool',
+        installationPolicy:'optional',version:'2.0.11',packageTitle:'Cookie Editor',
+        description:'Edit cookies',capabilities:app.capabilities,
+        packagePath:'official-tools/cookie-editor/cookie-editor.opendesk-tool.json',
+        bytes:100,sha256:'c'.repeat(64)
+      }]
+    },
+    'chrome-extension://fixture/official-pages/catalog.json':{
+      schema:'opendesk.official-pages.releases.v1',sourceRepository,
+      apps:sources.programs.map(({project,packageFile,publication,...row})=>
+        ({...row,kind:'page-program',status:'blocked',blockedReason:row.blockedReason??'Fixture only'}))
+    }
+  };
+  t.mock.method(globalThis,'fetch',async url=>Object.hasOwn(catalogs,String(url))?
+    new Response(JSON.stringify(catalogs[String(url)])):new Response('offline',{status:404}));
   const malformed={'cookie-editor':{version:'garbled-version',createdAt:1}};
   const f=fixture(t,{installedRows:[],cleanupRows:malformed});
   await f.ui.refresh();
+  await tick(); // Let the fixture catalogs finish before checking status and discovery.
   assert.equal(f.nodes['extension-center-count'].textContent,'部分安装状态待核对');
   assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
   assert.match(f.nodes['extension-center-status'].textContent,/卸载恢复记录损坏/);
   assert.equal(f.button('app:cookie-editor','main'),undefined);
   f.nodes['extension-center-menu'].querySelector('button[data-ec-scope="available"]').dispatch('click');
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-kind="app"]').dispatch('click');
   assert.equal(f.nodes['extension-center-cleanups'].hidden,true,
     'malformed journal cannot show a fake successful recovery control');
   assert.equal(f.list.children.length,0,
@@ -1304,51 +1340,40 @@ test('R4.7 async app toggle is single-flight and exposes processing without a se
 });
 
 
-test('R4.7 menu detail Back restores the menu origin independent of pointer focus',async t=>{
+test('R4.7 Page detail Back restores the main control independent of pointer focus',async t=>{
   const f=fixture(t);await f.ui.refresh();
-  const more=f.button('page:reader','more');
-  more.dispatch('click');
-  const detail=f.menuItem('查看');
   f.doc.activeElement=f.nodes['extension-center-search'];
-  detail.dispatch('click');
+  f.button('page:reader','main').dispatch('click');
   assert.equal(f.nodes['extension-center-detail'].hidden,false);
   f.nodes['extension-center-back'].dispatch('click');
   assert.equal(f.doc.activeElement.dataset.extensionKey,'page:reader');
-  assert.equal(f.doc.activeElement.dataset.extensionAction,'more');
+  assert.equal(f.doc.activeElement.dataset.extensionAction,'main');
 });
 
 
-test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible stopped status',async t=>{
-  const enabled=fixture(t);await enabled.ui.refresh();
-  enabled.button('app:quick-notes','more').dispatch('click');
-  enabled.menuItem('查看').dispatch('click');
-  assert.equal(enabled.nodes['extension-center-detail'].hidden,false);
-  const enabledActions=[...enabled.nodes['extension-center-detail-body'].querySelectorAll('button')]
-    .map(button=>button.getAttribute('aria-label')?.replace(/「.*$/,'')||button.textContent);
-  assert.deepEqual(enabledActions,['设置与权限'],
-    'the verified primary Open belongs on the list, not duplicated inside Details');
-  assert.equal(enabled.nodes['extension-center-detail-body'].textContent.includes('已停用'),false);
-  assert.match(enabled.nodes['extension-center-detail-body'].textContent,/应用已安装，可按需打开界面/);
-
-  const disabled=fixture(t,{disabled:true});await disabled.ui.refresh();
-  disabled.button('app:quick-notes','main').dispatch('click');
-  assert.equal(disabled.nodes['extension-center-detail'].hidden,false);
-  assert.match(disabled.nodes['extension-center-detail-body'].textContent,/已停用 · 记录内容/,
-    'detail introduction preserves the same stopped-state message as the list and preview');
-  assert.match(disabled.nodes['extension-center-detail-body'].textContent,/应用已停用；可在设置与权限中恢复/);
-  assert.doesNotMatch(disabled.nodes['extension-center-detail-body'].textContent,/可按需打开界面/,
-    'a stopped app must not describe itself as available to open');
-  assert.deepEqual([...disabled.nodes['extension-center-detail-body'].querySelectorAll('button')]
-    .map(button=>button.getAttribute('aria-label')?.replace(/「.*$/,'')||button.textContent),['设置与权限']);
+test('R4.8 unknown app installation remains readable without authorizing stale launch or Settings',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  const staleOpen=f.state.rowsModel.rows.find(row=>row.key==='app:quick-notes').onSelect;
+  f.setCorrupt(true);
+  await f.ui.refresh();
+  assert.equal(f.button('app:quick-notes','main'),undefined);
+  assert.equal(f.state.statusModel.state,'error');
+  assert.match(f.state.statusModel.text,/读取失败.*storage unavailable/);
+  staleOpen({isTrusted:true});
+  assert.deepEqual(f.invocations,[]);
 });
 
 test('R4.8 first paint reports loading instead of a misleading empty or install state',async t=>{
   const f=fixture(t);
-  assert.match(f.nodes['extension-center-status'].textContent,/正在读取已安装扩展/);
-  assert.equal(f.nodes['extension-center-status'].dataset.state,'loading');
+  const search=f.nodes['extension-center-search'];
+  assert.equal(f.nodes['extension-center-status'].hidden,true,'routine startup does not use the persistent status');
+  assert.match(f.doc.querySelector('.ec-list-loading').textContent,/正在读取已安装扩展/);
+  assert.equal(f.nodes['extension-center-list'].getAttribute('aria-busy'),'true');
   assert.equal(f.nodes['extension-center-empty'].hidden,true);
   assert.equal(f.nodes['extension-center-count'].textContent,'正在读取扩展…');
   await f.ui.refresh();
+  assert.equal(f.doc.querySelector('.ec-list-loading'),null);
+  assert.equal(f.nodes['extension-center-search'],search,'readback keeps the same search input');
   assert.equal(f.nodes['extension-center-count'].textContent.endsWith('个扩展'),true);
 });
 
@@ -1373,15 +1398,16 @@ test('R4.8 removed Page during detail falls back to search, not hidden Back',asy
   assert.equal(f.doc.activeElement,f.nodes['extension-center-search']);
 });
 
-test('R5.14 detail actions use shared accessible IconButton without duplicate Open',async t=>{
+test('R5.14 Page detail keeps an accessible uninstall action without a duplicate Open',async t=>{
   const f=fixture(t);await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
-  const buttons=f.nodes['extension-center-detail-body'].querySelectorAll('button');
-  assert.ok(buttons.every(x=>x.className.includes('od-icon-button')),
-    'known detail actions use the existing shared IconButton');
-  assert.ok(buttons.every(x=>x.getAttribute('aria-label')&&x.getAttribute('title')&&x.querySelector('svg')),
-    'icon-only actions keep an accessible name, tooltip and visible glyph');
-  assert.ok(buttons.every(x=>!String(x.getAttribute('aria-label')).includes('打开应用')));
+  await settle(()=>Boolean(f.state.detailModel?.pageControl));
+  const detail=f.nodes['extension-center-detail-body'];
+  const uninstall=detail.querySelector('button[data-ec-detail-action="uninstall"]');
+  assert.ok(uninstall?.className.includes('od-icon-button'),'uninstall uses the existing shared IconButton');
+  assert.ok(uninstall.getAttribute('aria-label')&&uninstall.getAttribute('title')&&uninstall.querySelector('svg'));
+  assert.ok([...detail.querySelectorAll('button')].every(button=>
+    !String(button.getAttribute('aria-label')).includes('打开应用')));
   const css=await readFile('src/ui/extension-center.css','utf8');
   assert.doesNotMatch(css,/\.ec-detail-actions button\{[^}]*background:/);
   assert.match(css,/\.ec-detail-actions \.od-button\{font-size:12px;color:var\(--od-accent-ink\)\}/);
@@ -1408,7 +1434,7 @@ test('R4.9 rejected Page grant remains visible after unrelated refresh',async t=
   f.programs[0].installed.enabled=false;
   await f.ui.refresh();f.setAllowed(false);
   f.button('page:reader','more').dispatch('click');
-  f.menuItem('启用自动运行').dispatch('click');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.nodes['extension-center-status'].textContent.includes('E_PERMISSION'));
   assert.equal(f.writes.length,0,'missing grant must not reach Page Authority mutation');
   await f.ui.refresh();
@@ -1426,23 +1452,26 @@ test('R4.8 historical reference preserves the production toolbar action contract
     const doc=parseHTML(source).document;
     const element=doc.querySelector('.ec-toolbar'),host=doc.getElementById(hostId);
     assert.ok(element&&host,'toolbar and import host must exist');
-    assert.ok(element.parentElement===host.parentElement,
-      'toolbar and import host must retain the same DOM owner');
     let next=element.nextElementSibling;
     if(hostId==='extension-center-import-host'){
+      const listView=doc.getElementById('extension-center-list-view');
+      assert.equal(host.parentElement,listView,'the import host belongs to the list view');
+      assert.equal(element.parentElement,listView.parentElement.parentElement,
+        'the trusted React view owns both the toolbar and the results');
       // The original React Root owns the shared history/settings slot;
       // the historical preview predates it. No independent update trigger.
-      assert.ok(next?.matches('aside.od-update-slot.no-trigger[aria-label="更新记录与提醒设置"]'),
+      next=listView.querySelector('aside.od-update-slot.no-trigger[aria-label="更新记录与提醒设置"]');
+      assert.ok(next,
         'production retains the shared update slot before the import host');
       assert.equal(doc.querySelectorAll('#extension-center .od-update-slot').length,1);
       assert.ok(!next.querySelector('.od-update-trigger'),'no independent update trigger');
       assert.ok(!next.querySelector('#od-update-panel'),'history is closed on first paint');
       next=next.nextElementSibling;
-    }
+    }else assert.equal(element.parentElement,host.parentElement,'the historical layout remains intact');
     if(next?.matches('input[type="file"][hidden]'))next=next.nextElementSibling;
     assert.ok(next===host,
       'only the shared production update slot and hidden file picker may precede the import host');
-    return element.outerHTML;
+    return element.innerHTML;
   };
   const formal=toolbar(html,'extension-center-import-host');
   const demo=toolbar(preview,'preview-import-host');
@@ -1583,7 +1612,7 @@ test('R5.6 old Page cleanup does not change the confirmed native disable status'
   f.programs[0].installed.managedCleanup={scope:'managed-ui-only',state:'unknown'};
   await f.ui.refresh();
   f.button('page:reader','more').dispatch('click');
-  f.menuItem('停用自动运行').dispatch('click');
+  f.menuItem('停用').dispatch('click');
   await settle(()=>f.writes.length===1);
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   assert.equal(f.programs[0].installed.nativeState,'disabled');
@@ -1598,7 +1627,7 @@ test('R5.6 old Page cleanup does not change the confirmed native disable status'
 test('R5.0 Page RPC acknowledgement without Authority state change cannot be reported successful',async t=>{
   const f=fixture(t);await f.ui.refresh();f.setPageAckOnly(true);
   f.button('page:reader','more').dispatch('click');
-  f.menuItem('停用自动运行').dispatch('click');
+  f.menuItem('停用').dispatch('click');
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   assert.equal(f.writes.length,1);
   assert.equal(f.programs[0].installed.enabled,true,'the real record was not modified');
@@ -1613,7 +1642,7 @@ test('R5.0 Page enabled setting must not masquerade as a verified native registr
   f.programs[0].installed.nativeState='pending';
   await f.ui.refresh();
   f.button('page:reader','more').dispatch('click');
-  f.menuItem('启用自动运行').dispatch('click');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   assert.equal(f.programs[0].installed.enabled,true);
   assert.equal(notices.length,1);
@@ -1627,7 +1656,7 @@ test('R5.0 official catalog stale responses and failures must be rejected by sou
   assert.match(center,/const id=\+\+officialSequence/);
   assert.match(center,/id===officialSequence/);
   assert.match(center,/official=\[\];catalogError=/);
-  assert.match(center,/dispose\(\)\{if\(disposed\)return;disposed=true;sequence\+\+;officialSequence\+\+;pageOfficialSequence\+\+;discoveryGeneration\+\+;discoveryChannelGeneration\+\+;\s*listUninstallReview=null;uninstallReview=null;closeRowMenu\(\)/,
+  assert.match(center,/dispose\(\)\{if\(disposed\)return;disposed=true;[^{}]*?sequence\+\+;officialSequence\+\+;pageOfficialSequence\+\+;discoveryGeneration\+\+;discoveryChannelGeneration\+\+;\s*listUninstallReview=null;uninstallReview=null;closeRowMenu\(\)/,
     'dispose invalidates each asynchronous catalog/discovery sequence and pending reviews before closing the menu');
 });
 
@@ -1661,6 +1690,7 @@ test('R5.7 menu opens trusted import Host, never the global picker or language m
 test('R1.5 Page readback remains authoritative when unrelated Sidebar storage fails',async t=>{
   const f=fixture(t);await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
+  await settle(()=>Boolean(f.state.detailModel?.pageControl));
   f.setCorrupt(true);
   // Controller regression: linkedom cannot perform a native React Aria press.
   // Pointer/Space Switch behavior has its own real Chromium coverage.

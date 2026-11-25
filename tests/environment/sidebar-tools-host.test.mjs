@@ -62,63 +62,34 @@ async function preinstallRecoveryFixture(t,{importError=null,pageState='pending'
       if(importError)throw importError;
       const row={programId:args.package.programId,manifestHash:'authority-manifest',
         sourceHash:args.package.sourceHash,revision:args.package.revision,
-        authorization:{installationId:'authority-install',status:'active'},enabled:true,nativeState:'registered'};
+        authorization:{installationId:'authority-install',generation:1,status:'active'},enabled:true,nativeState:'waiting-user-scripts'};
       installed.push(row);return structuredClone(row);
     }}});
-  await settle(()=>f.view.fields['sidebar-tool-preinstall'].data.state===
-    (pageState==='attention'?'attention':'user-scripts-required'));
+  await settle(()=>pageState==='attention'||importError?
+    f.view.fields['sidebar-tool-preinstall'].data?.state==='attention':
+    store.get(DEFAULT_PREINSTALL_STORE).pageState==='complete'&&f.view.fields['sidebar-tool-preinstall'].hidden);
   return {...f,calls,installed,settings,get recovery(){return f.view.fields['sidebar-tool-preinstall'];},
     act(action,isTrusted=true){return f.view.dispatch('sidebar-tool-preinstall',action,{isTrusted});}};
 }
 
-test('default extension recovery probes only, then requires a new trusted continuation',async t=>{
+test('a default Page awaiting user scripts leaves the sidebar apps usable without setup prompts',async t=>{
   const f=await preinstallRecoveryFixture(t);
-  assert.equal(f.recovery.data.state,'user-scripts-required',f.recovery.data.technical);
+  assert.equal(f.api.userScripts,undefined);
+  assert.equal(f.recovery.hidden,true,'deferred Page registration must not prompt across the extension list');
   assert.equal(f.elements['sidebar-tool-status'].hidden,true,'an expected prerequisite is not a generic install error');
-  const initialCalls=[...f.calls];
-  f.act('settings',false);f.act('check',false);f.act('resume',false);
-  assert.deepEqual(f.settings,[]);assert.deepEqual(f.calls,initialCalls);
-  f.act('settings');
-  assert.deepEqual(f.settings,[{url:'chrome://extensions/?id=abcdefghijklmnopabcdefghijklmnop'}]);
-  let probes=0;
-  f.api.userScripts={getScripts:async()=>{probes++;return [];},execute(){assert.fail('a probe must not run scripts');}};
-  f.act('check');f.act('check');
-  await settle(()=>f.recovery.data.state==='available');
-  assert.equal(probes,1);assert.deepEqual(f.calls,initialCalls,'checking cannot resume installation');
-  f.changeStorage({[DEFAULT_PREINSTALL_STORE]:{newValue:{...f.store.get(DEFAULT_PREINSTALL_STORE),state:'pending'}}});
-  await pause();assert.deepEqual(f.calls,initialCalls,'storage events cannot bypass recovery');
-  f.view.patch('sidebar-tool-status',{hidden:false,textContent:'其他操作的错误',attributes:{'data-state':'error'}});
-  f.act('resume',false);assert.deepEqual(f.calls,initialCalls);
-  f.act('resume');f.act('resume');
-  await settle(()=>f.recovery.hidden);
+  assert.deepEqual(f.settings,[]);
   assert.equal(f.calls.filter(x=>x==='importPageInstallPackage').length,1);
   assert.equal(f.store.get(DEFAULT_PREINSTALL_STORE).pageState,'complete');
-  assert.equal(f.elements['sidebar-tool-status'].textContent,'其他操作的错误');
-  assert.equal(f.view.getSnapshot().toast.message,'默认扩展已准备完成');
+  assert.equal(f.installed[0].nativeState,'waiting-user-scripts');
   assert.ok(f.store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===sample.id));
 });
 
 test('default extension recovery keeps unknown installation results fenced',async t=>{
   const f=await preinstallRecoveryFixture(t,{importError:Object.assign(Error('lost reply'),{code:'E_OUTCOME_UNKNOWN'})});
-  f.api.userScripts={getScripts:async()=>[],execute(){}};
-  f.act('check');await settle(()=>f.recovery.data.state==='available');
-  f.act('resume');await settle(()=>f.recovery.data.state==='attention');
   assert.equal(f.store.get(DEFAULT_PREINSTALL_STORE).pageState,'attention');
   const calls=[...f.calls];f.act('resume');f.act('check');
   await pause();assert.deepEqual(f.calls,calls);
   assert.equal(calls.filter(x=>x==='importPageInstallPackage').length,1);
-});
-
-test('default extension recovery distinguishes a failed probe and ignores completion after disposal',async t=>{
-  const f=await preinstallRecoveryFixture(t);
-  f.api.userScripts={getScripts:async()=>{throw Error('temporary native failure');},execute(){}};
-  f.act('check');await settle(()=>f.recovery.data.state==='check-error');
-  assert.match(f.recovery.data.technical,/E_USER_SCRIPTS_NATIVE/);
-  const gate=deferred();f.api.userScripts.getScripts=()=>gate.promise;
-  f.act('check');assert.equal(f.recovery.data.state,'checking');
-  f.host.dispose();const snapshot=f.view.getSnapshot();gate.resolve([]);
-  await pause();assert.equal(f.view.getSnapshot(),snapshot);
-  assert.equal(f.calls.filter(x=>x==='importPageInstallPackage').length,0);
 });
 
 test('default extension recovery preserves an existing attention fence at startup',async t=>{
@@ -7258,11 +7229,16 @@ test('standalone Page import confirms the durable waiting receipt without asking
   assert.equal(f.host.openImportFiles([{name:'ai-scroll-navigation.opendesk-page.json',size:raw.length,text:async()=>raw}]),true);
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&!f.elements['sidebar-tool-install'].disabled);
   f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
-  await settle(()=>f.view.getSnapshot().toast?.type==='success');
+  const status=f.elements['page-install-import-status'],recovery=f.elements['sidebar-tool-user-scripts-recovery'];
+  await settle(()=>status.attributes['data-state']==='installed-waiting'&&!recovery.hidden);
   assert.deepEqual(calls,['listPagePrograms','importPageInstallPackage','listPagePrograms']);
-  assert.match(f.view.getSnapshot().toast.message,/已安装/);
-  assert.match(f.view.getSnapshot().toast.caption,/浏览器暂不能运行用户脚本/);
+  assert.match(status.textContent,/安装完成.*浏览器暂不能运行用户脚本/);
+  assert.equal(recovery.data.installedWaiting,true);
+  assert.equal(f.elements['sidebar-tool-import'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  f.emit(f.elements['sidebar-tool-import-close'],'click',{isTrusted:true});
   assert.equal(f.elements['sidebar-tool-import'].hidden,true);
+  assert.equal(calls.filter(method=>method==='importPageInstallPackage').length,1);
 });
 
 test('queue joint review: Page review must finish before either installer can run',async t=>{

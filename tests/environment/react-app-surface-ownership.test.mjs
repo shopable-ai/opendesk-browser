@@ -10,7 +10,7 @@ function fakeDoc({missing=null,toolbar=false}={}){
   const calls=[];
   return {nodes,bar,calls,
     getElementById(id){calls.push(id);return nodes.get(id)??null;},
-    querySelector(selector){assert.equal(selector,'#extension-center-list-view > .ec-toolbar');return bar;}};
+    querySelector(selector){assert.equal(selector,'#extension-center-toolbar');return bar;}};
 }
 
 test('app.html owns only the shared ToolHost; missing Side Panel nodes do not abort the React mount',()=>{

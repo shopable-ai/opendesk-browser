@@ -3,6 +3,7 @@ import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {createSiteAccess} from './site-access.js';
 import {createSdkApproval, sdkApprovalPreview, sdkHttpLabPreset} from './sdk-approval.js';
+import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
 
 const capabilityLabels = {
   'network.localRelay': '本机 Node HTTP 转发（独立配对；仅批准的本机 GET）',
@@ -50,6 +51,52 @@ export function createDeveloperHostControls({api, client, view, currentPageTarge
   // is no hidden recovery DOM or second permission controller to keep in sync.
   bind('site-access-restore', grantSiteAccess);
   bind('site-access-refresh', () => siteAccess.refresh().catch(error => warn('Chrome site access refresh failed', error)));
+
+  let userScriptsRead = 0, openingUserScriptsSettings = false, userScriptsSettingsTab;
+  let userScriptsPermissionsActive = false;
+  const renderUserScripts = (state, textContent) =>
+    patch('browser-user-scripts-status', {data:{state}, textContent});
+  const refreshUserScripts = async () => {
+    const read = ++userScriptsRead;
+    const available = await inspectUserScriptsAccess(api).catch(() => null);
+    if (disposed || read !== userScriptsRead) return;
+    patch('browser-user-scripts-reopen-hint', {hidden:available !== false});
+    if (available === true) renderUserScripts('available', 'Chrome 用户脚本功能可用');
+    else if (available === false) renderUserScripts('unavailable', '未检测到 Chrome 用户脚本功能');
+    else renderUserScripts('unknown', '暂时无法确认，请重新检测');
+  };
+  bind('browser-user-scripts-refresh', refreshUserScripts);
+  bind('browser-user-scripts-panel-active', active => {
+    userScriptsPermissionsActive = active === true;
+    if (userScriptsPermissionsActive) void refreshUserScripts();
+  });
+  const checkSettingsReturn = () => {
+    if (userScriptsPermissionsActive) void refreshUserScripts();
+  };
+  const userScriptsTabActivated = ({tabId, windowId}) => {
+    const ownerWindow = currentPageTarget?.windowId ?? userScriptsSettingsTab?.windowId;
+    if (Number.isInteger(ownerWindow) && ownerWindow === windowId && userScriptsSettingsTab?.id !== tabId)
+      checkSettingsReturn();
+  };
+  api.tabs.onActivated?.addListener(userScriptsTabActivated);
+  bind('browser-user-scripts-settings', async event => {
+    if (event?.isTrusted !== true || openingUserScriptsSettings) return;
+    openingUserScriptsSettings = true;
+    patch('browser-user-scripts-settings-error', {hidden:true});
+    try {
+      const url = userScriptsSettingsURL(api);
+      if (!url) throw new Error('Invalid extension ID');
+      const tab = await api.tabs.create({url});
+      if (!disposed && Number.isInteger(tab?.id) && Number.isInteger(tab?.windowId)) userScriptsSettingsTab = tab;
+    } catch {
+      const name = api.runtime.getManifest?.()?.name;
+      const extension = typeof name === 'string' && name.trim() ? '「' + name + '」' : '当前扩展';
+      patch('browser-user-scripts-settings-error', {hidden:false, textContent:
+        '未能打开设置。请从 Chrome 菜单进入「扩展程序 → 管理扩展程序」，找到' + extension + '，在「详情」中开启「允许用户脚本」。'});
+    } finally {
+      openingUserScriptsSettings = false;
+    }
+  });
 
   function displayHealth(error, data) {
     patch('status', {data:{error:String(Boolean(error))}, textContent:error
@@ -234,6 +281,10 @@ export function createDeveloperHostControls({api, client, view, currentPageTarge
     }
   };
   const sdkTabRemoved = tabId => {
+    if (userScriptsSettingsTab?.id === tabId) {
+      userScriptsSettingsTab = undefined;
+      checkSettingsReturn();
+    }
     if (String(tabId) !== fields['sdk-tab'].value) return;
     patch('sdk-tab', {value:''}); clearSdkDocument(); sdkDisplay('stale', '选定网页已关闭');
     for (const key of sdkDrafts.keys()) if (key.startsWith(`${tabId}:`)) sdkDrafts.delete(key);
@@ -273,7 +324,7 @@ export function createDeveloperHostControls({api, client, view, currentPageTarge
   ]);
 
   return Object.freeze({ready,
-    resourceSnapshot:() => ({subscriptions:disposed ? 0 : 5 + Number(Boolean(unsubscribeCurrent)), actions:actions.size}),
+    resourceSnapshot:() => ({subscriptions:disposed ? 0 : 5 + Number(Boolean(unsubscribeCurrent)) + Number(Boolean(api.tabs.onActivated)), actions:actions.size}),
     dispose() {
       if (disposed) return;
       disposed = true; sdkSelectionVersion++; sdkRefreshVersion++; healthVersion++;
@@ -281,6 +332,7 @@ export function createDeveloperHostControls({api, client, view, currentPageTarge
       api.permissions.onRemoved.removeListener(sdkPermissionsRemoved);
       api.webNavigation.onCommitted.removeListener(sdkNavigation);
       api.tabs.onRemoved.removeListener(sdkTabRemoved);
+      api.tabs.onActivated?.removeListener(userScriptsTabActivated);
       sdkApproval.dispose(); siteAccess.dispose(); sdkDrafts.clear(); unboundSdkDraft = null;
       for (const [id, handler] of actions) if (view.actions[id] === handler) delete view.actions[id];
       actions.clear();

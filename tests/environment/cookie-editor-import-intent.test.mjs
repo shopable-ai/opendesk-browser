@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createCookieImportIntentGate as createStrictGate} from '../../src/ui/sidebar-tools/cookie-import-intent.js';
+import {createCookieImportAdmission,createCookieImportIntentGate as createStrictGate} from '../../src/ui/sidebar-tools/cookie-import-intent.js';
 const documentFor=origin=>({tabId:12,windowId:7,documentId:'doc-1',url:origin+'/page',origin});
 // Existing regression calls now pass a real same-document identity to strict gate.
 const createCookieImportIntentGate=options=>{
@@ -102,6 +102,31 @@ test('native approval and per-write callback verify original Chrome document',as
   ]);
   assert.match(panel,/captureCookieImportDocument/);
   assert.match(panel,/cookieImportSource:sourceOrigin,document/);
-  assert.match(host,/verifyCookieImportDocument\(document,cookieImportSource\)/);
-  assert.match(host,/verifyCookieImportDocument\(importDocument,importSource\)/);
+  assert.match(host,/verifyCookieDocument\(document,cookieImportSource\)/);
+  assert.match(host,/authorize:async\(\{url,includeValues\}\)=>\{[\s\S]*?authorizedImportedCookie\(owner,operation,url,importSource,importOptions,importDocument,/);
+  assert.match(host,/verifyCookieDocument\(document,sourceOrigin\)/);
+});
+test('an expired Side Panel admission cannot dispatch a late write after an asynchronous precheck',async t=>{
+  const admission=createCookieImportAdmission(25);
+  t.after(()=>admission.stop());
+  let finishPrecheck,writes=0;
+  const work=new Promise(resolve=>{finishPrecheck=resolve;}).then(()=>{
+    admission.submit();
+    writes++;
+  });
+  await assert.rejects(Promise.race([work,admission.expiry]),{code:'E_COOKIE_BATCH_EXPIRED'});
+  finishPrecheck();
+  await assert.rejects(work,{code:'E_COOKIE_BATCH_EXPIRED'});
+  assert.equal(admission.submitted,false);
+  assert.equal(writes,0);
+});
+test('the Side Panel cannot extend the worker deadline by capping against a newer intent',t=>{
+  const admission=createCookieImportAdmission(15000);
+  t.after(()=>admission.stop());
+  const original=admission.workerDeadline();
+  const short=Date.now()+5000;
+  admission.cap(short);
+  assert.ok(admission.workerDeadline()<=short&&short<original);
+  admission.cap(original+15000);
+  assert.ok(admission.workerDeadline()<=short);
 });

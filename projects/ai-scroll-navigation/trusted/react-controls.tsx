@@ -56,7 +56,7 @@ const message=(key,parameters={})=>({key,parameters});
 const failure=key=>Object.assign(new Error(key),{scrollMessage:message(key)});
 const errorDetail=error=>error?.scrollMessage||String(error?.message||error);
 const readErrorDetail=error=>error?.scrollMessage||error?.code||errorDetail(error);
-export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics}){
+export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics,settingsFooter}){
   const locale=model.locale||'zh-CN';
   const canShowFlag=key=>(key!=='turnPaging'||model.turnPagingSupported)&&
     (key!=='showTurnCount'||model.showTurnCountSupported);
@@ -87,6 +87,32 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
   const pathInput=React.useRef(null);
   const selectorInputs=React.useRef({});
   const contentRef=React.useRef(null);
+  const statusRegion=React.useRef(null);
+  const returnStatusFocus=React.useRef(null);
+  const statusRead=detail?.scrollStatusRead;
+  const readState=statusRead?.state;
+  const checkStatus=(event,read)=>{
+    if(event.nativeEvent?.isTrusted!==true)return;
+    const region=statusRegion.current;
+    const owner=region?.ownerDocument;
+    if(region&&owner?.activeElement===event.currentTarget){
+      returnStatusFocus.current=view;
+      region.focus({preventScroll:true});
+    }
+    if(read?.(event.nativeEvent)===false&&returnStatusFocus.current===view){
+      returnStatusFocus.current=null;
+      event.currentTarget.focus({preventScroll:true});
+    }
+  };
+  React.useLayoutEffect(()=>{
+    if(returnStatusFocus.current!==view){returnStatusFocus.current=null;return;}
+    if(readState==='checking')return;
+    returnStatusFocus.current=null;
+    const region=statusRegion.current;
+    if(region?.ownerDocument.activeElement!==region)return;
+    const next=region.querySelector('[data-ec-detail-action="refresh-status"], #scroll-refresh-state, [role="switch"]');
+    if(next&&!next.disabled)next.focus({preventScroll:true});
+  },[readState,view]);
   const pendingFocus=React.useRef(resumed?'scroll-origin':null);
   const returnFocus=React.useRef({});
   const navigate=next=>{
@@ -337,7 +363,7 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
   const writesDisabled=busy||Boolean(detail?.busy)||loading||needsReconcile||!snapshot||Boolean(model.disabledReason);
   const builtinList=(all=false)=><ul className="ec-scroll-builtins">
     {(all?SCROLL_BUILTINS:SCROLL_BUILTINS.slice(0,2)).map(x=><li key={x.origin}>
-      <span className="ec-scroll-mark" aria-hidden="true">{x.name[0]}</span>
+      {all&&<span className="ec-scroll-mark" aria-hidden="true">{x.name[0]}</span>}
       <div className="ec-scroll-site-copy"><strong>{x.name}</strong><span>{x.origin.replace('https://','')}</span></div>
     </li>)}
   </ul>;
@@ -353,8 +379,10 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
           <div className="ec-scroll-site-copy"><strong>{host}</strong>
             <span>{site.enabled?t('ruleEnabled'):t('ruleDisabled')}{site.pathScope!=='/'&&' · '+site.pathScope}</span></div>
           <div className="ec-scroll-row-actions">
-            <Button id={'scroll-edit-'+index} variant="quiet" aria-label={t('editOrigin',{origin:site.origin})}
-              disabled={writesDisabled} onClick={()=>void open(site,all?'sites':'home')}>{t('editAdaptation')}</Button>
+            <IconButton id={'scroll-edit-'+index} label={t('editOrigin',{origin:site.origin})} title={t('editAdaptation')}
+              disabled={writesDisabled} onClick={()=>void open(site,all?'sites':'home')}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4.5-1 11-11-3.5-3.5-11 11L4 20Z"/></svg>
+            </IconButton>
             {all&&<IconButton id={'scroll-more-'+index} label={t('moreOrigin',{origin:site.origin})}
               aria-expanded={expanded} aria-controls={'scroll-rule-actions-'+index} disabled={busy}
               onClick={()=>{setExpandedSite(expanded?null:key);setConfirmDelete(false);}}>
@@ -374,27 +402,51 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
       </li>;
     })}</ul>
     :<p className="ec-scroll-empty">{t('noSites')}</p>;
+  const unconfirmedStatus=<section className="ec-detail-card ec-page-control ec-scroll-read-state"
+    data-read-state={readState} aria-label={t('autoRunStatus')}>
+    {readState==='failed'?<>
+      <div className="ec-scroll-read-copy">
+        <div className="ec-scroll-read-heading">
+          <h3>{t('autoRun')}</h3>
+          <span className="ec-scroll-read-badge" data-state={readState} role="status">{t('autoRunUnavailable')}</span>
+        </div>
+        <p id="scroll-retry-help">{t('autoRunRetryHelp')}</p>
+      </div>
+      <Button variant="quiet" className="ec-scroll-retry" data-ec-detail-action="refresh-status"
+        aria-describedby="scroll-retry-help" disabled={busy||detail?.busy}
+        onClick={event=>checkStatus(event,statusRead.onRetry)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4v6h-6m6 0a8 8 0 1 0-.9 8"/></svg>
+        {t('autoRunRetry')}
+      </Button>
+    </>:<>
+      <h3>{t('autoRun')}</h3>
+      <p className="ec-page-state" data-state={readState} role="status">{t('autoRunChecking')}</p>
+    </>}
+  </section>;
   return <section className="ec-scroll-site-manager" data-view={view}
     aria-label={t('managerAria')} aria-busy={loading||busy}>
     <div className="ec-scroll-content" ref={contentRef}>
     {view==='home'&&<div className="ec-scroll-home">
-      {pageControl?<PageControl locale={locale} description={t('autoRunDescription')} control={pageControl}
-        title={title} heading={t('autoRun')} compact
-        onDetails={openManagement}/>:<p role="status">{t('autoRunUnconfirmed')}</p>}
+      <div ref={statusRegion} className="ec-scroll-status-region" tabIndex={-1} role="group" aria-label={t('autoRunStatus')}>
+        {pageControl?<PageControl locale={locale} description={t('autoRunDescription')} control={pageControl}
+          title={title} heading={t('autoRun')} compact
+          confirmedLabel={pageControl.state==='ready'?t('autoRunOn'):pageControl.state==='off'?t('autoRunOff'):null}
+          onDetails={openManagement}/>:unconfirmedStatus}
+      </div>
       <section className="ec-scroll-group" aria-labelledby="scroll-builtins-title">
         <div className="ec-scroll-title"><h3 id="scroll-builtins-title">{t('builtinsTitle')}</h3>
-          <IconButton id="scroll-builtins" label={t('viewBuiltins')} title={t('viewBuiltinsCount',{count:SCROLL_BUILTINS.length})}
-            onClick={()=>navigate('builtins')}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
-          </IconButton></div>
+          <Button id="scroll-builtins" variant="quiet" aria-label={t('viewBuiltins')}
+            title={t('viewBuiltinsCount',{count:SCROLL_BUILTINS.length})} onClick={()=>navigate('builtins')}>
+            {t('viewAllSites')}
+          </Button></div>
         {builtinList()}
       </section>
       <section className="ec-scroll-group" aria-labelledby="scroll-custom-title">
         <div className="ec-scroll-title"><h3 id="scroll-custom-title">{t('sitesTitle')}</h3>
           <div className="ec-scroll-title-actions">
-            <IconButton id="scroll-sites" label={t('manageSites')} onClick={()=>navigate('sites')}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16 11-11 4 4-11 11H4zM13 7l4 4"/></svg>
-            </IconButton>
+            <Button id="scroll-sites" variant="quiet" aria-label={t('manageSites')} onClick={()=>navigate('sites')}>
+              {t('manageSitesShort')}
+            </Button>
             <IconButton id="scroll-add-home" label={t('addCustomSite')} disabled={writesDisabled}
               onClick={()=>void open(null,'home')}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>
@@ -431,24 +483,29 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
               }}/></div>)}
         </div>)}</div>}
       <p className="ec-scroll-help">{t('navigationHelp')}</p>
-      <details className="ec-scroll-navigation-help">
-        <summary>{t('navigationUsage')}</summary>
-        {['longReplyHelp','turnCountHelp','floatingTopHelp'].map(key=><p className="ec-scroll-help" key={key}>{t(key)}</p>)}
+      <details className="od-disclosure">
+        <summary><span>{t('navigationUsage')}</span></summary>
+        <div className="ec-scroll-navigation-help">
+          {['longReplyHelp','turnCountHelp','floatingTopHelp'].map(key=><p className="ec-scroll-help" key={key}>{t(key)}</p>)}
+        </div>
       </details>
       <Button id="scroll-management" variant="quiet" onClick={openManagement}>{t('managementTitle')}</Button>
+      {settingsFooter}
     </div>}
     {view==='management'&&detail&&<div className="ec-scroll-subview ec-scroll-management">
-      {pageControl&&<section className="ec-scroll-group" aria-label={t('autoRunStatus')}>
-        <p className="ec-page-state" data-state={pageControl.state} role="status">{pageControl.status}</p>
-        {pageControl.note&&<p>{pageControl.note}</p>}
-        <div className="ec-page-control-actions">
-          {pageControl.canRestore&&<Button disabled={pageControl.busy}
-            onClick={event=>pageControl.onRestore?.(event.nativeEvent)}>{t('restoreAutoRun')}</Button>}
-          <Button id="scroll-refresh-state" disabled={pageControl.busy}
-            onClick={event=>pageControl.onRefresh?.(event.nativeEvent)}>{t('recheck')}</Button>
-        </div>
-      </section>}
-      <p>{t('installationRevision',{installation:detail.installationText,version:detail.version})}</p>
+      <div ref={statusRegion} className="ec-scroll-group ec-scroll-status-region" tabIndex={-1} role="group" aria-label={t('autoRunStatus')}>
+        {pageControl?<>
+          <p className="ec-page-state" data-state={pageControl.state} role="status">{pageControl.status}</p>
+          {pageControl.note&&<p>{pageControl.note}</p>}
+          <div className="ec-page-control-actions">
+            {pageControl.canRestore&&<Button disabled={pageControl.busy}
+              onClick={event=>pageControl.onRestore?.(event.nativeEvent)}>{t('restoreAutoRun')}</Button>}
+            {['pending','restricted'].includes(pageControl.state)&&<Button id="scroll-refresh-state" disabled={pageControl.busy}
+              onClick={event=>checkStatus(event,pageControl.onRefresh)}>{t('recheck')}</Button>}
+          </div>
+        </>:unconfirmedStatus}
+      </div>
+      <p>{detail.installationText}</p>
       {pageControl?.evidenceNote&&<p>{pageControl.evidenceNote}</p>}
       {detail.pageInfo&&<div className="ec-scroll-diagnostics"><Diagnostics info={detail.pageInfo} locale={locale}/></div>}
     </div>}
@@ -515,7 +572,7 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
       </form>
     </>}
     {(needsReconcile||(!snapshot&&!loading))&&<Button disabled={busy} onClick={()=>void readAgain()}>{t('reread')}</Button>}
-    {model.disabledReason&&<p role="status">{model.disabledReason}</p>}
+    {model.disabledReason&&!(view==='home'&&readState)&&<p role="status">{model.disabledReason}</p>}
     {view!=='settings'&&notice&&<p role="status" className="ec-scroll-notice">{scrollNavigationMessageText(locale,notice)}</p>}
     {view!=='settings'&&error&&<p role="alert" className="ec-scroll-error">{scrollNavigationMessageText(locale,error)}</p>}
     </div>

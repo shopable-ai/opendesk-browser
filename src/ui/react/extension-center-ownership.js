@@ -21,7 +21,7 @@ export function claimExtensionCenterNodes(doc,surface){
       if(!node)throw new Error('E_REACT_EXTENSION_MOUNT');
       node.dataset.opendeskReactOwner=owner;claims.push([node,owner]);
     }
-    const toolbar=doc.querySelector('#extension-center-list-view > .ec-toolbar');
+    const toolbar=doc.querySelector('#extension-center-toolbar');
     if(toolbar){
       toolbar.dataset.opendeskReactOwner='extension-toolbar';
       claims.push([toolbar,'extension-toolbar']);

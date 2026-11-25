@@ -5,7 +5,6 @@ import {DEFAULT_PREINSTALL_STORE,DEFAULT_PREINSTALL_LOCK,validDefaultPreinstallM
 import {writeVerifiedLocalValue} from '../../ui/sidebar-tools/storage-state.js';
 import {loadOfficialPageCatalog,loadOfficialPagePackage} from './official-page-catalog.js';
 import {pageHostPermissionOrigins} from './page-install-authorization.js';
-import {readNativeUserScripts} from './native-access.js';
 
 export async function resumeDefaultPagePreinstall({api,lockManager,client,fetcher=globalThis.fetch}){
   if(!lockManager?.request)throw Object.assign(new Error('缺少可信浏览器存储锁'),{code:'E_TOOL_LOCK'});
@@ -37,7 +36,6 @@ export async function resumeDefaultPagePreinstall({api,lockManager,client,fetche
         return {state:'permission-required'};
       packages.push(pkg);
     }
-    if(packages.length)await readNativeUserScripts(api);
     // Persist the no-replay fence BEFORE requesting any durable mutation.
     // Lost replies and partial imports require read-only/manual reconciliation.
     if(packages.length)await save('attention');
@@ -46,11 +44,16 @@ export async function resumeDefaultPagePreinstall({api,lockManager,client,fetche
         expectedInstalledManifestHash:null,expectedGeneration:null});
       const current=await client.request('listPagePrograms',{});
       const installed=current.installed.find(row=>row.programId===pkg.programId);
+      // The same Authority path as a manual import can save a fresh install
+      // before Chrome exposes userScripts. Only that item's activation waits.
       if(!installed||installed.manifestHash!==result?.manifestHash||
         installed.sourceHash!==pkg.sourceHash||installed.revision!==pkg.revision||
-        installed.authorization?.installationId!==result?.authorization?.installationId||
+        !installed.authorization?.installationId||
+        installed.authorization.installationId!==result?.authorization?.installationId||
+        installed.authorization.generation!==result.authorization.generation||
         installed.authorization?.status!=='active'||installed.enabled!==true||
-        installed.nativeState!=='registered'||installed.error)
+        !(installed.nativeState==='registered'||
+          installed.nativeState==='waiting-user-scripts'&&result.nativeState==='waiting-user-scripts')||installed.error)
         return {state:'attention'};
     }
     await save('complete');

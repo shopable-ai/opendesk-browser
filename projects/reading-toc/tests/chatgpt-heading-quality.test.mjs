@@ -87,6 +87,27 @@ test('ChatGPT Web Flow sample keeps the document title and six chapters, excludi
   snapshot.items.forEach(row=>assert.equal(index.resolve(row.id,row.sourceId)?.label,row.label));
 });
 
+test('ChatGPT R7 keeps reply sections and excludes headings inside interactive preview buttons',()=>{
+  const prose=['R7：已调整当前网站状态和统计筛选','当前对话直接查看 R7 交互',
+    '预览文件和截图','评分与剩余门槛'];
+  // The reported Chrome page exposes the four values as headings under
+  // statistics buttons. Heading tags here style the values, not the reply.
+  const preview=`<div>
+    <button><h1>2</h1><span>自动检测</span></button>
+    <button><h2>1</h2><span>已复核</span></button>
+    <button><h2>1</h2><span>待公开</span></button>
+    <button><h2>0</h2><span>异常</span></button>
+    <div role="button" tabindex="0"><h2>查看结果</h2></div>
+  </div>`;
+  const {index}=fixture(answer(`<h2>${prose[0]}</h2><h2>${prose[1]}</h2>${preview}
+    <h3>${prose[2]}</h3><h2>${prose[3]}</h2><h3>2</h3>
+    <h2><button>可展开的真实章节</button></h2>`));
+  const snapshot=index.rebuild();
+  assert.deepEqual(labels(snapshot),[...prose,'2','可展开的真实章节']);
+  assert.equal(snapshot.items[2].parentId,snapshot.items[1].id);
+  assert.equal(index.resolve(snapshot.items[2].id,snapshot.sources[0].id)?.label,prose[2]);
+});
+
 test('ChatGPT distinguishes metric components from prose without text or language thresholds',()=>{
   const values=['2','0','—','97/100','１２３','9.5 / 10','９７／１００','98%','3.14','−42','---','★★★','🚀','2026','Ⅰ','N/A'];
   const keep=[...values,'UI','API','AI','C++','准备','结论','一、方案','2026 年计划','R2','第 2 章','Résumé','日本語','한국어','العربية','Δ'];

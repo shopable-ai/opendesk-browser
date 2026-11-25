@@ -260,7 +260,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
 
   // This is an alternate identity/scope on the SAME native Cookie Service and
   // Chrome event listener. Tool-provided data can never create authority.
-  async function executeInstalled(op,args,{origin,storeId,partitionKey=null,ownerKey,authorize}){
+  async function executeInstalled(op,args,{origin,storeId,partitionKey=null,ownerKey,authorize,deadlineAt,deadlineRemaining,beforeNativeSet,withNativeSet}){
     if(op==='browser.cookies.setMany'||op==='browser.cookies.getAllPage')args=normalizeBrowserOperation(op,args);
     if(!TRUSTED_COOKIE_OPERATIONS.includes(op)||typeof authorize!=='function'||
        typeof storeId!=='string'||typeof ownerKey!=='string'||new URL(httpUrl(args.url)).origin!==origin)
@@ -279,22 +279,53 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
            row.partitionKey&&!samePartition(row.partitionKey,partitionKey))throw error('E_COOKIE_PARTITION');
       }
       const batch={saved:0,verified:0,results:[]};
-      for(const [index,row] of args.cookies.entries()){
-        try{
-          const receipt=await executeInstalled('browser.cookies.set',{url:args.url,...row},
-            {origin,storeId,partitionKey,ownerKey,authorize});
-          if(receipt.saved!==true||receipt.verified!==true)throw error('E_OUTCOME_UNKNOWN');
-          batch.saved++;batch.verified++;
-          batch.results.push({index,saved:true,verified:true});
-        }catch(cause){
-          // Error metadata may contain credentials too. Only fixed response
-          // codes leave this Host; unknown errors retain conservative semantics.
-          const candidate=cause?.code;
-          const code=COOKIE_BATCH_ERROR_CODES.includes(candidate)?candidate:'E_OUTCOME_UNKNOWN';
-          batch.results.push({index,saved:false,verified:false,code});
-          batch.stopped=true;
-          break;
+      let timer,expired=false;
+      const remaining=deadlineRemaining??(deadlineAt===undefined?null:()=>deadlineAt-now());
+      const timedOut=!remaining?null:new Promise(resolve=>{
+        timer=setTimeout(()=>{expired=true;resolve(null);},Math.max(0,remaining()));
+      });
+      const checkDeadline=()=>{
+        if(expired||remaining&&remaining()<=0)throw error('E_COOKIE_BATCH_EXPIRED');
+      };
+      // A timed out native callback may still arrive. Keep its receipt private
+      // and fence subsequent native work, including after a pending precheck.
+      const authorizeRow=timedOut?async request=>{
+        checkDeadline();
+        await authorize(request);
+        checkDeadline();
+      }:authorize;
+      try{
+        for(const [index,row] of args.cookies.entries()){
+          try{
+            checkDeadline();
+            let dispatched=false;
+            const writing=executeInstalled('browser.cookies.set',{url:args.url,...row},
+              {origin,storeId,partitionKey,ownerKey,authorize:authorizeRow,withNativeSet,beforeNativeSet:()=>{
+                checkDeadline();
+                beforeNativeSet?.();
+                dispatched=true;
+              }});
+            const receipt=await (timedOut?Promise.race([writing,timedOut]):writing);
+            if(receipt===null&&!dispatched)throw error('E_COOKIE_BATCH_EXPIRED');
+            if(receipt?.saved!==true||receipt.verified!==true)throw error('E_OUTCOME_UNKNOWN');
+            batch.saved++;batch.verified++;
+            batch.results.push({index,saved:true,verified:true});
+          }catch(cause){
+            // Error metadata may contain credentials too. Only fixed response
+            // codes leave this Host; unknown errors retain conservative semantics.
+            const candidate=cause?.code;
+            const code=COOKIE_BATCH_ERROR_CODES.includes(candidate)?candidate:'E_OUTCOME_UNKNOWN';
+            if(args.skipConflicts&&code==='E_COOKIE_CONFLICT'){
+              batch.results.push({index,saved:false,verified:false,skipped:true,code});
+              continue;
+            }
+            batch.results.push({index,saved:false,verified:false,code});
+            batch.stopped=true;
+            break;
+          }
         }
+      }finally{
+        if(timedOut)clearTimeout(timer);
       }
       return batch;
     }
@@ -302,7 +333,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     const key={storeId,...(args.partitionKey?{partitionKey:args.partitionKey}:{})};
     const check=(phase,url=args.url)=>authorize({operation:op,phase,url,storeId,
       partitionKey:args.partitionKey??null,includeValues:args.includeValues===true});
-    const context={cookieTool:{authorize:async(url,_method,phase)=>{
+    const context={beforeNativeSet,withNativeSet,cookieTool:{authorize:async(url,_method,phase)=>{
       await check(phase,url);
       if(op==='browser.cookies.set'&&phase==='pre'&&args.ifAbsent===true){
         const domain=(args.domain??new URL(args.url).hostname).replace(/^\./,'').toLowerCase();
@@ -329,6 +360,12 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       if(allowed.length>limit)throw error('E_LIMIT','Narrow Cookie scope to 50 entries');
       return allowed;
     };
+    if(op==='browser.cookies.set'){
+      // The driver already authorizes before the native write, before exact
+      // readback and before returning its receipt. No extra wrapper checks.
+      const {ifAbsent,...nativeArgs}=args;
+      return existing.set({...nativeArgs,storeId},context);
+    }
     await check('pre');
     let result;
     if(op==='browser.cookies.get'||op==='browser.cookies.getAll'||op==='browser.cookies.getAllPage'){
@@ -369,9 +406,6 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     else if(op==='browser.cookies.getPartitionKey'){
       if(!partitionKey)throw error('E_COOKIE_PARTITION');
       result={partitionKey};
-    }else if(op==='browser.cookies.set'){
-      const {ifAbsent,...nativeArgs}=args;
-      result=await existing.set({...nativeArgs,storeId},context);
     }else if(op==='browser.cookies.remove'){
       const domain=args.domain.replace(/^\./,'').toLowerCase();
       if(domain!==new URL(args.url).hostname)throw error('E_COOKIE_SCOPE');

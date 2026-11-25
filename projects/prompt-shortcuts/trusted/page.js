@@ -459,20 +459,42 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       host.hidden=true;return;
     }
     // Dock 8 CSS px inside the conversation region, beyond native navigation.
-    // The editor only determines whether that gutter can safely fit the rail.
+    // The rail must leave both the editor and any inline reply map clear.
     // Reset from a prior compact route BEFORE measuring vertical width;
     // scrollWidth from the horizontal rail would otherwise trap desktop layout.
+    const gemini=activeRule?.builtin==='gemini';
     rail.classList.toggle('horizontal',false);
+    if(gemini)host.hidden=false; // Measure the real width after an SPA route hid the host.
     const verticalWidth=rail.offsetWidth||52;
     const safeLeft=rect.safeLeft??rect.left;
     const left=Math.max(8,rect.left+8,safeLeft+8);
-    const vertical=win.innerWidth>=600&&left>=Math.max(8,safeLeft+8)&&
+    const fitsGutter=win.innerWidth>=600&&left>=Math.max(8,safeLeft+8)&&
       left+verticalWidth+10<=targetRect.left&&targetRect.width>=200;
+    const overlapsReplyMap=fitsGutter&&Array.from(doc.querySelectorAll(
+      '[data-opendesk-chatgpt-mindmap="viewer"]:not(.odmm-fullscreen)'
+    )).some(viewer=>{
+      const box=viewer.getBoundingClientRect();
+      // Use the horizontal span so scrolling past the rail does not move it.
+      return box.width>0&&box.height>0&&box.left<left+verticalWidth&&box.right>left;
+    });
+    const vertical=gemini||(fitsGutter&&!overlapsReplyMap);
     rail.classList.toggle('horizontal',!vertical);
     rail.classList.toggle('narrow',rect.width<680);
     rail.style.maxHeight='';
     if(vertical){
-      const visibleTop=Math.max(0,rect.top),visibleBottom=Math.min(win.innerHeight,rect.top+rect.height);
+      const visibleTop=Math.max(0,rect.top);
+      let visibleBottom=Math.min(win.innerHeight,rect.top+rect.height);
+      if(gemini){
+        // Gemini keeps its action buttons beside the editable area. Use the
+        // full composer column (including Send Queue), and leave it in flow.
+        const composer=target?.closest('input-area-v2,input-area');
+        const column=composer?.parentElement;
+        const bounds=(column?.matches('input-container > .input-area-container')?column:composer||target)
+          ?.getBoundingClientRect();
+        if(bounds?.width>0&&left+verticalWidth+8>bounds.left&&left<bounds.left+bounds.width)
+          visibleBottom=Math.min(visibleBottom,bounds.top);
+        if(visibleBottom-visibleTop<68){host.hidden=true;hideTip();return;}
+      }
       // Center the visible scrollport, not its potentially longer scrollable content.
       const center=(visibleTop+visibleBottom)/2;
       const railBottom=visibleBottom-8;

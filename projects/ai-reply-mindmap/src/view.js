@@ -1,4 +1,3 @@
-import {createXmindRenderer} from './xmind-adapter.js';
 import {buildOutlineMarkdown,exportFileBase,verifyXmindZip,verifyPngBlob} from './export.js';
 import {annotateMindmapError} from './diagnostics.js';
 
@@ -18,7 +17,7 @@ const ICONS={
   sun:['M12 2v2','M12 20v2','M4.93 4.93l1.42 1.42','M17.65 17.65l1.42 1.42','M2 12h2','M20 12h2','M6.35 17.65l-1.42 1.42','M19.07 4.93l-1.42 1.42','M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0'],
   moon:['M20.985 12.486A9 9 0 0 1 11.514 3.015a7 7 0 1 0 9.471 9.471Z'],
   more:['M5 12h.01','M12 12h.01','M19 12h.01'],
-  download:['M12 3v12','m-5-5 5 5 5-5','M5 17v3h14v-3']
+  download:['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4','m7 10 5 5 5-5','M12 15V3']
 };
 function icon(document,name){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -35,7 +34,7 @@ function icon(document,name){
 
 // Each answer owns one controller. Its DOM stays inside the existing reply.
 export function createAnswerView({document,window,owner,css,tree,nodeCount,truncated,
-  onOriginal,onRefresh,onFullscreen,onToggleTheme,onError,identity,rendererFactory=createXmindRenderer}){
+  onOriginal,onRefresh,onFullscreen,onToggleTheme,onError,identity,rendererFactory}){
   const el=(tag,className,label)=>{
     const node=document.createElement(tag);
     if(className)node.className=className;
@@ -358,16 +357,38 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   const loading=el('div','odmm-loading');loading.title='Loading mind map…';
   loading.setAttribute('aria-hidden','true');loading.append(icon(document,'refresh'));
   shell.append(toolbar,exportStatus,canvas,loading,status);shadow.append(style,shell);
+  function revealOffscreenCanvas(){
+    if(!host.isConnected)return;
+    const rect=canvas.getBoundingClientRect?.();
+    let bottom=window.innerHeight||document.documentElement?.clientHeight;
+    if(!bottom||!rect||rect.height<=0)return;
+    let top=0;
+    for(let parent=host.parentElement;parent&&parent!==document.documentElement;parent=parent.parentElement){
+      const overflow=window.getComputedStyle?.(parent)?.overflowY;
+      if(!/^(auto|scroll|overlay|hidden|clip)$/.test(overflow)||!parent.clientHeight)continue;
+      const edge=parent.getBoundingClientRect().top+parent.clientTop;
+      top=Math.max(top,edge);
+      bottom=Math.min(bottom,edge+parent.clientHeight);
+    }
+    if(top>=bottom||rect.bottom<=top||rect.top>=bottom)
+      host.scrollIntoView?.({block:'center',inline:'nearest',behavior:'instant'});
+  }
   async function start(){
     if(disposed)return;
     if(!status.hasAttribute('data-stale'))status.textContent='Loading mind map…';
     preferredSkin=host.getAttribute('data-dark')==='false'?'light':'dark';
     syncThemeButton();
-    let stage='renderer.create';
+    let stage='view.reveal';
     try{
+      // Replacing a tall reply can move its viewer outside the conversation viewport.
+      revealOffscreenCanvas();
+      stage='renderer.create';
       renderer=rendererFactory({window,canvas,tree,skinMode:preferredSkin,identity});
       stage='renderer.ready';await renderer.ready;
       if(disposed)return;
+      // The conversation can anchor its scroll again while the child loads.
+      // Initial fit needs an onscreen canvas so the child can settle its layout.
+      stage='view.reveal';revealOffscreenCanvas();
       stage='renderer.fit';await renderer.fit();
       if(disposed)return;
       renderButtons.forEach(button=>{button.disabled=false;});

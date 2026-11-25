@@ -2,6 +2,8 @@
 
 > 状态：DESIGN_PROPOSAL / NOT_IMPLEMENTED。2026-11-22。仅为方案与接入契约，不代表任何账号、同步、会员后端或自动恢复功能已实现或通过验收。任务：OD-UNIFIED-ACCOUNT-CLOUD-SYNC-R1。
 
+当前首轮按[GrayDove 账号数据保存产品需求](../product/account-data-persistence.zh-CN.md)推进：验证正常登录使用时的服务端保存与读回。「扩展 → 更多 → 扩展数据与恢复」的[本地安装恢复实验](extension-data-and-install-recovery.zh-CN.md)另行保留为历史证据；它不证明真实账号服务已接通。
+
 ## 0. 决策摘要
 
 **选择「一个公共账号与轻量云服务 + 一套可信宿主同步内核 + 每个产品一个数据适配器」，而不是各扩展自建账号，或将 Chrome 原生 storage.sync 作为唯一数据源。**

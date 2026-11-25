@@ -40,11 +40,14 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false,dependencyOver
     createMarketPanelNavigationReceiver:options=>{panelNavigation=options;return {...disposable(),start(){}};},
     createPanelToolIntentReceiver:()=>({...disposable(),start(){}}),
     requestedToolId:()=>surface==='tool'||surface==='app'?'quick-notes':null,
+    requestedOwnPageTarget:()=>null,takeWebFeaturesHelp:()=>false,
     APP_DOCUMENT_PATHNAME:'/app.html',
     createExtensionCenter:()=>{
       calls.push('extension-center');
       if(surface==='app')throw new Error('E_REACT_LIST_OWNERSHIP');
-      return {refresh:()=>calls.push('extension-refresh'),dispose:()=>calls.push('extension-dispose')};
+      return {refresh:()=>calls.push('extension-refresh'),dispose:()=>calls.push('extension-dispose'),
+        onSidePanelVerified:()=>calls.push('extension-panel-verified'),
+        restoreLastDetail:async()=>calls.push('extension-restore-detail'),cancelDetailRestore(){},exitDetail(){}};
     },
     requestedPreviewId:()=>surface==='preview'?'preview-r37':null,
     validatePreviewSession:row=>{if(!row)throw new Error('expired preview');return row;},previewStorageKey:()=> 'preview-key',
@@ -56,10 +59,11 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false,dependencyOver
       calls.push('session-read');return key==='preview-key'?preview.promise:pendingMenu?menu.promise:{};
     },remove:async()=>calls.push('preview-remove')}}};
   const window=new EventTarget();
+  const document=Object.assign(new EventTarget(),{documentElement:{dataset:{}}});
   const sandbox={dependencies,window,chrome:api,URL,console,crypto:globalThis.crypto,
     location:{href:`chrome-extension://r37/${surface==='app'?'app':'sidepanel'}.html?hostInstanceId=00000000-0000-4000-8000-000000000001${surface==='preview'?'&previewId=preview-r37':''}`},
     __opendeskAppPageBound:surface==='app',
-    document:{documentElement:{dataset:{}}},__opendeskTrustedHistoryUI:{
+    document,__opendeskTrustedHistoryUI:{
       create:()=>{calls.push('history');return disposable();},
       createTaskWorkbench:()=>task,createScheduledTaskWorkbench:()=>({...disposable(),shown:false}),
       createScheduledTaskHost:()=>{calls.push('schedule');return disposable();},
@@ -199,6 +203,8 @@ test('bound app.html opens its installed ToolHost without a Side Panel list cont
 test('Side Panel shell retains the Extension Center controller and disposes it',async()=>{
   const f=fixture();f.tab.resolve(undefined);f.context.resolve(true);f.ready.resolve();await tick();
   assert.equal(f.calls.filter(x=>x==='extension-center').length,1);
+  assert.deepEqual(f.calls.filter(x=>['extension-panel-verified','restore','extension-restore-detail'].includes(x)),
+    ['extension-panel-verified','restore','extension-restore-detail']);
   f.navigateTools();assert.equal(f.calls.filter(x=>x==='extension-refresh').length,1);
   f.close();assert.equal(f.calls.filter(x=>x==='extension-dispose').length,1);
 });

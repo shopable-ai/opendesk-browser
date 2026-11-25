@@ -85,6 +85,7 @@ function fixture(){
       assert.equal(input.sourceUtf8,row.sourceUtf8);return {builtinAbi:f.builtinSource.abi,builtinCatalogSha256:f.builtinSource.catalogSha256,builtinBundleSha256:f.builtinSource.sha256,state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
         ...(f.packagedJquerySha256?{packagedJquerySha256:f.packagedJquerySha256}:{})};},
     prepareInstalled:executor.prepareInstalled,executeInstalled:executor.executeInstalled,
+    beginInstalledAllocation:executor.beginInstalledAllocation,discardInstalledAllocation:executor.discardInstalledAllocation,
     get retireInstalled(){return f.retireHook||undefined;},
     executeFrame:async(_input,authorize)=>{await authorize();return {state:'frame-authorized'};}};
   const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session});
@@ -93,7 +94,8 @@ function fixture(){
   f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
     const restoredExecutor=createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource});
-    const restoredPreview={...preview,prepareInstalled:restoredExecutor.prepareInstalled,executeInstalled:restoredExecutor.executeInstalled};
+    const restoredPreview={...preview,prepareInstalled:restoredExecutor.prepareInstalled,executeInstalled:restoredExecutor.executeInstalled,
+      beginInstalledAllocation:restoredExecutor.beginInstalledAllocation,discardInstalledAllocation:restoredExecutor.discardInstalledAllocation};
     f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session});
   };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
   f.rows=()=>[...db.get('frameworkKV').values()];
@@ -226,6 +228,18 @@ test('parent verification still requires a valid reviewed Page module and capabi
   f.local[SIDEBAR_TOOL_STORE]=[{...f.tool,pageModule:{...f.tool.pageModule,sourceUtf8:'tampered'}}];
   await assert.rejects(readAppPageParent(f.api,f.owner));
 });
+test('exact package fact cannot be changed by its caller or reused after bundled source changes',async()=>{
+  const f=await appFixture();
+  const first=await readAppPageParent(f.api,f.owner);
+  first.title='Caller mutation';first.capabilities.length=0;
+  const again=await readAppPageParent(f.api,f.owner);
+  assert.equal(again.title,f.tool.title);
+  assert.ok(again.capabilities.includes('page.module'));
+  f.local[SIDEBAR_TOOL_STORE]=[{...f.tool,pageModule:{...f.tool.pageModule,sourceUtf8:f.tool.pageModule.sourceUtf8+' '}}];
+  await fails(()=>readAppPageParent(f.api,f.owner),'E_PAGE_PACKAGE_HASH');
+  f.local[SIDEBAR_TOOL_STORE]=[f.tool];
+  assert.equal((await readAppPageParent(f.api,f.owner)).title,f.tool.title);
+});
 test('app preflight and verify are read-only; import uses Page proof and native authority',async()=>{
   const f=await appFixture(),before=f.snapshot(),writes=f.writes.length;
   assert.equal((await f.service.prepareAppPage({tool:f.tool},{})).status,'prepared');
@@ -260,12 +274,18 @@ test('document_end companions keep the original authenticated storage bridge and
 });
 
 for(const operation of ['readContext','storage.get']){
-  test(operation+' keeps fresh Native authorization at both storage boundaries without an extra outer pass',async()=>{
+  test(operation+' refreshes the native registration and exact parent at both storage boundaries',async()=>{
     const f=await appFixture();await f.installApp();await f.bootApp();
     const native=f.nativeReads;
+    const get=f.api.storage.local.get;let parentReads=0;
+    f.api.storage.local.get=async keys=>{
+      if(Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_STORE))parentReads++;
+      return get(keys);
+    };
     const answer=await f.bridge(operation,{key:'settings'});
     assert.equal(operation==='readContext'?answer.locale:answer.value,operation==='readContext'?'en':null);
     assert.equal(f.nativeReads-native,2);
+    assert.equal(parentReads,2);
   });
   test(operation+' rejects forged message and Sender worlds before private namespace reads',async()=>{
     const f=await appFixture();await f.installApp();await f.bootApp();
@@ -289,11 +309,13 @@ for(const operation of ['readContext','storage.get']){
   });
   for(const boundary of ['descriptor','native','return'])test(operation+' refuses parent replacement at '+boundary+' boundary',async()=>{
     const f=await appFixture();await f.installApp();await f.bootApp();
-    const get=f.api.storage.local.get,native=f.api.userScripts.getScripts;
-    let parentReads=0,privateReads=0;
+    const get=f.api.storage.local.get,native=f.api.userScripts.getScripts,read=f.dependencies.readStoredPageCandidate;
+    let privateReads=0;
     const revoke=()=>{f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='replacement-epoch';};
+    f.dependencies.readStoredPageCandidate=async(...args)=>{
+      const value=await read(...args);if(boundary==='descriptor')revoke();return value;
+    };
     f.api.storage.local.get=async keys=>{
-      if(Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_STORE)&&++parentReads===2&&boundary==='descriptor')revoke();
       const value=await get(keys);
       if(keys===sidebarToolStorageKey(f.tool.id)){privateReads++;if(boundary==='return')revoke();}
       return value;
@@ -304,21 +326,20 @@ for(const operation of ['readContext','storage.get']){
   });
 }
 
-test('bridge parent verification overlaps fresh material without disclosing private data after replacement',async()=>{
+test('bridge checks the current parent after a pending candidate read and before private data',async()=>{
   const f=await appFixture();await f.installApp();await f.bootApp();
   const get=f.api.storage.local.get,read=f.dependencies.readStoredPageCandidate;
-  let release,parentReads=0,parentEntered=false,sourceEntered=false,privateReads=0;
+  let release,started,privateReads=0;
   const gate=new Promise(resolve=>release=resolve);
+  const entered=new Promise(resolve=>started=resolve);
   f.api.storage.local.get=async keys=>{
-    if(Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_STORE)&&++parentReads===2){parentEntered=true;await gate;}
     if(keys===sidebarToolStorageKey(f.tool.id))privateReads++;
     return get(keys);
   };
-  f.dependencies.readStoredPageCandidate=async(...args)=>{sourceEntered=true;return read(...args);};
+  f.dependencies.readStoredPageCandidate=async(...args)=>{started();await gate;return read(...args);};
   const running=f.bridge('readContext');running.catch(()=>{});
   try{
-    for(let i=0;i<100&&!(parentEntered&&sourceEntered);i++)await new Promise(resolve=>setTimeout(resolve,10));
-    assert.ok(parentEntered&&sourceEntered,'fresh material must not wait for a redundant parent pass');
+    await Promise.race([entered,running]);
     assert.equal(privateReads,0);
   }finally{f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='replacement-epoch';release();}
   await fails(()=>running,'E_APP_PAGE_OWNER');assert.equal(privateReads,0);
@@ -565,6 +586,48 @@ test('old-session diagnostics never replace unique-current or duplicate-instance
   await fails(()=>f.service.requestAppPage(
     {...f.owner,target:f.target,operation:'toc.read',payload:{}},{}),'E_PAGE_AUTHORIZATION');
   assert.equal(f.executeCalls,calls);assert.deepEqual(f.snapshot(),before);
+});
+for(const [first,second] of [['page_auto','manual'],['manual','page_auto']])
+test('Sidebar routes past a retired same-document companion: '+first+' then '+second,async()=>{
+  const f=await appFixture();await f.installApp();
+  const installed=f.appRow();
+  f.message(installed.programId);
+  const runs={page_auto:f.bootApp,manual:()=>f.service.runInstalledPageProgram({
+    programId:installed.programId,manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:f.target},{documentId:'tool-document'})};
+  const receipts=()=>f.rows().filter(row=>row.tag==='page-execution-v1'&&
+    row.installationToken===installed.token&&row.tabId===f.target.tabId&&row.documentId===f.target.documentId);
+  assert.equal((await runs[first]()).state,'completed');
+  assert.equal((await runs[second]()).state,'completed');
+  const history=receipts(),retired=history.find(row=>row.source===first),live=history.find(row=>row.source===second);
+  assert.equal(history.length,2);
+  assert.equal(retired.state,'completed');
+  assert.equal(retired.managedUI.lifecycle.state,'retired');
+  assert.equal(retired.managedUI.lifecycle.receipt.ok,true);
+  assert.equal(live.state,'completed');
+  assert.equal(live.managedUI.lifecycle.state,'evaluated');
+  assert.notEqual(live.managedUI.worldId,retired.managedUI.worldId);
+
+  const native=f.api.userScripts,execute=native.execute,dispatches=[];
+  native.execute=async input=>{
+    const {world,worldId,target}=input;
+    dispatches.push({world,worldId,target});
+    return execute(input);
+  };
+  assert.deepEqual(await f.service.requestAppPage(
+    {...f.owner,target:f.target,operation:'toc.read',payload:{section:1}},{}),{operation:'toc.read',payload:{section:1}});
+  assert.deepEqual(dispatches,[{world:'USER_SCRIPT',worldId:live.managedUI.worldId,
+    target:{tabId:f.target.tabId,documentIds:[f.target.documentId]}}],'dispatch only to the current companion');
+  const privateKey=sidebarToolStorageKey(f.tool.id),get=f.api.storage.local.get;
+  let privateReads=0;
+  f.api.storage.local.get=async keys=>{if(keys===privateKey)privateReads++;return get(keys);};
+  const storageRead=execution=>f.bridge('storage.get',{key:'settings'},
+    {executionKey:execution.executionKey,receiptNonce:execution.receiptNonce,worldId:execution.managedUI.worldId});
+  await fails(()=>storageRead(retired),'E_PAGE_AUTHORIZATION');
+  assert.equal(privateReads,0,'retired credentials cannot reach private storage');
+  await storageRead(live);assert.equal(privateReads,1,'the current companion retains access');
+  assert.deepEqual(receipts(),history,'routing leaves both execution receipts intact');
 });
 test('synchronization retires the actual managed bridge and retains uncertain cleanup',async()=>{
   const f=await appFixture();f.retireHook=f.previewExecutor.retireInstalled;

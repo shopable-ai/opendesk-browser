@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {EventEmitter} from 'node:events';
 import {SIDEPANEL_DOCUMENT_PATH,SIDEPANEL_DOCUMENT_PATHNAME,toolDocumentIdentity} from '../../src/tool-document-url.js';
 import {isToolSender,resolveToolSender} from '../../src/environment.js';
-import {canonicalToolHostUrl,toolPageHref,toolPreviewHref,stageWebFeaturesHelp,takeWebFeaturesHelp} from '../../src/ui/sidebar-tools/navigation.js';
+import {canonicalToolHostUrl,toolPageHref,toolPreviewHref,webFeaturesHelpHref,stageWebFeaturesHelp,takeWebFeaturesHelp} from '../../src/ui/sidebar-tools/navigation.js';
 import {isActualSidePanelContext} from '../../src/ui/sidepanel-context.js';
 import {isSidebarToolHostSender} from '../../src/sidebar-tools/sender.js';
 import {developmentChanges} from '../../src/development/worker.js';
@@ -155,7 +155,8 @@ test('R37 navigation keeps locators and host instance while refusing obsolete or
 test('Web Features help crosses the redirect once without becoming trusted sender identity',()=>{
   const items=new Map();
   const storage={getItem:key=>items.get(key),setItem:(key,value)=>items.set(key,value),removeItem:key=>items.delete(key)};
-  const entry=base+'?panel=web-features',canonical=canonicalToolHostUrl(entry,host);
+  const entry=webFeaturesHelpHref(runtime),canonical=canonicalToolHostUrl(entry,host);
+  assert.equal(entry,base+'?panel=web-features');
   assert.equal(canonical,base+'?hostInstanceId='+host);
   assert.equal(toolDocumentIdentity(base,canonical)?.hostInstanceId,host);
   assert.equal(toolDocumentIdentity(base,canonical+'&panel=web-features'),null);

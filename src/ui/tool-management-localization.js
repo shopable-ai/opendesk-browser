@@ -6,6 +6,10 @@ export const toolManagementCatalog=Object.freeze({
     "zh-CN": {
       "settingsTitle": "工具设置",
       "settingsPage": "设置",
+      "extensionSettings": "扩展设置",
+      "permissionsManagement": "权限管理",
+      "backToPrevious": "返回上一页",
+      "retryRead": "重新读取",
       "languageLabel": "界面语言",
       "languageSaveError": "语言保存失败：",
       "toggleHeading": "使用状态",
@@ -37,6 +41,10 @@ export const toolManagementCatalog=Object.freeze({
     "en": {
       "settingsTitle": "Tool settings",
       "settingsPage": "Settings",
+      "extensionSettings": "Extension settings",
+      "permissionsManagement": "Permissions",
+      "backToPrevious": "Back to the previous view",
+      "retryRead": "Retry",
       "languageLabel": "Interface language",
       "languageSaveError": "Could not save language: ",
       "toggleHeading": "Usage status",
@@ -68,6 +76,10 @@ export const toolManagementCatalog=Object.freeze({
     "ja": {
       "settingsTitle": "ツール設定",
       "settingsPage": "設定",
+      "extensionSettings": "拡張機能の設定",
+      "permissionsManagement": "権限管理",
+      "backToPrevious": "前の画面に戻る",
+      "retryRead": "再読み込み",
       "languageLabel": "表示言語",
       "languageSaveError": "言語を保存できませんでした：",
       "toggleHeading": "利用状態",
@@ -99,6 +111,10 @@ export const toolManagementCatalog=Object.freeze({
     "zh-TW": {
       "settingsTitle": "工具設定",
       "settingsPage": "設定",
+      "extensionSettings": "擴充功能設定",
+      "permissionsManagement": "權限管理",
+      "backToPrevious": "返回上一頁",
+      "retryRead": "重新讀取",
       "languageLabel": "介面語言",
       "languageSaveError": "語言儲存失敗：",
       "toggleHeading": "使用狀態",

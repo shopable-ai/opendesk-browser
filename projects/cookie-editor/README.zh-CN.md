@@ -9,13 +9,21 @@ npm run build --prefix projects/cookie-editor
 node scripts/build-sidebar-tool.mjs projects/cookie-editor --check-project
 ```
 
-当前[正式安装包](cookie-editor.opendesk-tool.json)为 **Cookie Editor 2.0.90**，SHA-256 `d2129f65ac1ddb218812a258756c56c032d73200ccb59b4a2e5e2a3492e6c76d`。
+当前[正式安装包](cookie-editor.opendesk-tool.json)为 **Cookie Editor 2.0.93**，SHA-256 `73e71b5ee667d7f389de49fab2ca9bee20a8b092e4414393a4c9f1e09028fabd`。已重新编译，诊断与草稿导航的定向检查、项目包同源检查均通过；新版未安装验证。
 
 2026-11-08 迁移仅修正目录及有效引用，当时保留 `cookie-editor` / `2.0.68` 安装包（387842 字节，SHA-256 `94a5fc20b4ad4ffc329834d5504f9b2e9ad177a374db2b18043b590804c8f1b6`）。历史验收、账本及 evidence 中的原路径仍表示当时位置，不作为当前命令入口。
 
 只想知道怎么操作，请看[使用与简单测试](QUICKSTART.zh-CN.md)。
 
 排查 Cookie 读写、导入或导出失败时，打开承载 **Cookie Editor** 的扩展窗口或侧栏的 DevTools，在 Console 选择工具的沙箱 iframe，启用 Warnings 并筛选 **[Cookie Editor]**，然后复现问题。日志只含操作、阶段、受限错误码和结果状态；成功及普通取消不产生日志。结果未确认时先按界面提示核对 Chrome Cookie、剪贴板或下载记录，再决定下一步。
+
+## 恢复 Netscape 导出（2.0.92）
+
+「当前网站 → 导出 Cookie」提供 JSON、Cookie Header、Netscape 三种格式，均可复制或下载。Netscape 是 curl 等工具可以读取的 `cookies.txt` 格式，需要包含 Cookie 值。当前网站有分区 Cookie 时，请用 JSON；如果要保留 Cookie 值，也需要勾选「包含 Cookie 值」。[独立交互预览](preview/cookie-editor.html)仅使用虚构数据。
+
+## Cookie 导入回执（2.0.91）
+
+浏览器确认写入后显示确认条数。若有条目跳过，回执会说明过期、存储区不匹配、分区、无效属性或未启用覆盖等原因和各自条数。可手动关闭回执，也可在下次打开导入时清除；回执不显示 Cookie 名称或内容。导入回执只说明浏览器写入情况，网站是否接受登录由网站决定。
 
 ## 网页刷新时保留工作区（2.0.90）
 
@@ -31,6 +39,7 @@ node scripts/build-sidebar-tool.mjs projects/cookie-editor --check-project
 
 - 关键用例：列表包含 13 条可清理记录，其中 3 条是未分区的 Host-only Cookie。默认预览 13 条，收窄范围预览 3 条。确认 13 条后精确清理 13 条，并显示剩余数量。
 - 取消时零写入。确认凭据只能使用一次，并绑定目标和原记录。首次写入前撤权或预览过期时阻止清理并说明原因；写入后发生异常或撤权时提示先核对结果。
+- 清理回执目标：浏览器确认清理后，视口底部自动显示一次成功通知，约 5 秒后自动消失，无须关闭回执。验收数据为「已清理 2 条，当前范围剩余 0 条。」「已保留 1 条超出当前清理范围。」清理期间切页后，只要工具仍可用，已确认的成功仍走通知；没有已验证回执时保留错误和核对入口，不宣告成功。
 
 ## Cookie 变化提醒（2.0.83）
 

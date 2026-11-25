@@ -589,7 +589,7 @@ function openDemoDetail(key,{focusToggle=false}={}){
     installationText:receipt?'内存演示 · '+(receipt.enabled?'展示启用':'展示停用'):
       installed?'演示条目 · 非真实安装':'演示候选 · 尚未安装',
     usageText:receipt?(receipt.enabled?'点击「打开使用」可查看离线工具界面。':
-      '应用保持停用，查看详情不会自动启用。'):'仅供审阅排版，不运行扩展',
+      '应用保持停用，进入设置不会自动启用。'):'仅供审阅排版，不运行扩展',
     appDataText:'',
     sites:row.kind==='page'?['https://example.com/*']:[],suspended:false,
     oldPageCleanup:row.kind==='page'?{documents:[{key:'preview-document',tabTitle:'演示页面',
@@ -616,14 +616,15 @@ function publishRows(){
     (toolbar.scope==='available'?!demoInstalled(row):demoInstalled(row))&&
     (!query||(row.title+' '+row.description).toLocaleLowerCase().includes(query)));
   app.renderRows({rows:shown.map(({key,title,kind,type,description,installed})=>
-    ({key,title,kind,type,description,installed,stateKnown:true,primaryAction:null})),
+    ({key,title,kind,type,description,installed,stateKnown:true,primaryAction:!installed?null:
+      kind==='page'?'网站与权限':key==='app:demo-reading'?'设置':'打开'})),
     busy:false,pendingKey:null,onOpenRow:key=>key==='app:web-markdown-clipper'?clipper.open():
       ['app:bookmark-manager','app:cookie-editor','app:prompt-shortcuts','app:demo-generic'].includes(key)
         ?clipper.openScenario(key.slice(4)):openDemoDetail(key),
     onMore:(key,trigger)=>{
       const row=demoRows.find(item=>item.key===key);
       if(!row)return;
-      const items=[{id:'detail',label:'查看详情',onClick:()=>openDemoDetail(key)}];
+      const items=row.kind==='app'?[{id:'settings',label:'设置',onClick:()=>openDemoDetail(key)}]:[];
       if(demoInstalled(row))items.push({id:'uninstall',label:'卸载…',onClick:event=>{
         trigger.focus({preventScroll:true});
         openDemoListUninstall(key,event);

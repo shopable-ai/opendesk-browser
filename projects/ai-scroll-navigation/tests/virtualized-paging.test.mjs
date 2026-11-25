@@ -8,10 +8,11 @@ const disabled=button=>button.getAttribute('aria-disabled')==='true';
 const positions=[80,960,2200];
 const landings=positions.map(top=>top-12);
 
-function fixture(t,{href='https://chatgpt.com/c/virtualized',site='chatgpt',stable=true}={}) {
+function fixture(t,{href='https://chatgpt.com/c/virtualized',site='chatgpt',stable=true,timeline=false}={}) {
   const {document:doc,window}=parseHTML('<html><body><main></main></body></html>');
   const main=doc.querySelector('main');
-  const context={main,scroller:main,site,selector:'[data-content-search-unit-key]'};
+  const context={main,scroller:main,site,custom:site==='custom',selector:'[data-content-search-unit-key]'};
+  if(timeline)main.setAttribute('data-app-action-timeline-scroll','');
   const dimensions={width:1000,height:800};
   window.HTMLElement.prototype.getBoundingClientRect=function(){
     return box(parseFloat(this.style.left)||0,parseFloat(this.style.top)||0,42,42);
@@ -25,12 +26,21 @@ function fixture(t,{href='https://chatgpt.com/c/virtualized',site='chatgpt',stab
   const win={innerWidth:1000,innerHeight:800,location:new URL(href),
     getComputedStyle:node=>({display:node.hidden?'none':'block',visibility:node.style.visibility||'visible',
       opacity:'1',position:node.style.position||'static',overflowY:node===context.scroller?'auto':'visible'})};
+  if(timeline){
+    win.WheelEvent=window.Event;
+    main.scrollTo=({top})=>{main.scrollTop=top;};
+  }
+  const wrappers=new Map();
   const rounds=positions.map((top,index)=>['user','assistant'].map((role,offset)=>{
     const node=doc.createElement('article');
     node.setAttribute('data-content-search-unit-key',stable?`fallback-turn-${index}:0:${role}`:role);
     node.textContent=`${role} ${index+1}`;
     node.getBoundingClientRect=()=>box(100,top+offset*160-context.scroller.scrollTop,700,120);
-    main.append(node);
+    if(timeline){
+      const wrapper=doc.createElement('div');
+      wrapper.setAttribute('data-chatgpt-search-message-ids','00000000-0000-0000-0000-00000000000'+(index*2+offset));
+      wrappers.set(node,wrapper);main.append(wrapper);wrapper.append(node);
+    }else main.append(node);
     return node;
   }));
   const listeners=new Map(),disposals=[],timers=[];
@@ -50,7 +60,7 @@ function fixture(t,{href='https://chatgpt.com/c/virtualized',site='chatgpt',stab
     dispose(){disposals.forEach(callback=>callback());}
   };
   const dock=installFloatingNavigation({doc,win,owner,resolveConversation:()=>context,
-    resolveNavigation:()=>({turnPaging:true})});
+    resolveNavigation:()=>({turnPaging:true,showTurnCount:timeline})});
   t.after(()=>owner.dispose());
   const host=doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]');
   assert.ok(host,'fixture mounts the public floating navigation');
@@ -78,15 +88,53 @@ function fixture(t,{href='https://chatgpt.com/c/virtualized',site='chatgpt',stab
   }
   return {doc,win,main,context,dimensions,rounds,owner,dock,host,top,previous,next,bottom,
     at,observeRounds,keepRound,cannotPage,scrollport,
+    count:()=>host.shadowRoot.querySelector('.counter')?.textContent,
     settle(delay){for(let i=timers.length-1;i>=0;i--)if(timers[i].delay===delay)
       timers.splice(i,1)[0].callback();},
     restoreRound(index){
       for(const [offset,node] of rounds[index].entries()){
         node.getBoundingClientRect=()=>box(100,positions[index]+offset*160-context.scroller.scrollTop,700,120);
-        main.append(node);
+        (wrappers.get(node)||main).append(node);
       }
     }};
 }
+
+test('ChatGPT custom timeline retains all three observed rounds across disjoint mounts and height changes',t=>{
+  const f=fixture(t,{site:'custom',timeline:true});
+  f.at(2800);
+  assert.equal(f.count(),'3/3');
+  f.owner.click(f.top);f.settle(100);
+  assert.equal(f.main.scrollTop,0);
+  // At the top the virtual list may retain only the first round and resize.
+  f.main.scrollHeight=3400;f.keepRound(0);
+  assert.equal(f.count(),'1/3');
+  f.owner.click(f.top);
+  assert.equal(f.count(),'1/3');
+  assert.equal(disabled(f.previous),true);
+  f.owner.click(f.next);
+  assert.equal(f.main.scrollTop,landings[1]);
+  f.restoreRound(1);
+  // The site can hydrate the same message under a new search-unit key.
+  f.rounds[1][0].setAttribute('data-content-search-unit-key','00000000-0000-0000-0000-000000000002:0:user');
+  f.keepRound(1);f.settle(180);
+  assert.equal(f.count(),'2/3');
+  f.owner.click(f.next);
+  assert.equal(f.main.scrollTop,landings[2]);
+  f.restoreRound(2);f.keepRound(2);f.settle(180);
+  assert.equal(f.count(),'3/3');
+  assert.equal(disabled(f.next),true);
+  f.owner.click(f.next);
+  assert.equal(f.count(),'3/3');
+  f.owner.click(f.previous);
+  assert.equal(f.main.scrollTop,landings[1]);
+  f.restoreRound(1);f.keepRound(1);f.settle(180);
+  assert.equal(f.count(),'2/3');
+  f.owner.click(f.previous);
+  assert.equal(f.main.scrollTop,landings[0]);
+  f.restoreRound(0);f.keepRound(0);f.settle(180);
+  assert.equal(f.count(),'1/3');
+  assert.equal(disabled(f.previous),true);
+});
 
 test('re-aligns a remounted question after the virtualizer shifts the first scroll landing',t=>{
   const f=fixture(t);f.observeRounds();f.keepRound(0);f.owner.click(f.next);

@@ -25,8 +25,10 @@ export async function runMarketDiscoveryAcceptance({d,origin,channel,release,mar
   const {evaluate,until,click,visible,openTab,activate,readStore,installed,screenshot}=d;
   const side=()=>d.getSide(),host=()=>d.getHost();
   const selector='#extension-center-discover';
-  const status='#extension-center-discovery [role="status"]';
-  const fixedURL='chrome-extension://'+d.getExtensionId()+'/ui/marketplace.html#/apps/'+release.id+'/versions/'+release.version;
+  const status='#extension-center-discovery-status';
+  const diagnostic='#extension-center-discovery .ec-discovery-diagnostic code';
+  const confirmInstall='#sidebar-tool-import[data-fixed-official="true"] #sidebar-tool-install';
+  const reviewOpen=()=>evaluate(side(),'!!document.querySelector("#sidebar-tool-import")?.getClientRects().length');
   const targets=async()=>(await d.sendBrowser('Target.getTargets')).targetInfos;
   const marketTargets=async()=>(await targets()).filter(row=>row.url.startsWith('chrome-extension://'+
     d.getExtensionId()+'/ui/marketplace.html')).map(row=>({targetId:row.targetId,url:row.url})).sort((a,b)=>a.targetId.localeCompare(b.targetId));
@@ -34,7 +36,7 @@ export async function runMarketDiscoveryAcceptance({d,origin,channel,release,mar
     provenance:(await readStore(MARKET_PROVENANCE_STORE,host()))||{},
     operations:(await readStore(MARKET_OPERATIONS_STORE,host()))||{},
     permissions:await evaluate(host(),'chrome.permissions.getAll()')});
-  const receipts=d.evidence.r5.pathB={status:'IN_PROGRESS',entry:'ordinary HTTP page → React discovery → trusted fixed detail → existing installer',
+  const receipts=d.evidence.r5.pathB={status:'IN_PROGRESS',entry:'ordinary HTTP page → React discovery → fixed official review in the same Side Panel → existing installer',
     sourceOrigin:origin,release:{id:release.id,version:release.version,sha256:release.sha256},checks:[],
     notTested:['navigation-during-in-flight-discovery','catalog-byte-change-during-review','formal-HTTPS-channel']};
   const receipt=(name,detail)=>receipts.checks.push({name,status:'PASS',...detail});
@@ -69,8 +71,8 @@ export async function runMarketDiscoveryAcceptance({d,origin,channel,release,mar
     // persistent React entry to exist, not a missing node that looks "empty".
     await until(()=>evaluate(side(),`(()=>{
       const result=document.querySelector(${JSON.stringify(status)}),button=document.querySelector(${JSON.stringify(selector)});
-      return !!result&&!result.hasAttribute('data-state')&&!!button&&!button.disabled&&
-        button.textContent.trim()==='检查网页安装入口';
+      return !!result&&!result.hasAttribute('data-state')&&!!button&&!button.disabled&&button.getAttribute('aria-disabled')!=='true'&&
+        button.textContent.trim()==='查找当前网页的应用';
     })()`),'old discovery cleared after target change');
   };
   const navigate=async mode=>{
@@ -88,7 +90,8 @@ export async function runMarketDiscoveryAcceptance({d,origin,channel,release,mar
   };
   const unchanged=async()=>{
     assert.deepEqual(await authority(),baseline,'discovery must not change installation authority or Chrome permissions');
-    assert.deepEqual(await marketTargets(),beforeTargets,'rejected/stale discovery must not open a trusted detail');
+    assert.deepEqual(await marketTargets(),beforeTargets,'discovery must not open a Marketplace tab');
+    assert.equal(await reviewOpen(),false,'discovery without an accepted review gesture must keep the install sheet closed');
     await d.assertNoFrames();
   };
   for(const [mode,state,code] of [
@@ -97,17 +100,17 @@ export async function runMarketDiscoveryAcceptance({d,origin,channel,release,mar
     ['version','error','E_DISCOVERY_RELEASE'],['origin','error','E_DISCOVERY_ORIGIN']
   ]){
     const url=await navigate(mode),message=await detect(state);
-    if(code)assert(message.includes(code),message);
+    if(code)assert.equal(await evaluate(side(),'document.querySelector('+JSON.stringify(diagnostic)+')?.textContent'),code);
     await unchanged();
     receipt('reject-'+mode,{url,state,code,message});
   }
   // Change only the owned fixture through a native trusted click. The product
-  // must re-read the declaration before opening any trusted application detail.
+  // must re-read the declaration before opening the fixed official review.
   const url=await navigate('valid');await detect('found');await unchanged();
   await click(page,'#change-declaration');
   assert.equal(await evaluate(page,'document.querySelector("#change-declaration").dataset.trusted'),'true');
   await click(side(),selector);
-  await until(()=>evaluate(side(),'document.querySelector('+JSON.stringify(status)+')?.textContent.includes("E_DISCOVERY_CHANGED")'),'changed declaration rejected on review');
+  await until(()=>evaluate(side(),'document.querySelector('+JSON.stringify(diagnostic)+')?.textContent==="E_DISCOVERY_CHANGED"'),'changed declaration rejected on review');
   await unchanged();
   receipt('declaration-change-before-review',{url,code:'E_DISCOVERY_CHANGED'});
 
@@ -155,42 +158,45 @@ export async function runMarketDiscoveryAcceptance({d,origin,channel,release,mar
   assert(found.includes(release.version));assert(found.includes(origin));
   await screenshot(side(),'r62-path-b-react-discovery.png');await unchanged();
   await click(side(),selector);
-  const detailTarget=await until(async()=>(await targets()).find(row=>row.url===fixedURL&&
-    !beforeTargets.some(before=>before.targetId===row.targetId)),'discovery opens new trusted fixed detail');
-  assert.equal((await marketTargets()).length,beforeTargets.length+1);
-  const detail=await d.attach(detailTarget.targetId);
-  await visible(detail,'#market-root .detail-layout aside .actions button');
-  const meta=await evaluate(detail,'({url:location.href,title:document.querySelector("#market-root h1").textContent,'+
-    'specs:Object.fromEntries([...document.querySelectorAll(".spec-list dt")].map(e=>[e.textContent,e.nextElementSibling.textContent]))})');
-  assert.equal(meta.url,fixedURL);assert.equal(meta.title,release.packageTitle);
-  assert.equal(meta.specs['版本'],'v'+release.version);assert.equal(meta.specs['发布者'],'OpenDesk');
-  assert.deepEqual(await authority(),baseline,'trusted detail still cannot install automatically');
-  receipt('unique-declaration-opens-fixed-trusted-detail',{declaration,sourceTarget:currentTarget,targetId:detailTarget.targetId,...meta});
-  await screenshot(detail,'r62-path-b-trusted-detail.png');
-  await click(detail,'#market-root .detail-layout aside .actions button');
-  await visible(detail,'[data-market-action="confirm-install"]');
-  const review=await evaluate(detail,'document.querySelector(".review").innerText');
-  assert(review.includes('发行：v'+release.version)&&review.includes('申请能力：'));
+  await visible(side(),confirmInstall);
+  const review=await evaluate(side(),`(()=>{
+    const sheet=document.querySelector('#sidebar-tool-import');
+    const text=id=>sheet.querySelector('#'+id)?.textContent.trim();
+    return {heading:text('sidebar-tool-import-heading'),title:text('sidebar-tool-preview-title'),
+      version:text('sidebar-tool-preview-version'),source:text('sidebar-tool-preview-source'),
+      capabilitySummary:text('sidebar-tool-permission-summary'),capabilities:text('sidebar-tool-preview-capabilities'),
+      technical:text('sidebar-tool-preview-file'),confirmLabel:text('sidebar-tool-install'),
+      filePicker:!!sheet.querySelector('input[type="file"]')};
+  })()`);
+  assert.equal(review.heading,'审阅安装');assert.equal(review.title,release.packageTitle);
+  assert.equal(review.version,'v'+release.version);assert.match(review.source,/OpenDesk 官方发行/);
+  assert(review.capabilitySummary&&review.capabilities,'review exposes the candidate capability disclosure');
+  assert(review.technical.includes('原始文件 SHA-256 '+release.sha256),'review is pinned to the declared release bytes');
+  assert.equal(review.filePicker,false,'fixed official review cannot replace the selected package');
+  assert.equal(review.confirmLabel,'确认安装');
+  assert.deepEqual(await marketTargets(),beforeTargets,'review remains in the existing Side Panel');
   assert.deepEqual(await authority(),baseline,'existing review must wait for explicit install confirmation');
-  await screenshot(detail,'r62-path-b-install-review.png');
-  await click(detail,'[data-market-action="confirm-install"]');
+  await d.assertNoFrames();
+  receipt('unique-declaration-opens-fixed-official-review',{declaration,sourceTarget:currentTarget,targetId:side().targetId,...review});
+  await screenshot(side(),'r62-path-b-install-review.png');
+  await click(side(),confirmInstall);
   const operation=await until(async()=>{
     const rows=(await authority()).operations;
     return Object.entries(rows).find(([key,row])=>!Object.hasOwn(baseline.operations,key)&&
       row.toolId===release.toolId&&row.version===release.version&&row.state==='succeeded');
   },'path B original installer transaction succeeds');
-  await until(()=>evaluate(detail,'!document.querySelector(".review")'),'path B original review completes');
+  await until(async()=>!(await reviewOpen()),'path B Side Panel review closes after install');
   const after=await authority(),tool=after.registry.find(row=>row.id===release.toolId);
   assert.deepEqual(tool,d.packages.get(release.toolId),'read back the exact installed candidate');
   assert.deepEqual(after.registry.filter(row=>row.id!==release.toolId),baseline.registry,'path B preserves other installed tools');
   assert.deepEqual(after.provenance[release.toolId],{marketId:release.id,version:release.version,sha256:release.sha256});
   assert.equal(operation[1].marketId,release.id);assert.equal(operation[1].sha256,release.sha256);
   assert.deepEqual(after.permissions,baseline.permissions,'install cannot silently grant Chrome permissions');
+  assert.deepEqual(await marketTargets(),beforeTargets,'install does not open a Marketplace tab');
   await d.assertNoFrames();
   receipt('explicit-original-install-and-authority-readback',{operationId:operation[0],operation:operation[1],
     installed:{id:tool.id,version:tool.version},provenance:after.provenance[release.toolId],permissions:after.permissions});
-  await screenshot(detail,'r62-path-b-installed.png');
-  assert.equal((await d.sendBrowser('Target.closeTarget',{targetId:detail.targetId})).success,true);
+  await screenshot(side(),'r62-path-b-installed.png');
   assert.equal((await d.sendBrowser('Target.closeTarget',{targetId:page.targetId})).success,true);
   // Restore the original driver's installed-list scope for its UI cleanup.
   await click(side(),'#extension-center-more');

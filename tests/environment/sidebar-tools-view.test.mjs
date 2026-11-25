@@ -785,32 +785,90 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   assert.ok(toolActivity.includes(true), 'the original task workbench receives tool visibility');
 });
 
-async function localizedToolHostFixture(t,toolIds){
+async function localizedToolHostFixture(t,toolIds,{toolLocales=false}={}){
   const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
   const previous={window:globalThis.window,document:globalThis.document,act:globalThis.IS_REACT_ACT_ENVIRONMENT};
   globalThis.window=window;globalThis.document=document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
   const {createRoot}=await import('react-dom/client');
   const {createUiLocaleController}=await import('../../src/ui/app-localization.js');
+  const {createToolLocaleService,toolLocaleStorageKey}=await import('../../src/ui/sidebar-tools/locale-packs.js');
   const locale=createUiLocaleController(null,{languages:['en'],storage:()=>null,eventTarget:null});
   const root=createRoot(document.getElementById('mount')),view=createSidebarToolsView();
   const tools=await Promise.all(toolIds.map(async id=>JSON.parse(await readFile(new URL(`../../projects/${id}/${id}.opendesk-tool.json`,import.meta.url),'utf8'))));
   const store=new Map([[SIDEBAR_TOOL_STORE,tools]]),calls=[];
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path,sendMessage:async()=>({ok:true})},
     storage:{local:{async get(keys){return Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(store.get(key))]));},
-      async set(){assert.fail('locale presentation must not write storage');},async remove(){assert.fail('locale presentation must not remove storage');}},
+      async set(values){
+        for(const [key,value] of Object.entries(values)){
+          assert.ok(toolLocales&&toolIds.some(id=>toolLocaleStorageKey(id)===key),'only a tool language preference may be written');
+          store.set(key,structuredClone(value));
+        }
+      },async remove(){assert.fail('locale presentation must not remove storage');}},
       onChanged:{addListener(){},removeListener(){}}},
     permissions:{contains:async()=>false,request(){calls.push('permission');return Promise.resolve(false);}},
     windows:{getLastFocused:async()=>({focused:true,type:'normal',id:1})},tabs:{query:async()=>[{url:'https://example.com/page'}]}};
-  const host=createSidebarTools({view,doc:document,api,localeController:locale,taskWorkbench:{},
-    lockManager:{request:async(_name,work)=>work()},fetcher:async()=>new Response('offline fixture',{status:503})});
+  const lockManager={request:async(_name,work)=>work()};
+  const toolLocaleService=toolLocales?createToolLocaleService({api,lockManager}):null;
+  const host=createSidebarTools({view,doc:document,api,localeController:locale,toolLocaleService,taskWorkbench:{},
+    lockManager,fetcher:async()=>new Response('offline fixture',{status:503})});
   t.after(async()=>{
-    await React.act(async()=>{host.dispose();root.unmount();});view.dispose();locale.dispose();
+    await React.act(async()=>{host.dispose();root.unmount();});toolLocaleService?.dispose();view.dispose();locale.dispose();
     globalThis.window=previous.window;globalThis.document=previous.document;globalThis.IS_REACT_ACT_ENVIRONMENT=previous.act;
   });
   await React.act(async()=>{root.render(React.createElement(ToolHost,{view}));await nextTick();});
-  await React.act(async()=>{await host.ready;host.setVisible(true);});
-  return {document,view,host,locale,calls,api};
+  await React.act(async()=>{await host.ready;await toolLocaleService?.ready;host.setVisible(true);});
+  return {document,view,host,locale,toolLocaleService,calls,api};
 }
+
+test('installed tool Settings follow its own language immediately and after reopening', {timeout:5000}, async t=>{
+  const id='video-auto-skip',otherId='prompt-shortcuts';
+  const f=await localizedToolHostFixture(t,[id,otherId],{toolLocales:true});
+  const byId=id=>f.document.getElementById(id);
+  const settings=byId('sidebar-tool-settings-view');
+  const select=byId('sidebar-tool-toc-language-select');
+  const assertSettings=([page,about,version,language,enabled],choice)=>{
+    assert.equal(settings.hidden,false);
+    assert.match(byId('sidebar-tool-title').textContent,new RegExp(page+'$'));
+    const disclosure=settings.querySelector('details.ec-extension-about');
+    assert.equal(settings.lastElementChild,disclosure);
+    assert.equal(disclosure.hasAttribute('open'),true);
+    assert.equal(disclosure.querySelector('summary').textContent,about);
+    assert.equal(settings.querySelector('.ec-extension-about dt').textContent,version);
+    assert.equal(settings.querySelector('label[for="'+select.id+'"]').textContent,language);
+    assert.equal(select.getAttribute('aria-label'),language);
+    assert.equal(select.querySelector('option[selected]').value,choice);
+    assert.equal(byId('sidebar-tool-prompt-enable-label').textContent,enabled);
+    assert.equal(byId('sidebar-tool-enable').getAttribute('aria-checked'),'true');
+    assert.equal(byId('sidebar-tool-frame').childElementCount,0,'settings must not start the tool');
+  };
+  const copy={en:['Settings','About this extension','Installed version','Interface language','Enabled'],
+    ja:['設定','この拡張機能について','インストール済みバージョン','表示言語','有効'],
+    'zh-TW':['設定','關於此擴充功能','已安裝版本','介面語言','已啟用'],
+    'zh-CN':['设置','关于此扩展','已安装版本','界面语言','已启用']};
+  await React.act(async()=>{assert.equal(f.host.openSettings(id),true);});
+  assertSettings(copy.en,'follow');
+  for(const choice of ['ja','zh-TW','zh-CN','en','follow']){
+    await React.act(async()=>{
+      const changed=new Promise(resolve=>{
+        const unsubscribe=f.toolLocaleService.subscribe(()=>{unsubscribe();resolve();});
+      });
+      f.view.patch(select.id,{value:choice});
+      f.view.dispatch(select.id,'change',{});
+      await changed;
+    });
+    assertSettings(copy[choice==='follow'?'en':choice],choice);
+    assert.equal(f.locale.getLocale(),'en');
+    if(choice==='ja'){
+      await React.act(async()=>{f.host.closeTool();await f.toolLocaleService.reload();f.host.openSettings(id);});
+      assertSettings(copy.ja,'ja');
+      assert.equal(byId(select.id),select);
+      assert.equal(f.toolLocaleService.getToolLocale(otherId),null);
+    }
+  }
+  await React.act(async()=>{f.locale.setLocalePreference('zh-TW',{persist:false});});
+  assertSettings(copy['zh-TW'],'follow');
+  assert.deepEqual(f.calls,[]);
+});
 
 test('Prompt visible settings labels switch in the real React ToolHost for all four locales',async t=>{
   const f=await localizedToolHostFixture(t,['prompt-shortcuts']);

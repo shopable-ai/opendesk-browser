@@ -3,12 +3,14 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createQueueCache} from '../src/page/cache.js';
+import {deepSeekRoute,geminiRoute} from '../src/page/site.js';
 import {memoryStorage} from './helpers/session-storage.mjs';
 
 // Exercise the real entry's action wiring without sending a website message.
 const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'private draft',
-  reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false,removeResult=true}={}){
+  reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false,removeResult=true,
+  gemini=false,deepseek=false,deepSeekHome=false}={}){
   const storage=memoryStorage();
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],
     recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[],inspects:0,tickOptions:[],resumes:0,cacheWarnings:[]};
@@ -32,7 +34,8 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
   function event(target,type,patch={}){
     for(const listener of events.filter(item=>item.target===target&&item.type===type))listener.callback(patch);
   }
-  const snap={ok:true,route:'c/12345678',editor,draft:reclaim?'':'private draft',rich:false,users:[],assistants:[],
+  const routeFor=deepseek?deepSeekRoute:geminiRoute;
+  const snap={ok:true,route:deepseek?'a/chat/s/11111111-2222-3333-4444-555555555555':gemini?'app/1234567890abcdef':'c/12345678',editor,draft:reclaim?'':'private draft',rich:false,users:[],assistants:[],
     busy:true,sendButton:null};
   const state={items:reclaim||queued?[{id:'q1',text:'private draft',state:'queued'}]:[],route:snap.route,phase:'waiting',inFlight:null};
   const site={inspect(){calls.inspects++;calls.onInspect?.();return {...snap};},clearForQueue(){calls.clear++;calls.onClear?.();if(clear.ok)snap.draft='';return clear;},
@@ -41,7 +44,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     restore(){calls.restores++;if(restore)snap.draft='private draft';return restore;}};
   const engine={view:()=>state,
     checkEnqueue(){calls.preflight++;return preflight;},
-    enqueue(text){calls.enqueued++;if(enqueue)state.items.push({id:'q'+(calls.enqueued+1),text,state:'queued'});return enqueue;},
+    enqueue(text,_route,{paused=false}={}){calls.enqueued++;if(enqueue)state.items.push({id:'q'+(calls.enqueued+1),text,state:paused?'paused':'queued'});return enqueue;},
     pause(id){calls.pauses++;const item=state.items.find(x=>x.id===id);if(!item)return false;item.state='paused';return true;},
     reclaim(id){calls.reclaimed=(calls.reclaimed||0)+1;const i=state.items.findIndex(x=>x.id===id);if(i<0)return false;state.items.splice(i,1);return true;},
     wait(){},
@@ -66,17 +69,27 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     offerRecovery(text,reason){calls.onRecovery?.();if(hasRecovery)return false;hasRecovery=true;
       calls.recovery={text,reason};return true;},
     hasRecovery(){return hasRecovery;},recovery:()=>calls.recovery};
-  const win={location:{origin:'https://chatgpt.com'},confirm(){calls.confirms++;return true;}};win.top=win;
+  if(deepSeekHome){snap.route=null;state.route=null;}
+  const win={location:deepseek?new URL('https://chat.deepseek.com/'+(snap.route??'')):gemini?new URL('https://gemini.google.com/'+snap.route):{origin:'https://chatgpt.com'},
+    navigation:gemini||deepseek?{}:undefined,confirm(){calls.confirms++;return true;}};win.top=win;
   const doc={visibilityState:'visible',querySelector:()=>legacy?{}:null};
-  const ctx=vm.createContext({window:win,document:doc,Date:class extends Date {static now(){return now;}},
-    createPageUI:()=>owner,createChatGPTSite:()=>site,
+  const ctx=vm.createContext({window:win,document:doc,URL,Date:class extends Date {static now(){return now;}},
+    createPageUI:()=>owner,createChatGPTSite:()=>site,createGeminiSite:()=>site,createDeepSeekSite:()=>site,deepSeekRoute,geminiRoute,
     createQueueCache:()=>createQueueCache({storage:()=>storage}),
     createQueueEngine:options=>{change=options.change;return engine;},
-    createQueueView:options=>{actions=options.actions;getBackup=options.getBackup;return view;},
+    createQueueView:options=>{actions=options.actions;getBackup=options.getBackup;
+      calls.visibleRows=()=>{const route=options.currentRoute?.()?.route;return !options.currentRoute||route===state.route?state.items:[];};return view;},
      createSendQueueRemote:()=>({changed(){calls.onChanged?.();}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace(/^export (?:default )?/gm,''),ctx);
   return {calls,snap,state,listeners,storage,timers,advance,runTimer,change:()=>change(),
+    navigate(path,{commit=true}={}){
+      const from=win.location,url=new URL(path,from);
+      event(win.navigation,'navigate',{isTrusted:true,destination:{url:url.href,sameDocument:true},signal:{aborted:!commit}});
+      if(!commit)return;
+      win.location=url;snap.route=routeFor(url)?.route??null;snap.users=[{}];
+      event(win.navigation,'currententrychange',{isTrusted:true,from:{url:from.href}});
+    },
     stopTimer(ms){timers.filter(timer=>timer.ms===ms).forEach(timer=>timer.enabled=false);},
     event(target,type,patch){event(target==='document'?doc:win,type,patch);},
     visibility(value){doc.visibilityState=value;event(doc,'visibilitychange');},
@@ -85,14 +98,29 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
       preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;},...patch};
       listeners.get('keydown').callback(event);return event;},
     composition(type){listeners.get(type).callback();},
-    run:()=>ctx.main(),runFixed:authorize=>ctx.runQueue({fixed:{authorize,own(){}}}),
-    backup:()=>getBackup(),enqueue:(event={})=>actions.enqueue(event),edit:()=>actions.edit('q1'),poll:()=>runTimer(650),destroy:()=>owner.destroy(),
+    run:()=>ctx.main(),runFixed:authorize=>ctx.runQueue({fixed:{authorize,deepSeekHome,own(){}}}),
+    backup:options=>getBackup(options),enqueue:(event={})=>actions.enqueue(event),edit:()=>actions.edit('q1'),poll:()=>runTimer(650),destroy:()=>owner.destroy(),
     beforeinput(patch={}){const event={target:snap.editor,isTrusted:true,defaultPrevented:false,...patch};listeners.get('beforeinput').callback(event);return event;},
     input(patch={}){listeners.get('input')?.callback({target:snap.editor,isTrusted:true,...patch});},get actions(){return actions;},unload:()=>{
     const event={preventDefault(){calls.unloadPrevented=true;}};
     unload(event);return event;
   }};
 }
+
+test('DeepSeek crown leaves the first draft native and enqueues only after a conversation commits',async()=>{
+  const h=fixture({deepseek:true,deepSeekHome:true,clear:{ok:true,text:'private draft'}});
+  assert.equal((await h.runFixed(async()=>true)).status,'active');
+  assert.equal(await h.enqueue({paused:true}),false);
+  assert.match(h.calls.toasts.at(-1),/首条消息.*草稿已保留/);
+  assert.equal(h.snap.draft,'private draft');
+  assert.equal(h.calls.clear,0);
+  assert.equal(h.calls.enqueued,0);
+  h.navigate('/a/chat/s/11111111-2222-3333-4444-555555555555');
+  assert.equal(await h.enqueue({paused:true}),true);
+  assert.equal(h.calls.clear,1);
+  assert.equal(h.calls.enqueued,1);
+  assert.equal(h.state.items[0].state,'paused');
+});
 
 test('fixed queue preserves changed drafts and waits for a grant before taking ownership',async()=>{
   const h=fixture({clear:{ok:true,text:'private draft'}});
@@ -147,6 +175,48 @@ test('confirmed exact clear enters the queue once',async()=>{
   assert.equal(h.calls.enqueued,1);assert.equal(h.calls.ticks,0);
   assert.equal(h.calls.pauses,0);assert.equal(h.calls.recovery,null);
 });
+test('a verified paused Gemini handoff stays paused across committed SPA routes',async()=>{
+  const h=fixture({gemini:true,clear:{ok:true,text:'private draft'}});await h.run();
+  assert.equal(h.enqueue({paused:true}),true);h.poll();
+  h.navigate('/app/fedcba0987654321');h.poll();
+  h.navigate('/app/1234567890abcdef');h.poll();
+  assert.equal(h.calls.uncertain,null);
+  assert.equal(h.state.items[0].state,'paused');
+  assert.equal(h.state.route,'app/1234567890abcdef');
+  assert.equal(h.snap.draft,'');
+});
+
+test('DeepSeek masks paused rows on route commit and restores them without making them uncertain',async()=>{
+  const h=fixture({deepseek:true,clear:{ok:true,text:'private draft'}});
+  await h.runFixed(async()=>true);
+  const original=h.snap.route;
+  assert.equal(await h.enqueue({paused:true}),true);
+  await h.poll();
+  assert.equal(h.calls.visibleRows().length,1);
+  h.navigate('/a/chat/s/22222222-3333-4444-5555-666666666666');
+  assert.deepEqual(h.calls.visibleRows(),[]);
+  h.snap.draft='other conversation draft';
+  await h.poll();
+  assert.equal(h.snap.draft,'other conversation draft');
+  assert.equal(h.calls.uncertain,null);
+  h.navigate('/'+original);
+  await h.poll();
+  assert.equal(h.calls.visibleRows()[0]?.state,'paused');
+  assert.equal(h.calls.uncertain,null);
+});
+
+for(const reason of ['handoff still pending','message not paused','navigation cancelled']){
+  test('Gemini keeps the uncertainty guard when '+reason,async()=>{
+    const h=fixture({gemini:true,clear:{ok:true,text:'private draft'}});await h.run();
+    assert.equal(h.enqueue({paused:reason!=='message not paused'}),true);
+    if(reason!=='handoff still pending')h.poll();
+    h.navigate('/app/fedcba0987654321',{commit:reason!=='navigation cancelled'});
+    if(reason==='navigation cancelled')h.snap.users=[{}];
+    h.poll();
+    assert.equal(h.state.items[0].state,'unknown');
+    assert.equal(h.state.inFlight.phase,'unknown');
+  });
+}
 test('the full transfer is cached before native clearing and quota failure never blocks leaving',async()=>{
   const h=fixture({clear:{ok:true,text:'private draft'}});await h.run();
   h.calls.onClear=()=>{
@@ -171,6 +241,18 @@ test('cache failure is visible before leaving and recovery clears only its own w
   assert.equal(h.calls.cacheWarnings.at(-1),'');
   assert.equal(h.calls.toasts.filter(text=>text==='队列缓存已恢复保存').length,1);
   h.poll();assert.equal(h.calls.toasts.filter(text=>text==='队列缓存已恢复保存').length,1);
+});
+
+test('backup availability detects only queue contents or drafts for the bound conversation',async()=>{
+  const h=fixture();await h.run();
+  const availability=snapshot=>h.backup({availabilityOnly:true,snapshot});
+  assert.equal(availability({...h.snap,draft:''}),false);
+  assert.equal(availability({...h.snap,route:'c/another1'}),false);
+  const inspects=h.calls.inspects;
+  assert.equal(availability(h.snap),true);
+  assert.equal(h.calls.inspects,inspects,'the current snapshot avoids another site read');
+  h.state.items=[{id:'q1',text:'unknown original',state:'unknown'}];
+  assert.equal(availability({ok:false}),true,'memory remains available without a native editor');
 });
 
 test('manual backup preserves queue order, pauses, unknown text and the exact native draft without sending',async()=>{
@@ -557,6 +639,35 @@ test('pending enqueue vetoes independent engine submission and protects removed 
   h.state.items=[];h.unload();assert.equal(h.calls.unloadPrevented,false);h.poll();
   assert.equal(h.calls.recovery.text,'private draft');assert.equal(h.calls.canSubmit,false);
 });
+
+for(const outcome of ['trusted edit','canceled','untrusted input','replaced composer','changed history','not paused']){
+  test('Gemini pending handoff during rapid input: '+outcome,async()=>{
+    const clear={ok:true,text:'private draft'};
+    const h=fixture({gemini:true,clear});await h.run();
+    assert.equal(h.enqueue({paused:outcome!=='not paused'}),true);
+    const event=h.beforeinput();
+    if(outcome==='canceled')event.defaultPrevented=true;
+    if(outcome==='replaced composer')h.snap.editor={contains:()=>false};
+    if(outcome==='changed history')h.snap.users=[{}];
+    h.snap.draft='next intended draft';
+    h.input({isTrusted:outcome!=='untrusted input'});
+    assert.equal(h.calls.ticks,0,'typing cannot advance the sender');
+    if(outcome==='trusted edit'){
+      clear.text=h.snap.draft;
+      assert.equal(h.enqueue({paused:true}),true,'the next crown click need not wait for the poll');
+      h.poll();
+      assert.deepEqual(h.state.items.map(({state,text})=>[state,text]),
+        [['paused','private draft'],['paused','next intended draft']]);
+      assert.equal(h.calls.uncertain,null);
+    }else{
+      h.poll();
+      assert.equal(h.state.items[0].state,'unknown');
+      assert.equal(h.snap.draft,'next intended draft');
+      assert.equal(h.calls.clear,1);
+      assert.equal(h.calls.canSubmit,false);
+    }
+  });
+}
 
 
 for(const change of ['restored text','different text','history']){

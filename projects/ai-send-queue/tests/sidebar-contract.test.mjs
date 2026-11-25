@@ -13,7 +13,8 @@ test('Sidebar only diagnoses status, never reads the Page queue, and has no para
   assert.equal(tool.uiRuntime,'opendesk.react-ui.v1');
   assert.deepEqual(tool.capabilities,['page.module','currentPage.read']);
   assert.equal(entry.match(/createRoot\(/g)?.length,1);
-  assert.doesNotMatch(entry+ui,/QUEUE_READ|QUEUE_WRITE|setInterval|setTimeout|sendQueue\.(?:snapshot|command)/);
+  // Bounded retries of the read-only page status are covered by sidebar-status.test.mjs.
+  assert.doesNotMatch(entry+ui,/QUEUE_READ|QUEUE_WRITE|setInterval|sendQueue\.(?:snapshot|command)/);
   assert.deepEqual([...ui.matchAll(/request\('([^']+)'/g)].map(match=>match[1]),
     ['currentPage.info','page.request']);
   assert.match(ui,/operation:'queue\.status',payload:\{\}/);

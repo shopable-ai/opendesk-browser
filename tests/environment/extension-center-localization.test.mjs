@@ -41,15 +41,6 @@ for(const [locale,search,heading] of [
   assert.equal(actions,0);
 });
 
-test('toggle glyph follows boolean state rather than translated labels',t=>{
-  const {doc,adapter}=createExtensionCenterDOM(t,{props:{toolbarModel:{language:'en'},view:'detail',detailModel:{
-    kind:'app',title:'App',enabled:true,actions:[{id:'toggle',label:'Disable'}]
-  }}});
-  assert.equal(doc.querySelector('[data-ec-detail-action="toggle"] path').getAttribute('d'),'M9 6v12M15 6v12');
-  adapter.renderDetail({kind:'app',title:'App',enabled:false,actions:[{id:'toggle',label:'停用'}]});
-  assert.equal(doc.querySelector('[data-ec-detail-action="toggle"] path').getAttribute('d'),'m8 5 11 7-11 7V5Z');
-});
-
 test('resolved toolbar locale wins over automatic language preference',t=>{
   const {doc}=createExtensionCenterDOM(t,{props:{toolbarModel:{language:'auto',locale:'en'}}});
   assert.equal(doc.querySelector('#extension-center-search').placeholder,'Search this list');
@@ -75,10 +66,8 @@ test('actual controller localizes rows, count, details and pending uninstall wit
   await ui.refresh();
   assert.equal(doc.querySelector('#extension-center-count').textContent,'1 extensions');
   assert.equal(doc.querySelector('.ec-type').textContent,'App · page enhancement');
-  doc.querySelector('[data-extension-action="more"]').dispatch('click');
-  doc.querySelector('[data-ec-context-action="detail"]').dispatch('click');
-  assert.equal(doc.querySelector('.ec-page-control h3').textContent,'Enable this page enhancement');
-  assert.equal(doc.querySelector('.ec-page-control [role="status"]').textContent,'Auto-run requirements are ready');
+  doc.querySelector('[data-extension-action="main"]').dispatch('click');
+  assert.equal(doc.querySelector('.ec-page-sites h3').textContent,'Websites');
   assert.ok(doc.querySelector('#extension-center-detail-body').textContent.includes('Installed locally · Enabled'));
   doc.querySelector('[data-ec-detail-action="uninstall"]').dispatch('click');
   const dialog=doc.querySelector('[role="dialog"]'),cancel=dialog.querySelector('[data-uninstall-cancel]');
@@ -86,7 +75,7 @@ test('actual controller localizes rows, count, details and pending uninstall wit
   locale='ja';notify();
   assert.equal(doc.querySelector('[role="dialog"]'),dialog);assert.equal(doc.activeElement,cancel);
   assert.ok(dialog.textContent.includes('自動削除しません'));
-  assert.equal(doc.querySelector('.ec-page-control h3').textContent,'このページ拡張を有効にする');
+  assert.equal(doc.querySelector('.ec-page-sites h3').textContent,'対象サイト');
   assert.equal(writes,0);
   cancel.dispatch('click');
   ui.reportPanelNavigation();

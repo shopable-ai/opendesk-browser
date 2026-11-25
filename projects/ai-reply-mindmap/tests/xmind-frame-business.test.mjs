@@ -183,6 +183,23 @@ test('loader timeout retires a late resource and cannot enable commands',async()
   await assert.rejects(api.reflow(),{code:'E_XMIND_FRAME_DESTROYED'});await api.destroy();
 });
 
+test('a slow frame can connect without extending renderer command timeouts',async()=>{
+  const {port1,port2}=new MessageChannel();
+  const api=createXmindFrameRenderer({window,canvas:{},tree,timeoutMs:30,frameCreateTimeoutMs:1000,
+    identity:{instanceId:'A',revision:0},async frameFactory({identity}){
+      await delay(55);
+      port2.on('message',data=>{
+        if(data.command==='init'||data.command==='destroy')port2.postMessage(
+          frameEnvelope(identity,{kind:'reply',id:data.id,command:data.command,ok:true,nodeCount:1}));
+      });
+      return {port:port1,destroy(){port2.close();}};
+    }});
+  try{
+    await api.ready;
+    await assert.rejects(api.reflow(),{code:'E_XMIND_FRAME_TIMEOUT',mindmapStage:'frame.reflow'});
+  }finally{await api.destroy();port1.close();port2.close();}
+});
+
 test('Stop during child initialization retires the late renderer',async()=>{
   const init=deferred();let closed=0;
   const h=harness({rendererFactory:()=>({ready:init.promise,nodeCount:0,

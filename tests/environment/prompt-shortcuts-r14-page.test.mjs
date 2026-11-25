@@ -178,7 +178,7 @@ async function builtinPage(provider,{empty=false,custom=false}={}){
     node.matches=selector=>selector.split(',').some(part=>{
       const classes=[...part.matchAll(/\.([\w-]+)/gu)].map(match=>match[1]);
       return classes.every(name=>(node.getAttribute('class')||'').split(/\s+/u).includes(name))&&
-        matches(part.replace(/\.[\w-]+/gu,''));
+        (matches(part.replace(/\.[\w-]+/gu,''))||/^\.[\w-]+$/u.test(part));
     });
     return node;
   };
@@ -189,7 +189,8 @@ async function builtinPage(provider,{empty=false,custom=false}={}){
   f.main.tagName=deepSeek?'DIV':'chat-window';
   if(deepSeek)f.main.id='root';
   f.main.getBoundingClientRect=()=>regionRect(0,0,1366,768);
-  const column=element('section'),message=element('div'),composer=element('form');
+  const column=element('section'),message=element('div'),composer=element(deepSeek?'form':'input-area-v2');
+  const inputContainer=element('input-container'),dock=element('div'),queue=element('div');
   column.id='builtin-column';column.getBoundingClientRect=()=>regionRect(260,40,900,700);
   message.setAttribute('class',deepSeek?'ds-message':'model-response');
   f.doc.body.append(f.main);f.main.append(element('aside'),column);
@@ -200,6 +201,15 @@ async function builtinPage(provider,{empty=false,custom=false}={}){
     f.editor.removeAttribute('contenteditable');f.editor.value='保留已有草稿🙂';
     composer.append(f.editor);
   }else{
+    dock.setAttribute('class','input-area-container');
+    column.append(inputContainer);inputContainer.append(dock);dock.append(queue,composer);
+    const matches=dock.matches;
+    dock.matches=selector=>{
+      const [parent,child]=selector.split(' > ');
+      return child?dock.parentElement?.matches(parent)&&matches(child):matches(selector);
+    };
+    Object.defineProperty(dock,'firstElementChild',{get:()=>dock.children[0]||null});
+    dock.prepend=node=>dock.children[0].before(node);
     const rich=element('rich-textarea');
     f.editor.setAttribute('class','ql-editor');f.editor.textContent='保留已有草稿🙂';
     composer.append(rich);rich.append(f.editor);
@@ -234,8 +244,10 @@ async function builtinPage(provider,{empty=false,custom=false}={}){
   const setRules=rules=>f.change(PROMPT_DATA_STORE,{library,sites:{schema:1,rules}});
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   await settle();
-  const hosts=()=>f.root.children.filter(node=>Object.hasOwn(node.attributes,'data-opendesk-prompts'));
-  return {...f,controller,hosts,row,library,rule,setRules,draft,selections,submissions};
+  const hosts=()=>f.root.querySelectorAll('[data-opendesk-prompts]');
+  const rail=()=>hosts()[0]?.shadow?.querySelector('nav');
+  const openPrompts=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
+  return {...f,controller,hosts,rail,openPrompts,dock,queue,composer,row,library,rule,setRules,draft,selections,submissions};
 }
 
 for(const provider of ['DeepSeek','Gemini']){
@@ -256,6 +268,28 @@ for(const provider of ['DeepSeek','Gemini']){
       assert.deepEqual(f.copied,[]);assert.deepEqual(f.submissions,[]);
       f.events.get('resize')?.();f.intervals[0]?.();await settle();
       assert.equal(f.hosts().length,1,'refresh reuses the only host');
+      if(provider==='Gemini'){
+        const checkRail=()=>{
+          assert.equal(f.hosts().length,1);
+          assert.equal(f.hosts()[0].parentElement,f.root,'rail stays outside the composer flow');
+          assert.equal(f.hosts()[0].hidden,false);
+          assert.equal(f.rail().classList.contains('horizontal'),false);
+          assert.deepEqual(f.dock.children,[f.queue,f.composer],'native queue and composer stay in order');
+        };
+        checkRail();
+        f.win.location.href='https://gemini.google.com/app';
+        f.win.innerWidth=430;
+        f.main.getBoundingClientRect=()=>regionRect(0,68,430,700);
+        f.dock.getBoundingClientRect=()=>regionRect(16,360,398,190);
+        f.editor.getBoundingClientRect=()=>regionRect(84,440,185,24);
+        f.intervals[0]?.();await settle();
+        checkRail();
+        assert(Number.parseFloat(f.hosts()[0].style.top)+
+          Number.parseFloat(f.rail().style.maxHeight)/2<=352,'narrow rail ends above the overlapping composer column');
+        f.win.location.href='https://gemini.google.com/app/another_chat';
+        f.intervals[0]?.();await settle();
+        checkRail();
+      }
       assert.equal(f.openPrompts().length,1);
       assert.equal(f.rail().children[0].className,'brand','built-in site shows one first OD entry');
     }finally{f.controller.dispose();}
@@ -915,6 +949,39 @@ test('R2.16 rail stays 8px inside its container as the centered composer moves',
     f.events.get('resize')();await settle();
     assert.equal(f.rail().classList.contains('horizontal'),true,'retain above-composer fallback when gutter cannot fit');
     assert.equal(f.host().style.left,'320px');
+  }finally{f.controller.dispose();}
+});
+
+test('prompt rail leaves the inline Reply to Map viewer clear and returns to the gutter',async()=>{
+  const f=await readyPage();
+  try{
+    const viewer=mockElement('section');
+    viewer.getBoundingClientRect=()=>regionRect(361,340,543,440);
+    f.win.innerWidth=944;
+    f.main.getBoundingClientRect=()=>regionRect(341,0,603,721);
+    f.editor.getBoundingClientRect=()=>regionRect(413,653,220,36);
+    const queryAll=f.doc.querySelectorAll;
+    let viewers=[];
+    f.doc.querySelectorAll=selector=>selector.includes('data-opendesk-chatgpt-mindmap')
+      ?viewers:queryAll(selector);
+    f.events.get('resize')();await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),false);
+    viewers=[viewer];
+    f.mutate([{target:f.main,addedNodes:[viewer]}]);await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),true);
+    assert.equal(f.host().style.left,'413px');
+    viewer.getBoundingClientRect=()=>regionRect(444,340,750,440);
+    f.win.innerWidth=1330;
+    f.events.get('resize')();await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),false);
+    viewer.getBoundingClientRect=()=>regionRect(361,340,543,440);
+    f.win.innerWidth=944;
+    f.events.get('resize')();await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),true);
+    viewers=[];
+    f.mutate([{target:f.main,removedNodes:[viewer]}]);await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),false);
+    assert.equal(f.host().style.left,'349px');
   }finally{f.controller.dispose();}
 });
 

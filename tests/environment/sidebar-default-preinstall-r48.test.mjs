@@ -14,7 +14,7 @@ import {matchesOfficialRelease} from '../../src/sidebar-tools/official-catalog.j
 import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {WEBFLOW_AUTO_GRANTS_KEY} from '../../projects/webflow/src/auto-grants.js';
 
-const sidebarOnly=['quick-notes','cookie-editor','prompt-shortcuts','webflow'];
+const sidebarOnly=['web-markdown-clipper','quick-notes','cookie-editor','prompt-shortcuts','webflow'];
 const preinstalled=['reading-toc',...sidebarOnly,'ai-send-queue'];
 function companionHost({preflight=()=>{},cleanupPending=null}={}){
   const prepared=new Map(),calls=[];
@@ -167,12 +167,12 @@ test('R4.8 concurrent install event and first boot commit each exact package onl
   assert.equal(f.storage.get(SIDEBAR_TOOL_STORE).length,preinstalled.length);
   assert.equal(f.writes.filter(a=>a.includes(SIDEBAR_TOOL_STORE)).length,preinstalled.length);
 });
-test('R4.8 unavailable second package leaves a pinned, recoverable partial first install',async()=>{
+test('R4.8 unavailable Web Markdown Clipper package leaves a pinned, recoverable partial first install',async()=>{
   const f=browser();
   const options={...f.options,pageClient:companionHost()};
   await registerDefaultPreinstall({...f.options,reason:'install'});
   let unavailable=true;
-  const flaky=async url=>unavailable&&String(url).includes('/quick-notes/quick-notes.')?
+  const flaky=async url=>unavailable&&String(url).includes('/web-markdown-clipper/web-markdown-clipper.')?
     new Response('missing',{status:404}):officialFixtureFetch(url);
   await assert.rejects(resumeDefaultPreinstall({...options,fetcher:flaky}),error=>error.code==='E_PACKAGE_MISSING');
   assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(x=>x.id),['reading-toc']);
@@ -181,11 +181,12 @@ test('R4.8 unavailable second package leaves a pinned, recoverable partial first
   assert.equal((await resumeDefaultPreinstall(options)).state,'complete');
   assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(x=>x.id),preinstalled);
 });
-test('R4.8 confirmed user uninstall is never restored after worker restart',async()=>{
+test('R4.8 uninstalled Web Markdown Clipper is never restored after worker restart',async()=>{
   const f=browser();
   await registerDefaultPreinstall({...f.options,reason:'install'});
   await resumeDefaultPreinstall(f.options);
-  const original=f.storage.get(SIDEBAR_TOOL_STORE)[0];
+  const original=f.storage.get(SIDEBAR_TOOL_STORE).find(tool=>tool.id==='web-markdown-clipper');
+  assert.ok(original);
   await recordToolUninstall(f.api,original);
   f.storage.set(SIDEBAR_TOOL_STORE,f.storage.get(SIDEBAR_TOOL_STORE).filter(tool=>tool.id!==original.id));
   await resumeDefaultPreinstall(f.options);

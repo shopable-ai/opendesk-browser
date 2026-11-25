@@ -153,6 +153,78 @@ test('aligned dock scrolls both directions and updates boundary disabled states'
   assert.equal(host.style.left,'328px');
 });
 
+for(const custom of [false,true])test(`ChatGPT ${custom?'configured':'built-in'} virtual transcript releases its tail and restores a displaced top landing`,()=>{
+  const make=()=>{
+    const f=fixture(),jobs=[];let now=0,announced=false,notices=0;
+    if(custom)Object.assign(f.context,{custom:true,site:'custom'});
+    f.owner.setTimeout=(fn,delay)=>jobs.push({fn,time:now+delay});
+    const advance=until=>{
+      for(jobs.sort((a,b)=>a.time-b.time);jobs[0]?.time<=until;jobs.sort((a,b)=>a.time-b.time)){
+        const job=jobs.shift();now=job.time;job.fn();
+      }
+      now=until;
+    };
+    const max=f.main.scrollHeight-f.main.clientHeight;
+    f.main.setAttribute('data-app-action-timeline-scroll','');
+    f.main.scrollTop=max-10.5;
+    f.win.WheelEvent=class extends f.doc.defaultView.Event {
+      constructor(type,options){super(type,options);this.deltaY=options.deltaY;}
+    };
+    f.main.addEventListener('wheel',event=>{
+      if(event.deltaY<0){announced=true;notices++;}
+    });
+    f.main.scrollTo=({top})=>{
+      if(announced)f.main.scrollTop=top;
+      announced=false;
+    };
+    const {host}=f.mount();
+    return {...f,advance,max,notices:()=>notices,top:host.shadowRoot.querySelector('button'),
+      bottom:host.shadowRoot.querySelector('[data-scroll-nav-key="conversationBottom"]')};
+  };
+  const f=make();
+  assert.equal(unavailable(f.bottom),true,'native tail padding does not offer a redundant jump');
+  f.owner.click(f.top,false);
+  f.advance(100);
+  assert.equal(f.notices(),0,'an untrusted click must not move the page');
+  f.owner.click(f.top);
+  f.advance(200);
+  assert.equal(f.main.scrollTop,0);
+  f.main.scrollTop=1600;
+  f.advance(1200);
+  assert.equal(f.main.scrollTop,0,'a virtual reflow can move the viewport after the initial jump');
+  f.advance(6800);
+  assert.equal(f.notices(),2,'stable scroll positions are left alone');
+  f.main.scrollTop=200;
+  f.advance(10000);
+  assert.equal(f.main.scrollTop,200,'the scroll intent expires');
+  for(const cancel of [f=>{f.win.location.pathname='/c/different';},
+    f=>f.owner.dispatch(f.doc,'wheel',{}), f=>f.owner.dispose(),
+    f=>{f.context.main=f.column;}]){
+    const interrupted=make();
+    interrupted.owner.click(interrupted.top);
+    interrupted.advance(100);
+    interrupted.main.scrollTop=1600;
+    const detached=interrupted.main.scrollTop;
+    cancel(interrupted);
+    interrupted.advance(10000);
+    assert.equal(interrupted.main.scrollTop,detached,'stale intent cannot move the transcript');
+  }
+});
+
+test('configured virtual scroll handling stays on the ChatGPT transcript',()=>{
+  for(const [url,marker] of [['https://example.ai/c/chat',true],['https://chatgpt.com/c/chat',false]]) {
+    const f=fixture();Object.assign(f.context,{custom:true,site:'custom'});
+    f.win.location=new URL(url);
+    if(marker)f.main.setAttribute('data-app-action-timeline-scroll','');
+    const wheelEvents=[];
+    f.win.WheelEvent=class {constructor(){wheelEvents.push(true);}};
+    f.main.scrollTo=()=>{};
+    const {host}=f.mount();f.owner.click(host.shadowRoot.querySelector('button'));
+    assert.equal(wheelEvents.length,0,'unrelated custom scrollers keep their configured behavior');
+    f.owner.dispose();
+  }
+});
+
 test('custom selected anchor retains its existing positioning',()=>{
   const f=fixture(),anchor=f.doc.createElement('div');f.main.append(anchor);
   f.rects.set(anchor,box(450,100,100,100));
@@ -223,6 +295,19 @@ test('compact horizontal dock remains fully inside the narrow bottom-left viewpo
   const {host}=f.mount();
   assert.equal(host.style.left,'8px');assert.equal(host.style.top,'538px');
   assert.equal(host.shadowRoot.querySelector('.stack').classList.contains('compact'),true);
+});
+
+test('a narrow chat with a tall composer keeps its dock above the editor',()=>{
+  const f=fixture({mainLeft:0,columnLeft:0});
+  Object.assign(f.win,{innerWidth:440,innerHeight:760});
+  Object.assign(f.context,{site:'custom',custom:true});
+  f.rects.set(f.main,box(0,0,440,760));
+  f.rects.set(f.editor,box(16,479,408,257));
+  const {host}=f.mount();
+  assert.ok(host,'the editor cannot hide navigation when there is space above it');
+  assert.equal(host.style.visibility,'visible');
+  assert.equal(host.shadowRoot.querySelector('.stack').classList.contains('compact'),true);
+  assert.ok(parseFloat(host.style.top)+42<=479-12,'the dock clears the composer');
 });
 
 test('container resize schedules repositioning and disposal disconnects the observer',()=>{
@@ -469,6 +554,26 @@ test('sticky header landing and scroll clamping agree with button availability',
     'bottom does not fabricate the last question as the reading position');
   short.owner.click(short.controls[1]);assert.equal(short.main.scrollTop,948);
   short.owner.dispose();
+});
+
+test('the only remaining short question becomes current at the scroll limit',()=>{
+  const f=scrollingQuestions({positions:[80,800,1350],height:1900});
+  const [,previous,next]=f.controls;
+  const count=()=>f.host.shadowRoot.querySelector('.counter').textContent;
+  f.owner.click(next);f.dock.refresh();
+  assert.equal(count(),'2/3');
+  f.main.scrollTop=1000;f.dock.refresh();
+  assert.equal(count(),'2/3','merely seeing the final question does not advance the count');
+  f.owner.click(next);f.dock.refresh();
+  assert.equal(f.main.scrollTop,1083);
+  assert.equal(count(),'3/3','the visible short question is current after the clamped jump');
+  assert.equal(unavailable(next),true);
+  f.owner.click(previous);f.dock.refresh();
+  assert.equal(f.main.scrollTop,788);
+  assert.equal(count(),'2/3');
+  f.main.scrollTop=1083;f.dock.refresh();
+  assert.equal(count(),'3/3','manual scroll to the same position agrees with the jump');
+  f.owner.dispose();
 });
 
 test('compact pager geometry preserves bottom inset and larger touch targets',()=>{

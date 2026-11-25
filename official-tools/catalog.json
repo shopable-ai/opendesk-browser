@@ -12,13 +12,14 @@
       "id": "reading-toc",
       "project": "projects/reading-toc",
       "kind": "sidebar-tool",
-      "installationPolicy": "preinstalled"
+      "installationPolicy": "preinstalled",
+      "packageFile": "reading-toc.opendesk-tool.json"
     },
     {
       "id": "web-markdown-clipper",
       "project": "projects/web-markdown-clipper",
       "kind": "sidebar-tool",
-      "installationPolicy": "optional",
+      "installationPolicy": "preinstalled",
       "packageFile": "web-markdown-clipper.opendesk-tool.json"
     },
     {

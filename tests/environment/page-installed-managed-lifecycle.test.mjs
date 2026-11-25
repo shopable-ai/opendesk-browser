@@ -83,7 +83,11 @@ function fixture(){
       configureWorld:async config=>{f.worldConfigurations.push(config);},getWorldConfigurations:async()=>[],resetWorldConfiguration:async()=>{},execute:async request=>{
         f.calls.push(request);
         if(request.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:target.documentId,result:f.installation().token}];
-        const id=request.worldId||'default';if(!contexts.has(id))contexts.set(id,vm.createContext({document:doc,window:doc.defaultView,Event,setTimeout,clearTimeout,console:{error(){}}}));
+        const id=request.worldId||'default';if(!contexts.has(id)){
+          const messaging=f.worldConfigurations.findLast(config=>config.worldId===id)?.messaging;
+          contexts.set(id,vm.createContext({document:doc,window:doc.defaultView,Event,setTimeout,clearTimeout,console:{error(){}},
+            chrome:messaging?{runtime:{sendMessage(){}}}:{}}));
+        }
         const code=request.js.at(-1).code,result=await vm.runInContext(code,contexts.get(id));
         const replies=[{frameId:0,documentId:target.documentId,result:JSON.parse(JSON.stringify(result))}];
         return code.includes('return r.retire(')?f.cleanupReplies(replies):replies;
@@ -154,6 +158,8 @@ test('installed frozen frame resources enable parent messaging and bind the boot
     receiptNonce:execution.receiptNonce,resourceIds:[resourceId]},
   'bootstrap must bind the installed execution, receipt nonce and exact frozen resource IDs');
   assert.equal(vm.runInContext('typeof __opendeskPageFramesV1.create',f.context()),'function');
+  assert.equal(vm.runInContext('typeof chrome.runtime?.sendMessage',f.context()),'function',
+    'Chrome exposes messaging only if configured before the first isolated-world probe');
   assert.equal(vm.runInContext('typeof frameResourceRan',f.context()),'undefined',
     'frozen child code must not execute in the parent world');
 });
@@ -318,6 +324,43 @@ test('navigation observes pending cleanup after document death without replaying
   assert.equal(f.installation().nativeState,'disabled');
   assert.equal(f.installation().token,before.token);
   assert.equal(f.calls.length,calls,'observation cannot execute source or cleanup');
+});
+test('navigation cleanup only observes missing world documents it can reset; full recovery still sees other tabs',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=f.rows().find(row=>row.tag==='page-execution-v1'),ledger='opendeskPagePreviewWorldsD1';
+  const [cached,uncertain,foreign]=['cached','uncertain','foreign'].map((id,index)=>{
+    const row=structuredClone(original),lifecycle=row.managedUI.lifecycle;
+    row.tabId=index===2?2:1;row.documentId=id;row.executionKey+='-'+id;row.managedUI.worldId+='-'+id;
+    Object.assign(lifecycle,{executionKey:row.executionKey,target:{...lifecycle.target,tabId:row.tabId,documentId:id}});
+    return row;
+  });
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    for(const row of [cached,uncertain,foreign])await tx.put('frameworkKV',row,row.executionKey);
+  });
+  const foreignSession={tabId:3,documentId:'foreign-session',worldId:original.managedUI.worldId+'-foreign-session'};
+  f.loseSession();await f.api.storage.session.set({[ledger]:[foreignSession]});
+  const queries=[],resets=[];
+  f.api.webNavigation.getFrame=async details=>{
+    assert.deepEqual(Object.keys(details),['documentId']);
+    const {documentId}=details;queries.push(documentId);
+    if(documentId===uncertain.documentId)throw Error('missing native acknowledgement');
+    return {documentId,documentLifecycle:documentId===cached.documentId?'cached':'active'};
+  };
+  f.api.userScripts.resetWorldConfiguration=async id=>{resets.push(id);};
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),before=structuredClone(f.rows());
+  await worlds.cleanup({tabId:1,documentId:original.documentId});
+  assert.deepEqual(queries,[cached.documentId,uncertain.documentId]);
+  assert.deepEqual(resets,[cached.managedUI.worldId,uncertain.managedUI.worldId]);
+  assert.deepEqual((await f.api.storage.session.get(ledger))[ledger],[foreignSession]);
+  queries.length=0;resets.length=0;
+  await worlds.cleanup({tabId:1,removed:true});
+  assert.deepEqual(queries,[original.documentId,cached.documentId,uncertain.documentId]);
+  assert.deepEqual(resets,[original,cached,uncertain].map(row=>row.managedUI.worldId));
+  assert.deepEqual((await f.api.storage.session.get(ledger))[ledger],[foreignSession]);
+  assert.deepEqual(f.rows(),before,'cleanup cannot change durable receipts or grants');
+  const fresh=await worlds.records();
+  assert.ok(queries.includes(foreign.documentId),'a later full recovery must make its own exact observation');
+  assert.ok(fresh.some(row=>row.worldId===foreign.managedUI.worldId));
 });
 test('navigation keeps live, cached and unobservable legacy missing-lifecycle cleanup unknown',async t=>{
   for(const kind of ['live','cached','observationError']){
@@ -1112,7 +1155,9 @@ test('overlapped world reads start while queued and keep their original FIFO pos
   }finally{proof.release();read.release();await outcomes;}
   assert.ok((await outcomes).every(row=>row.status==='fulfilled'));
   assert.deepEqual((await get(allocationLedger))[allocationLedger].map(row=>row.pendingBinding),['first','second','third']);
-  assert.ok(timings.length>0&&timings.every(([key,value])=>/^world[A-Za-z]+Ms$/.test(key)&&Number.isFinite(value)&&value>=0));
+  const ledgerCount=/^world(?:Allocate|Reserve)LedgerDocument(?:Queries(?:Queued)?|(?:Observe|Reserve|Other)PermitsAtQueue)$/;
+  assert.ok(timings.length>0&&timings.every(([key,value])=>Number.isFinite(value)&&value>=0&&
+    (/^world[A-Za-z]+Ms$/.test(key)||ledgerCount.test(key)&&Number.isSafeInteger(value))));
 });
 
 test('overlapped world first-read rejection is handled immediately while the queue is held',async t=>{
@@ -1167,6 +1212,32 @@ test('overlapped world second fresh FULL rejection fences cleanup and preserves 
   assert.deepEqual(f.worldConfigurations.map(row=>row.worldId),rows.map(row=>row.worldId));
   assert.deepEqual(resets,[stale,stale]);assert.equal(writes,2);assert.equal(f.calls.length,6);
   assert.equal(fullReads,6,'the rejected allocation is not retried; each independent allocation still reads two FULL ledgers');
+});
+
+test('overlapped world configurations and fresh ledger join before any cleanup or reservation',{timeout:5000},async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,get=f.api.storage.session.get,set=f.api.storage.session.set;
+  const configurationGate=allocationGate(),freshGate=allocationGate(),resets=[];
+  const failure=Error('native world configuration read failed');
+  let reads=0,writes=0,configurationStarted=false;
+  native.getWorldConfigurations=async()=>{
+    configurationStarted=true;await configurationGate.wait;throw failure;
+  };
+  native.resetWorldConfiguration=async id=>{resets.push(id);};
+  f.api.storage.session.get=async key=>{
+    if(++reads===2){assert.equal(configurationStarted,true);freshGate.release();}
+    return get(key);
+  };
+  f.api.storage.session.set=async value=>{writes++;return set(value);};
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage});
+  const result=Promise.allSettled([worlds.allocate(native,f.target,{pendingBinding:'owner'})]);
+  try{
+    await Promise.race([freshGate.wait,result]);
+    assert.equal(reads,2,'fresh ledger starts while the configuration read is held');
+    assert.equal(writes,0);assert.deepEqual(resets,[]);assert.deepEqual(f.calls,[]);
+  }finally{configurationGate.release();}
+  const [outcome]=await result;
+  assert.equal(outcome.status,'rejected');assert.equal(outcome.reason,failure);
+  assert.equal(writes,0);assert.deepEqual(resets,[]);assert.deepEqual(f.calls,[]);
 });
 
 for(const protection of ['pending','installed','installed child','preview child'])
@@ -1504,6 +1575,59 @@ function holdReviewLedger148(f){
   f.api.storage.session.get=async key=>{reads++;const gate=gates.shift(),rows=await get(key);if(gate)await gate.wait;return rows;};
   return {next(){const gate=allocationGate();gates.push(gate);return gate;},get reads(){return reads;}};
 }
+for(const failure of [null,'proof','marker'])test('automatic boot joins fixed proof and exact native marker: '+(failure??'success'),async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();
+  const proof=allocationGate(),marker=allocationGate();let proofReads=0,heldProof=false,heldMarker=false,settled=false;
+  const transaction=f.storage.transaction;
+  f.storage.transaction=(stores,mode,work)=>{
+    let freshProof=false;
+    const result=transaction(stores,mode,tx=>work({...tx,get:async(...args)=>{
+      const value=await tx.get(...args);
+      if(value?.tag==='page-verification-v1'&&++proofReads===2){
+        freshProof=true;
+        if(failure==='proof')return {...value,receiptHash:'changed'};
+      }
+      return value;
+    }}));
+    return result.then(async value=>{if(freshProof){heldProof=true;await proof.wait;}return value;});
+  };
+  const native=f.api.userScripts,execute=native.execute;
+  native.execute=async request=>{
+    const replies=await execute(request);
+    if(request.worldId!==PAGE_BOOT_WORLD)return replies;
+    heldMarker=true;await marker.wait;
+    return failure==='marker'?[{...replies[0],documentId:'other-document'}]:replies;
+  };
+  const held=holdReviewLedger148(f),firstLedger=failure&&held.next();
+  const initialConfigurations=f.worldConfigurations.length,initialCalls=f.calls.length;
+  const run=Promise.allSettled([f.boot().finally(()=>{settled=true;})]);
+  const noAdmission=()=>{
+    assert.ok(!f.rows().some(row=>row.tag==='page-execution-v1'));
+    assert.equal(f.worldConfigurations.length,initialConfigurations);
+    assert.deepEqual(f.calls.slice(initialCalls).map(call=>call.worldId),[PAGE_BOOT_WORLD]);
+  };
+  try{
+    for(let i=0;i<50&&!(heldProof&&heldMarker);i++)await allocationTurn();
+    assert.ok(heldProof&&heldMarker,'both independent checks must start before either is released');
+    noAdmission();
+    (failure==='marker'?marker:proof).release();
+    await installedHistoryTurns();assert.equal(settled,false);noAdmission();
+    proof.release();marker.release();
+    if(failure){
+      await installedHistoryTurns();assert.equal(settled,false,'failed boot still drains its world observation');
+      noAdmission();firstLedger.release();
+      const [result]=await run;
+      assert.equal(result.status,'rejected');
+      if(failure==='proof')assert.equal(result.reason.code,'E_PAGE_VERIFICATION');
+      else assert.match(result.reason.message,/真实安装引导标记/);
+      noAdmission();
+    }else{
+      assert.equal((await run)[0].status,'fulfilled');
+      assert.equal(f.rows().find(row=>row.tag==='page-execution-v1').state,'completed');
+      assert.ok(f.calls.length>1);
+    }
+  }finally{proof.release();marker.release();firstLedger?.release();await run;}
+});
 for(const own of [true,false])test('early FULL review foreign B cannot replace '+(own?'held original A':'preparation without observation'),async t=>{
   const f=fixture();t.after(f.dispose);await f.install();const a=await installedHistoryInput(f),held=holdReviewLedger148(f);
   let aRead,aHandle;if(own){aRead=held.next();aHandle=f.executor.beginInstalledAllocation({...a,source:'page_auto'});}

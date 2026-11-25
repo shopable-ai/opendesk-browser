@@ -4,29 +4,25 @@ import {readFile} from 'node:fs/promises';
 import {load} from 'cheerio';
 import postcss from 'postcss';
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
-import {composeExtensionEntries,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from '../../src/ui/extension-center-model.js';
+import {composeExtensionEntries,resolveExtensionPrimaryAction} from '../../src/ui/extension-center-model.js';
 
-test('R4.2 enabled installed app launches its installed package; missing app opens detail',()=>{
+test('A newer release does not change which installed app can be opened',()=>{
   const installed={id:'notes',title:'Notes',description:'编辑笔记',version:'1.0.0'};
   const latest={toolId:'notes',packageTitle:'Notes',description:'新版',version:'1.1.0'};
   const missing={toolId:'mind-map',packageTitle:'Mind Map',description:'思维导图',version:'1.0.0',installationPolicy:'preinstalled'};
   const rows=composeExtensionEntries({installed:[installed],official:[latest,missing]});
   assert.equal(rows.find(row=>row.id==='notes').update,true);
-  assert.equal(resolveExtensionRowIntent(rows.find(row=>row.id==='notes')),'launch');
-  assert.equal(resolveExtensionRowIntent(rows.find(row=>row.id==='mind-map')),'detail');
-  assert.equal(resolveExtensionRowIntent(null),'detail');
-  assert.equal(resolveExtensionRowIntent({installed:true,kind:'unknown',enabled:true}),'detail');
+  assert.equal(resolveExtensionPrimaryAction(rows.find(row=>row.id==='notes'))?.id,'open');
+  assert.equal(resolveExtensionPrimaryAction(rows.find(row=>row.id==='mind-map')),null);
 });
 
 test('R4.7 main action is genuinely optional for disabled/unknown/Page/candidates',()=>{
   for(const enabled of [false,undefined,null]){
     const row={installed:true,kind:'app',enabled};
-    assert.equal(resolveExtensionRowIntent(row),'detail');
     assert.equal(resolveExtensionPrimaryAction(row),null);
   }
   for(const enabled of [true,false]){
     const row={installed:true,kind:'page',enabled};
-    assert.equal(resolveExtensionRowIntent(row),'detail');
     assert.equal(resolveExtensionPrimaryAction(row),null);
   }
   for(const row of [
@@ -40,20 +36,6 @@ test('R4.7 main action is genuinely optional for disabled/unknown/Page/candidate
     {id:'open',label:'打开'});
 });
 
-test('R5.11 full row launches or opens detail; uninstall lives only in overflow',async()=>{
-  const [center,react]=await Promise.all([
-    readFile('src/ui/extension-center.js','utf8'),
-    readFile('src/ui/react/tabs/tools.tsx','utf8')
-  ]);
-  assert.match(center,/if\(resolveExtensionRowIntent\(row\)==='detail'\)\{openDetail\(key,'main'\);return;\}/);
-  assert.match(center,/if\(resolveExtensionPrimaryAction\(row\)\?\.id==='open'\)/);
-  assert.match(center,/sidebarTools\.openTool\(row\.id\)/);
-  assert.match(center,/add\(t\('uninstallAction'\),event=>openListUninstallReview\(row\.key,event\),'uninstall'\)/);
-  assert.match(react,/className="ec-row-main" data-extension-key=\{row\.key\}/);
-  assert.match(react,/data-extension-action="more"/);
-  assert.doesNotMatch(react,/data-extension-action="primary"/);
-  assert.doesNotMatch(react,/data-extension-action="uninstall"/);
-});
 test('R5.11 hover and keyboard reveal one overlay; touch retains one 44px menu',async()=>{
   const css=await readFile('src/ui/extension-center.css','utf8');
   const row=postcss.parse(css).nodes.find(node=>node.selector==='.ec-row');

@@ -26,10 +26,10 @@ function events(target={}){
  return Object.assign(target,{listeners,addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,new Set());listeners.get(type).add(fn);},
   removeEventListener(type,fn){listeners.get(type)?.delete(fn);},fire(type,event={}){for(const fn of [...listeners.get(type)||[]])fn(event);}});
 }
-function fixture(initial={}){
- const $=load('<main><article><h1>Article</h1><h2>Details</h2></article></main>'),cache=new WeakMap();
+function fixture(initial={},readContextStorage,{url='https://example.org/article',html='<main><article><h1>Article</h1><h2>Details</h2></article></main>'}={}){
+ const $=load(html),cache=new WeakMap();
  const timers=new Map(),frames=new Map(),observers=[],views=[];let serial=0,scrolls=0,handler=null,contextFailure=false;
- const win=events({location:new URL('https://example.org/article'),innerWidth:1200,innerHeight:800,crypto:{subtle:{digest:async(_,bytes)=>createHash('sha256').update(bytes).digest()}},
+ const win=events({location:new URL(url),innerWidth:1200,innerHeight:800,crypto:{subtle:{digest:async(_,bytes)=>createHash('sha256').update(bytes).digest()}},
   getComputedStyle:()=>({display:'block',visibility:'visible',overflowY:'visible',position:'static'}),
   setTimeout(fn,ms){timers.set(++serial,{fn,ms});return serial;},clearTimeout:id=>timers.delete(id),
   requestAnimationFrame(fn){frames.set(++serial,fn);return serial;},cancelAnimationFrame:id=>frames.delete(id),
@@ -50,7 +50,7 @@ function fixture(initial={}){
  doc.scrollingElement=doc.documentElement;Object.assign(doc.scrollingElement,{scrollTop:0,scrollHeight:4000,clientHeight:800});
  const store=storage(initial),disposeCallbacks=[];
  const owner={onDispose:fn=>disposeCallbacks.push(fn),destroy(){this.destroyed=true;return Promise.all(disposeCallbacks.map(fn=>fn()));}};
- const bridge={storage:store,async readContext(){if(contextFailure)throw Error('Revoked');return {locale:'en',catalog,data:store.values};},
+ const bridge={storage:readContextStorage??store,async readContext(){if(contextFailure)throw Error('Revoked');return {locale:'en',catalog,data:structuredClone(store.values)};},
   onRequest(fn){handler=fn;return ()=>{handler=null;};}};
  const engine=createDynamicReadingToc({bridge,owner,doc,win,createView(options){
   const node={removed:false};const view={options,node,renders:0,render(snapshot){this.renders++;this.snapshot=snapshot;},setLocale(){},placements:[],collapses:[],setPlacement(value){this.placements.push(value);},setCollapsed(value){this.collapses.push(value);},dispose(){node.removed=true;}};
@@ -82,6 +82,19 @@ test('disabled site stops indexing and can re-enable through polling without sid
  assert.equal((await f.engine.navigate('h-1','s-1')).ok,false);
  f.store.values.preferences={blockedOrigins:[]};await f.advance(1500);
  assert.equal(f.observers.at(-1).active,true);assert.equal(f.views.at(-1).node.removed,false);await f.owner.destroy();
+});
+test('the authorized policy snapshot includes visibility and placement without another bridge read',async()=>{
+ const origin='https://example.org',key=await originStorageKey(origin);
+ const placement={dock:'left'},f=fixture({[key]:{origin,placement,collapsed:true}},
+  {get(){throw Error('Snapshot already supplies this data');}});
+ await f.engine.ready;
+ assert.equal(f.views.length,1);
+ assert.deepEqual(f.views[0].options.initialPlacement,placement);
+ assert.equal(f.views[0].options.initialCollapsed,true);
+ f.store.values.preferences={hiddenSites:[origin]};await f.engine.refreshPolicy();
+ assert.equal(f.views[0].node.removed,true);
+ assert.equal((await f.handler({operation:'toc.snapshot'})).items.length,2);
+ await f.owner.destroy();
 });
 test('hidden page removes only overlay; snapshots/navigation remain available',async()=>{
  const f=fixture();await f.engine.ready;
@@ -137,6 +150,50 @@ test('streaming mutations debounce at 280ms and scroll updates active heading',a
  await f.advance(280);assert.equal((await f.handler({operation:'toc.snapshot'})).revision,before);
  f.win.scrollTo({top:850});f.doc.fire('scroll');await f.paint();
  assert.equal(f.views[0].snapshot.activeId,'h-2');await f.owner.destroy();
+});
+test('the first late ChatGPT heading bypasses the streaming debounce without bypassing authorization',async()=>{
+ for(const revoked of [false,true]){
+  const f=fixture({},undefined,{url:'https://chatgpt.com/c/test-conversation',
+   html:'<main><article data-message-author-role="assistant"><div class="markdown"></div></article></main>'});
+  await f.engine.ready;
+  assert.deepEqual(f.views[0].snapshot.items,[]);
+  const body=f.doc.querySelector('.markdown');
+  f.$('.markdown').append('<p>Partial body</p>');
+  f.observers[0].fn([{type:'childList',target:body,addedNodes:[body.querySelector('p')],removedNodes:[]}]);
+  assert.ok([...f.timers.values()].some(t=>t.ms===280),'plain body text retains the normal delay');
+  f.$('.markdown').append('<section><h2>First section</h2></section>');
+  f.observers[0].fn([{type:'childList',target:body,addedNodes:[body.querySelector('section')],removedNodes:[]}]);
+  f.observers[0].fn([{type:'childList',target:body,addedNodes:[body.querySelector('p')],removedNodes:[]}]);
+  assert.deepEqual(f.views[0].snapshot.items,[],'the observer does not read and publish an unauthorized index');
+  if(revoked)f.revoke();
+  await f.advance(0);
+  if(revoked){
+   assert.equal(f.owner.destroyed,true);assert.equal(f.views[0].node.removed,true);
+   assert.deepEqual(f.views[0].snapshot.items,[]);
+  }else{
+   assert.deepEqual(f.views[0].snapshot.items.map(item=>item.label),['First section']);
+   assert.ok(![...f.timers.values()].some(t=>t.ms===280),'the early pass processes the pending batch');
+  }
+  await f.owner.destroy();
+ }
+});
+test('scroll highlighting shares an ancestor lookup within a frame and detects a newly scrollable container',async()=>{
+ const f=fixture();await f.engine.ready;
+ const article=f.doc.querySelector('article');let reads=0,scrollable=false;
+ Object.assign(article,{scrollHeight:1000,clientHeight:400,
+  getBoundingClientRect:()=>({top:110,bottom:510,height:400})});
+ const getComputedStyle=f.win.getComputedStyle;
+ f.win.getComputedStyle=node=>{
+  if(node!==article)return getComputedStyle(node);
+  reads++;return {overflowY:scrollable?'auto':'visible'};
+ };
+ f.win.scrollTo({top:800});await f.paint();
+ assert.equal(f.views[0].snapshot.activeId,'h-1');
+ assert.equal(reads,1,'headings with a shared parent resolve the scroll container once per frame');
+ scrollable=true;f.doc.fire('scroll');await f.paint();
+ assert.equal(f.views[0].snapshot.activeId,'h-2');
+ assert.equal(reads,2,'the next frame rechecks the current overflow');
+ await f.owner.destroy();
 });
 test('unchanged policy polls and unrelated mutations do not render or retire an in-flight navigation',async()=>{
  const f=fixture();await f.engine.ready;

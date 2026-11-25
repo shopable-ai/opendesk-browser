@@ -11,12 +11,12 @@ function fixture(){
   let marker={schema:DEFAULT_PREINSTALL_STORE,state:'complete',extensionVersion:'1.0.0',
     plan:[],completed:[],pageState:'pending'};
   const calls=[],installed=[],catalog=[];
-  let granted=true,native=true,failImport=false,failReadback=false;
+  let granted=true,nativeState='registered',failImport=false,failReadback=false,changeReadback;
   const api={runtime:{getManifest:()=>({version:'1.0.0'}),getURL:path=>'chrome-extension://fixture/'+path},
     storage:{local:{get:async()=>({[DEFAULT_PREINSTALL_STORE]:structuredClone(marker)}),
       set:async value=>{marker=structuredClone(value[DEFAULT_PREINSTALL_STORE]);}}},
     permissions:{contains:async()=>granted},
-    userScripts:{getScripts:async()=>{if(!native)throw Error('unavailable');return [];},execute(){}}};
+    get userScripts(){assert.fail('only the Page Authority decides whether to defer registration');}};
   let tail=Promise.resolve();
   const lockManager={request(_name,work){const next=tail.then(work);tail=next.catch(()=>{});return next;}};
   const fetcher=async url=>{
@@ -29,7 +29,9 @@ function fixture(){
     calls.push(method);
     if(method==='listPagePrograms'){
       if(failReadback&&installed.length)throw Error('readback unavailable');
-      return {installed:structuredClone(installed),catalog:structuredClone(catalog)};
+      const rows=structuredClone(installed);
+      if(rows.length)changeReadback?.(rows[0]);
+      return {installed:rows,catalog:structuredClone(catalog)};
     }
     assert.equal(method,'importPageInstallPackage');
     assert.equal(marker.pageState,'attention','durable fence precedes Authority mutation');
@@ -40,13 +42,14 @@ function fixture(){
     assert.equal(args.expectedGeneration,null);
     if(failImport)throw Object.assign(Error('lost reply'),{code:'E_OUTCOME_UNKNOWN'});
     const row={programId:id,manifestHash:'authority-manifest',sourceHash:args.package.sourceHash,
-      revision:args.package.revision,enabled:true,nativeState:'registered',
-      authorization:{installationId:'authority-install',status:'active'}};
+      revision:args.package.revision,enabled:true,nativeState,
+      authorization:{installationId:'authority-install',generation:1,status:'active'}};
     installed.push(row);return structuredClone(row);
   }};
   return {options:{api,lockManager,client,fetcher},calls,installed,catalog,
     get marker(){return marker;},set marker(value){marker=value;},
-    set granted(value){granted=value;},set native(value){native=value;},
+    set granted(value){granted=value;},set nativeState(value){nativeState=value;},
+    set changeReadback(value){changeReadback=value;},
     set failImport(value){failImport=value;},set failReadback(value){failReadback=value;}};
 }
 
@@ -77,7 +80,7 @@ test('a blocked bundled release is not offered to the default installer or repor
     assert.equal(new URL(url).pathname,'/official-pages/catalog.json','blocked packages are never downloaded');
     return new Response(JSON.stringify(catalog));
   }};
-  f.native=false;f.granted=false;
+  f.granted=false;
   assert.deepEqual(await resumeDefaultPagePreinstall(options),{state:'complete',installed:0});
   assert.equal(f.marker.pageState,'complete');
   assert.deepEqual(f.calls,['listPagePrograms']);
@@ -106,14 +109,31 @@ test('existing older, newer, disabled and unknown installations win over catalog
   assert.deepEqual(f.calls,['listPagePrograms']);
 });
 
-test('missing website permission or userScripts opt-in never submits installation',async()=>{
+test('missing website permission never submits installation',async()=>{
   const f=fixture();f.granted=false;
   assert.equal((await resumeDefaultPagePreinstall(f.options)).state,'permission-required');
   assert.equal(f.marker.pageState,'pending');
-  f.granted=true;f.native=false;
-  await assert.rejects(resumeDefaultPagePreinstall(f.options));
-  assert.deepEqual(f.calls,['listPagePrograms','listPagePrograms']);
-  assert.equal(f.marker.pageState,'pending');
+  assert.deepEqual(f.calls,['listPagePrograms']);
+});
+
+test('missing userScripts opt-in saves the default Page once; only registration waits',async()=>{
+  const f=fixture();f.nativeState='waiting-user-scripts';
+  assert.deepEqual(await resumeDefaultPagePreinstall(f.options),{state:'complete',installed:1});
+  assert.equal(f.installed[0].nativeState,'waiting-user-scripts');
+  assert.equal(f.marker.pageState,'complete');
+  await resumeDefaultPagePreinstall(f.options);
+  assert.equal(f.calls.filter(method=>method==='importPageInstallPackage').length,1);
+});
+
+test('unconfirmed registration or a changed authorization cannot complete default Page setup',async()=>{
+  for(const edit of [row=>{row.nativeState='activation-unconfirmed';},
+    row=>{row.authorization.generation++;},row=>{row.error={code:'E_PERMISSION'};}]){
+    const f=fixture();f.nativeState='waiting-user-scripts';f.changeReadback=edit;
+    assert.deepEqual(await resumeDefaultPagePreinstall(f.options),{state:'attention'});
+    assert.equal(f.marker.pageState,'attention');
+    await resumeDefaultPagePreinstall(f.options);
+    assert.equal(f.calls.filter(method=>method==='importPageInstallPackage').length,1);
+  }
 });
 
 test('unknown import or readback outcome keeps durable fence across later resumes',async()=>{

@@ -1,7 +1,6 @@
-// One standalone conversation dock per installed Page Program.
-// Conversation top and floating top share one physical button.
+// Both top modes share one button.
 import {findSiteConversation} from './site-adapters.js';
-import {jumpConversationEdge,jumpRegionTop,findConversationPages,currentConversationPageIndex,conversationPageTargetIndex,jumpConversationPage} from './conversation.js';
+import {jumpConversationEdge,jumpRegionTop,findConversationPages,currentConversationPageIndex,conversationPageTargetIndex,jumpConversationPage,isVirtualChatGPT} from './conversation.js';
 import {scrollConfiguredEdge} from './site-configuration.js';
 
 const OWN='data-opendesk-ai-scroll-navigation';
@@ -12,9 +11,9 @@ const COMPACT_GAP=6;
 const SIZE=42;
 const TURN_SIZE=28;
 const INSET=20;
+const VIRTUAL_TAIL=12;
 const unavailable=button=>button.getAttribute('aria-disabled')==='true';
-// Only a genuinely rendered global control owns this surface. Hidden old
-// hosts may remain in the DOM during upgrades and must not reserve buttons.
+// Hidden legacy hosts do not reserve buttons.
 function renderedControl(node,win) {
   if(!node?.isConnected||node.closest?.('[hidden],[inert],[aria-hidden="true"]'))return false;
   const control=node.shadowRoot?.querySelector('button')||node.querySelector?.('button');
@@ -41,8 +40,7 @@ function controlObstacles(doc,win) {
       if(node.shadowRoot&&!node.closest?.(`[${OWN}],${LEGACY}`))collect(node.shadowRoot);
   };
   collect(doc);
-  // A closed shadow does not expose its controls. Root-level fixed peers
-  // still reserve their visible host rectangle, without a tool-specific hook.
+  // Reserve the visible bounds of fixed closed-shadow peers.
   controls.push(...[...doc.documentElement.children]
     .filter(node=>win.getComputedStyle(node).position==='fixed'));
   return controls.filter(node=>{
@@ -66,8 +64,7 @@ function chatGPTGutterLeft(main,doc,win) {
       box.left<win.innerWidth&&box.top<win.innerHeight?box:null;
   };
   let safeLeft=rect.left;
-  // ChatGPT's history can be a sibling of main or a column inside it.
-  // Reserve only a visible, tall navigation occupying the region's left edge.
+  // Reserve the visible sidebar whether inside main or beside it.
   for(const navigation of doc.querySelectorAll('aside,nav,[role="navigation"]')) {
     const box=visibleBox(navigation);
     if(!box)continue;
@@ -80,8 +77,7 @@ function chatGPTGutterLeft(main,doc,win) {
   const composers=[...main.querySelectorAll('#prompt-textarea,[data-testid="composer-text-input"],#mobile-composer-prompt,[data-composer-markdown][contenteditable="true"][role="textbox"]')]
     .filter(node=>visibleBox(node));
   if(composers.length===1) {
-    // Use the outermost full-height content column, never the indented
-    // message text or the composer box itself. No prompt-tool DOM is needed.
+    // Align with the full-height composer column, outside message text.
     for(let area=composers[0].parentElement;area&&area!==main;area=area.parentElement) {
       if(!main.contains(area))break;
       const box=visibleBox(area);
@@ -90,8 +86,7 @@ function chatGPTGutterLeft(main,doc,win) {
         left=box.left;
     }
   }
-  // Both hosts are documentElement siblings with the same 8px region gutter.
-  // The prompt rail's border and inner padding do not belong to that gutter.
+  // Keep both hosts on the same 8px gutter.
   return Math.max(8,left+8,safeLeft+8);
 }
 
@@ -101,7 +96,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
   let resizeObserver=null,resizeTargets=[];
   let binding=null,lastHref=win.location.href;
   const pageHistory={snapshot:null};
-  let landing=null;
+  let landing=null,notifyingScroll=false;
   const coarsePointer=win.matchMedia?.('(any-pointer: coarse)');
   const context=()=>typeof resolveConversation==='function'?resolveConversation():findSiteConversation(doc,win);
   const isCurrent=()=>!disposed&&binding&&host?.isConnected&&
@@ -115,25 +110,71 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       showTurnCount:flags.showTurnCount===true,
       topKey:floating&&flags.floatingTop!==false?'floatingTop':'conversationTop'};
   };
-  function settleLanding(next,key) {
-    if(next.site!=='chatgpt'||!key||!pageHistory.snapshot?.known.has(key))return;
-    const intent=landing={key,href:win.location.href,root:doc.documentElement,
+  function captureLanding(next) {
+    return landing={href:win.location.href,root:doc.documentElement,
       main:next.main,scroller:next.scroller,
       size:[next.scroller.clientWidth,next.scroller.clientHeight,win.innerWidth,win.innerHeight]};
-    // A virtual round mounts asynchronously and may restore its own scroll
-    // anchor after our first jump. Re-align to its verified live question,
-    // at most twice; never keep chasing after user input or a route change.
+  }
+  function liveLanding(intent) {
+    if(!isCurrent()||landing!==intent)return null;
+    const current=context();
+    if(win.location.href===intent.href&&doc.documentElement===intent.root&&
+        current?.main===intent.main&&current?.scroller===intent.scroller&&
+        [intent.scroller.clientWidth,intent.scroller.clientHeight,win.innerWidth,win.innerHeight]
+          .every((value,i)=>value===intent.size[i])&&!legacyFloatingPresent(doc,win))return current;
+    landing=null;
+    return null;
+  }
+  function jumpVirtualTop(next) {
+    const port=next.scroller;
+    if(!isVirtualChatGPT(next,win)||!win.WheelEvent||typeof port.scrollTo!=='function')return false;
+    const intent=captureLanding(next);
+    const live=()=>{const current=context();return !disposed&&landing===intent&&
+      win.location.href===intent.href&&doc.documentElement===intent.root&&port.isConnected&&
+      [port.clientWidth,port.clientHeight,win.innerWidth,win.innerHeight].every((v,i)=>v===intent.size[i])&&
+      (current?current.main===intent.main&&current.scroller===port&&enabled(current).top:!next.custom)&&
+      !legacyFloatingPresent(doc,win);};
+    const attempt=()=>{
+      if(!live()||port.scrollTop<=2)return;
+      // Let ChatGPT release its tail anchor before moving the transcript.
+      notifyingScroll=true;
+      try{port.dispatchEvent(new win.WheelEvent('wheel',{deltaY:-4,bubbles:true,composed:true,cancelable:true}));}
+      finally{notifyingScroll=false;}
+      owner.setTimeout(()=>{
+        if(live()&&port.scrollTop>2)port.scrollTo({top:0,left:port.scrollLeft||0,behavior:'instant'});
+      },100);
+    };
+    attempt();
+    // A long virtual transcript can shift when additional turns are measured.
+    for(const delay of [850,1700,2700,3800,5000,6300])owner.setTimeout(attempt,delay);
+    owner.setTimeout(()=>{if(landing===intent)landing=null;},6600);
+    return true;
+  }
+  function settleLanding(next,key) {
+    if(!key||!pageHistory.snapshot?.known.has(key))return;
+    const intent=captureLanding(next);
+    // Re-align twice if a virtual turn mounts after the jump.
     for(const delay of [180,600])owner.setTimeout(()=>{
-      if(disposed||landing!==intent)return;
-      const current=context();
-      if(win.location.href!==intent.href||doc.documentElement!==intent.root||
-          current?.main!==intent.main||current?.scroller!==intent.scroller||
-          [intent.scroller.clientWidth,intent.scroller.clientHeight,win.innerWidth,win.innerHeight]
-            .some((value,i)=>value!==intent.size[i])||
-          !enabled(current).paging){landing=null;return;}
+      const current=liveLanding(intent);
+      if(!current)return;
+      if(!enabled(current).paging){landing=null;return;}
       const paging=findConversationPages(current,doc,win,pageHistory);
-      const page=paging?.pages.find(page=>page.target?.getAttribute('data-content-search-unit-key')===key);
+      const page=paging?.pages.find(page=>page.key===key&&page.target);
       if(page)jumpRegionTop({target:page.target,main:current.main,kind:'conversation'},doc,win);
+      if(delay===600)landing=null;
+      refresh();
+    },delay);
+  }
+  function settleBottom(next) {
+    const intent=captureLanding(next);
+    for(const delay of [180,600])owner.setTimeout(()=>{
+      const current=liveLanding(intent);
+      if(!current)return;
+      if(enabled(current).bottom&&isVirtualChatGPT(current,win)&&
+          current.scroller.scrollTop<current.scroller.scrollHeight-current.scroller.clientHeight-VIRTUAL_TAIL) {
+        if(current.custom)scrollConfiguredEdge(current,'bottom',doc,win);
+        else jumpConversationEdge(current.main,current.selector,'bottom',doc,win);
+      }
       if(delay===600)landing=null;
       refresh();
     },delay);
@@ -164,17 +205,16 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       const paging=findConversationPages(next,doc,win,pageHistory);
       if(!paging)return;
       const destination=conversationPageTargetIndex(paging,direction,doc,win);
-      const page=paging.pages[destination];
-      const key=page?.remembered?page.key:page?.target?.getAttribute('data-content-search-unit-key');
+      const key=paging.pages[destination]?.key;
       if(jumpConversationPage(paging,direction,doc,win))settleLanding(next,key);
     }else{
       if(!intent[direction])return;
-      if(next.custom)scrollConfiguredEdge(next,direction,doc,win);
-      else jumpConversationEdge(next.main,next.selector,direction,doc,win);
+      if(direction!=='top'||!jumpVirtualTop(next)) {
+        const moved=next.custom?scrollConfiguredEdge(next,direction,doc,win):
+          jumpConversationEdge(next.main,next.selector,direction,doc,win);
+        if(moved&&direction==='bottom'&&isVirtualChatGPT(next,win))settleBottom(next);
+      }
     }
-    // A successful instant jump changes the scrollport synchronously. Reflect
-    // the new disabled/enabled state now instead of waiting for the 120 ms
-    // coalesced DOM/scroll observer; later native scroll events still resync.
     refresh();
   }
   function prepare() {
@@ -277,17 +317,12 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       resizeObserver??=new win.ResizeObserver(schedule);
       targets.forEach(target=>resizeObserver.observe(target));
     }
-    // Existing old trusted-page navigation wins during extension upgrade.
-    // Once that owner is removed, its DOM mutation permits standalone mounting.
-    // Old reply-local buttons do not own the global two-key dock.
-    // Only a live former global floating control may block this surface.
+    // Only a visible legacy global dock takes precedence.
     if (!next||legacyFloatingPresent(doc,win)) {
       pageHistory.snapshot=null;
       host?.remove();binding=null;return;
     }
-    // One visible dock across independently installed script instances, even
-    // when the modules do not share their in-memory WeakMap. Keep the first
-    // connected live ShadowRoot, never retire a peer's host.
+    // Preserve the first live dock, even across script instances.
     const existing=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
       .find(node=>liveDock(node,win));
     if (existing&&existing!==host) {
@@ -300,9 +335,6 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     const canPage=currentPage>=0;
     if(!directions.top&&!directions.bottom&&!directions.paging){host?.remove();binding=null;return;}
     prepare();
-    // Keep the enabled pager mounted through single-round transcripts and
-    // transient role gaps. Availability changes disabled state, never layout.
-    // No page nodes are persisted beyond this synchronous refresh.
     const options=[...(directions.top?[buttons.top]:[]),
       ...(directions.paging?[buttons.previous,...(canPage&&directions.showTurnCount?[buttons.counter]:[]),buttons.next]:[]),
       ...(directions.bottom?[buttons.bottom]:[])];
@@ -311,14 +343,11 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       buttons.stack.replaceChildren(...options);
     const scroller=next.scroller;
     const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
-    // A visible conversationTop and scroll-triggered floatingTop reuse the
-    // same physical top control; no second arrow is created.
     buttons.top.dataset.scrollNavKey=directions.topKey;
     buttons.bottom.dataset.scrollNavKey='conversationBottom';
-    // aria-disabled keeps all four controls in the keyboard path so their
-    // boundary reasons remain discoverable. Clicks still cannot scroll them.
+    // Keep boundary controls on the keyboard path for their hints.
     buttons.top.setAttribute('aria-disabled',String(scroller.scrollTop<=2));
-    buttons.bottom.setAttribute('aria-disabled',String(scroller.scrollTop>=max-2));
+    buttons.bottom.setAttribute('aria-disabled',String(scroller.scrollTop>=max-(isVirtualChatGPT(next,win)?VIRTUAL_TAIL:2)));
     const previousPage=canPage?conversationPageTargetIndex(paging,'previous',doc,win):-1;
     const nextPage=canPage?conversationPageTargetIndex(paging,'next',doc,win):-1;
     buttons.previous.setAttribute('aria-disabled',String(previousPage<0));
@@ -344,11 +373,8 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     }
     const rect=next.main.getBoundingClientRect();
     const hasCount=options.includes(buttons.counter);
-    // Keep short counts at the approved size, while fitting the full loaded
-    // count in long transcripts. Reserve the same width for collision checks.
     const digits=hasCount?String(paging.pages.length).length:0;
-    // The transcript content can extend far above/below the screen. Anchor to
-    // its visible scroll port, never to moving message boxes or document edges.
+    // Anchor to the scrollport, not the moving transcript.
     const viewport=win.visualViewport;
     const viewportLeft=viewport?.offsetLeft??0,viewportTop=viewport?.offsetTop??0;
     const viewportRight=viewportLeft+(viewport?.width??win.innerWidth);
@@ -390,9 +416,8 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       const left=between(Math.round(desiredLeft),minLeft,maxLeft);
       obstacles??=controlObstacles(doc,win);
       const limitLeft=Math.min(maxLeft,left+Math.min(160,portWidth*.25));
-      // A narrow transcript can have a full-width composer across the bottom.
-      // Keep the dock in the lower part of the transcript, above that surface.
-      const clearance=narrow||compact?Math.min(160,portHeight/3):Math.min(SIZE+12,portHeight*.15);
+      // The compact dock can move above even a tall composer.
+      const clearance=compact?portHeight:narrow?Math.min(160,portHeight/3):Math.min(SIZE+12,portHeight*.15);
       const lowestTop=Math.max(minTop,Math.ceil(topPos-clearance));
       const columns=[...new Set([left,...obstacles.flatMap(r=>[
         Math.ceil(r.right+12),Math.floor(r.left-width-12)])])]
@@ -428,8 +453,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     observer?.disconnect();
     observedRoot=doc.documentElement;
     if (!observedRoot) return;
-    // Custom CSS may depend on any attribute (including data-*, id or inert).
-    // Filter our own host/children below to avoid refresh loops.
+    // Watch all attributes for custom CSS; ignore our own host.
     observer=owner.observe(observedRoot,records=>{
       if (records.every(record=>{
         const node=record.target;
@@ -469,13 +493,11 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     if(buttons&&!event.composedPath?.().includes(host))
       for(const key of ['top','previous','next','bottom'])buttons[key].classList.remove('show-hint');
   },true);
-  for(const type of ['wheel','touchstart'])owner.on(doc,type,()=>{landing=null;},true);
+  for(const type of ['wheel','touchstart'])owner.on(doc,type,()=>{if(!notifyingScroll)landing=null;},true);
   if(coarsePointer)owner.on(coarsePointer,'change',schedule);
   for (const type of ['popstate','hashchange','pageshow','resize','scroll'])
     owner.on(win,type,schedule,type==='scroll');
-  // Element scrolls do not generally bubble to window. Capture the actual
-  // transcript scroller, but ignore unrelated nested code/editor scrollports:
-  // those must not trigger a full conversation/layout/obstacle rescan.
+  // Watch the transcript scrollport without rescanning on nested scrolls.
   owner.on(doc,'scroll',event=>{
     const target=event?.target;
     if(!target||!binding||target===binding.scroller||target===doc||

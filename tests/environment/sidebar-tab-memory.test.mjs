@@ -173,7 +173,7 @@ test('the real shell only restores the Side Panel and ignores navigation rejecte
   ]);
   assert.match(shell,/const actualSidePanel=await isActualSidePanelContext\(\{api:chrome,href:hostUrl\.href\}\)/);
   assert.match(shell,/if\(actualSidePanel\|\|!tab\?\.id\)\{[\s\S]*?tabMemory\.restore\(\)/);
-  assert.match(shell,/onTabSelected:\(view,options\)=>tabMemory\.record\(view,options\)/);
+  assert.match(shell,/onTabSelected:\(view,options\)=>[\s\S]*?tabMemory\.record\(view,options\)/);
   const navigateStart=work.indexOf('function navigate(name,{initial=false}={})');
   const veto=work.indexOf("if(toolsViewListener?.((name==='tools'||name==='app-debug')&&!catalogSurface,name)===false)return false;",navigateStart);
   const recorded=work.indexOf('onTabSelected?.(name,{initial});',navigateStart);

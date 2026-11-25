@@ -22,7 +22,17 @@ for(const w of [680,320,680]){
   assert(await p.evaluate(()=>!document.querySelector('details')),'stale diagnostic after ready');
   console.log('SIDEBAR',JSON.stringify(a));
 }
-await p.evaluate(()=>window.sidebarFixture.target('https://example.test','ready'));
-await p.click('.send-queue-status-row button');await expectStatus('请打开 ChatGPT');
-assert(await p.evaluate(()=>window.sidebarFixture.calls.at(-1)==='currentPage.info'),'non-ChatGPT target reached page bridge');
-console.log('SIDEBAR unsupported: no page request');
+await p.evaluate(()=>window.sidebarFixture.target('https://gemini.google.com/app/fixture','ready'));
+await p.click('.send-queue-status-row button');await expectStatus('队列已就绪');
+assert(await p.evaluate(()=>window.sidebarFixture.calls.at(-1)==='page.request'),'supported Gemini conversation did not reach page bridge');
+for(const url of ['https://gemini.google.com/library','https://chat.deepseek.com/a/chat/s/1234','https://example.test']){
+  // After an unsupported result there is no recheck button; reopen the view
+  // with the next simulated active URL (before its first host response).
+  await p.goto(base+'/projects/ai-send-queue/tests/fixtures/sidebar-status.html?build='+encodeURIComponent(build));
+  await expectStatus('队列已就绪');
+  await p.evaluate(target=>window.sidebarFixture.target(target,'ready'),url);
+  await p.click('.send-queue-status-row button');await expectStatus('请打开 ChatGPT 或 Gemini 对话');
+  assert(await p.evaluate(()=>window.sidebarFixture.calls.at(-1)==='currentPage.info'),'unsupported target reached page bridge');
+}
+console.log('SIDEBAR Gemini ready; unsupported routes did not call the page bridge');
+await p.close();

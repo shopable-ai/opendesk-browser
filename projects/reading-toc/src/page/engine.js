@@ -2,25 +2,33 @@ import {createReadingTocIndex} from '../../trusted/model.js';
 import {createReadingTocView} from '../../trusted/view.js';
 import {originStorageKey,preferenceState,updateOrigin} from './settings.js';
 
+const headingTags='h1,h2,h3,h4,h5,h6';
+
 // Adapted from the existing TOC controller: all DOM algorithms remain shared.
 export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,win=doc.defaultView,
   createIndex=createReadingTocIndex,createView=createReadingTocView}={}) {
   const index=createIndex(doc),removers=[],paintCancels=new Set(),writes=new Set();
   let enabled=false,disposed=false,view=null,observer=null,rebuildTimer=0,rebuildDeadline=0,spyFrame=0,pollTimer=0,lifecycle=0;
+  let firstHeadingAttempted=false,firstHeadingPending=false;
   let activeId='',href=win.location.href,navEpoch=0,settled=null,policyFlight=null;
   let uiLocale='zh-CN',uiCatalog=null,originKey='',visible=false;
   let unsubscribe=null,appliedPlacement='',appliedCollapsed=false;
   let renderedView=null,renderedRevision=-1,renderedActiveId='';
   const listen=(target,type,fn,options)=>{target.addEventListener(type,fn,options);
     removers.push(()=>target.removeEventListener(type,fn,options));};
-  const scrollRoot=element=>{
+  const scrollRoot=(element,roots)=>{
     let parent=element.parentElement;
+    let root=doc.scrollingElement||doc.documentElement;
+    const visited=roots?[]:null;
     while(parent&&parent!==doc.body&&parent!==doc.documentElement){
+      if(roots?.has(parent)){root=roots.get(parent);break;}
+      visited?.push(parent);
       const overflow=win.getComputedStyle(parent).overflowY;
-      if(/auto|scroll|overlay/.test(overflow)&&parent.scrollHeight>parent.clientHeight+6)return parent;
+      if(/auto|scroll|overlay/.test(overflow)&&parent.scrollHeight>parent.clientHeight+6){root=parent;break;}
       parent=parent.parentElement;
     }
-    return doc.scrollingElement||doc.documentElement;
+    if(visited)for(const ancestor of visited)roots.set(ancestor,root);
+    return root;
   };
   const isPageRoot=root=>root===doc.scrollingElement||root===doc.documentElement||root===doc.body;
   const topOf=root=>isPageRoot(root)?0:root.getBoundingClientRect().top;
@@ -58,12 +66,14 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
     spyFrame=0;
     if(!enabled||!index.items.length||disposed||settled?.running)return;
     let closest=null;
-    const offsets=new Map();
+    // Shared ancestors and viewport edges are stable during this read pass.
+    // A later frame or a click resolves them again from the current layout.
+    const roots=new Map(),edges=new Map();
     for(const item of index.items){
       if(!item.element.isConnected)continue;
-      const root=scrollRoot(item.element);
-      if(!offsets.has(root))offsets.set(root,topOffset(root,item.element));
-      const top=item.element.getBoundingClientRect().top-topOf(root)-offsets.get(root);
+      const root=scrollRoot(item.element,roots);
+      if(!edges.has(root))edges.set(root,topOf(root)+topOffset(root,item.element));
+      const top=item.element.getBoundingClientRect().top-edges.get(root);
       if(top<=8)closest=item;
       else if(!closest)closest=item;
     }
@@ -74,6 +84,7 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
     lifecycle++;enabled=false;cancelNavigation();observer?.disconnect();observer=null;
     view?.dispose();view=null;renderedView=null;win.clearTimeout(rebuildTimer);rebuildTimer=0;
     win.clearTimeout(rebuildDeadline);rebuildDeadline=0;
+    firstHeadingPending=false;
     if(spyFrame)win.cancelAnimationFrame(spyFrame);spyFrame=0;
     for(const remove of removers.splice(0))remove();activeId='';
   }
@@ -88,6 +99,7 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
   async function rebuild(){
     win.clearTimeout(rebuildTimer);rebuildTimer=0;
     win.clearTimeout(rebuildDeadline);rebuildDeadline=0;
+    firstHeadingPending=false;
     const epoch=lifecycle,expected=href;
     if(!await refreshPolicy()||!enabled||disposed||epoch!==lifecycle||expected!==href||href!==win.location.href)return;
     const revision=index.revision;
@@ -103,12 +115,23 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
       record.target?.closest?.('[data-opendesk-toc-root]')||
       (record.type==='childList'&&[...record.addedNodes,...record.removedNodes].length&&
        [...record.addedNodes,...record.removedNodes].every(node=>node.matches?.('[data-opendesk-toc-root]')))))return;
+    if(firstHeadingPending)return;
+    if(!firstHeadingAttempted&&visible&&!index.items.length&&win.location.hostname==='chatgpt.com'&&
+       Array.isArray(records)&&records.some(record=>record.type==='childList'&&
+         [...record.addedNodes].some(node=>node.matches?.(headingTags)||node.querySelector?.(headingTags)))){
+      // A hydrated transcript can insert its first headings after startup.
+      // Try one early rebuild through the same fresh authorization and route
+      // checks. The shared index still decides which headings are eligible.
+      firstHeadingAttempted=firstHeadingPending=true;
+      win.clearTimeout(rebuildTimer);rebuildTimer=win.setTimeout(()=>void rebuild(),0);
+      return;
+    }
     win.clearTimeout(rebuildTimer);rebuildTimer=win.setTimeout(()=>void rebuild(),280);
     // Continuous streaming must not postpone a new heading indefinitely.
     if(!rebuildDeadline)rebuildDeadline=win.setTimeout(()=>void rebuild(),1000);
   }
   function start(){
-    enabled=true;
+    enabled=true;firstHeadingAttempted=false;
     observer=new win.MutationObserver(scheduleRebuild);
     observer.observe(doc.body||doc.documentElement,{childList:true,subtree:true,characterData:true,
       attributes:true,attributeFilter:['hidden','aria-hidden']});
@@ -134,11 +157,13 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
       const expected=win.location.href;
       const context=await bridge.readContext(); // A failed authority read retires all resources.
       if(disposed)return false;
-      const stored=await bridge.storage.get({key:'preferences',withEtag:true});
-      if(disposed)return false;
-      const state=preferenceState(stored.value,expected);
+      // The authorized context already contains the private namespace. Read
+      // policy and geometry from that same snapshot; saves still use CAS.
+      const data=context.data;
+      if(!data||typeof data!=='object'||Array.isArray(data))throw Error('Invalid reading context');
+      const state=preferenceState(Object.hasOwn(data,'preferences')?data.preferences:null,expected);
       const key=await originStorageKey(state.origin,win.crypto||globalThis.crypto);
-      const record=(await bridge.storage.get({key,withEtag:true})).value;
+      const record=Object.hasOwn(data,key)?data[key]:null;
       if(record&&record.origin!==state.origin)throw Error('Origin storage collision');
       if(disposed)return false;
       if(win.location.href!==expected){stop();return false;}

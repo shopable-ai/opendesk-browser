@@ -32,6 +32,9 @@ export function sidebarToolRequestTimeout(operation,toolId){
  if(operation==='ui.confirm')return TOOL_UI_CONFIRM_CLIENT_TIMEOUT_MS;
  if(operation==='ai.generate')return 190000;
  if(operation==='localTasks.request'||operation==='localTasks.export')return 180000;
+ // The Host validates the companion installation and current document both
+ // before and after native dispatch; allow that round trip to finish.
+ if(operation==='page.request')return 30000;
  if(operation==='browser.page.readEnvironment')return 100000;
  // HTTP normally dispatches immediately, but its first missing Chrome origin
  // permission still needs time for the native prompt in the trusted parent.
@@ -225,9 +228,9 @@ export function initSidebarToolSandbox() {
     const requestId=''+(++sequence);
     return new Carrier((resolve,reject)=>{
       const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export';
-      // Tool storage and the fixed first-party Cookie RPC write outside the
-      // public Browser catalog. Once dispatched their results can be unknown too.
-      const browserWrite=exporting||operation==='storage.set'||operation==='tool.page.open'||browserOperation(operation)?.effectClass==='write'||
+      // Companion handlers can write their own storage. Their effects, like
+      // those of other writes outside the Browser catalog, can be unknown.
+      const browserWrite=exporting||operation==='storage.set'||operation==='page.request'||operation==='tool.page.open'||browserOperation(operation)?.effectClass==='write'||
         toolId==='cookie-editor'&&operation==='cookieAccount.switch';
       const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
       const timeout=later(()=>{

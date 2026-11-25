@@ -107,25 +107,29 @@ export function CookieImportDropzone({dragging=false,fileName='',maxSize='8 MiB'
     <span id={formatsId} className="cookie-import-dropzone-formats">JSON / TXT / Netscape · 最大 {maxSize}</span>
   </button>;
 }
-// Two directly visible formats, with native buttons and keyboard-accessible tabs.
-// Netscape remains a legacy domain format, but is not offered in the UI.
+// Directly visible formats, with native buttons and keyboard-accessible tabs.
 export function CookieExportFormatRow({format='json',onFormat,includeValues=true,
   onIncludeValues,disabled=false,panelId}){
   const tabs=React.useRef(null);
   const jsonId=React.useId();
   const headerId=React.useId();
+  const netscapeId=React.useId();
+  const formats=[['json','JSON',jsonId],['header','Cookie Header',headerId],
+    ['netscape','Netscape',netscapeId]];
   const changeFromKeys=event=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)||disabled)return;
     event.preventDefault();
-    const next=event.key==='Home'?'json':event.key==='End'?'header':
-      format==='json'?'header':'json';
+    const index=formats.findIndex(([key])=>key===format);
+    const nextIndex=event.key==='Home'?0:event.key==='End'?formats.length-1:
+      (index+(event.key==='ArrowRight'?1:-1)+formats.length)%formats.length;
+    const [next]=formats[nextIndex];
     onFormat?.(next);
     tabs.current?.querySelector('[data-export-format="'+next+'"]')?.focus();
   };
   return <div className="export-format cookie-export-options">
     <div className="cookie-export-tabs" ref={tabs} role="tablist"
       aria-label="导出格式" onKeyDown={changeFromKeys}>
-      {[['json','JSON',jsonId],['header','Cookie Header',headerId]].map(([key,label,id])=>
+      {formats.map(([key,label,id])=>
         <button key={key} id={id} data-export-format={key} type="button" role="tab"
           className="od-button cookie-button--choice"
           aria-selected={format===key} aria-controls={panelId} tabIndex={format===key?0:-1}

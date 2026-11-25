@@ -71,7 +71,7 @@ export default function App(){
      {(teamRequested?['team.example.test']:demoSites).map(hostname=><option key={hostname} value={hostname}>{hostname}</option>)}
     </select></label>
     <label>下次操作 <select data-testid="failure" value={failure} onChange={e=>{setFailure(e.target.value);mock.setFailure(e.target.value);}}>
-     <option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option>
+     <option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option><option value="clearPartial">清理部分生效，回执未知</option>
     </select></label>
     <button className="lab-button" type="button" onClick={()=>setDark(x=>!x)}>{dark?'浅色':'深色'}</button>
     <button className="lab-button" type="button" onClick={()=>useScene(scene)}>重置</button>

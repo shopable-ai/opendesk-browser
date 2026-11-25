@@ -52,6 +52,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .odmm-export-status{padding:5px 10px;font-size:12px;color:var(--mm-muted);
   border-bottom:1px solid var(--mm-line)}
 .odmm-export-status[role="alert"]{color:#c44b4b}
+.odmm-failure{margin:8px 0 12px;padding:6px 10px;border-inline-start:2px solid currentColor;
+  color:inherit;font-size:13px;line-height:1.5}
 .odmm-update-dot{position:absolute;top:5px;right:5px;pointer-events:none;
   width:6px;height:6px;border-radius:50%;background:var(--mm-accent)}
 .odmm-tooltip{display:none;position:absolute;right:0;top:calc(100% + 8px);z-index:32;

@@ -1,5 +1,6 @@
 import {resolveToolSender,isToolSender} from '../environment.js';
 import {SIDEPANEL_DOCUMENT_PATH,SIDEPANEL_DOCUMENT_PATHNAME} from '../tool-document-url.js';
+import {createDetailMemoryObserver} from './detail-memory-observer.js';
 const protocol='opendesk.development.v1';
 const baselineKey='opendesk.development.applied.v1';
 const unavailable='开发输出暂不可用；保留当前宿主与任务。';
@@ -48,6 +49,9 @@ export function developmentChanges(previous,next) {
 }
 export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=globalThis.fetch,intervalMs=1000,retryDelayMs=5000}={}) {
   const ports=new Map();let held=false,applied,restored=false,timer,checking=false,checkIdle,lastReason,nativePending=0,reloading=false,retryAfter=0;
+  const detailObservation=createDetailMemoryObserver({storage:api.storage,publish:observation=>{
+    for(const {port} of ports.values())try{port.postMessage({type:'detail-memory-observation',observation});}catch{}
+  }});
   let pageBootstrapVersion=0;
   const saveBaseline=value=>api.storage.session.set({[baselineKey]:value});
   async function remember(value){await saveBaseline(value);applied=value;}
@@ -62,6 +66,8 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
     port.onMessage.addListener(message=>{if(message.type==='ready'&&message.token===row.token)row.ready=message.ready===true;});
     port.onDisconnect.addListener(()=>{row.ready=false;if(ports.get(row.documentId)===row)ports.delete(row.documentId);});
     port.postMessage({type:'connected',documentId:row.documentId,revision:applied?.revision ?? null});
+    port.postMessage({type:'detail-memory-observation',observation:detailObservation.snapshot()});
+    void detailObservation.read();
     if(lastReason)port.postMessage({type:'waiting',reason:lastReason});
   }
   api.runtime.onConnect.addListener(connect);
@@ -155,5 +161,5 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
   return {runHostIdle:developmentRunHostIdle,get held(){return held;},get nativePending(){return nativePending;},nativeStarted(){nativePending++;return ()=>nativePending--;},
     tryStartPageBootstrap(){if(reloading)return false;pageBootstrapVersion++;return true;},
     start(canReload){checkIdle=canReload;tick();timer=setInterval(tick,intervalMs);},
-    dispose(){clearInterval(timer);api.runtime.onConnect.removeListener(connect);for(const {port} of ports.values())port.disconnect();ports.clear();}};
+    dispose(){clearInterval(timer);detailObservation.dispose();api.runtime.onConnect.removeListener(connect);for(const {port} of ports.values())port.disconnect();ports.clear();}};
 }
