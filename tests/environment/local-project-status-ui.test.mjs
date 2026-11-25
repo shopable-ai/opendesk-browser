@@ -27,7 +27,8 @@ for(const kind of ['controller','page-userscript']){
         const source={bindingId,providerEpoch:'epoch-a',projectId:'project-a',runtimeKind:kind,
           entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
           sourceBytes:new TextEncoder().encode(sourceUtf8).length,inputHash:'b'.repeat(64),
-          siteOrigins:['https://example.com']};
+          siteOrigins:['https://example.com'],...(kind==='controller'?{paramsSchema:{type:'object',
+            properties:{limit:{type:'integer',title:'Limit',default:3}},required:['limit'],additionalProperties:false}}:{})};
         let preparation={state:'ready',sourceHash:source.sourceHash},closed=false,hashes=0,permissions=0;
         const catalog=()=>[{...project,bindingId,runtimeKind:kind,preparation},
           {...project,bindingId:otherBinding,sourceId:'source-c',runtimeKind:kind}];
@@ -47,10 +48,10 @@ for(const kind of ['controller','page-userscript']){
           const digest=crypto.subtle.digest.bind(crypto.subtle);
           t.mock.method(crypto.subtle,'digest',async(...args)=>{if(++hashes===2)await pause();return digest(...args);});
         }
-        const effects=[],errors=[];
+        const effects=[],errors=[],dispatchedParams=[];
         const client={ready:Promise.resolve(),registration:{registrationId:'registration-a'},
           subscribeNativeAgent:()=>()=>{},request:async method=>{effects.push(method);throw Error('unexpected Page dispatch');}};
-        const host={currentRun:null,start:async()=>{effects.push('run.start');throw Error('unexpected Controller dispatch');},
+        const host={currentRun:null,start:async request=>{effects.push('run.start');dispatchedParams.push(request.params);throw Error('unexpected Controller dispatch');},
           controller:{snapshotControllerRun:async()=>({slotAvailable:true})}};
         const adapter=createNativeAgentHostAdapter({client,host,api,currentPageTarget});
         const owner=createLocalProjectRun({api,host,view:f.developerView,currentPageTarget,localProject:f.view,localAdapter:adapter,
@@ -66,9 +67,11 @@ for(const kind of ['controller','page-userscript']){
         release.resolve();
         for(let i=0;i<300&&owner.running;i++)await new Promise(resolve=>setTimeout(resolve,2));
         assert.equal(owner.running,false,'original Local operation must settle');
-        if(change==='unchanged')assert.deepEqual(effects,[kind==='controller'?'run.start':'previewPageScript'],
-          'unchanged Local draft must still reach the original execution owner');
-        else {
+        if(change==='unchanged'){
+          assert.deepEqual(effects,[kind==='controller'?'run.start':'previewPageScript'],
+            'unchanged Local draft must still reach the original execution owner');
+          if(kind==='controller')assert.deepEqual(dispatchedParams,[{limit:3}]);
+        }else {
           assert.deepEqual(effects,[],'stale Local operation must never reach RunHost or USER_SCRIPT dispatch');
           if(change!=='close')assert.ok(errors.some(error=>error.code==='E_DEV_CONFLICT'),JSON.stringify(errors));
         }

@@ -99,9 +99,9 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
       await currentPageTarget.revalidate(captured);await localProject.assertReady(binding,source.sourceHash);
       const preparationIdentity=localProject.preparationIdentity();
       page=source.runtimeKind==='page-userscript';
-      const params=page?{}:JSON.parse(paramsText);
+      let params=page?{}:JSON.parse(paramsText);
       if(!localProjectAllowsOrigin(source,captured.origin))throw {code:'E_DEV_ORIGIN',message:'当前网站不在本地项目的允许范围内；请检查项目 siteOrigins（所有网页使用 ["<all_urls>"]）'};
-      if(!page&&source.paramsSchema)validateTaskParams(source.paramsSchema,params);
+      if(!page&&source.paramsSchema)params=validateTaskParams(source.paramsSchema,params);
       const {status:ignored,...target}=captured;
       const claim=await localAdapter.handle({method:page?'page.preview':'run.start',requestId:crypto.randomUUID(),params:{
         sourceHash:source.sourceHash,sourceBytes:source.sourceBytes,target,

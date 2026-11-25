@@ -488,6 +488,27 @@ test('App Controller early Stop permanently fences the original request',async t
   await assert.rejects(f.startApp(),{code:'E_CANCELLED'});
 });
 
+test('Installed Task Authority sends reviewed defaults to the durable Worker, without replacing explicit false or zero',async()=>{
+  const f=await installedTaskFixture();
+  const row=await f.installPackage({...f.manifest,version:'1.0.1',paramsSchema:{...f.manifest.paramsSchema,
+    properties:{no:{type:'boolean',title:'No',default:true},zero:{type:'number',title:'Zero',default:5},
+      limit:{type:'integer',title:'Limit',enum:[3],default:3}},
+    required:['limit']}},f.resolved);
+  await assert.rejects(f.startTask(row,{paramsWire:encodeValue({limit:4})}),{code:'E_PARAMS'});
+  const requestId=crypto.randomUUID();
+  const deadlineAt=Date.now()+30000;
+  const paramsWire=encodeValue({no:false,zero:0});
+  const run=await f.startTask(row,{requestId,deadlineAt,paramsWire});
+  assert.deepEqual(decodeValue(run.paramsWire),{no:false,zero:0,limit:3});
+  const durable=(await f.rows('runs')).find(item=>item.runId===run.runId);
+  assert.deepEqual(decodeValue(durable.paramsWire),{no:false,zero:0,limit:3});
+  assert.deepEqual(decodeValue(paramsWire),{no:false,zero:0});
+  const replay=await f.startTask(row,{requestId,deadlineAt,paramsWire});
+  assert.equal(replay.runId,run.runId);
+  assert.equal(replay.duplicate,true);
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+});
+
 test('App Controller executes reviewed parameter defaults while retaining the original request digest',async t=>{
   const f=await appControllerFixture(t,{limit:{type:'integer',title:'Limit',default:10}});
   const run=await f.startApp();

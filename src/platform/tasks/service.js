@@ -88,7 +88,7 @@ export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,ori
     candidate.package.manifest.siteOrigins.includes(origin) &&
     taskScriptId(install.taskId,install.version)===scriptId,'E_PERMISSION',
     'Installed task does not match its Available version or website');
-  if (params !== undefined) validateTaskParams(candidate.package.manifest.paramsSchema,params);
+  const normalizedParams=params===undefined?undefined:validateTaskParams(candidate.package.manifest.paramsSchema,params);
   if(!install.authorization&&migrate){
     // Only the new-run admission readwrite transaction upgrades a proven old
     // installation. A previous live run cannot acquire this new identity.
@@ -102,7 +102,7 @@ export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,ori
       canonical(grant.scope)===canonical(installAuthorization(candidate.package.manifest).scope),
       'E_PERMISSION','Installed task authorization scope differs');
   }
-  return {candidate,installation:structuredClone(install)};
+  return {candidate,installation:structuredClone(install),...(params===undefined?{}:{normalizedParams})};
 }
 
 export {assertRunTaskAuthorization} from './run-authorization.js';

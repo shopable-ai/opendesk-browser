@@ -1443,6 +1443,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         scriptId:saved.scriptId,contentHash:saved.contentHash,
         origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,builtinIdentity:environment,
         expectedGeneration:request.expectedTaskGeneration,expectedInstallationId:request.expectedTaskInstallationId}):null;
+      // Keep request/preparation/delegation fingerprints bound to the original
+      // submitted params; only the durable Worker input uses reviewed defaults.
+      if(installedTask)executionParamsWire=encodeValue(installedTask.normalizedParams);
       if(request.taskDelegation&&!isAppController){
         const pin=request.taskDelegation.task,installation=installedTask.installation;
         invariant(sameTaskPin(pin,{...installation,contentHash:saved.contentHash})&&

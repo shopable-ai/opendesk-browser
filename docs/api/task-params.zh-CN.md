@@ -80,6 +80,12 @@ async function main() {
 
 维护：只修改 task-packs/examples/task-params-header.example.js 的文本声明，重新生成 task-packs/examples/task-param-items.example.json 及 task-packs/examples/task-params-v2.example.json，并同步现有离线 HTML 与文档派生片段。新增测试与既有测试分别核对源→IR→标准契约、标准契约→HTML/MD。定向 Node：`node --test tests/environment/task-param-items.test.mjs tests/environment/task-params-contract-r10.test.mjs`。正式 R11 应接入原构建、TaskWorkbench 和统一 v2 语义验证，不新增第二套安装器或渲染器。
 
+### R11.2 正式运行前置修复：规范化参数不得丢弃
+
+基于 `0623837ca4189b122916c9f0a39acc66f0013baa`，已核查已安装 Task 的 Authority 原先校验 params 后仍将原 paramsWire 持久化，本地项目运行原先校验后仍将原 params 传给 RunHost。本增量使已安装任务使用同一事务中校验返回的 normalizedParams 生成耐久 Worker 输入，并使本地项目使用校验返回值；原请求摘要、准备/委托/计划比对、安装身份与权限检查保持不变。本地项目仍为原 draft 路径，不因此取得已安装任务的权威参数定义。增加原 Authority 和 Local UI 组件回归断言；完整仓库依赖环境及真实 Chrome 未验证，v2 Manifest 尚未开放。
+
+百度稳定 1.1.6、Google 稳定 1.0.7、Google interaction 1.0.0 的活动源码仍无 @param，三者 legacy 参数均为 query（必填、1–120）、limit（固定 3、默认 3、required）和 showExecutionTab（默认 true、可选）。新版本应保持这些业务语义，以 const=3 表达固定值，保留原参数名和零参数 main()，不把 Top3 改为可变数量或删除业务非空白检查。先完成通用 v2 准入与正式构建，再由活动作者源码生成新版本候选；冻结旧发行包及 pin 不重写，interaction 不晋升为默认任务。
+
 ## 1. 三层契约、版本和唯一来源
 
 | 字段 | 职责 |
