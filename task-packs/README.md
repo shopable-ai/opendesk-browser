@@ -2,11 +2,21 @@
 
 **这是 OpenDesk 独立 Controller Task 的统一脚本资产目录：作者示例、真实业务源码、发行包及专属测试集中管理，不是浏览器框架源码目录。** 通用能力由原 Controller SDK 提供；「我的」是统一任务管理入口。WebFlow、Subagent、计划、AI 是消费者，不拥有这些共享脚本的第二份实现。
 
-- [开发示例（最小双参数与完整 12 类控件）](examples/README.md)
-- [脚本参数编写规范（文本头部、12 类控件、校验与编译）](../docs/api/task-params.zh-CN.md)
-- [Controller 公共 SDK](../docs/api/controller.zh-CN.md) · [本地项目配置](../docs/api/local-projects.zh-CN.md)
-- [独立 Task 资产及安装/授权合同](../docs/architecture/installed-controller-tasks-and-workflow-consumers.zh-CN.md)
-- [脚本编写 Skill](../.agents/skills/opendesk-script-authoring/SKILL.md) · [正式发布 Skill](../.agents/skills/opendesk-program-publish/SKILL.md)
+## 快速导航：按当前开发任务选择入口
+
+本 README 是脚本库总索引；进入 examples/ 或具体业务 family 后，使用对应 README 查找文件。不另外维护重复的 index.md。
+
+| 我想做什么 | 从哪里开始 |
+| --- | --- |
+| 编写第一个带参数的 JS 脚本 | [最小双参数脚本](examples/task-params-minimal.example.js) → [示例说明](examples/README.md) |
+| 查找所有控件、数据类型和默认值的用法 | [完整 12 类控件示例](examples/task-params-header.example.js) → [参数规范](../docs/api/task-params.zh-CN.md) |
+| 查看解析结果、编译器、Schema 和回归测试 | [示例目录技术导航](examples/README.md) |
+| 参考真实业务脚本 | [百度搜索](baidu.search/README.md) · [Google 搜索](google.search/README.md) · [ChatGPT 对话创建](chatgpt.conversation.create/README.md) |
+| 使用页面操作、公共 API 或本地多文件项目 | [Controller SDK](../docs/api/controller.zh-CN.md) · [本地项目配置](../docs/api/local-projects.zh-CN.md) |
+| 生成候选包、验证、安装或发布 | [安装与授权合同](../docs/architecture/installed-controller-tasks-and-workflow-consumers.zh-CN.md) · [正式发布 Skill](../.agents/skills/opendesk-program-publish/SKILL.md) |
+| 让 AI 编写和维护脚本 | [脚本编写 Skill](../.agents/skills/opendesk-script-authoring/SKILL.md) |
+
+**当前实现边界（R11）：** 文本参数示例与静态解析器已存在；正式 v2 参数语义校验、生产构建、动态运行表单及统一执行接入尚未完成。实际可发布参数能力仍以 [权威参数规范](../docs/api/task-params.zh-CN.md) 和正式宿主为准。不要把示例目录、离线原型或静态解析结果当成已安装任务。
 
 ## 1. 新增脚本放在哪里？
 
