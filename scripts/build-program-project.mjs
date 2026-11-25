@@ -17,6 +17,7 @@ import {snapshotFileSystem,safeRead} from '../native-agent/local-dev/snapshot.mj
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {compileLockedPageSource,pageSelectedPackagedLibraries} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
+import {compileTaskSourceParams} from './compile-task-param-items.mjs';
 import {PAGE_FRAMEWORK_IMPORTS,PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
 import {createPageComponentEntry,COMPONENT_ENTRY_FILE} from './page-component-entry.mjs';
 import {resolveRemoteImport} from '../src/scripting/user-scripts/remote-esm-contract.js';
@@ -354,6 +355,17 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
   ensure(project.runtimeKind==='page-userscript'||before.assets.length===0,
     'E_PROJECT_ASSET_ENV','R1 bundled assets are supported only in Page USER_SCRIPT projects',
     {project:projectLabel,phase:'build',location:'package.json#opendesk.assets'});
+  // Read the entry from the validated authoring snapshot, before Webpack
+  // can remove comments. Never silently discard a v2 declaration.
+  if(project.runtimeKind==='controller'){
+    const entry=before.sourceFiles.find(row=>row.path===before.entry);
+    ensure(entry,'E_PROJECT_ENTRY','Validated entry source is missing',
+      {project:projectLabel,phase:'validate',location:project.entry});
+    const declared=compileTaskSourceParams(entry.sourceUtf8);
+    ensure(declared===null,'E_PROJECT_PARAMS_V2_PENDING',
+      'Task parameter v2 publication requires the remaining Manifest and runtime integration; legacy fallback is forbidden',
+      {project:projectLabel,phase:'validate',location:project.entry});
+  }
   if(project.runtimeKind==='controller'&&project.siteOrigins[0]!=='<all_urls>'){
     ensure(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(pkg.version),
       'E_PROJECT_VERSION','Controller Task v1 Candidate requires a stable SemVer version',

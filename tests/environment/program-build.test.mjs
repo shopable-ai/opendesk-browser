@@ -81,6 +81,26 @@ test('Controller ESM project produces the existing genuine Task v1 Candidate imp
   assert.equal(digest(source),result.sourceHash);
 });
 
+
+test('Controller builder rejects v2 author headers rather than silently publishing legacy parameters',async t=>{
+  const root=await temp(),out=await temp();
+  t.after(()=>Promise.all([rm(root,{recursive:true,force:true}),rm(out,{recursive:true,force:true})]));
+  const pkg=JSON.parse(await readFile('examples/programs/controller-title/package.json','utf8'));
+  await writeFile(join(root,'package.json'),JSON.stringify(pkg));
+  const entry=join(root,pkg.opendesk.entry);
+  await mkdir(join(root,'src'),{recursive:true});
+  const source='export default async function main({page}){return {title:await page.title()};}\n';
+  const header='// ==OpenDeskParams==\n// @version 1\n// @param number limit "数量" default=20 min=1 max=100\n// ==/OpenDeskParams==\n';
+  await writeFile(entry,header+source);
+  for(const mode of ['production','development']){
+    await assert.rejects(buildProgramProject(root,{outputDirectory:out,mode}),errorCode('E_PROJECT_PARAMS_V2_PENDING'));
+    assert.deepEqual(await readdir(out),[]);
+  }
+  await writeFile(entry,header.replace('default=20','default=101')+source);
+  await assert.rejects(buildProgramProject(root,{outputDirectory:out}),errorCode('E_SCHEMA'));
+  assert.deepEqual(await readdir(out),[]);
+});
+
 test('development mode emits readable program JS, draft metadata and a separate local source map only',async t=>{
   const out=await temp();t.after(()=>rm(out,{recursive:true,force:true}));
   const result=await buildProgramProject('examples/programs/page-heading',{outputDirectory:out,mode:'development'});

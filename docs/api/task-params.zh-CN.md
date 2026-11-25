@@ -82,6 +82,8 @@ async function main() {
 
 ### R11.2 正式运行前置修复：规范化参数不得丢弃
 
+构建前置保护：现有 `build-program-project.mjs` 从 `validateProgramProject` 已记录的入口 `sourceUtf8` 快照静态提取并校验头部，在 Webpack/Terser 前拒绝尚未开放的 v2 发行（`E_PROJECT_PARAMS_V2_PENDING`），非法头部直接失败，不允许忽略声明并打成 legacy 包。无头部项目维持原路径。此保护仅是防降级，不是正式 v2 构建接入；`package.json` 旧项目 schema 仍未迁移，新增原 builder 的 production/development 拒绝回归尚未在完整环境运行。
+
 基于 `0623837ca4189b122916c9f0a39acc66f0013baa`，已核查已安装 Task 的 Authority 原先校验 params 后仍将原 paramsWire 持久化，本地项目运行原先校验后仍将原 params 传给 RunHost。本增量使已安装任务使用同一事务中校验返回的 normalizedParams 生成耐久 Worker 输入，并使本地项目使用校验返回值；原请求摘要、准备/委托/计划比对、安装身份与权限检查保持不变。本地项目仍为原 draft 路径，不因此取得已安装任务的权威参数定义。增加原 Authority 和 Local UI 组件回归断言；完整仓库依赖环境及真实 Chrome 未验证，v2 Manifest 尚未开放。
 
 **语义核心增量（R11.2）**：`src/platform/tasks/params-v2.js` 实现 v2 声明/值/UI 语义检查、精确十进制步长、真实日历/时间/HTTP(S) URL、唯一枚举数组、默认值补齐与 64 KiB 输入及输出预算。`checkParamsSchema(schema,2,paramsUi)` 和 `validateTaskParams(schema,params,2,paramsUi)` 显式分派；缺省仍为原 legacy，未知版本拒绝。`compileTaskSourceParams` 在源头投影后调用同一语义核心。`validateTaskManifest` 暂仍拒绝 v2，避免未接入版本字段的 UI、调度、Authority 和安装消费者提前接受新包。已安装任务真实准入拒绝 undefined（metadata sentinel），旧包的声明约束不改变。隔离 Node 22 使用现有 protocol 的相关导出代码执行 `node --test tests/environment/task-params-v2-semantics-r11.test.mjs`，7/7 通过；测试源码和语义核心 Git blob 与此提交一致。不是全仓依赖、原 Authority/Local UI 组件、生产构建或 Chrome 通过；新增 R10 分派及静态头部回归仍待在完整环境执行。
