@@ -101,3 +101,136 @@ export function compileParamItems(input) {
   // projection, not a full schema/parameter validator or an execution admission.
   return {paramsSchemaVersion:2,paramsSchema:{type:"object",properties,required,additionalProperties:false},paramsUi:{version:1,order,fields}};
 }
+
+// R10.2 text metadata source adapter; no runtime installation changes.
+export function parseTaskParamsHeader(source) {
+  // Only the first nonblank line may open this metadata block. No code evaluation.
+  if(typeof source!=="string")throw new TypeError("Expected script source text");
+  const begin="// ==OpenDeskParams==",end="// ==/OpenDeskParams==";
+  const budget=65536;
+  let pos=source.charCodeAt(0)===0xfeff?1:0,lineNo=0;
+  const fail=(n,msg)=>{throw new TypeError(`OpenDeskParams line ${n}: ${msg}`);};
+  const nextLine=()=>{
+    if(pos>=source.length)return null;
+    const start=pos,n=source.indexOf("\n",pos);
+    pos=n<0?source.length:n+1;
+    lineNo++;
+    return {start,text:source.slice(start,n<0?source.length:n).replace(/\r$/,"")};
+  };
+  let first;
+  while((first=nextLine())&&first.text.trim()===""){
+    if(pos>budget)return null; // Existing source admission owns the full source budget.
+  }
+  if(!first)return null;
+  const marker=first.text.trim();
+  if(marker!==begin){
+    if(marker.startsWith(begin))fail(lineNo,"Malformed opening marker");
+    return null;
+  }
+  if(pos>budget)fail(lineNo,"Metadata header exceeds source character budget");
+  const allowed=new Set(["required","default","const","description","placeholder","valueType","min","max","step","unit","options","minLength","maxLength","minItems","maxItems"]);
+  const seen=new Set(),items=[];
+  let version=false;
+  const horizontal=c=>c===" "||c==="\t";
+  const scalar=v=>typeof v==="string"||typeof v==="boolean"||typeof v==="number"&&Number.isFinite(v);
+  function parseLine(text,n){
+    let i=0;
+    const error=m=>fail(n,m);
+    const skip=()=>{while(horizontal(text[i]))i++;};
+    const boundary=()=>{if(i<text.length&&!horizontal(text[i]))error("Expected whitespace between tokens");};
+    const word=()=>{
+      const start=i;
+      if(!/[A-Za-z]/.test(text[i]||""))error("Expected identifier");
+      i++;
+      while(i<text.length&&/[A-Za-z0-9_-]/.test(text[i]))i++;
+      return text.slice(start,i);
+    };
+    function quote(){
+      i++;
+      while(i<text.length){
+        const c=text[i++];
+        if(c==="\\"){if(i>=text.length)error("Unterminated string escape");i++;}
+        else if(c==='"')return;
+      }
+      error("Unterminated string");
+    }
+    function literal(){
+      const start=i;
+      if(text[i]==='"')quote();
+      else if(text[i]==="["){
+        let depth=0;
+        while(i<text.length){
+          const c=text[i];
+          if(c==='"'){quote();continue;}
+          if(c==="{"||c==="}")error("Object literals are not allowed");
+          i++;
+          if(c==="["){if(++depth>2)error("Array nesting exceeds two levels");}
+          else if(c==="]"&&--depth===0)break;
+        }
+        if(depth!==0)error("Unterminated array");
+      }else{
+        while(i<text.length&&!horizontal(text[i]))i++;
+      }
+      if(start===i)error("Missing literal");
+      let v;
+      try{v=JSON.parse(text.slice(start,i));}catch{error("Expected a JSON scalar or array literal");}
+      const valid=x=>scalar(x)||Array.isArray(x)&&x.length<=32&&x.every(valid);
+      if(!valid(v))error("Only finite scalar and bounded array literals are allowed");
+      return v;
+    }
+    skip();const type=word();boundary();skip();
+    const key=word();boundary();skip();
+    if(text[i]!=='"')error("Label must be a double-quoted JSON string");
+    const label=literal();boundary();
+    if(typeof label!=="string")error("Invalid label");
+    if(!/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(key)||["constructor","prototype","__proto__"].includes(key))error("Invalid parameter key");
+    if(seen.has(key))error("Duplicate parameter key");
+    seen.add(key);
+    const item={key,label,type};
+    while(i<text.length){
+      skip();if(i===text.length)break;
+      const attr=word();
+      if(!allowed.has(attr))error(`Unknown attribute ${attr}`);
+      if(Object.hasOwn(item,attr))error(`Duplicate attribute ${attr}`);
+      if(attr==="required"){
+        if(text[i]==="=")error("Use the bare required flag");
+        item.required=true;boundary();continue;
+      }
+      if(text[i++]!=="=")error(`Expected = after ${attr}`);
+      let v=literal();boundary();
+      if(attr==="options"){
+        if(!Array.isArray(v))error("Options must be an array");
+        v=v.map(option=>{
+          if(scalar(option))return {value:option,label:String(option)};
+          if(!Array.isArray(option)||option.length!==2||!scalar(option[0])||typeof option[1]!=="string")error("Option must be a scalar or [value,label] pair");
+          return {value:option[0],label:option[1]};
+        });
+      }
+      item[attr]=v;
+    }
+    return item;
+  }
+  let line;
+  while((line=nextLine())){
+    if(pos>budget)fail(lineNo,"Metadata header exceeds source character budget");
+    const s=line.text.trim();
+    if(s===end){
+      if(!version)fail(lineNo,"Missing version");
+      return {paramItemsVersion:1,paramItems:items};
+    }
+    if(s===""||s==="//")continue;
+    if(!version){
+      if(s!=="// @version 1")fail(lineNo,"Expected // @version 1");
+      version=true;continue;
+    }
+    if(!/^\/\/ @param[ \t]+/.test(s))fail(lineNo,"Expected one @param declaration per line");
+    if(items.length>=16)fail(lineNo,"Too many parameters");
+    items.push(parseLine(s.replace(/^\/\/ @param[ \t]+/,""),lineNo));
+  }
+  fail(lineNo,"Missing closing marker");
+}
+
+export function compileTaskSourceParams(source) {
+  const declaration=parseTaskParamsHeader(source);
+  return declaration===null?null:compileParamItems(declaration);
+}

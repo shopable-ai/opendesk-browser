@@ -43,7 +43,7 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | 创建或修改 JS / 多文件项目 | [项目格式与授权](local-projects.zh-CN.md) | [相对 ESM Controller](../../examples/programs/local-controller/README.md) |
 | 使用网络 JavaScript：在哪里声明、首次审核准备、运行与失败处理 | [四种入口的完整步骤](network-javascript.zh-CN.md) | [可运行示例与命令](../../examples/network-javascript/README.zh-CN.md) |
 | 让 Codex 调用工具 | [七个 MCP 工具](mcp-local-development.zh-CN.md) | attach → status → run → result |
-| 声明 Controller Task 运行参数 | [统一 Task 参数契约（legacy 正式 / v2 待迁移）](task-params.zh-CN.md) | [一行一参数的精简编写示例](../../examples/tasks/task-param-items.example.json) |
+| 声明 Controller Task 运行参数 | [统一 Task 参数契约（legacy 正式 / v2 待迁移）](task-params.zh-CN.md) | [同一脚本文件内的文本参数声明](../../examples/tasks/task-params-header.example.js) |
 | 用 Page / Locator 自动化网页 | [Controller](controller.zh-CN.md) | [完整现代 Page API](../framework/modern-page-api.zh-CN.md) |
 | **直接使用预装第三方库、零参数 main、确认各世界支持什么** | **[预置运行变量与 src/libs 世界矩阵](runtime-globals-and-preinstalled-libraries.zh-CN.md)** | [Controller 零参数](../../examples/programs/controller-globals-zero-arg/README.md) · [Page 零参数](../../examples/programs/page-globals-zero-arg/README.md) · [可信扩展静态导入](../../examples/libs/trusted-imports/README.zh-CN.md) · [工具桥 Demo](../../examples/sidebar-tools/minimal-html-starter/README.md) |
 | 在网页显示自己的 UI | [Page USER_SCRIPT](page-userscript.zh-CN.md) | [按钮 / CSS / PNG](../../examples/programs/local-page-ui/README.md) |

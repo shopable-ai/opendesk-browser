@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {compileParamItems} from '../../scripts/compile-task-param-items.mjs';
+import {compileParamItems,parseTaskParamsHeader,compileTaskSourceParams} from '../../scripts/compile-task-param-items.mjs';
 const read=path=>JSON.parse(readFileSync(new URL('../../'+path,import.meta.url),'utf8'));
 const compact=read('examples/tasks/task-param-items.example.json'), expanded=read('examples/tasks/task-params-v2.example.json');
 
@@ -45,4 +45,48 @@ test('integer and number, typed options, zero/false/empty and absence stay disti
   assert.equal(x.paramsSchema.properties.flag.default,false);
   assert.equal(x.paramsSchema.properties.notes.default,'');
   assert.equal(Object.hasOwn(x.paramsSchema.properties.maybe,'default'),false);
+});
+
+const headerSource=readFileSync(new URL('../../examples/tasks/task-params-header.example.js',import.meta.url),'utf8');
+test('script header is the author source; JSON fixtures are derived without changing R9',()=>{
+  assert.deepEqual(parseTaskParamsHeader(headerSource),compact);
+  assert.deepEqual(compileTaskSourceParams(headerSource),expanded);
+  assert.deepEqual(compileTaskSourceParams('\ufeff'+headerSource.replace(/\n/g,'\r\n')),expanded);
+  assert.equal(compileTaskSourceParams('async function main() {}\n'+headerSource),null);
+  assert.deepEqual(compileTaskSourceParams(headerSource+'\n// @param text ignored "正文注释"'),expanded);
+});
+test('script metadata rejects malformed, duplicate, unsafe or executable declarations',()=>{
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("@version 1","@version 2"))(headerSource)),TypeError,"wrong version");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("// @version 1\n",""))(headerSource)),TypeError,"missing version");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("// @version 1","// @version 1\n// @version 1"))(headerSource)),TypeError,"duplicate version");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("// ==/OpenDeskParams==","// missing"))(headerSource)),TypeError,"unclosed header");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("@param number limit ","@param number keyword "))(headerSource)),TypeError,"duplicate field");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("@param text keyword ","@param text constructor "))(headerSource)),TypeError,"unsafe key");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default=80 default=81"))(headerSource)),TypeError,"duplicate attr");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default=80 component=\"el-slider\""))(headerSource)),TypeError,"unknown attr");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default={\"value\":80}"))(headerSource)),TypeError,"object");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default=1+2"))(headerSource)),TypeError,"expression");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default=alert(1)"))(headerSource)),TypeError,"function");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace('default="浏览器"',"default='浏览器'"))(headerSource)),TypeError,"single quote");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default=null"))(headerSource)),TypeError,"null");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default=1e999"))(headerSource)),TypeError,"infinity");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace('["markdown","Markdown"]','["markdown","Markdown","third"]'))(headerSource)),TypeError,"invalid option pair");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace('default=["article","link"]','default=["article","link"'))(headerSource)),TypeError,"unclosed array");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace('default=["article","link"]','default=[[["article"]]]'))(headerSource)),TypeError,"nested array");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default=80unit=\"%\""))(headerSource)),TypeError,"bad spacing");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace(" required "," required=false "))(headerSource)),TypeError,"required assignment");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("// ==/OpenDeskParams==",Array.from({length:3},(_,i)=>'// @param text added'+i+' "额外"').join("\n")+"\n// ==/OpenDeskParams=="))(headerSource)),TypeError,"too many fields");
+  assert.throws(()=>parseTaskParamsHeader((s=>s.replace("default=80","default=80 description="+JSON.stringify("x".repeat(66000))))(headerSource)),TypeError,"oversize header");
+  assert.throws(()=>compileTaskSourceParams(headerSource.replace('@param text keyword','@param el-input keyword')),TypeError);
+  assert.throws(()=>compileTaskSourceParams(headerSource.replace('step=5','step="5"')),TypeError);
+});
+test('header scanner preserves typed literal values, escaping and missing fields',()=>{
+  const items=parseTaskParamsHeader("// ==OpenDeskParams==\n// @version 1\n// @param number n \"小数\" valueType=\"number\" default=0 step=0.1\n// @param radio x \"模式\" valueType=\"integer\" options=[[0,\"零\"],1] default=0\n// @param switch b \"开关\" default=false\n// @param text s \"空值\" default=\"\"\n// @param checkbox optional \"未设置\"\n// @param text escaped \"引号\\\" 和空格\" description=\"路径 C:\\\\a b\"\n// ==/OpenDeskParams==\n").paramItems;
+  assert.equal(items[0].default,0);
+  assert.deepEqual(items[1].options,[{value:0,label:'零'},{value:1,label:'1'}]);
+  assert.equal(items[2].default,false);
+  assert.equal(items[3].default,'');
+  assert.equal(Object.hasOwn(items[4],'default'),false);
+  assert.equal(items[5].label,"引号\" 和空格");
+  assert.equal(items[5].description,"路径 C:\\a b");
 });

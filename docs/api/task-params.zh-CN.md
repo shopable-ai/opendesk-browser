@@ -1,44 +1,60 @@
-# OpenDesk Task 参数契约（R10）
+# OpenDesk Task 参数契约（R10.2）
 
 状态：**设计规范候选；正式 v2 运行、安装、调度和 Chrome 验收尚未实施。** 基准 `e2e2a82e50d978b9a181b1fa22465c4030d38ef7`。本页是 Controller Task 参数设计的开发者规范，不适用于 Page USER_SCRIPT 自定义网页表单、Sidebar Tool 或权限声明。不得将 R9 离线演示视为正式能力。作者当前发布必须使用下述 legacy 子集；v2 示例不得直接安装。
 
-## 0. 开发者速查：一行一个参数（R10.1 精简编写格式）
+## 0. 开发者速查：脚本文件头部文本参数声明（R10.2）
 
-**核心方案：`paramItems` 是作者/AI 首选源码格式；构建自动展开为 `paramsSchema + paramsUi`；执行只消费纯 JSON `params`。** 参考 [Cool Admin cl-form](https://vue.cool-admin.com/src/guide/crud/form.html) / [cl-upsert](https://vue.cool-admin.com/src/guide/crud/upsert.html) 的 items 声明思想，但不绑定 Vue/Element Plus 的组件名、实例、事件、插槽或函数。
+**推荐作者入口：一个脚本源码文件同时保存参数定义和业务代码，每个控件一行文本。** 不要求开发者或 AI 再编辑 JSON 参数文件。参考 [Cool Admin Midway Entity 与快速 CRUD](https://node.cool-admin.com/src/guide/quick.html)、[EPS](https://node.cool-admin.com/src/guide/core/eps.html)、[Stylus UserCSS @var](https://github.com/openstyles/stylus/wiki/Writing-UserCSS) 和 [Fiji Script Parameters](https://imagej.net/scripting/parameters)。后两者已证明从脚本或样式头部声明生成输入 UI 的模式；本格式为 OpenDesk 自己的有限语法，不冒充这些项目的标准。
 
-```json
-{
-  "paramItemsVersion": 1,
-  "paramItems": [
-    {"key":"query","label":"关键词","type":"text","required":true,"minLength":1,"maxLength":120},
-    {"key":"limit","label":"数量","type":"number","min":1,"max":20,"default":3},
-    {"key":"showExecutionTab","label":"显示执行标签页","type":"switch","default":true}
-  ]
+```javascript
+// ==OpenDeskParams==
+// @version 1
+// @param text query "搜索关键词" required minLength=1 maxLength=120
+// @param slider limit "结果数量" min=1 max=20 step=1 default=3
+// @param switch showExecutionTab "显示执行标签页" default=true
+// ==/OpenDeskParams==
+
+async function main() {
+  return { params }; // 仅示例，实际脚本在此编写业务
 }
 ```
 
-开发者不再手写 properties/required/order/fields，也不再重复维护 options/enum/optionLabels。阅读 [完整一行一项的 14 参数示例](../../examples/tasks/task-param-items.example.json)，调用 [纯数据转换器 compileParamItems](../../scripts/compile-task-param-items.mjs) 即可取得与 R10 相同的扩展契约。**本轮已新增参考转换器和一致性测试；尚未接入正式开发、打包、安装和运行流程。** 当前宿主只能使用 legacy v1；不要直接把 paramItems 或编译后的 v2 片段添加到旧包。正式迁移后才是“填配置即可运行”的体验。
+[完整 14 参数脚本文件](../../examples/tasks/task-params-header.example.js) 为唯一演示作者源。现有 [编译器](../../scripts/compile-task-param-items.mjs) 新增 parseTaskParamsHeader(source) 与 compileTaskSourceParams(source)，前者返回 R10.1 中间结构，后者复用 compileParamItems 生成 R10 v2 标准契约。R10.1 JSON 降为派生中间数据，不再推荐手工维护。**这是参考静态解析器与转换器，尚未接入正式构建、开发、安装、运行或 Chrome；当前宿主仍只接受 legacy v1。** 不可直接把示例作为固定任务包安装。
 
-| type（控件类型） | valueType 缺省 | 关键附加配置 |
+### 一行声明语法
+
+`// @param 控件类型 参数名 "显示名称" [required] [属性=值 ...]`
+
+- 必须在入口脚本首个非空行放置 `// ==OpenDeskParams==`，紧接第一条指令 `// @version 1`，最后 `// ==/OpenDeskParams==`；允许 UTF-8 BOM、LF/CRLF、空行。正文中的同名注释或字符串不参与解析。无头部返回 null（未声明，不能自动视为零参数）；显式空头部才表示零字段。识别到头部但错误时拒绝，不回退旧格式。
+- 每行一个 @param，控件名与参数名为 ASCII 标识，label 双引号；后续属性之间用空格分隔，属性名与等号之间不得插空格。required 为唯一裸布尔标志，省略为 false；其他属性为 key=value；值使用 JSON 标量/数组字面量（双引号字符串、数字、true/false、数组），支持标准转义；不允许 null、对象、函数、表达式、JSX/HTML、任意正则或组件代码。
+- options 仅用标量数组或 [真实值,"显示名"] 元组数组，例如 options=["a","b"] 或 options=[["markdown","Markdown"],["json","JSON"]]；标量显示 String(value)，元组显式 label。选择类 valueType 缺省 string，可显式 integer/number/boolean，不能自动把数值或布尔转字符串。
+- 与原 R10.1 控件规则一致：数值控件默认 integer，小数写 valueType="number"；min/max/step 唯一映射到 minimum/maximum/multipleOf；unit 仅显示。checkbox/switch 可缺失 default，不能等同 false；required 是存在性，非空文本还需 minLength:1。固定值使用 const；默认值缺失/false/0/""/[] 分别保留。
+- 文本扫描只接受白名单属性，重复字段/属性、错误引号、数组深度超过两层、数组超过 32 项、非法标识、未知头部版本、超过 16 参数、参考头部超过 65536 UTF-16 code units 均拒绝；正式入口还需原 UTF-8 source/request budget。参考解析与 R10.1 转换仅检查形状与投影；完整日期、精度、范围、默认值、控件兼容及权限由下文唯一 v2 语义准入处理。
+
+| 控件 | 一行属性示例（接在显示名称后） | 实际数据 |
 | --- | --- | --- |
-| text | string | minLength / maxLength / placeholder |
-| textarea | string | minLength / maxLength / placeholder |
-| number | integer | min / max / step / unit；小数显式 valueType:"number" |
-| slider | integer | min / max / default 必需，number 时 step 必需；unit |
-| checkbox | boolean | default:true/false（可不设，未设置不等于 false） |
-| switch | boolean | default:true/false（可不设） |
-| select | string | options:[{value,label}]；数字/布尔显式 valueType |
-| radio | string | 同 select |
-| multi-checkbox | array of string | options:[{value,label}], default:[], minItems/maxItems；valueType 指元素类型 |
-| date | string | 自动 format:date；YYYY-MM-DD |
-| time | string | 自动 HH:mm 固定 pattern |
-| url | string | 自动 uri + HTTP(S) 固定 pattern；不授权 |
+| text | required minLength=1 maxLength=120 | string |
+| textarea | default="" maxLength=500 | string |
+| number | min=1 max=100 default=20 | integer（小数显式 valueType） |
+| slider | min=0 max=100 step=5 default=80 unit="%" | integer / number |
+| checkbox | default=true | boolean |
+| switch | default=false | boolean |
+| select | options=[["json","JSON"],["csv","CSV"]] default="json" | scalar enum |
+| radio | options=[["current","当前页"],["all","全部页"]] default="current" | scalar enum |
+| multi-checkbox | options=["article","link"] default=["article"] | array |
+| date | default="2026-11-25" | YYYY-MM-DD |
+| time | default="09:30" | HH:mm |
+| url | placeholder="https://example.com" | HTTP(S) URL string |
 
-通用字段仅 key、label、type 为必需；required 缺省 false，default 可省略，description 为帮助说明；scalar 可声明 const。控件属性使用上表白名单；placeholder 限 text/textarea/number/select/url，unit 限 number/slider；单选数值/字符串可使用对应边界，任意 regex、任意组件、JS、HTML、函数、未知字段拒绝。数组顺序直接生成 paramsUi.order；key 生成 properties 的键；label 生成 title；min/max/step 分别生成 minimum/maximum/multipleOf；options 一次声明自动拆分为 enum（多选为 items.enum）和 optionLabels，数组位置保持一致。valueType 仅数值或选择类可显式覆盖：数值只 integer/number，选择类允许 string/integer/number/boolean，严格同类型，不以默认值猜类型、不把 0/false 转成字符串。
+### 一份源、一个运行契约
 
-**唯一来源及阶段：** 编写阶段二选一：精简 paramItems（推荐）或直接扩展 paramsSchema/paramsUi（高级使用）；禁止同一脚本同时提供两套手工定义。paramItemsVersion:1 是编写格式版本，编译产生 paramsSchemaVersion:2 与 paramsUi.version:1，并从安装 Manifest 移除编写格式，不引入新的运行协议。发布阶段仅 canonical manifest 中的 paramsSchema/paramsUi 及其版本参与既有 hash 与安装；用户实际执行仅 params。编译器只对已解析 JSON 做编写形状检查和确定性投影，不是完整 v2 语义验证器，不执行任何脚本。正式编译/安装必须再调用唯一 v2 语义校验器，按下文检查日期、精度、范围、默认值等完整语义；原始 JSON 重复成员检测、输入尺寸预算仍由可信输入解析层负责，不得用 JSON.parse 的 last-wins 行为作为正式准入。
+编写：脚本头部（推荐）或高级/既有项目的直接 Schema（兼容），不得同时手写两套。构建：静态抽取入口源码头部 → paramItems 内部中间结构 → paramsSchemaVersion:2 / paramsSchema / paramsUi.version:1；发布仅保留生成的标准 Manifest 及既有业务源码、身份和哈希。已有生成产物与源文件均存在时必须核对确定性编译结果，不能任选一份或用旧结果覆盖。正式 ESM/TS 构建须先抽取入口源文件头部再经过可能移除注释的构建阶段，绑定已授权源/构建产物；沿原 manifestHash/sourceHash 和安装审阅保证一致性，不能重写已发行包。用户运行时只使用可信冻结 Manifest 与实际 params，无需再扫描或执行第三方 JS 生成 UI。权限、站点访问、资源选择、Stop 和未知结果不由参数头部改变。
 
-示例维护：只编辑 examples/tasks/task-param-items.example.json，用转换器更新 examples/tasks/task-params-v2.example.json，再同步离线 HTML 和 Markdown 派生片段。现有测试确保精简输入展开后与旧 R10 定义语义等价，保留 R9 布局和预览数据，禁止第二份手工约束。定向测试：`node --test tests/environment/task-param-items.test.mjs`。正式 R11 优先接入源格式编译，再使用原 TaskWorkbench/校验器；不新建第二套渲染器或安装器。
+### todo-user 兼容与未来统一
+
+只读核验 `shopable-ai/todo-user@4edb7d0b59f008684c43f6c6213cf46d8d6e548b` 的 `src/modules/operate/views/script.vue`、`src/modules/operate/utils/UtilScrpt.ts`、`src/modules/operate/service/script.api.ts`。旧系统分别保存 content、params、init；params 示例为 { content:true, title:false }，true 表示必填、false 表示可选；doRunByDeviceId 通过 JSON.parse 判定是否需要输入窗口，再将输入赋回 row.params；formatJSON 使用 eval。旧语义没有声明控件和真实类型，不能把 true/false 当成布尔运行值，也不能擅自推断所有类型为 string。后续先核查服务端及真实调用数据，再设计 legacy adapter；应区分脚本定义（源码头部或生成的 schema）与每次运行 params，逐任务迁移。删除 eval 应在 todo-user 自己的兼容任务中进行；本轮不修改 todo-user，也不共用 OpenDesk 浏览器权限、运行身份或宿主。
+
+维护：只修改 examples/tasks/task-params-header.example.js 的文本声明，重新生成 examples/tasks/task-param-items.example.json 及 examples/tasks/task-params-v2.example.json，并同步现有离线 HTML 与文档派生片段。新增测试与既有测试分别核对源→IR→标准契约、标准契约→HTML/MD。定向 Node：`node --test tests/environment/task-param-items.test.mjs tests/environment/task-params-contract-r10.test.mjs`。正式 R11 应接入原构建、TaskWorkbench 和统一 v2 语义验证，不新增第二套安装器或渲染器。
 
 ## 1. 三层契约、版本和唯一来源
 
@@ -51,7 +67,7 @@
 
 选用 JSON Schema Draft 2020-12 的**明确子集**作为语法基础，而非完整实现。参考 [标准](https://json-schema.org/draft/2020-12) 与 [JSON Forms UI Schema](https://jsonforms.io/docs/uischema/)。OpenDesk 特有行为：补入缺失字段的 default；对已支持的 format 做强制语义断言；限制字段、类型、格式与关键字。禁止远程 schema、$ref、$dynamicRef、组合条件、任意 JS/HTML/组件名、动态表达式、网络解析。通用 Schema 验证器可能不填 default、不检查 format 或不拒绝未知关键字，不能替代 OpenDesk 语义准入。组件数组方案耦合 UI，纯 Schema 自动推断不能表达 textarea、slider、radio、switch 和单位，因此选择分层方案。
 
-[机器元 Schema](../../schemas/opendesk-task-params.v2.schema.json) 验证**声明形状**：结构、字段白名单、类型和大小；不能证明 default 合法、跨字段引用一致或 widget 兼容。语义以下文为准，下一轮在既有 checkParamsSchema / validateTaskParams 中实现，不在各 UI 再造验证器。 [精简编写示例](../../examples/tasks/task-param-items.example.json) 是演示作者源；[完整多参数 JSON](../../examples/tasks/task-params-v2.example.json) 是其确定性编译产物，离线 HTML 的内嵌镜像由定向测试比对，不运行时联网。只修改作者源，重新编译并同步内嵌对象及文档派生片段，再运行一致性测试；不得改动列表或已定窗口布局。
+[机器元 Schema](../../schemas/opendesk-task-params.v2.schema.json) 验证**声明形状**：结构、字段白名单、类型和大小；不能证明 default 合法、跨字段引用一致或 widget 兼容。语义以下文为准，下一轮在既有 checkParamsSchema / validateTaskParams 中实现，不在各 UI 再造验证器。 [脚本头部文本示例](../../examples/tasks/task-params-header.example.js) 是演示作者源；[paramItems 中间 JSON](../../examples/tasks/task-param-items.example.json) 与 [完整多参数 JSON](../../examples/tasks/task-params-v2.example.json) 是其确定性编译产物，离线 HTML 的内嵌镜像由定向测试比对，不运行时联网。只修改作者源，重新编译并同步内嵌对象及文档派生片段，再运行一致性测试；不得改动列表或已定窗口布局。
 
 ## 2. 当前正式 v1（legacy）与最小可用配置
 
