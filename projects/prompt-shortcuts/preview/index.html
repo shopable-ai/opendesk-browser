@@ -509,7 +509,23 @@ border:0;background:transparent;color:var(--od-sub)}
 .prompt-card:hover .prompt-actions,.prompt-card:focus-within .prompt-actions,.prompt-card.is-menu-open .prompt-actions{opacity:1;pointer-events:auto;transform:none}
 .prompt-actions .od-icon-action{width:34px;min-width:34px;height:34px;min-height:34px}
 .prompt-card.is-disabled .preview-quick-copy{display:none}
-.prompt-more{position:absolute;top:calc(100% - 5px);right:7px;z-index:12;display:grid;grid-template-columns:repeat(3,40px);gap:5px;width:max-content;max-width:calc(100% - 14px);margin:0;padding:7px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);box-shadow:0 8px 24px var(--od-line)}
+/* Six list commands in a single compact row. Keep full touch targets and
+   scroll only this overlay if the available width cannot accommodate them. */
+.prompt-more{
+  --ps-more-size:30px;--ps-more-min:24px;
+  position:absolute;right:7px;top:calc(100% - 5px);z-index:12;
+  display:grid;grid-template-columns:repeat(6,minmax(var(--ps-more-min),1fr));gap:4px;justify-content:start;align-items:center;
+  box-sizing:border-box;width:calc(6 * var(--ps-more-size) + 32px);
+  max-width:calc(100% - 14px);margin:0;padding:5px;overflow-x:auto;
+  border:1px solid var(--od-line);border-radius:var(--radius-control);
+  background:var(--od-paper);box-shadow:0 8px 24px var(--od-line)
+}
+.prompt-more>.od-icon-action{
+  box-sizing:border-box;flex:none;width:100%;min-width:0;max-width:none;
+  height:var(--ps-more-size);min-height:var(--ps-more-size);max-height:var(--ps-more-size);padding:0
+}
+.prompt-more>.od-icon-action>.od-glyph{width:16px;height:16px;flex:none}
+@media(pointer:coarse){.prompt-more{--ps-more-size:44px;--ps-more-min:44px}}
 #detailView{display:grid;gap:11px}#detailView[hidden]{display:none!important}
 .preview-detail-id{display:flex;align-items:center;gap:9px}
 .preview-detail-id .prompt-icon{margin:0}
