@@ -38,12 +38,13 @@ const packagedTaskInputs=Object.freeze({
 // 2026-11-24 review: hide routine reply wait notices without changing send guards.
 // 2026-11-24 review: one crown in the native bottom controls, with separate editor space.
 // 2026-11-24 review: all queue buttons match the native action; keep the crown inside overflow clips.
+// 2026-11-25 review: the fixed Page status reports the existing 1.0.0 package version.
 const compiledSendQueueInputs=Object.freeze({
   'projects/ai-send-queue/assets/crown-premium.webp':'46ea350497498f7854fcecc9c31b0593081c7e68',
   'projects/ai-send-queue/assets/queue.css':'dcf7b0bd310e583edb047479dc84adad6448167f',
   'projects/ai-send-queue/src/page/cache.js':'6b3845894d3de10a31d525236ae6d060613cc035',
   'projects/ai-send-queue/src/page/engine.js':'1fd9e1168a01328c153fd0002205306562f2c68f',
-  'projects/ai-send-queue/src/page/main.js':'678fe21528728ae33cd339e0ec8be220af30c513',
+  'projects/ai-send-queue/src/page/main.js':'293584bc562e687b52a913916d59149bc07821f0',
   'projects/ai-send-queue/src/page/site.js':'d65c06b0606ddb500e19434650796559724460f0',
   'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
   'projects/ai-send-queue/src/page/view.js':'8220bef929ff204dcd59d67ecb44f188183768df',
