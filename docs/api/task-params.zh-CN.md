@@ -2,6 +2,44 @@
 
 状态：**设计规范候选；正式 v2 运行、安装、调度和 Chrome 验收尚未实施。** 基准 `e2e2a82e50d978b9a181b1fa22465c4030d38ef7`。本页是 Controller Task 参数设计的开发者规范，不适用于 Page USER_SCRIPT 自定义网页表单、Sidebar Tool 或权限声明。不得将 R9 离线演示视为正式能力。作者当前发布必须使用下述 legacy 子集；v2 示例不得直接安装。
 
+## 0. 开发者速查：一行一个参数（R10.1 精简编写格式）
+
+**核心方案：`paramItems` 是作者/AI 首选源码格式；构建自动展开为 `paramsSchema + paramsUi`；执行只消费纯 JSON `params`。** 参考 [Cool Admin cl-form](https://vue.cool-admin.com/src/guide/crud/form.html) / [cl-upsert](https://vue.cool-admin.com/src/guide/crud/upsert.html) 的 items 声明思想，但不绑定 Vue/Element Plus 的组件名、实例、事件、插槽或函数。
+
+```json
+{
+  "paramItemsVersion": 1,
+  "paramItems": [
+    {"key":"query","label":"关键词","type":"text","required":true,"minLength":1,"maxLength":120},
+    {"key":"limit","label":"数量","type":"number","min":1,"max":20,"default":3},
+    {"key":"showExecutionTab","label":"显示执行标签页","type":"switch","default":true}
+  ]
+}
+```
+
+开发者不再手写 properties/required/order/fields，也不再重复维护 options/enum/optionLabels。阅读 [完整一行一项的 14 参数示例](../../examples/tasks/task-param-items.example.json)，调用 [纯数据转换器 compileParamItems](../../scripts/compile-task-param-items.mjs) 即可取得与 R10 相同的扩展契约。**本轮已新增参考转换器和一致性测试；尚未接入正式开发、打包、安装和运行流程。** 当前宿主只能使用 legacy v1；不要直接把 paramItems 或编译后的 v2 片段添加到旧包。正式迁移后才是“填配置即可运行”的体验。
+
+| type（控件类型） | valueType 缺省 | 关键附加配置 |
+| --- | --- | --- |
+| text | string | minLength / maxLength / placeholder |
+| textarea | string | minLength / maxLength / placeholder |
+| number | integer | min / max / step / unit；小数显式 valueType:"number" |
+| slider | integer | min / max / default 必需，number 时 step 必需；unit |
+| checkbox | boolean | default:true/false（可不设，未设置不等于 false） |
+| switch | boolean | default:true/false（可不设） |
+| select | string | options:[{value,label}]；数字/布尔显式 valueType |
+| radio | string | 同 select |
+| multi-checkbox | array of string | options:[{value,label}], default:[], minItems/maxItems；valueType 指元素类型 |
+| date | string | 自动 format:date；YYYY-MM-DD |
+| time | string | 自动 HH:mm 固定 pattern |
+| url | string | 自动 uri + HTTP(S) 固定 pattern；不授权 |
+
+通用字段仅 key、label、type 为必需；required 缺省 false，default 可省略，description 为帮助说明；scalar 可声明 const。控件属性使用上表白名单；placeholder 限 text/textarea/number/select/url，unit 限 number/slider；单选数值/字符串可使用对应边界，任意 regex、任意组件、JS、HTML、函数、未知字段拒绝。数组顺序直接生成 paramsUi.order；key 生成 properties 的键；label 生成 title；min/max/step 分别生成 minimum/maximum/multipleOf；options 一次声明自动拆分为 enum（多选为 items.enum）和 optionLabels，数组位置保持一致。valueType 仅数值或选择类可显式覆盖：数值只 integer/number，选择类允许 string/integer/number/boolean，严格同类型，不以默认值猜类型、不把 0/false 转成字符串。
+
+**唯一来源及阶段：** 编写阶段二选一：精简 paramItems（推荐）或直接扩展 paramsSchema/paramsUi（高级使用）；禁止同一脚本同时提供两套手工定义。paramItemsVersion:1 是编写格式版本，编译产生 paramsSchemaVersion:2 与 paramsUi.version:1，并从安装 Manifest 移除编写格式，不引入新的运行协议。发布阶段仅 canonical manifest 中的 paramsSchema/paramsUi 及其版本参与既有 hash 与安装；用户实际执行仅 params。编译器只对已解析 JSON 做编写形状检查和确定性投影，不是完整 v2 语义验证器，不执行任何脚本。正式编译/安装必须再调用唯一 v2 语义校验器，按下文检查日期、精度、范围、默认值等完整语义；原始 JSON 重复成员检测、输入尺寸预算仍由可信输入解析层负责，不得用 JSON.parse 的 last-wins 行为作为正式准入。
+
+示例维护：只编辑 examples/tasks/task-param-items.example.json，用转换器更新 examples/tasks/task-params-v2.example.json，再同步离线 HTML 和 Markdown 派生片段。现有测试确保精简输入展开后与旧 R10 定义语义等价，保留 R9 布局和预览数据，禁止第二份手工约束。定向测试：`node --test tests/environment/task-param-items.test.mjs`。正式 R11 优先接入源格式编译，再使用原 TaskWorkbench/校验器；不新建第二套渲染器或安装器。
+
 ## 1. 三层契约、版本和唯一来源
 
 | 字段 | 职责 |
@@ -13,7 +51,7 @@
 
 选用 JSON Schema Draft 2020-12 的**明确子集**作为语法基础，而非完整实现。参考 [标准](https://json-schema.org/draft/2020-12) 与 [JSON Forms UI Schema](https://jsonforms.io/docs/uischema/)。OpenDesk 特有行为：补入缺失字段的 default；对已支持的 format 做强制语义断言；限制字段、类型、格式与关键字。禁止远程 schema、$ref、$dynamicRef、组合条件、任意 JS/HTML/组件名、动态表达式、网络解析。通用 Schema 验证器可能不填 default、不检查 format 或不拒绝未知关键字，不能替代 OpenDesk 语义准入。组件数组方案耦合 UI，纯 Schema 自动推断不能表达 textarea、slider、radio、switch 和单位，因此选择分层方案。
 
-[机器元 Schema](../../schemas/opendesk-task-params.v2.schema.json) 验证**声明形状**：结构、字段白名单、类型和大小；不能证明 default 合法、跨字段引用一致或 widget 兼容。语义以下文为准，下一轮在既有 checkParamsSchema / validateTaskParams 中实现，不在各 UI 再造验证器。 [完整多参数 JSON](../../examples/tasks/task-params-v2.example.json) 为 R9 多参数演示的权威定义；离线 HTML 的内嵌镜像由定向测试比对，不运行时联网。先修改规范示例、同步内嵌参数对象，再运行一致性测试；不得改动列表或已定窗口布局。
+[机器元 Schema](../../schemas/opendesk-task-params.v2.schema.json) 验证**声明形状**：结构、字段白名单、类型和大小；不能证明 default 合法、跨字段引用一致或 widget 兼容。语义以下文为准，下一轮在既有 checkParamsSchema / validateTaskParams 中实现，不在各 UI 再造验证器。 [精简编写示例](../../examples/tasks/task-param-items.example.json) 是演示作者源；[完整多参数 JSON](../../examples/tasks/task-params-v2.example.json) 是其确定性编译产物，离线 HTML 的内嵌镜像由定向测试比对，不运行时联网。只修改作者源，重新编译并同步内嵌对象及文档派生片段，再运行一致性测试；不得改动列表或已定窗口布局。
 
 ## 2. 当前正式 v1（legacy）与最小可用配置
 

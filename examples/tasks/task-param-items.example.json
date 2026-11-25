@@ -1,0 +1,19 @@
+{
+  "paramItemsVersion": 1,
+  "paramItems": [
+    {"key":"keyword","label":"关键词","type":"text","required":true,"minLength":1,"maxLength":120,"default":"浏览器","description":"填写要匹配的文本。","placeholder":"输入关键词"},
+    {"key":"limit","label":"最多条数","type":"number","required":true,"min":1,"max":100,"default":20},
+    {"key":"quality","label":"匹配阈值","type":"slider","min":0,"max":100,"step":5,"default":80,"unit":"%","description":"阈值越高，匹配要求越严格。"},
+    {"key":"format","label":"输出格式","type":"select","options":[{"value":"markdown","label":"Markdown"},{"value":"json","label":"JSON"},{"value":"csv","label":"CSV"}],"default":"markdown"},
+    {"key":"includeLinks","label":"附上原文链接","type":"checkbox","default":true},
+    {"key":"externalOnly","label":"仅站外链接","type":"checkbox","default":false},
+    {"key":"deduplicate","label":"自动去重","type":"switch","default":true},
+    {"key":"scope","label":"采集范围","type":"radio","options":[{"value":"current","label":"当前页"},{"value":"all","label":"全部页"}],"default":"current"},
+    {"key":"contentTypes","label":"内容类型","type":"multi-checkbox","options":[{"value":"article","label":"正文"},{"value":"link","label":"链接"},{"value":"image","label":"图片"}],"default":["article","link"]},
+    {"key":"timeout","label":"等待秒数","type":"number","min":1,"max":60,"default":10},
+    {"key":"notes","label":"补充说明","type":"textarea","maxLength":500,"default":"","placeholder":"输入补充要求"},
+    {"key":"startUrl","label":"起始网址","type":"url","description":"可选，仅在本脚本需要时使用；不赋予网站访问权限。","placeholder":"https://example.com"},
+    {"key":"since","label":"更新日期","type":"date","description":"可选，仅整理该日期及之后的内容。"},
+    {"key":"afterTime","label":"起始时刻","type":"time","description":"可选，本地钟表时间，不包含时区或定时调度语义。"}
+  ]
+}
