@@ -64,6 +64,27 @@ paramsUi 可省略。version 仅 1；order 若存在必须为全部字段的完�
 
 各控件完整 JSON 定义见 [14 字段示例](../../examples/tasks/task-params-v2.example.json)，覆盖全部 12 个控件，不是安装包。枚举通过 index 或无碰撞 typed token 映射，不能用 String(value) 当选择身份。未设置的可选 checkbox/switch/multi-checkbox 必须有未设置状态，不等于 false/[]；required 无 default 必须用户明确选择，不自动选第一项。const 或单项 enum 推导固定值：已提供/有 default 时展示为固定只读；缺失时不凭空填入，必填无 default 仍需确认该值。任意只读/隐藏配置不属于 P0，隐藏不是安全措施。
 
+### 12 类控件的 JSON 示例
+
+以下每行是可独立阅读的字段配置 JSON 片段：key 对应 paramsSchema.properties 的字段名，rule 对应其值，ui 对应 paramsUi.fields[key]（空对象代表可省略），widget 是此例最终控件名称而不是额外 Manifest 字段。此段由权威示例推导，定向测试检查逐字一致，不单独维护业务约束。
+
+<!-- task-params-control-examples:start -->
+```jsonl
+{"widget":"text","key":"keyword","rule":{"type":"string","title":"关键词","minLength":1,"maxLength":120,"default":"浏览器","description":"填写要匹配的文本。"},"ui":{"placeholder":"输入关键词"}}
+{"widget":"textarea","key":"notes","rule":{"type":"string","title":"补充说明","maxLength":500,"default":""},"ui":{"widget":"textarea","placeholder":"输入补充要求"}}
+{"widget":"number","key":"limit","rule":{"type":"integer","title":"最多条数","minimum":1,"maximum":100,"default":20},"ui":{}}
+{"widget":"slider","key":"quality","rule":{"type":"integer","title":"匹配阈值","minimum":0,"maximum":100,"multipleOf":5,"default":80,"description":"阈值越高，匹配要求越严格。"},"ui":{"widget":"slider","unit":"%"}}
+{"widget":"checkbox","key":"includeLinks","rule":{"type":"boolean","title":"附上原文链接","default":true},"ui":{}}
+{"widget":"switch","key":"deduplicate","rule":{"type":"boolean","title":"自动去重","default":true},"ui":{"widget":"switch"}}
+{"widget":"select","key":"format","rule":{"type":"string","title":"输出格式","enum":["markdown","json","csv"],"default":"markdown"},"ui":{"optionLabels":["Markdown","JSON","CSV"]}}
+{"widget":"radio","key":"scope","rule":{"type":"string","title":"采集范围","enum":["current","all"],"default":"current"},"ui":{"widget":"radio","optionLabels":["当前页","全部页"]}}
+{"widget":"multi-checkbox","key":"contentTypes","rule":{"type":"array","title":"内容类型","items":{"type":"string","enum":["article","link","image"]},"uniqueItems":true,"default":["article","link"]},"ui":{"widget":"multi-checkbox","optionLabels":["正文","链接","图片"]}}
+{"widget":"date","key":"since","rule":{"type":"string","title":"更新日期","format":"date","description":"可选，仅整理该日期及之后的内容。"},"ui":{}}
+{"widget":"time","key":"afterTime","rule":{"type":"string","title":"起始时刻","pattern":"^(?:[01][0-9]|2[0-3]):[0-5][0-9]$","description":"可选，本地钟表时间，不包含时区或定时调度语义。"},"ui":{"widget":"time"}}
+{"widget":"url","key":"startUrl","rule":{"type":"string","title":"起始网址","format":"uri","pattern":"^https?://","description":"可选，仅在本脚本需要时使用；不赋予网站访问权限。"},"ui":{"widget":"url","placeholder":"https://example.com"}}
+```
+<!-- task-params-control-examples:end -->
+
 ### 优先级
 
 P0：上表 12 控件与固定值展示。P1：多选下拉（复用枚举数组）、标签（受限 string 数组）、日期时间（含明确时区）、数值区间/双端滑块、日期区间、颜色（明确验证语义）。P2：动态列表、对象/键值对、nullable、条件显示/required、跨字段约束、复杂 schema 组合。条件隐藏未来必须明确保留/删除规则及执行校验，不因 display:none 自动删除；P0 折叠不改变值。文件、媒体、密码、token、凭据是独立资源授权能力，不纳入普通 JSON 参数；沿现有 media.read、资源与凭据权限契约独立安全审查。禁止将敏感数据放入 schema/default、UI、普通 params、计划、AI 上下文、日志、历史、错误、回执与持久化；密码掩码不能解决泄露。未来引用需授权的不透明资源 ID、身份绑定与撤权。

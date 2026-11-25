@@ -50,3 +50,17 @@ test('legacy package and default semantics remain valid; v2 is not accepted by l
   assert.throws(()=>validateTaskParams(schema,{}),/Missing required parameter/);
   assert.throws(()=>checkParamsSchema(example.paramsSchema));
 });
+
+// The Markdown examples are a derived view, never a second parameter source.
+test('developer guide control fragments match the canonical example',()=>{
+  const guide=read('docs/api/task-params.zh-CN.md');
+  const pairs=[["text","keyword"],["textarea","notes"],["number","limit"],["slider","quality"],["checkbox","includeLinks"],["switch","deduplicate"],["select","format"],["radio","scope"],["multi-checkbox","contentTypes"],["date","since"],["time","afterTime"],["url","startUrl"]];
+  const expected=pairs.map(([widget,key])=>JSON.stringify({widget,key,rule:example.paramsSchema.properties[key],ui:example.paramsUi.fields[key]||{}})).join('\n');
+  const begin='<!-- task-params-control-examples:start -->\n'+String.fromCharCode(96,96,96)+'jsonl\n';
+  const end='\n'+String.fromCharCode(96,96,96)+'\n<!-- task-params-control-examples:end -->';
+  const start=guide.indexOf(begin);
+  assert.ok(start>=0);
+  const finish=guide.indexOf(end,start+begin.length);
+  assert.ok(finish>start);
+  assert.equal(guide.slice(start+begin.length,finish),expected);
+});
