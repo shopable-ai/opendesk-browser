@@ -1,10 +1,10 @@
 import {
-  key,sameCookieScope,sameCookieMetadata,sameNativeSlot,normalizeCookie,nativeInput,cookieImportTarget,
+  key,nativeSlotKey,sameCookieScope,sameCookieMetadata,sameNativeSlot,normalizeCookie,nativeInput,cookieImportTarget,
   inspectImport,rejectImportDuplicates,exportText
 } from '../domain/cookie-model.js';
 import {safeCode} from '../adapters/browser-sdk.js';
 import {cookieChanges} from '../domain/cookie-changes.js';
-import {warnCookieFailure} from './cookie-diagnostics.js';
+import {logImportResult,warnCookieFailure} from './cookie-diagnostics.js';
 
 const badReceipt=()=>Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
 const isVerified=receipt=>receipt?.saved===true&&receipt.verified===true;
@@ -57,14 +57,17 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
   let dispatchRevision=0,retryQueued=null;
   let nextAutomaticReadAt=0,rateLimitedUntil=0,navigationWait=null;
   let unresolvedSince=null;
-  let readDiagnostic=null;
+  let readDiagnostic=null,importResult=null;
+  // Only the possibly dispatched Cookie slots need a replay fence. Keep it
+  // private and independent of the notification or the current document.
+  const uncertainImportSlots=new Set();
   const unknownEffects=new Set();
   let changes=[],changeRevision=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy:busy||Boolean(activeEffect),target:target?{...target}:null,rows:structuredClone(rows),
     phase,problem,message,messageType,syncStale,navigationPending,readDiagnostic,verifiedScope,
     settlingPrevious:Boolean(activeEffect&&activeEffect.ticket!==epoch),previousReceipt,
-    importOutcome,importConflicts,unknownEffects:[...unknownEffects],
+    importOutcome,importConflicts,unknownEffects:[...unknownEffects],importResult,
     clearRecovery:clearRecovery&&{hostname:clearRecovery.at.hostname,
       available:phase==='ready'&&target?.url===clearRecovery.at.url&&verifiedScope===clearRecovery.scope,
       pending:clearRecoveryPending},changes:structuredClone(changes)});
@@ -82,12 +85,6 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
     if(closed)return;
     if(type==='success'&&notice)return publishSuccess(text,notice);
     previousReceipt={text,type};notify();
-  }
-  function reportPartialImport(verified,total,reason='',counts=''){
-    importOutcome='partial';
-    previousReceipt={type:'warning',text:'Chrome 已确认导入 '+verified+'/'+total+
-      ' 条；'+reason+'其余条目未写入。'+counts+'请先核对 Chrome。'};
-    notify();
   }
   async function readScope(at,live){
     const store=await adapter.getStore(at);
@@ -559,7 +556,7 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
   }
   async function previewImport(source,format='auto',overwrite=false,{allSites=false,submitDirectly=false}={}){
     const guard=lock();if(!guard)return null;
-    importPlan=null;importOutcome=null;
+    importPlan=null;importOutcome=null;importResult=null;
     const revision=++importRevision;
     let stage='parse';
     try{
@@ -620,6 +617,9 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
           Boolean(r.partitionKey.hasCrossSiteAncestor)===
             Boolean(partition.partitionKey.hasCrossSiteAncestor));
         if(!readable){created++;continue;}
+        // Do not let the non-overwrite preflight hide an uncertain slot by
+        // classifying it as a normal conflict in a previous import's replay.
+        if(uncertainImportSlots.has(nativeSlotKey(r)))continue;
         if(!seen.has(scope))
           seen.set(scope,await adapter.exactList(at,r,()=>canDispatch(guard)));
         if(!canDispatch(guard)||revision!==importRevision)return null;
@@ -644,7 +644,7 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
       const skipDetails=Object.entries(importSkipLabels).filter(([key])=>skipCounts[key]>0)
         .map(([key,label])=>label+' '+skipCounts[key]+' 条').join('、');
       importPlan={epoch:guard.ticket,url:guard.at.url,source,format,accepted,
-        total:plan.records.length,skipDetails,overwrite,allSites};
+        total:plan.records.length,skipCounts,overwrite,allSites};
       const result={total:plan.records.length,accepted:accepted.length,
         skipped:plan.records.length-accepted.length,created,replaced,
         skipCounts,skipDetails,
@@ -677,31 +677,37 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
       const scope=JSON.stringify([url,option.storeId??null,
         option.partitionKey?.topLevelSite??null,
         Boolean(option.partitionKey?.hasCrossSiteAncestor)]);
-      const next=[...bucket,option];
+      const next=[...bucket.map(item=>item.option),option];
       if(bucket.length&&(bucket.length===50||scope!==lastScope||
         !bounded(JSON.stringify({url,cookies:next}),11500))){
-        result.push({url:lastUrl,cookies:bucket});bucket=[];
+        result.push(batch(lastUrl,bucket));bucket=[];
       }
-      bucket.push(option);lastScope=scope;lastUrl=url;
+      bucket.push({option,slot:nativeSlotKey(cookie)});lastScope=scope;lastUrl=url;
     }
-    if(bucket.length)result.push({url:lastUrl,cookies:bucket});
+    if(bucket.length)result.push(batch(lastUrl,bucket));
     return result;
   }
+  const batch=(url,items)=>({url,cookies:items.map(item=>item.option),slots:items.map(item=>item.slot)});
   async function executeImport(source,format='auto',overwrite=false,{allSites=false}={}){
     const plan=importPlan,guard=lock();if(!guard)return false;
-    importPlan=null;importOutcome=null;importConflicts=0;
-    let verified=0,complete=false,stage='validate',pending=0,knownStop=false;
+    importPlan=null;importOutcome=null;importResult=null;importConflicts=0;
+    let verified=0,complete=false,stage='validate',pending=[],knownStop=false;
     const accepted=plan?.accepted.length||0,inputCount=plan?.total||0;
-    const counts=(failed,unknown)=>{
-      const details=[plan?.skipDetails,importConflicts?'精确冲突 '+importConflicts+' 条':''].filter(Boolean).join('、');
-      return '跳过 '+(inputCount-accepted+importConflicts)+' 条，失败 '+failed+' 条，未知 '+unknown+
-        ' 条，未执行 '+(accepted-verified-importConflicts-failed-unknown)+' 条。'+
-        (details?'跳过原因：'+details+'。':'');
+    const publish=(status,code=null,failed=0,unknown=0)=>{
+      importOutcome=status;
+      importResult={status,stage,code,total:inputCount,confirmed:verified,
+        skipped:inputCount-accepted+importConflicts,failed,unknown,
+        notRun:accepted-verified-importConflicts-failed-unknown,
+        skipCounts:{...plan?.skipCounts,conflict:importConflicts}};
+      logImportResult(importResult);
+      notify();
     };
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url||
         plan.source!==source||plan.format!==format||plan.overwrite!==overwrite||
         plan.allSites!==allSites||!accepted)throw failure('E_COOKIE_NOT_SUBMITTED');
+      if(plan.accepted.some(({cookie})=>uncertainImportSlots.has(nativeSlotKey(cookie))))
+        throw failure('E_COOKIE_IMPORT_OVERLAP');
       if(plan.accepted.some(({cookie})=>!cookie.session&&cookie.expirationDate<=Date.now()/1000))
         throw failure('E_COOKIE_EXPIRED');
       const batchSupported=adapter.supportsWriteMany();
@@ -709,13 +715,13 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
       // already-serialized SDK payload produced by batches(). Re-serializing
       // a host-only payload loses its implicit Domain and breaks imports.
       const chunks=batchSupported?batches(plan.accepted,plan.overwrite):
-        plan.accepted.map(({cookie,target})=>({target,cookie}));
+        plan.accepted.map(({cookie,target})=>({target,cookie,slots:[nativeSlotKey(cookie)]}));
       for(const chunk of chunks){
         if(!canDispatch(guard)){
           throw failure('E_COOKIE_NOT_SUBMITTED');
         }
         stage='write';beginEffect(guard,'import');
-        pending=batchSupported?chunk.cookies.length:1;
+        pending=chunk.slots;
         knownStop=false;
         if(batchSupported){
           const receipt=await adapter.writeMany({url:chunk.url},chunk.cookies,{skipConflicts:!plan.overwrite});
@@ -753,6 +759,7 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
             verified+=succeeded;
             importConflicts+=skipped;
             knownStop=true;
+            pending=[chunk.slots[succeeded+skipped]];
             throw Object.assign(badReceipt(),{code:failedCode});
           }
           if(results.length!==chunk.cookies.length||receipt.stopped===true)
@@ -772,47 +779,22 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
         }
         guard.effect=false;
       }
-      complete=true;reportEffect(guard,'Chrome 回读确认导入 '+verified+' 条，跳过 '+
-        (plan.total-plan.accepted.length+importConflicts)+' 条。','success');
+      complete=true;publish('complete');
     }catch(error){if(ownsOperation(guard)){
       const preflightExpired=stage==='validate'&&error?.code==='E_COOKIE_EXPIRED';
-      if(error?.code==='E_COOKIE_NOT_SUBMITTED'||error?.code==='E_COOKIE_BATCH_EXPIRED'||preflightExpired){
-        warnCookieFailure('import',stage,error,'E_COOKIE_IMPORT',verified?'partial':'failed');
+      const code=safeCode(error,'E_COOKIE_IMPORT');
+      if(['E_COOKIE_NOT_SUBMITTED','E_COOKIE_BATCH_EXPIRED','E_COOKIE_IMPORT_OVERLAP'].includes(code)||preflightExpired){
         guard.effect=false;
-        const expired=error.code==='E_COOKIE_BATCH_EXPIRED';
-        const reason=expired?'确认时限已到，':preflightExpired?'待导入的 Cookie 已过期，':'本次导入未提交，';
-        if(verified||importConflicts)reportPartialImport(verified,inputCount,reason,counts(0,0));
-        else{
-          importOutcome='denied';
-          reportEffect(guard,reason+'本次未写入。'+counts(0,0)+'请核对后重新确认。','warning');
-        }
+        publish(verified||importConflicts?'partial':'denied',code);
         return false;
       }
       const prewriteDenied=importPrewriteDenials.has(error?.code);
-      if((verified||importConflicts)&&prewriteDenied){
-        warnCookieFailure('import',stage,error,'E_COOKIE_IMPORT','partial');
-        rejectOperationAccess(guard,error);
-        guard.effect=false;
-        // Keep the count after hiding the revoked scope, without site or Cookie details.
-        reportPartialImport(verified,inputCount,'',counts(knownStop?1:0,0));
-        return false;
-      }
-      const denied=prewriteDenied;
-      warnCookieFailure('import',stage,error,'E_COOKIE_IMPORT',
-        !denied&&guard.effect?'unknown':'failed');
-      if(denied)guard.effect=false;
+      const uncertain=!prewriteDenied&&Boolean(guard.effect);
+      if(uncertain)for(const slot of pending)uncertainImportSlots.add(slot);
+      if(!uncertain)guard.effect=false;
       rejectOperationAccess(guard,error);
-      importOutcome=denied?'denied':'unknown';
-      if(guard.effect&&importOutcome==='unknown')unknownEffects.add('import');
-      reportEffect(guard,'已确认 '+verified+'/'+inputCount+
-        ' 条；'+(importOutcome==='denied'
-          ?'本次写入被明确拒绝，后续未执行'
-          :'其余结果未知或未执行，可能部分生效')+
-        formatCode(error,'E_COOKIE_IMPORT')+'。'+counts(denied&&knownStop?1:0,
-          !denied&&guard.effect?(knownStop?1:pending):0)+
-        (importOutcome==='denied'
-          ?'检查 Cookie 冲突或权限后，可重新发起新的导入。'
-          :'先核对 Chrome，不能盲目重试。'),'error');
+      publish(uncertain?'unknown':verified||importConflicts?'partial':'denied',
+        code,prewriteDenied&&knownStop?1:0,uncertain?pending.length:0);
     }
     }finally{unlock(guard);}
     if(complete&&current(guard.ticket,guard.at)&&!navigationPending&&!navigationQueued)

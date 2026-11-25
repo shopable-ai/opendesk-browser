@@ -13,7 +13,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const sourceRef=React.useRef(null);
   const stagedFile=React.useRef(null);
   const [stagedName,setStagedName]=React.useState('');
-  const [overwrite,setOverwrite]=React.useState(false);
+  const [overwrite,setOverwrite]=React.useState(true);
   const active=React.useRef(false);
   const running=React.useRef(false);
   const reading=React.useRef(false);
@@ -109,7 +109,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
       if(!active.current)return;
       settle();
       // Do not auto-retry a possible native effect.
-      onNotice?.('导入结果未知，请先核对 Chrome，不要直接重试。','error');
+      onNotice?.('导入结果未确认，操作已停止。','warning',8000);
     }finally{
       running.current=false;
       if(active.current)setBusy(false);
@@ -240,7 +240,9 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     <footer className="cookie-import-footer">
       {notice&&<div role={notice.kind==='error'?'alert':'status'}
         className={'cookie-import-inline-notice'+(notice.kind==='error'?' is-error':'')}>
-        {notice.text}
+        <span>{notice.text}</span>
+        {notice.timeout&&<CookieIconButton name="close" label="关闭导入提示"
+          onClick={()=>onNotice?.(null)}/>}
       </div>}
       {confirmDiscard?<div className="cookie-import-discard" role="group"
         aria-label="放弃导入内容">

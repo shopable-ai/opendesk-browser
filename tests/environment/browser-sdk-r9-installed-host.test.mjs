@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolStopLock} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {setInstalledSidebarToolEnabled} from '../../src/ui/sidebar-tools/installation.js';
@@ -25,10 +26,10 @@ const identity={toolId:cookiePkg.id,toolVersion:cookiePkg.version,
 const sender={id:'cookie-host-test',frameId:0,documentId:'host-doc',documentLifecycle:'active',
   url:'chrome-extension://cookie-host-test/sidepanel.html?hostInstanceId='+uid};
 
-function fixture({sender:hostSender=sender,installedPackage=cookiePkg,installedIdentity=identity,
+function fixture({sender:hostSender=sender,installedPackage=cookiePkg,installedIdentity=identity,deferGrantEvents=false,
   locks={request:(key,options,work=options)=>work({name:key})}}={}){
   const local=new Map([['opendesk.sidebar-tools.installed.v1',[installedPackage]]]),session=new Map();
-  const onStorage=[],native=[],listeners=[];
+  const onStorage=[],native=[],listeners=[],grantEvents=[];
   const tab={id:10,windowId:3,url,active:true,incognito:false,status:'complete'};
   const document={tabId:tab.id,windowId:tab.windowId,documentId:'website-document',url,origin};
   const state={hostAllowed:true,cookiesAllowed:true,activeTab:true,
@@ -42,7 +43,9 @@ function fixture({sender:hostSender=sender,installedPackage=cookiePkg,installedI
       for(const [k,value] of Object.entries(values)){
         changes[k]={oldValue:map.get(k),newValue:value};map.set(k,value);
       }
-      for(const callback of onStorage)callback(changes,area);
+      const deliver=()=>{for(const callback of onStorage)callback(changes,area);};
+      if(deferGrantEvents&&area==='local'&&Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE))grantEvents.push(deliver);
+      else deliver();
     }
   });
   const samePartition=(a,b)=>JSON.stringify(a??null)===JSON.stringify(b??null);
@@ -96,7 +99,8 @@ function fixture({sender:hostSender=sender,installedPackage=cookiePkg,installedI
     ...(extra?.cookieImportSource===undefined?{}:{cookieImportDeadlineAt:Date.now()+15000}),...extra},hostSender);
   const call=(operation,args={},approvalRef,as=installedIdentity)=>host.handleTool({
     ...as,operation,args,...(approvalRef?{approvalRef}:{})},hostSender);
-  return {api,host,grant,call,confirm,state,native,local,document,sender:hostSender,identity:installedIdentity};
+  return {api,host,grant,call,confirm,state,native,local,document,sender:hostSender,identity:installedIdentity,
+    deliverGrantEvents(){for(const deliver of grantEvents.splice(0))deliver();}};
 }
 
 test('R9 actual Browser Dispatcher refuses a regular installed Cookie read before per-site grant',async()=>{
@@ -134,8 +138,8 @@ test('R9 all-sites partition reads follow the trusted panel document across wind
   assert.equal(f.native.filter(x=>x==='getPartitionKey').length,nativeCalls);
 });
 
-async function exactClearFixture({allSites=true}={}){
-  const f=fixture();
+async function exactClearFixture({allSites=true,deferGrantEvents=false}={}){
+  const f=fixture({deferGrantEvents});
   const query=f.api.tabs.query;
   let workerFocusChanged=false;
   f.api.tabs.query=filters=>filters.currentWindow&&workerFocusChanged
@@ -172,6 +176,45 @@ async function exactClearFixture({allSites=true}={}){
     },
     replaceDocument:()=>{replacement=true;return {...f.document,documentId:'replacement-document'};}};
 }
+
+for(const allSites of [true,false])test('R9 first exact Cookie clear survives delayed grant notification: '+(allSites?'all-sites':'site'),async()=>{
+  const f=await exactClearFixture({allSites,deferGrantEvents:true});
+  if(!allSites)f.deliverGrantEvents();
+  const {approvalRef}=await f.confirm(f.operation,f.args,{document:f.document});
+  if(allSites)f.deliverGrantEvents();
+  assert.deepEqual(await f.call(f.operation,f.args,approvalRef),{matched:1,removed:1,remaining:0,
+    excluded:0,preview:false,scope:'SITE_EXACT_HOST'});
+  assert.deepEqual(f.state.records,[]);
+  assert.equal(f.native.filter(x=>x==='set').length,1);
+});
+
+test('R9 concurrent reviewed Cookie clear calls cannot spend the same preview twice',async()=>{
+  const f=await exactClearFixture();
+  const approvals=await Promise.all([1,2].map(()=>f.confirm(f.operation,f.args,{document:f.document})));
+  const results=await Promise.allSettled(approvals.map(({approvalRef})=>f.call(f.operation,f.args,approvalRef)));
+  assert.equal(results.filter(r=>r.status==='fulfilled'&&r.value.removed===1).length,1);
+  assert.equal(results.filter(r=>r.status==='rejected'&&r.reason.code==='E_COOKIE_STALE').length,1);
+  assert.deepEqual(f.state.records,[]);
+  assert.equal(f.native.filter(x=>x==='set').length,1);
+});
+
+test('R9 actual Cookie grant revocation blocks deletion before delayed notification and after restore',async()=>{
+  const f=await exactClearFixture({allSites:false,deferGrantEvents:true});
+  const {approvalRef}=await f.confirm(f.operation,f.args,{document:f.document});
+  await f.grant('clear',false);
+  await assert.rejects(f.call(f.operation,f.args,approvalRef),reject('E_SITE_GRANT_REQUIRED'));
+  await f.grant('clear');
+  const fresh=await f.confirm(f.operation,f.args,{document:f.document});
+  await assert.rejects(f.call(f.operation,f.args,fresh.approvalRef),reject('E_COOKIE_STALE'));
+  assert.equal(f.state.records.length,1);
+  assert(!f.native.includes('set'));
+  const preview=await f.preview(f.document);
+  const newArgs={...f.args,previewRef:preview.previewRef,expectedCount:preview.matched};
+  f.deliverGrantEvents();
+  const newApproval=await f.confirm(f.operation,newArgs,{document:f.document});
+  assert.equal((await f.call(f.operation,newArgs,newApproval.approvalRef)).removed,1);
+  assert.equal(f.native.filter(x=>x==='set').length,1);
+});
 
 test('R9 exact Cookie clear cannot spend an earlier activation preview with a fresh approval',async()=>{
   const f=await exactClearFixture();

@@ -515,8 +515,7 @@ try{
   assert.equal(await page.locator('.cookie-import-panel').count(),0);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
   const overwrite=workspace.getByRole('checkbox',{name:'覆盖已有 Cookie'});
-  assert.equal(await overwrite.isChecked(),false);
-  await overwrite.check();
+  assert.equal(await overwrite.isChecked(),true);
   const input=workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'});
   await input.fill(JSON.stringify([{name:'import_a',value:'fictional A'},
     {name:'import_b',value:'fictional B'},{name:'bad name',value:'invalid'},
@@ -526,19 +525,19 @@ try{
   await workspace.getByRole('button',{name:'确认导入',exact:true}).click();
   await row('import_a').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),10);
-  assert.match(await page.locator('.cookie-import-toast').innerText(),/已导入 3 条，跳过 1 条/);
+  assert.match(await page.locator('.cookie-import-toast').innerText(),/已确认写入 3 条 Cookie，跳过 1 条/);
   await row('theme').click();await valueInput().waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='overwrite existing');
   assert.equal(await valueInput().inputValue(),'overwrite existing',
-    'explicit overwrite must replace the exact existing Cookie');
+    'default overwrite must replace the exact existing Cookie');
   await reset();
  });
- await test('unchecked overwrite skips existing and each fresh sheet restores unchecked default',async()=>{
+ await test('unchecked overwrite skips existing and each fresh sheet restores checked default',async()=>{
   await button('导入 Cookie').click();
   let sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
   const option=sheet.getByRole('checkbox',{name:'覆盖已有 Cookie'});
-  assert.equal(await option.isChecked(),false);
-  await option.check();
+  assert.equal(await option.isChecked(),true);
+  await option.uncheck();
   await sheet.getByRole('button',{name:'取消'}).click();
   await sheet.waitFor({state:'detached'});
   assert.equal(await page.getByRole('group',{name:'放弃导入内容'}).count(),0,
@@ -546,7 +545,8 @@ try{
   await button('导入 Cookie').click();sheet=page.getByRole('dialog',{name:'导入 Cookie'});
   await sheet.waitFor();
   const checkbox=sheet.getByRole('checkbox',{name:'覆盖已有 Cookie'});
-  assert.equal(await checkbox.isChecked(),false);
+  assert.equal(await checkbox.isChecked(),true);
+  await checkbox.uncheck();
   await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
     JSON.stringify([{name:'unchecked_added',value:'added'},
       {name:'theme',value:'must not overwrite'}]));
@@ -556,7 +556,7 @@ try{
   await row('theme').click();await valueInput().waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='light');
   assert.equal(await valueInput().inputValue(),'light',
-    'default import must preserve existing Cookie');
+    'unchecking overwrite must preserve the existing Cookie');
   await button('取消').click();await reset();
  });
  await test('invalid-domain errors stay in workspace; real file chooser click imports once',async()=>{

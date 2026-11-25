@@ -353,7 +353,13 @@ for(const operation of ['save','import','clear','remove'])test('unknown '+operat
    const writes=after.calls.slice(before.calls.length).filter(call=>['set','setMany','clearSite','remove'].includes(call.op));
    assert.deepEqual(writes.map(call=>call.op),[{save:'set',import:'setMany',clear:'clearSite',remove:'remove'}[operation]],injection);
    assert.deepEqual(after.rows,before.rows,injection);
-   assert.match(f.controller.snapshot().message,/E_OUTCOME_UNKNOWN/);
+   const snapshot=f.controller.snapshot();
+   if(operation==='clear'){
+    assert.ok(snapshot.unknownEffects.includes('clear'));
+    assert.deepEqual(snapshot.clearRecovery,{hostname:snapshot.target.hostname,available:true,pending:false});
+    assert.equal(await f.controller.previewClear(false),null,'require a readback before a new preview');
+   }else if(operation==='import')assert.equal(snapshot.importResult.code,'E_OUTCOME_UNKNOWN');
+   else assert.match(snapshot.message,/E_OUTCOME_UNKNOWN/);
   }finally{f.close();}
  }
 });

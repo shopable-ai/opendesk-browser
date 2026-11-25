@@ -74,6 +74,26 @@ test('opening focuses the sole action; starting once dismisses and restores focu
   assert.equal(ui.dialog(),null);assert.equal(ui.document.activeElement,ui.trigger());
 });
 
+test('the same More button stays in place but cannot open during a clear and re-read',t=>{
+  const ui=mount(t,{epoch:1});
+  const trigger=ui.trigger();
+  ui.open();
+  ui.update({disabled:true,available:false});
+  assert.equal(ui.trigger(),trigger);
+  assert.equal(trigger.disabled,true);
+  assert.equal(ui.dialog(),null);
+  ui.click(trigger);
+  assert.equal(ui.dialog(),null);
+  ui.update({epoch:2});
+  assert.equal(ui.trigger(),trigger);
+  assert.equal(trigger.disabled,true);
+  ui.update({disabled:false,available:true});
+  assert.equal(ui.trigger(),trigger);
+  assert.equal(ui.dialog(),null);
+  ui.open();
+  assert.equal(ui.button('监听当前网站').disabled,false);
+});
+
 test('running shows the countdown and stops from the toolbar in one action',t=>{
   const ui=mount(t,{phase:'running',remaining:24});
   assert.equal(ui.trigger().textContent,'监听中 24 秒');

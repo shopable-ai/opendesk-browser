@@ -680,7 +680,15 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
         throw cause;
       }
     },
-    revoke(){approvals.clear();sessions.clear();clearPreviews.clear();},
+    noteInstalledGrantStorageChanged(){
+      approvals.clear();sessions.clear();
+      // This notification can arrive after a preview read the committed
+      // grant. The installed path binds its preview to the live grant epoch.
+    },
+    revoke(){
+      approvals.clear();sessions.clear();clearPreviews.clear();
+      clearPreviewRevision++;
+    },
     noteNavigation(tabId){
       for(const [id,row] of approvals)if(row.target.tabId===tabId)approvals.delete(id);
       for(const [id,row] of sessions)if(row.target.tabId===tabId)sessions.delete(id);

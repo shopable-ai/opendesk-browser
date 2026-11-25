@@ -114,6 +114,28 @@ function mountEditor(props){
     all:()=>nodes(rt.tree),dispose(){rt.dispose();}};
 }
 
+test('the More action is present and disabled until the first Cookie read and each refresh finish',async t=>{
+  const app=mount();t.after(()=>app.dispose());
+  const action=()=>app.view().monitor;
+  const pending=()=>{
+    assert.equal(action().type,'CookieChangeMonitor');
+    assert.equal(action().props.disabled,true);
+    assert.equal(action().props.available,false);
+  };
+  const ready=()=>{
+    assert.equal(action().type,'CookieChangeMonitor');
+    assert.equal(action().props.disabled,false);
+    assert.equal(action().props.available,true);
+  };
+  let complete;
+  app.setList(()=>new Promise(resolve=>{complete=resolve;}));
+  pending();
+  await app.flush();pending();
+  complete([cookie]);await app.flush();ready();
+  app.find('CookieSiteBar').onRefresh();await app.flush();pending();
+  complete([cookie]);await app.flush();ready();
+});
+
 test('real path handler retains selection, list controls and attribute draft while scrubbing secrets',async t=>{
   const app=mount();t.after(()=>app.dispose());await app.flush();
   app.view().onQuery('sid');app.view().onFilter('session');app.view().onSort('name');
@@ -163,11 +185,13 @@ test('path handler keeps import surface but retires raw content, intent and revi
 });
 
 for(const [outcome,expected] of [
-  ['not submitted',/本次导入未提交/],
-  ['partial',/操作回执：Chrome 已确认导入 1\/3 条；其余条目未写入/],
-  ['unknown',/操作结果未确认：.*请勿直接重试/]
-])test('same-site navigation leaves the late '+outcome+' import receipt above the workspace',async t=>{
-  const app=mount(),dialog=runtime();t.after(()=>{dialog.dispose();app.dispose();});
+  ['not submitted',/本次未导入 Cookie/],
+  ['partial',/已确认导入 1 条.*2 条未导入/],
+  ['unknown',/已确认导入 0 条.*3 条结果未确认/]
+])test('same-site navigation leaves the late '+outcome+' import receipt as one notification',async t=>{
+  const notifications=[];
+  const app=mount({notify:options=>{notifications.push(options);return true;}}),dialog=runtime();
+  t.after(()=>{dialog.dispose();app.dispose();});
   const textarea={value:'first=fake-secret; second=secret-two; third=secret-three',focus(){}};
   const nativeDialog={open:false,showModal(){this.open=true;},close(){this.open=false;}};
   const Component=compile(importSource,dialog.React);
@@ -193,23 +217,22 @@ for(const [outcome,expected] of [
   await app.flush();
   const messages=()=>app.rendered().filter(n=>['alert','status'].includes(n.props.role))
     .map(n=>n.children.filter(x=>typeof x==='string').join('')).join('\n');
-  assert.match(messages(),expected);
   assert.doesNotMatch(messages(),/重新准备并确认导入|fake-secret|secret-two/);
-  if(outcome==='unknown'){
-    assert.equal(app.view().onImport,undefined,'unknown results disable opening a new import');
-    assert.equal(await oldImport.onBeginImport(),false);
-    app.rendered().find(n=>n.type==='Button'&&n.children.includes('已核对')).props.onClick();
-    await app.flush();assert.equal(typeof app.view().onImport,'function');
-  }
+  assert.equal(notifications.length,1);
+  assert.equal(notifications[0].timeout,8000);
+  assert.match(notifications[0].message,expected);
+  assert.doesNotMatch(messages(),/操作结果未确认|结果未确认|操作回执/);
+  assert.equal(app.rendered().some(n=>n.props.className?.includes('cookie-import-receipt')),false);
+  assert.equal(typeof app.view().onImport,'function');
+  assert.equal(await oldImport.onBeginImport(),false);
   assert.equal(writes,1);
 });
 
 for(const [label,code,prefix,role,expected,locked] of [
-  ['明确拒绝','E_COOKIE_CONFLICT',0,'alert',/已确认 0\/3 条；本次写入被明确拒绝/,false],
-  ['部分成功','E_COOKIE_CONFLICT',1,'status',/已确认导入 1\/3 条；其余条目未写入/,true],
-  ['写入前超时','E_COOKIE_BATCH_EXPIRED',0,'alert',/本次未写入.*失败 0 条，未知 0 条，未执行 3 条/,false],
-  ['部分成功后超时','E_COOKIE_BATCH_EXPIRED',1,'status',/确认时限已到.*未执行 2 条/,true],
-  ['结果未知','E_OUTCOME_UNKNOWN',1,'alert',/已确认 1\/3 条；其余结果未知/,true]
+  ['明确拒绝','E_COOKIE_CONFLICT',0,'status',/本次未导入 Cookie/,false],
+  ['部分成功','E_COOKIE_CONFLICT',1,'status',/已确认导入 1 条.*2 条未导入/,true],
+  ['写入前超时','E_COOKIE_BATCH_EXPIRED',0,'status',/超时.*本次未写入/,false],
+  ['部分成功后超时','E_COOKIE_BATCH_EXPIRED',1,'status',/已确认导入 1 条.*2 条未导入/,true]
 ])test('导入弹窗显示'+label+'并按回执限制原批次',async t=>{
   const app=mount(),dialog=runtime();t.after(()=>{dialog.dispose();app.dispose();});
   const textarea={value:'first=fake-secret; second=secret-two; third=secret-three',focus(){}};
@@ -231,21 +254,88 @@ for(const [label,code,prefix,role,expected,locked] of [
     }
   });
   const button=title=>nodes(dialog.tree).find(n=>n.type==='Button'&&n.children.includes(title));
-  render();button('确认导入').props.onClick();await app.flush();render();
-  const notice=nodes(dialog.tree).find(n=>n.props.className?.startsWith('cookie-import-inline-notice'));
-  assert.match(notice.children.join(''),expected);
-  assert.doesNotMatch(notice.children.join(''),/secret|example\.com|确认后写入/);
+  render();button('确认导入').props.onClick();await app.flush();
+  if(!locked)render();
+  const notice=locked?app.rendered().find(n=>n.props.className?.startsWith('cookie-import-toast')):
+    nodes(dialog.tree).find(n=>n.props.className?.startsWith('cookie-import-inline-notice'));
+  const noticeText=[notice,...nodes(notice)].flatMap(node=>node.children.filter(x=>typeof x==='string')).join('');
+  assert.match(noticeText,expected);
+  assert.doesNotMatch(noticeText,/secret|example\.com|E_COOKIE/);
   assert.equal(notice.props.role,role);
-  assert.equal(button('确认导入').props.disabled,locked);
-  assert.equal(Boolean(textarea.value),!locked);
-  if(locked){
-    button('确认导入').props.onClick();await app.flush();
-    assert.equal(writes,1);
-    button('关闭').props.onClick();await app.flush();
-    assert.equal(app.find('CookieImport'),undefined);
-  }
-  assert.deepEqual(app.controller.snapshot().unknownEffects,code==='E_OUTCOME_UNKNOWN'?['import']:[]);
+  assert.equal(Boolean(app.find('CookieImport')),!locked);
+  if(!locked)assert.equal(button('确认导入').props.disabled,false);
+  assert.deepEqual(app.controller.snapshot().unknownEffects,[]);
   assert.equal(writes,1);
+});
+
+for(const status of ['accepted','rejected','unknown'])test('shared notification acknowledgment '+status+' does not create duplicate feedback',async t=>{
+  const displayed=[];
+  const notify=Object.assign(()=>assert.fail('legacy notification'),{open:options=>{
+    displayed.push(options);return {ready:Promise.resolve({status})};
+  }});
+  const app=mount({notify});t.after(()=>app.dispose());
+  app.setImportWrite(async()=>({results:[{index:0,saved:true,verified:true}]}));
+  await app.flush();app.view().onImport();await app.flush();
+  const dialog=app.find('CookieImport');assert.equal(await dialog.onBeginImport(),true);
+  assert.equal(await dialog.onImportText('fictional=fixture',{overwrite:true}),true);await app.flush();
+  assert.equal(displayed.length,1);assert.equal(displayed[0].timeout,8000);
+  const local=()=>app.rendered().find(n=>n.props.className?.includes('cookie-import-toast--dismissible'));
+  assert.equal(Boolean(local()),status==='rejected');
+  app.elapse();await app.flush();assert.equal(local(),undefined);
+});
+
+for(const feedback of ['host','dismiss','timeout'])test('unknown import fences only overlapping rows after '+feedback+' feedback',async t=>{
+  const notifications=[];
+  const app=mount({notify:feedback==='host'?options=>{notifications.push(options);return true;}:undefined});
+  t.after(()=>app.dispose());
+  let writes=0;
+  app.setImportWrite(async()=>{
+    writes++;
+    return {saved:1,verified:1,stopped:true,results:[
+      {index:0,saved:true,verified:true},{index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}
+    ]};
+  });
+  await app.flush();app.view().onImport();await app.flush();
+  const dialog=app.find('CookieImport');
+  assert.equal(await dialog.onBeginImport(),true);
+  assert.equal(await dialog.onImportText('first=fake-secret; second=fake-secret; third=fake-secret'),'unknown');
+  await app.flush();
+  const notice=()=>app.rendered().find(n=>n.props.className?.startsWith('cookie-import-toast'));
+  assert.equal(app.find('CookieImport'),undefined);
+  assert.ok(app.focus.includes('.cookie-editor-react [aria-label="导入 Cookie"]'));
+  if(feedback==='host'){
+    assert.equal(notifications.length,1);
+    assert.match(notifications[0].message,/已确认导入 1 条.*1 条结果未确认.*1 条未执行/);
+    assert.equal(notifications[0].type,'warning');
+    assert.equal(notifications[0].timeout,8000);
+  }else{
+    assert.match(notice().children[0],/结果未确认/);
+    if(feedback==='dismiss')nodes(notice()).find(n=>n.props.label==='关闭导入提示').props.onClick();
+    else app.elapse();
+  }
+  await app.flush();
+  assert.equal(notice(),undefined);
+  assert.equal(app.rendered().some(n=>n.props.className?.includes('cookie-import-receipt')),false);
+  assert.equal(typeof app.view().onImport,'function');
+  assert.equal(await dialog.onBeginImport(),false);
+  assert.equal(writes,1);
+
+  app.view().onImport();await app.flush();
+  const next=app.find('CookieImport');
+  assert.equal(await next.onBeginImport(),true);
+  assert.equal(await next.onImportText('second=different-value; unrelated=fixture',{overwrite:true}),'failed');
+  await app.flush();
+  assert.equal(app.controller.snapshot().importResult.code,'E_COOKIE_IMPORT_OVERLAP');
+  assert.equal(writes,1,'a new click with overlapping slots dispatches nothing');
+
+  app.setImportWrite(async(_,batch)=>{
+    writes++;
+    assert.deepEqual(batch.map(row=>row.name),['third']);
+    return {results:[{index:0,saved:true,verified:true}]};
+  });
+  assert.equal(await next.onBeginImport(),true);
+  assert.equal(await next.onImportText('third=next-value',{overwrite:true}),true);
+  assert.equal(writes,2,'the known not-run row is not unnecessarily blocked');
 });
 
 test('navigation after a batch of conflicts preserves the late receipt and stops the next batch',async t=>{
@@ -269,10 +359,11 @@ test('navigation after a batch of conflicts preserves the late receipt and stops
   assert.equal(app.controller.snapshot().unknownEffects.includes('import'),false);
   const messages=app.rendered().filter(n=>['alert','status'].includes(n.props.role))
     .map(n=>n.children.filter(x=>typeof x==='string').join('')).join('\n');
-  assert.match(messages,/已确认导入 0\/51 条.*跳过 50 条，失败 0 条，未知 0 条，未执行 1 条/);
+  assert.match(messages,/已确认导入 0 条.*跳过 50 条.*1 条未导入/);
+  assert.equal(app.controller.snapshot().importResult.notRun,1);
 });
 
-test('a mixed JSON import keeps a redacted receipt that explains which rows were skipped',async t=>{
+test('a mixed JSON import uses a short receipt and records detailed skip counts in diagnostics',async t=>{
   const app=mount();t.after(()=>app.dispose());
   const writes=[];
   app.setImportWrite(async(_,batch)=>{
@@ -288,15 +379,17 @@ test('a mixed JSON import keeps a redacted receipt that explains which rows were
     {...cookie,name:'other_store',value:'fake-store-value',storeId:'1'}
   ]);
   assert.equal(await dialog.onImportText(json,{overwrite:true}),true);
-  await app.flush();app.elapse();await app.flush();
+  await app.flush();
   const findReceipt=()=>app.rendered().find(n=>n.props.className?.startsWith('cookie-import-toast'));
   const receipt=findReceipt();
-  assert.ok(receipt,'the mixed receipt remains visible after ordinary success feedback would expire');
+  assert.ok(receipt);
   assert.equal(receipt.props.role,'status');
-  assert.match(receipt.children.join(''),/确认写入 1 条.*跳过 2 条.*已过期 1 条.*存储区不匹配 1 条/);
+  assert.match(receipt.children.join(''),/确认导入 1 条.*跳过 2 条/);
   assert.doesNotMatch(receipt.children.join(''),/fake-.*-value|expired_preference|other_store/);
   assert.deepEqual(writes.map(row=>row.name),['test_preference']);
-  app.rendered().find(n=>n.props.label==='关闭导入回执').props.onClick();
+  assert.deepEqual(app.controller.snapshot().importResult.skipCounts,
+    {expired:1,store:1,partition:0,invalid:0,existing:0,conflict:0});
+  app.rendered().find(n=>n.props.label==='关闭导入提示').props.onClick();
   await app.flush();assert.equal(findReceipt(),undefined);
 });
 
@@ -315,11 +408,12 @@ test('a row expiring after preflight invalidates confirmation before any write',
   assert.equal(writes,0);
   assert.equal(state.importOutcome,'denied');
   assert.deepEqual(state.unknownEffects,[]);
-  assert.match(state.message,/已过期.*本次未写入.*失败 0 条，未知 0 条，未执行 1 条/);
+  assert.equal(state.importResult.code,'E_COOKIE_EXPIRED');
+  assert.equal(state.importResult.notRun,1);
 });
-for(const [code,expected] of [
-  ['E_SITE_GRANT_REQUIRED',/已确认导入 1\/4 条.*跳过 1 条，失败 0 条，未知 0 条，未执行 2 条/],
-  ['E_OUTCOME_UNKNOWN',/已确认 1\/4 条.*跳过 1 条，失败 0 条，未知 1 条，未执行 1 条/]
+for(const [code,unknown,notRun] of [
+  ['E_SITE_GRANT_REQUIRED',0,2],
+  ['E_OUTCOME_UNKNOWN',1,1]
 ])test('a mixed import preserves the confirmed prefix and preflight skip on '+code,async t=>{
   const app=mount();t.after(()=>app.dispose());
   let calls=0;
@@ -341,11 +435,10 @@ for(const [code,expected] of [
   ]);
   assert.equal(await dialog.onImportText(source),code==='E_OUTCOME_UNKNOWN'?'unknown':'partial');
   await app.flush();
-  const state=app.controller.snapshot(),receipt=state.previousReceipt?.text||state.message;
-  assert.match(receipt,expected);
-  assert.match(receipt,/跳过原因：已过期 1 条/);
-  assert.doesNotMatch(receipt,/fixture|example\.com/);
-  assert.deepEqual(state.unknownEffects,code==='E_OUTCOME_UNKNOWN'?['import']:[]);
+  const {importResult}=app.controller.snapshot();
+  assert.deepEqual(importResult,{status:unknown?'unknown':'partial',stage:unknown?'receipt':'write',
+    code,total:4,confirmed:1,skipped:1,failed:0,unknown,notRun,
+    skipCounts:{expired:1,store:0,partition:0,invalid:0,existing:0,conflict:0}});
   assert.equal(calls,2);
 });
 test('verified import closes the dialog and keeps its visible receipt when the list refresh stalls and fails',async t=>{
@@ -363,11 +456,11 @@ test('verified import closes the dialog and keeps its visible receipt when the l
   assert.equal(submitted,true,'the submit action settles while the list refresh is pending');
   assert.equal(app.find('CookieImport'),undefined);
   const receipt=()=>app.rendered().find(n=>n.props.className?.startsWith('cookie-import-toast'));
-  assert.match(receipt().children.join(''),/确认写入 1 条/);
+  assert.match(receipt().children.join(''),/确认导入 1 条/);
   failRefresh(Object.assign(Error(),{code:'E_TIMEOUT'}));
   await pending;await app.flush();
   assert.equal(app.controller.snapshot().syncStale,true);
-  assert.match(receipt().children.join(''),/确认写入 1 条/);
+  assert.match(receipt().children.join(''),/确认导入 1 条/);
   assert.equal(app.controller.snapshot().unknownEffects.includes('import'),false);
 });
 

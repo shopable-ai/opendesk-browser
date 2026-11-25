@@ -18,8 +18,8 @@ import {CookieEnterprisePanel,CookieCustomizePanel,CookieCommunityPanel} from '.
 import cookiePackage from '../package.json';
 
 const PAGE_CHECK_GRACE_MS=4000;
+const IMPORT_RECEIPT_TIMEOUT_MS=8000;
 const outcomeHelp={save:'保存 Cookie，请核对 Chrome 中的记录。',remove:'删除 Cookie，请核对 Chrome 中的记录。',
-  import:'导入 Cookie，请核对 Chrome 中的记录。',
   copy:'复制 Cookie，请核对剪贴板。',download:'下载 Cookie，请核对下载记录。'};
 
 // The only transport is Controller -> Adapter -> public OpenDeskSDK.browser.
@@ -113,7 +113,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     try{
       if(globalThis.OpenDeskTool?.ui?.notify?.({message:text,type:'success'})===true)return;
     }catch{}
-    setImportNotice({text,kind:'success'});
+    setImportNotice({text,kind:'success',timeout:3500});
   };
   const notifyObservedChange=()=>{
     if(observationNotified.current)return;
@@ -157,7 +157,43 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     data.current={adapter,controller};
   }
   const {controller,adapter}=data.current;
-  const noteImport=(text,kind='error')=>setImportNotice(text?{text,kind}:null);
+  const noteImport=(text,kind='error',timeout=kind==='success'?3500:0)=>
+    setImportNotice(text?{text,kind,timeout}:null);
+  const importNoticeSequence=React.useRef(0);
+  const notifyImportResult=({status,code,confirmed,skipped,failed,unknown,notRun})=>{
+    const confirmedText='已确认导入 '+confirmed+' 条 Cookie';
+    const skippedText=skipped?'，跳过 '+skipped+' 条':'';
+    const message=status==='complete'?confirmedText+skippedText+'。':
+      status==='unknown'?confirmedText+skippedText+'；'+unknown+' 条结果未确认'+
+        (notRun?'，'+notRun+' 条未执行':'')+'。':
+      status==='partial'?confirmedText+skippedText+'；另有 '+(failed+notRun)+' 条未导入。':
+      code==='E_COOKIE_IMPORT_OVERLAP'?'文件含上次结果未确认的 Cookie，本次未写入。可导入其他文件。':
+      code==='E_COOKIE_BATCH_EXPIRED'?'导入已超时，本次未写入。':
+      code==='E_COOKIE_EXPIRED'?'待导入的 Cookie 已过期，本次未写入。':
+      '本次未导入 Cookie，请检查文件或网站授权。';
+    const type=status==='complete'&&!skipped?'success':'warning';
+    const options={message,type,position:'bottom-center',timeout:IMPORT_RECEIPT_TIMEOUT_MS};
+    const sequence=++importNoticeSequence.current;
+    const fallback=()=>{
+      if(sequence===importNoticeSequence.current)noteImport(message,type,IMPORT_RECEIPT_TIMEOUT_MS);
+    };
+    noteImport(null);
+    try{
+      const notify=globalThis.OpenDeskTool?.ui?.notify;
+      if(typeof notify?.open==='function'){
+        const handle=notify.open(options);
+        if(handle){
+          // Only a known rejection can be replaced; never add a second
+          // notice when the Host may already be displaying the first one.
+          void handle.ready.then(receipt=>{
+            if(receipt.status==='rejected')fallback();
+          },()=>{});
+          return;
+        }
+      }else if(notify?.(options)===true)return;
+    }catch{}
+    fallback();
+  };
   const importDirtyRef=React.useRef(false);
   React.useEffect(()=>{
     if(!clearNotice)return;
@@ -165,8 +201,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     return ()=>window.clearTimeout(timer);
   },[clearNotice]);
   React.useEffect(()=>{
-    if(!importNotice||importNotice.kind!=='success')return;
-    const timer=window.setTimeout(()=>setImportNotice(null),3500);
+    if(!importNotice?.timeout)return;
+    const timer=window.setTimeout(()=>setImportNotice(current=>current===importNotice?null:current),importNotice.timeout);
     return ()=>window.clearTimeout(timer);
   },[importNotice]);
   React.useEffect(()=>{
@@ -264,9 +300,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       setConfirmation(null);
       if(syncGate.current.panel==='import'){
         importDirtyRef.current=false;
-        const pending=controller.snapshot();
-        if(importSubmitting.current||pending.importOutcome==='partial'||pending.unknownEffects.includes('import')){
-          // Leave the underlying receipt visible; a modal must not invite a replay.
+        if(importSubmitting.current){
+          // Close the obsolete draft; the dispatched operation still owns its notification.
           setPanel(null);noteImport(null);
         }else{
           // Keep the surface, never the old file, text or intent.
@@ -346,6 +381,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const unresolved=snapshot.problem==='E_DOCUMENT_UNRESOLVED';
   const checkingPage=mode==='browser'&&(snapshot.phase==='loading'||unresolved||awaitingPage||snapshot.navigationPending);
   const showCookieData=cookieReady&&!checkingPage;
+  const monitorDisabled=!showCookieData||Boolean(locked);
   React.useLayoutEffect(()=>{
     const pending=pendingAttributeDraft.current;
     if(!pending)return;
@@ -782,7 +818,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   // Opening import preserves the mounted list, query, page, scroll and draft.
   // Only a later native write needs the editor-dirty conflict gate.
   const openImport=()=>{
-    if(locked||panel==='import'||importSubmitting.current||controller.snapshot().unknownEffects.includes('import'))return;
+    if(locked||panel==='import'||importSubmitting.current)return;
     setExportOpen(false);setPanel('import');setImportNotice(null);
   };
   const closeExport=(restoreFocus=false,confirmed=false)=>{
@@ -814,8 +850,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     if(panel!==null)return;
     if(restoreImportFocus.current){
       restoreImportFocus.current=false;
-      hostRoot.querySelector('.cookie-editor-react [aria-label="导入 Cookie"]')
-        ?.focus({preventScroll:true});
+      hostRoot.querySelector('.cookie-editor-react [aria-label="导入 Cookie"]')?.focus({preventScroll:true});
     }
   },[panel]);
   const finishImportIntent=ref=>{
@@ -827,7 +862,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     const state=controller.snapshot();
     const generation=navigationGeneration.current;
     if(modeRef.current!=='browser'||state.phase!=='ready'||state.navigationPending||!state.target||
-      activeImportRef.current!==null||importSubmitting.current||state.unknownEffects.includes('import'))return false;
+      activeImportRef.current!==null||importSubmitting.current)return false;
     // The adapter admission starts synchronously in the real Confirm click.
     let receipt;
     try{receipt=await adapter.beginImportIntent(state.target);}
@@ -884,27 +919,17 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     importSubmitting.current=true;
     const ok=await controller.executeImport(text,'auto',overwrite,{allSites:true})
       .finally(()=>{importSubmitting.current=false;});
-    if(generation!==navigationGeneration.current)return 'unknown';
-    if(ok){
-      const conflicts=controller.snapshot().importConflicts;
-      const skipped=plan.skipped+conflicts;
-      const details=[skippedDetails,conflicts?'精确冲突 '+conflicts+' 条':''].filter(Boolean).join('、');
+    const result=controller.snapshot().importResult;
+    if(result)notifyImportResult(result);
+    if(generation!==navigationGeneration.current)return result?.status==='denied'?'failed':'unknown';
+    if(ok||result?.status==='unknown'||result?.status==='partial'){
       restoreImportFocus.current=true;
-      noteImport('浏览器已确认写入 '+(plan.accepted-conflicts)+' 条 Cookie'+
-        (skipped?'，跳过 '+skipped+' 条：'+details:'')+'。',skipped?'warning':'success');
+      importDirtyRef.current=false;
       setPanel(null);
-      return true;
+      return ok?true:result.status;
     }
-    const outcome=controller.snapshot();
-    if(outcome.importOutcome==='partial'){
-      noteImport(outcome.previousReceipt.text,'warning');
-      return 'partial';
-    }
-    noteImport(outcome.message||
-      '导入结果未完全确认，请先核对 Chrome，勿直接重复提交。');
-    // Only an explicit pre-write denial without any successful native effect
-    // permits another user-initiated attempt. Never auto-replay partial writes.
-    return outcome.importOutcome==='denied'?'failed':'unknown';
+    if(!result)noteImport('本次未提交导入。','warning',IMPORT_RECEIPT_TIMEOUT_MS);
+    return 'failed';
     }finally{
       finishImportIntent(sessionRef);
     }
@@ -1011,7 +1036,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const confirmClear=async dialog=>{
     if(syncGate.current.confirmation!==dialog||dialog.pending||!dialog.count||
        controller.snapshot().navigationPending)return;
-    setConfirmation(null);setWorking(true);
+    setConfirmation(null);setWorking('clear');
     try{await controller.executeClear();}finally{setWorking(false);}
   };
   const select=id=>guarded(()=>{setPanel(null);setExportOpen(false);setSelected(id);setStatus('');});
@@ -1122,15 +1147,15 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       {!pageUnavailable&&<div className="od-surface cookie-editor-workspace">
         <CookieEditorView site={target?.hostname||''} showSiteBar={false} syncStale={snapshot.syncStale}
           changes={snapshot.changes}
-          monitor={showCookieData?<CookieChangeMonitor key={snapshot.epoch}
-            adapter={adapter} controller={controller}
+          monitor={<CookieChangeMonitor epoch={snapshot.epoch}
+            adapter={adapter} controller={controller} disabled={monitorDisabled}
             onObservedChange={notifyObservedChange}
-            available={selected===null&&panel===null&&!exportOpen&&!locked&&!dirty&&!serviceDirty}
+            available={!monitorDisabled&&selected===null&&panel===null&&!exportOpen&&!dirty&&!serviceDirty}
             canApply={()=>{
               const gate=syncGate.current;
               return modeRef.current==='browser'&&gate.selected===null&&gate.panel===null&&
                 !gate.exportOpen&&!gate.dirty&&!gate.confirmation&&!gate.working;
-            }}/>:null}
+            }}/>}
           importOpen={panel==='import'}
           rows={showCookieData?snapshot.rows:[]} selected={showCookieData?selected:null} onSelect={select}
           onRefresh={()=>guarded(refresh)}
@@ -1141,7 +1166,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           page={page} onPage={setPage} busy={locked||!cookieReady}
           readonly={!cookieReady} unavailable={!cookieReady}
           listPending={checkingPage} listRecovery={pageRecovery}
-          onImport={snapshot.unknownEffects.includes('import')?undefined:openImport}
+          onImport={openImport}
           onExport={()=>{if(!locked)setExportOpen(!exportOpen);}}
           exportOpen={showCookieData&&exportOpen} onCloseExport={closeExport}
           exportContent={cookieReady&&exportOpen?<CookieExport controller={controller} disabled={locked}
@@ -1319,9 +1344,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       role={importNotice.kind==='error'?'alert':'status'}
       className={'cookie-import-toast'+
         (importNotice.kind==='error'?' cookie-import-toast--error':'')+
-        (importNotice.kind==='warning'?' cookie-import-toast--dismissible':'')}>
+        (importNotice.timeout?' cookie-import-toast--dismissible':'')}>
       {importNotice.text}
-      {importNotice.kind==='warning'&&<CookieIconButton name="close" label="关闭导入回执"
+      {importNotice.timeout&&<CookieIconButton name="close" label="关闭导入提示"
         onClick={()=>noteImport(null)}/>}
     </div>}
     {confirmation?.kind==='clear'&&<CookieClearDialog

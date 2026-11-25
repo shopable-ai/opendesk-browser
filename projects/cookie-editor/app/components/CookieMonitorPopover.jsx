@@ -2,7 +2,7 @@ import * as React from 'react';
 
 // Opening this low-frequency action never starts or stops the bounded observer.
 export default function CookieMonitorPopover({phase='idle',remaining=0,gap=false,
-  detected=false,supported=true,available=true,onStart=()=>{},onStop=()=>{}}){
+  detected=false,supported=true,available=true,disabled=false,epoch,onStart=()=>{},onStop=()=>{}}){
   const [open,setOpen]=React.useState(false);
   const root=React.useRef(null),trigger=React.useRef(null),panel=React.useRef(null);
   const panelId=React.useId(),noteId=React.useId();
@@ -15,7 +15,8 @@ export default function CookieMonitorPopover({phase='idle',remaining=0,gap=false
     (gap&&detected?'部分变化可能未捕获。':'');
   const label=running?'监听中，停止监听':finished?status+'，查看结果':status||'更多 Cookie 操作';
   const close=restore=>{setOpen(false);if(restore)trigger.current?.focus({preventScroll:true});};
-  const showPanel=open&&menuAvailable;
+  const showPanel=!disabled&&open&&menuAvailable;
+  React.useLayoutEffect(()=>{setOpen(false);},[disabled,epoch]);
   React.useEffect(()=>{
     if(!showPanel)return;
     const outside=event=>{if(!root.current?.contains(event.target))setOpen(false);};
@@ -48,6 +49,7 @@ export default function CookieMonitorPopover({phase='idle',remaining=0,gap=false
         (running?' is-listening':'')+(failed?' has-warning':''):
         'cookie-react-icon icon-btn od-icon-button od-icon-button--quiet'}
       aria-label={label} title={running?'停止监听':finished?result:label}
+      disabled={disabled}
       aria-disabled={starting||undefined}
       aria-haspopup={menuAvailable?'dialog':undefined} aria-expanded={menuAvailable?showPanel:undefined}
       aria-controls={showPanel?panelId:undefined} onClick={()=>{

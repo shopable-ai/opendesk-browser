@@ -1928,7 +1928,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     // Never dispose unrelated owned Tabs/Network/Screenshot on a Cookie grant.
     if(area==='local'&&Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE)){
       ++cookieAuthorityEpoch;
-      trustedCookies.revoke();currentPageRefs.revokeAll();fingerprintDriver?.revokeAll();
+      trustedCookies.noteInstalledGrantStorageChanged();
+      currentPageRefs.revokeAll();fingerprintDriver?.revokeAll();
     }
     if(area==='local'&&Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE))
       void revokeLaunches().catch(error=>logger.warn('OpenDesk disabled-tool launch cleanup',error));

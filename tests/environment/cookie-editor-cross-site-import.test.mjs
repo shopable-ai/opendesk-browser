@@ -53,7 +53,8 @@ test('30 fictional Cookies for two other websites use two verified Host batches'
     assert.equal(again.accepted,3,'foreign site has no arbitrary read grant');
     assert.equal(await controller.executeImport(mixed,'json',false,{allSites:true}),true);
     assert.equal(controller.snapshot().importConflicts,2);
-    assert.match(controller.snapshot().message,/确认导入 1 条，跳过 2 条/);
+    const {confirmed,skipped}=controller.snapshot().importResult;
+    assert.deepEqual({confirmed,skipped},{confirmed:1,skipped:2});
     assert.ok(mock.inspect().rows.some(item=>item.name==='after_conflict'));
     assert.deepEqual(mock.inspect().rows.filter(item=>item.name.startsWith('import_')),original,
       'conflicting backup must leave previously written Cookies unchanged');

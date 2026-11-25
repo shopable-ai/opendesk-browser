@@ -22,9 +22,11 @@ const fixture='http://127.0.0.1:43111/demo-form.html';
 const mode=process.env.COOKIE_NATIVE_MODE||(extension===path.join(root,'dist/development')?'development':'production');
 const stage=process.env.COOKIE_NATIVE_STAGE||'baseline';
 assert(['development','static-development','production'].includes(mode));
-assert(['baseline','core','upgrade','diagnose','recheck','restart-dev','slow-reload','clear-receipt'].includes(stage));
+assert(['baseline','core','upgrade','diagnose','recheck','restart-dev','slow-reload','clear-receipt','import-receipt','import-uncertain'].includes(stage));
 const slowReload=stage==='slow-reload';
-const clearReceipt=stage==='clear-receipt';
+const importReceipt=stage==='import-receipt';
+const importUncertain=stage==='import-uncertain';
+const clearReceipt=stage==='clear-receipt'||importReceipt||importUncertain;
 assert(mode!=='static-development'||slowReload||clearReceipt,'Static development requires an isolated fixture stage');
 const localCandidate=(slowReload||clearReceipt)&&process.env.COOKIE_NATIVE_TOOL_CANDIDATE;
 const localCandidateSha=process.env.COOKIE_NATIVE_TOOL_SHA256;
@@ -34,6 +36,10 @@ assert(slowReload||(targets.length===3&&new Set(targets.map(url=>new URL(url).ho
 const requiredCases=clearReceipt?['actual-entry','official-installed-open','all-sites-grant','clear-native-success-receipt']:slowReload?['actual-entry','official-installed-open','reload-fixture-grant','reload-stable-controls','reload-document-fence','reload-compact-status','reload-automatic-recovery','reload-hard-site-switch']:stage==='restart-dev'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','same-profile-restart','fixture-cookie-cleanup','all-sites-revoke']:stage==='recheck'?['actual-entry','same-id-development-update','official-installed-open','all-sites-grant','independent-values-grant','automatic-site-lists','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download','all-sites-revoke']:stage==='diagnose'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','development-reread-observation']:['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download',
   ...(stage==='baseline'?[]:['three-site-list-reuse','same-profile-restart','all-sites-revoke']),
   ...(stage==='upgrade'?['same-id-upgrade']:[])];
+if(importReceipt||importUncertain){
+  assert(localCandidate,'Import acceptance requires the pinned candidate');
+  requiredCases.push(...(importReceipt?['import-default-overwrite','import-expiration-precision','import-shared-toast']:['import-native-unknown-no-replay']));
+}
 const report={startedAt:new Date().toISOString(),mode,stage,extension,directory,targets,cases:[],
   results:Object.fromEntries(requiredCases.map(name=>[name,'NOT_TESTED'])),complete:false};
 if(slowReload)for(const name of ['reload-manual-recovery-control','reload-attribute-draft'])report.results[name]='NOT_TESTED';
@@ -43,6 +49,7 @@ if(slowReload||clearReceipt)assert(!reuseReport&&process.env.COOKIE_NATIVE_STAY!
 if(stage==='recheck')assert(reuseReport,'Development recheck must reuse an owned browser');
 if(stage==='restart-dev')assert(reuseReport&&process.env.COOKIE_NATIVE_OWNER_INSPECTOR&&process.env.COOKIE_NATIVE_CORE_REPORT,'Restart reuses the original owned launcher and fixture evidence');
 const contexts=new Map(),observedSessions=new Set(),attachedTargets=new Map(),downloads=[],fileChoosers=[];
+const workerPauses=[];
 const save=()=>writeFile(path.join(directory,'report.json'),JSON.stringify(report,null,2)+'\n');
 async function read(session,expression){
   if(typeof session==='string')return evaluate(client,expression,session);
@@ -116,6 +123,7 @@ async function bindTool(){
 async function wire(endpoint){
   contexts.clear();observedSessions.clear();attachedTargets.clear();
   client=await connect(endpoint,{onEvent:event=>{
+    if(importUncertain&&event.method==='Debugger.paused')workerPauses.push(event);
     if(event.method==='Page.fileChooserOpened')fileChoosers.push({sessionId:event.sessionId,...event.params});
     if(event.method==='Runtime.executionContextCreated'){
       if(!contexts.has(event.sessionId))contexts.set(event.sessionId,new Map());
@@ -380,10 +388,18 @@ async function importLocalCandidate(file){
   await checkpoint('official-installed-open',{installation:'reviewed-local-candidate',previous,installed:await installed(),candidate:report.importedCandidate});
 }
 const clearSeedNames=['od_fixture_clear_a','od_fixture_clear_b'];
+const uncertainName='od_fixture_uncertain',notRunName='od_fixture_not_run';
+let uncertainFixtureUrl;
 async function startClearFixture(){
   const route='/cookie-clear-'+randomUUID();
+  const changeRoute=route+'/concurrent-change';
   let served=false;
   ownedFixture=createServer((req,res)=>{
+    if(importUncertain&&req.url===changeRoute){
+      res.setHeader('Set-Cookie',uncertainName+'=fictional-site; Path=/');
+      res.setHeader('Cache-Control','no-store');
+      res.end('Fictional concurrent site update');return;
+    }
     if(req.url!==route){res.writeHead(404);res.end();return;}
     if(!served)res.setHeader('Set-Cookie',clearSeedNames.map(name=>name+'=fictional; Path=/; HttpOnly; SameSite=Lax'));
     served=true;
@@ -391,6 +407,7 @@ async function startClearFixture(){
     res.end('<title>Fictional Cookie clear fixture</title>');
   });
   await new Promise((resolve,reject)=>{ownedFixture.once('error',reject);ownedFixture.listen(0,'127.0.0.1',resolve);});
+  if(importUncertain)uncertainFixtureUrl='http://127.0.0.1:'+ownedFixture.address().port+changeRoute;
   return 'http://127.0.0.1:'+ownedFixture.address().port+route;
 }
 async function verifyClearReceipt(){
@@ -417,6 +434,145 @@ async function verifyClearReceipt(){
   await until(async()=>!(await readState()).rows.length,'Cookie list updated after clear');
   assert.equal((await nativeRows('127.0.0.1')).length,0);
   await checkpoint('clear-native-success-receipt',{before:before.length,after:0,receipt,unknownWarnings:0,confirmationCount:1});
+}
+async function verifyImportReceipt(){
+  const host='127.0.0.1',prefix='od_fixture_import_',name=prefix+'0';
+  const drawer='#cookie-import-drawer[open]',source='#cookie-import-source';
+  const toastState=()=>read(side,
+    '([...document.querySelectorAll(".sidebar-tool-toast-message")].filter(n=>n.getClientRects().length&&n.textContent.includes("导入")&&n.textContent.includes("Cookie")).map(n=>({text:n.textContent,close:[...n.closest(".sidebar-tool-toast").querySelectorAll("button")].some(b=>/关闭提示|Dismiss/.test(b.getAttribute("aria-label")||"")),duplicate:Boolean(n.closest(".sidebar-tool-toast").querySelector(".sidebar-tool-toast-count"))})))');
+  const noEmbeddedReceipt=async()=>assert.deepEqual(await read(tool,
+    '({drawer:Boolean(document.querySelector("#cookie-import-drawer[open]")),local:Boolean(document.querySelector(".cookie-import-toast--dismissible")),old:/查看导入回执|核对完成，允许新导入|操作结果未确认：导入 Cookie/.test(document.body.innerText)})'),{drawer:false,local:false,old:false});
+  const open=async()=>{
+    await click(tool,'[aria-label="导入 Cookie"]');
+    assert.equal(await read(tool,'document.querySelector(".cookie-import-overwrite input")?.checked'),true);
+  };
+  const confirm=async(expected)=>{
+    await click(tool,drawer+' .cookie-import-actions .od-button--primary');
+    await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:25,y:25},side);
+    await until(async()=>{
+      const visible=await toastState();
+      if(!visible.length)return null;
+      assert.deepEqual(visible,[{text:'「Cookie Editor」：'+expected,close:true,duplicate:false}],
+        'Unexpected shared import notice: '+JSON.stringify(visible));
+      return true;
+    },'One shared import notification: '+expected);
+    const observedAt=Date.now();
+    await until(()=>read(tool,'!document.querySelector("#cookie-import-drawer[open]")'),'Submitted import closes the dialog');
+    await noEmbeddedReceipt();
+    return observedAt;
+  };
+  const dismiss=async()=>{
+    await click(side,'.sidebar-tool-toast:has(.sidebar-tool-toast-message) button:is([aria-label="关闭提示"],[aria-label="Dismiss notification"])');
+    await until(async()=>!(await toastState()).length,'Shared notification dismisses from close button',2000);
+  };
+  await open();
+  await fill(source,name+'=fictional-before');
+  await confirm('已确认导入 1 条 Cookie。');
+  assert.equal((await nativeRows(host)).find(row=>row.name===name)?.value,'fictional-before');
+  await dismiss();
+
+  const expirationDate=Math.floor(Date.now()/1000)+3600+0.1234567;
+  const records=Array.from({length:32},(_,i)=>({name:prefix+i,value:'fictional-'+i,
+    domain:host,path:'/',hostOnly:true,secure:false,httpOnly:false,sameSite:'lax',session:false,
+    expirationDate:i<28?expirationDate:expirationDate-7200}));
+  await open();
+  await fill(source,JSON.stringify(records));
+  const observedAt=await confirm('已确认导入 28 条 Cookie，跳过 4 条。');
+  const stored=(await nativeRows(host)).filter(row=>row.name.startsWith(prefix));
+  assert.equal(stored.length,28);
+  for(const expected of records.slice(0,28)){
+    const actual=stored.find(row=>row.name===expected.name);
+    assert.equal(actual?.value,expected.value);
+    assert(Math.abs(actual.expirationDate-expirationDate)<=0.000001);
+  }
+  const maxNativeExpiryDelta=Math.max(...stored.map(row=>Math.abs(row.expirationDate-expirationDate)));
+  assert(maxNativeExpiryDelta>0,'Chrome must actually round at least one expiry');
+  await checkpoint('import-expiration-precision',{requested:32,confirmed:28,expired:4,nativeCount:stored.length,maxNativeExpiryDelta});
+  while(Date.now()-observedAt<7400){
+    assert.equal((await toastState()).length,1,'Exactly one import notice remains visible before expiry');
+    await sleep(100);
+  }
+  await until(async()=>!(await toastState()).length,'Shared notification automatically expires',2000);
+  const elapsedMs=Date.now()-observedAt;
+  await noEmbeddedReceipt();
+
+  await open();
+  await fill(source,'# Netscape HTTP Cookie File\n'+[host,'FALSE','/','FALSE',Math.floor(expirationDate),name,'fictional-netscape'].join('\t'));
+  await confirm('已确认导入 1 条 Cookie。');
+  assert.equal((await nativeRows(host)).find(row=>row.name===name)?.value,'fictional-netscape');
+  await dismiss();
+  await checkpoint('import-default-overwrite',{formats:['Cookie Header','JSON','Netscape'],nativeReplacementReadback:true});
+  await checkpoint('import-shared-toast',{elapsedMs,expectedTimeoutMs:8000,manualDismiss:true,embeddedReceipts:0});
+}
+async function verifyUncertainImport(){
+  // Pause after the real native set, just before its exact readback. A
+  // separate loopback response changes only the fictional Cookie. Package
+  // bytes stay unchanged and debugger evaluation never mutates state.
+  const worker=(await client.send('Target.getTargets')).targetInfos.find(t=>t.type==='service_worker'&&t.url==='chrome-extension://'+report.extensionId+'/sw.js');
+  assert(worker);
+  const session=await attach(worker);
+  await client.send('Debugger.enable',{},session);
+  const breakpoints=[];
+  for(const driverFile of ['sw.js','platform/context-menus.js']){
+    const lines=(await readFile(path.join(extension,driverFile),'utf8')).split('\n');
+    const positions=lines.flatMap((line,i)=>{
+      const match=/const \w+=await (\w+\(["']getAll["'],\{domain:\w+\.domain,name:\w+\.name,path:\w+\.path,storeId:)/.exec(line);
+      return match?[{lineNumber:i,columnNumber:match.index+match[0].indexOf(match[1])}]:[];
+    });
+    assert.equal(positions.length,1,'Find the Cookie write verifier in '+driverFile);
+    const position=positions[0];
+    const breakpoint=await client.send('Debugger.setBreakpointByUrl',{url:new URL(driverFile,worker.url).href,...position},session);
+    assert(breakpoint.locations.some(location=>location.lineNumber===position.lineNumber&&location.columnNumber-position.columnNumber<18),'Exact readback breakpoint resolved in '+driverFile);
+    breakpoints.push(breakpoint.breakpointId);
+  }
+
+  const drawer='#cookie-import-drawer[open]',confirm=drawer+' .cookie-import-actions .od-button--primary';
+  const prepare=async input=>{
+    await click(tool,'[aria-label="导入 Cookie"]');
+    assert.equal(await read(tool,'document.querySelector(".cookie-import-overwrite input")?.checked'),true);
+    await fill('#cookie-import-source',input);
+  };
+  const snapshot=async()=>Object.fromEntries((await nativeRows('127.0.0.1')).map(row=>[row.name,row.value]));
+  const notices=()=>read(side,'[...document.querySelectorAll(".sidebar-tool-toast-message")].filter(n=>n.getClientRects().length&&n.textContent.includes("导入")).map(n=>n.textContent)');
+  const dismissNotice=async message=>{
+    await until(async()=>(await notices()).length,'Shared import receipt');
+    assert.deepEqual(await notices(),['「Cookie Editor」：'+message]);
+    await click(side,'.sidebar-tool-toast:has(.sidebar-tool-toast-message) button:is([aria-label="关闭提示"],[aria-label="Dismiss notification"])');
+    await until(async()=>!(await notices()).length,'Dismiss shared import receipt');
+  };
+  try{
+    await prepare(uncertainName+'=fictional-import; '+notRunName+'=fictional-later');
+    await click(tool,confirm);
+    const pause=await until(async()=>{
+      const hit=workerPauses.find(event=>event.sessionId===session);
+      if(hit)return hit;
+      const feedback=await notices();
+      assert.equal(feedback.length,0,'Import settled before the breakpoint: '+feedback.join(' '));
+      return null;
+    },'Native write reached exact readback');
+    assert(pause.params.hitBreakpoints.some(id=>breakpoints.includes(id)));
+    assert.deepEqual(await snapshot(),{[uncertainName]:'fictional-import'},'Chrome already applied the first native set');
+    await client.send('Target.createTarget',{url:uncertainFixtureUrl,background:true});
+    await until(async()=>(await snapshot())[uncertainName]==='fictional-site','Concurrent site Set-Cookie took effect',3000);
+  }finally{
+    for(const breakpointId of breakpoints)await client.send('Debugger.removeBreakpoint',{breakpointId},session);
+    if(workerPauses.some(event=>event.sessionId===session))await client.send('Debugger.resume',{},session);
+    await client.send('Debugger.disable',{},session);
+  }
+  await dismissNotice('已确认导入 0 条 Cookie；1 条结果未确认，1 条未执行。');
+  await until(()=>read(tool,'!document.querySelector("#cookie-import-drawer[open]")'),'Unknown result closes completed import');
+  assert.deepEqual(await snapshot(),{[uncertainName]:'fictional-site'},'No automatic replay and no later row written');
+  assert.equal(await read(tool,'/查看导入回执|核对完成，允许新导入/.test(document.body.innerText)'),false);
+
+  await prepare(uncertainName+'=fictional-replay; '+notRunName+'=fictional-later');
+  await click(tool,confirm);
+  await dismissNotice('文件含上次结果未确认的 Cookie，本次未写入。可导入其他文件。');
+  assert.deepEqual(await snapshot(),{[uncertainName]:'fictional-site'},'A fresh overlapping submission cannot replay or continue the batch');
+  await fill('#cookie-import-source',notRunName+'=fictional-new-import');
+  await click(tool,confirm);
+  await dismissNotice('已确认导入 1 条 Cookie。');
+  assert.deepEqual(await snapshot(),{[uncertainName]:'fictional-site',[notRunName]:'fictional-new-import'});
+  await checkpoint('import-native-unknown-no-replay',{fault:'loopback Set-Cookie between native set and exact readback',nativeWriteObserved:true,overlapBlocked:true,laterRowNotRun:true,unrelatedImportSucceeded:true,sharedNotices:3});
 }
 async function startSlowReloadFixture(){
   let gate;
@@ -804,7 +960,11 @@ try{
   if(slowReload)await grantReloadFixture();
   else if(clearReceipt)await grantClearFixture();
   else{await grantAll();await grantValues();}
-  if(clearReceipt)await verifyClearReceipt();
+  if(clearReceipt){
+    await verifyClearReceipt();
+    if(importReceipt)await verifyImportReceipt();
+    if(importUncertain)await verifyUncertainImport();
+  }
   else if(slowReload)await verifySlowReload(website,reloadFixture);
   else if(stage==='restart-dev')await restartDevelopment();
   else if(stage==='diagnose'){

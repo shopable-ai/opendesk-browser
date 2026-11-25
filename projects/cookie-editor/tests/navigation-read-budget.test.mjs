@@ -128,12 +128,23 @@ for(const result of ['verified','unknown','not submitted'])test('queued navigati
   else receipt.reject(Object.assign(Error(result),{
     code:result==='unknown'?'E_OUTCOME_UNKNOWN':'E_COOKIE_NOT_SUBMITTED'}));
   assert.equal(await importing,false);
-  assert.deepEqual(controller.snapshot().unknownEffects,result==='unknown'?['import']:[]);
-  if(result==='verified')assert.match(controller.snapshot().previousReceipt.text,/1\/2.*其余条目未写入/);
-  if(result==='not submitted')assert.match(controller.snapshot().message,/本次导入未提交/);
+  const settled=controller.snapshot().importResult;
+  const {status,code,total,confirmed,failed,skipped,unknown,notRun}=settled;
+  assert.deepEqual({status,code,total,confirmed,failed,skipped,unknown,notRun},{
+    total:2,failed:0,skipped:0,...{
+      verified:{status:'partial',code:'E_COOKIE_NOT_SUBMITTED',confirmed:1,unknown:0,notRun:1},
+      unknown:{status:'unknown',code:'E_OUTCOME_UNKNOWN',confirmed:0,unknown:1,notRun:1},
+      'not submitted':{status:'denied',code:'E_COOKIE_NOT_SUBMITTED',confirmed:0,unknown:0,notRun:2}
+    }[result]
+  });
   t.mock.timers.tick(8000);await flush();
   assert.equal(controller.snapshot().target.url,'https://example.com/next');
-  if(result==='verified')assert.match(controller.snapshot().previousReceipt.text,/1\/2.*其余条目未写入/);
+  assert.deepEqual(controller.snapshot().importResult,settled);
+  if(result==='unknown'){
+    assert.equal((await controller.previewImport(source,'header')).accepted,2);
+    assert.equal(await controller.executeImport(source,'header'),false);
+    assert.equal(controller.snapshot().importResult.code,'E_COOKIE_IMPORT_OVERLAP');
+  }
   assert.deepEqual(calls,['first']);
 });
 

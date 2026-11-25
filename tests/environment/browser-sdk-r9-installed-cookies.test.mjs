@@ -122,6 +122,21 @@ test('setMany stops at the first native unknown and preserves only prior confirm
   assert(!f.state.records.some(row=>row.name==='unattempted'));
 });
 
+test('setMany completes all 28 eligible rows when Chromium rounds a fractional expiry',async()=>{
+  const f=fixture(),set=f.api.cookies.set;
+  const expirationDate=Math.floor(Date.now()/1000)+3600.1234567;
+  const rounded=Math.trunc(expirationDate*1e6)/1e6;
+  assert.notEqual(rounded,expirationDate);
+  f.api.cookies.set=(details,cb)=>set(details.name==='row26'?
+    {...details,expirationDate:rounded}:details,cb);
+  const rows=Array.from({length:28},(_,i)=>({name:'row'+i,value:'fixture',expirationDate}));
+  const receipt=await f.run('setMany',{cookies:rows});
+  assert.equal(receipt.verified,28);
+  assert.equal(receipt.stopped,undefined);
+  assert.equal(f.state.native.filter(method=>method==='set').length,28);
+  assert.equal(f.state.records.find(row=>row.name==='row26').expirationDate,rounded);
+});
+
 test('setMany stops on ifAbsent conflict without retry or executing subsequent rows',async()=>{
   const f=fixture(),result=await f.run('setMany',{cookies:[{name:'first',value:'PRIVATE'},
     {name:'sid',value:'PRIVATE',path:'/',ifAbsent:true},{name:'unattempted',value:'PRIVATE'}]});
@@ -515,6 +530,25 @@ test('a newer preview invalidates an execution paused during its initial scan',a
   await f.run('clearSite',{scope,previewRef:newer.previewRef,expectedCount:newer.matched,maxCookies:50});
   release();
   assert.equal((await oldResult)?.code,'E_COOKIE_STALE');
+});
+test('a hard Cookie authority reset fences an in-flight exact clear preview',async()=>{
+  const f=fixture(),scope='site-exact-host';
+  const getAll=f.api.cookies.getAll;
+  let resume,started;
+  const scanning=new Promise(resolve=>{started=resolve;});
+  f.api.cookies.getAll=(query,callback)=>{
+    f.api.cookies.getAll=getAll;
+    resume=()=>getAll(query,callback);
+    started();
+  };
+  const oldResult=f.run('clearSite',{scope,preview:true}).then(()=>null,error=>error);
+  await scanning;
+  f.host.revoke();
+  resume();
+  assert.equal((await oldResult)?.code,'E_COOKIE_STALE');
+  assert(!f.state.native.includes('set'));
+  const fresh=await f.run('clearSite',{scope,preview:true});
+  assert(fresh.matched>0);
 });
 test('R9 exact expiration preserves same-name Store, Partition and domain peers without reading Value',async()=>{
   const f=fixture();

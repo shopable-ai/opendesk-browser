@@ -10,3 +10,12 @@ export function warnCookieFailure(operation,stage,error,fallback,status='failed'
     console.warn('[Cookie Editor]',{operation,stage,code:sanitized,status});
   }catch{} // Diagnostics must never change the operation's outcome.
 }
+
+export function logImportResult(result){
+  try{
+    const {status,stage,code,total,confirmed,skipped,failed,unknown,notRun,skipCounts}=result;
+    const log=code?console.warn:console.info;
+    log('[Cookie Editor] 导入回执',{operation:'import',status,stage,code,total,
+      confirmed,skipped,failed,unknown,notRun,skipCounts});
+  }catch{} // Never attach source bytes, Cookie identities, or an exception object.
+}

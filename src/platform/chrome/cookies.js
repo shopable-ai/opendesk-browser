@@ -220,13 +220,18 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
         hostOnly:details.domain===undefined,
         path:details.path??(slash>0?lookup.pathname.slice(0,slash):'/'),
         storeId:details.storeId??result?.storeId,partitionKey:details.partitionKey};
+      const matchesExpiry=actual=>actual===details.expirationDate||
+        // Chromium stores time at microsecond resolution, so a fractional
+        // epoch timestamp can lose one tick during the native round trip.
+        (Number.isFinite(actual)&&Number.isFinite(details.expirationDate)&&
+         Math.abs(actual-details.expirationDate)<=0.000001);
       const matchesWrite=cookie=>Boolean(cookie&&typeof cookie.domain==='string'&&
         typeof cookie.storeId==='string'&&cookie.storeId.length>0&&
         sameIdentity({...cookie,domain:cookie.domain.replace(/^\./,'').toLowerCase()},expected)&&
         cookie.hostOnly===(details.domain===undefined)&&cookie.value===details.value&&
         cookie.secure===(details.secure??false)&&cookie.httpOnly===(details.httpOnly??false)&&
         cookie.sameSite===(details.sameSite??'unspecified')&&
-        cookie.session===(details.expirationDate===undefined)&&cookie.expirationDate===details.expirationDate);
+        cookie.session===(details.expirationDate===undefined)&&matchesExpiry(cookie.expirationDate));
       // Chromium selects set()'s optional return through the original URL.
       // A different literal Path can therefore yield no Cookie or a same-name
       // sibling. Verify the requested identity independently; never guess its

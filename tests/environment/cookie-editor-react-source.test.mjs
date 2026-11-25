@@ -121,9 +121,9 @@ test('R5.36 React UI defaults overwrite, supports opt-out and preserves Controll
    assert.match(importer,/if\(stagedFile\.current\|\|sourceRef\.current\?\.value\.trim\(\)\)/);
   assert.match(importer,/onImportText\?\.\(text,\{overwrite\}\)/);
   assert.match(app,/const importFromText=async \(text,\{overwrite=false\}=\{\}\)=>/);
-  assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
+  assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true,submitDirectly:true\}\)/);
   assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
-  assert.doesNotMatch(app,/controller\.(?:previewImport|executeImport)\(text,'auto',true,\{allSites:true\}\)/);
+  assert.doesNotMatch(app,/controller\.(?:previewImport|executeImport)\(text,'auto',true,/);
 });
 
 test('advanced Cookie identities use shared-App JSX and remain read-only for existing records',async()=>{

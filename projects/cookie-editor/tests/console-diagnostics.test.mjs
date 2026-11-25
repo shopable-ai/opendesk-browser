@@ -11,6 +11,7 @@ const source=JSON.stringify([row]);
 
 async function fixture(t){
   const log=t.mock.method(console,'warn',()=>{});
+  const info=t.mock.method(console,'info',()=>{});
   const successes=[];
   const calls={write:0,copy:0,download:0};
   const adapter={targetFor:async()=>({target:parseTarget(url)}),checkRead:async()=>({callableNow:true}),
@@ -25,19 +26,22 @@ async function fixture(t){
   const controller=createCookieController({adapter,onSuccess:message=>successes.push(message)});
   t.after(()=>controller.dispose());
   assert.equal(await controller.load(),true);
-  return {controller,adapter,calls,successes,logs:()=>log.mock.calls.map(call=>call.arguments)};
+  return {controller,adapter,calls,successes,logs:()=>log.mock.calls.map(call=>call.arguments),infos:()=>info.mock.calls.map(call=>call.arguments)};
 }
 
-test('verified save, import and export keep success feedback and no Console diagnostics',async t=>{
-  const {controller:c,calls,successes,logs}=await fixture(t);
+test('success callbacks and the structured import diagnostic each have one owner',async t=>{
+  const {controller:c,calls,successes,logs,infos}=await fixture(t);
   assert.equal(await c.save(row),true);
   assert.equal((await c.previewImport(source)).accepted,1);
   assert.equal(await c.executeImport(source),true);
   assert.equal(await c.exportTo({method:'copy'}),true);
   assert.equal(await c.exportTo({method:'download'}),true);
   assert.deepEqual(calls,{write:2,copy:1,download:1});
-  assert.deepEqual(successes.map(s=>s.match(/保存|导入|复制|下载/)[0]),['保存','导入','复制','下载']);
+  assert.deepEqual(successes.map(s=>s.match(/保存|导入|复制|下载/)[0]),['保存','复制','下载']);
   assert.deepEqual(logs(),[]);
+  assert.equal(infos().length,1);
+  assert.equal(infos()[0][1].confirmed,1);
+  assert.doesNotMatch(JSON.stringify(infos()),/PRIVATE_COOKIE|https:/);
 });
 
 test('direct import defers conflict checks to the batch Host without preflight list reads',async t=>{
@@ -58,7 +62,8 @@ test('direct import defers conflict checks to the batch Host without preflight l
   assert.equal(batches,0);
   assert.equal(await c.executeImport(source,'json',false),true);
   assert.equal(batches,1);
-  assert.match(c.snapshot().message,/回读确认导入 0 条，跳过 1 条/);
+  const {confirmed,skipped}=c.snapshot().importResult;
+  assert.deepEqual({confirmed,skipped},{confirmed:0,skipped:1});
 });
 
 test('save, import and export diagnostics contain only operation, stage, allowlisted code and result',async t=>{
@@ -77,12 +82,12 @@ test('save, import and export diagnostics contain only operation, stage, allowli
   assert.equal(await c.exportTo({method:'download'}),false);
   assert.match(c.snapshot().message,/检查浏览器下载设置，或改用复制/);
   assert.doesNotMatch(c.snapshot().message,/E_DOWNLOAD|RAW_HOST_DETAIL|PRIVATE_COOKIE/);
-  assert.deepEqual(c.snapshot().unknownEffects,['import','copy']);
+  assert.deepEqual(c.snapshot().unknownEffects,['copy']);
   assert.deepEqual(calls,{write:2,copy:1,download:1});
   assert.deepEqual(successes,[]);
   assert.deepEqual(logs(),[
     ['[Cookie Editor]',{operation:'save',stage:'write',code:'E_COOKIE_SET',status:'failed'}],
-    ['[Cookie Editor]',{operation:'import',stage:'receipt',code:'E_OUTCOME_UNKNOWN',status:'unknown'}],
+    ['[Cookie Editor] 导入回执',{operation:'import',...c.snapshot().importResult}],
     ['[Cookie Editor]',{operation:'copy',stage:'clipboard',code:'E_OUTCOME_UNKNOWN',status:'unknown'}],
     ['[Cookie Editor]',{operation:'download',stage:'download',code:'E_DOWNLOAD',status:'failed'}]
   ]);

@@ -265,6 +265,6 @@ async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>t
   return [...combined.values()];
 }
 
-export {parseTarget,redactMetadata,key,sameCookieScope,sameCookieMetadata,sameNativeSlot,
+export {parseTarget,redactMetadata,key,nativeSlotKey,sameCookieScope,sameCookieMetadata,sameNativeSlot,
  normalizeCookie,nativeInput,cookieImportTarget,exportText,inspectImport,rejectImportDuplicates,
  readAllCookies,scopedLiveCookies};

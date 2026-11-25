@@ -400,6 +400,7 @@
   border-top:1px solid var(--od-line);background:var(--od-paper);
 }
 .cookie-editor-react .cookie-import-inline-notice{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
   max-height:64px;overflow-y:auto;overflow-wrap:anywhere;
   font-size:var(--od-note-size);color:var(--od-sub);
 }
