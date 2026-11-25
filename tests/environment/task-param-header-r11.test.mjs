@@ -22,6 +22,19 @@ test('minimal and complete fixtures preserve their canonical parameter projectio
   assert.equal(new Set(parseTaskParamsHeader(full).paramItems.map(item=>item.type)).size,12);
 });
 
+test('source projection passes the shared v2 semantic validator before build',()=>{
+  for(const broken of [minimal.replace('default=20','default=101'),full.replace('default=80','default=81'),
+    full.replace('@param date since "更新日期"','@param date since "更新日期" default="2026-02-30"')]){
+    assert.throws(()=>compileTaskSourceParams(broken),{code:'E_SCHEMA'});
+  }
+  const frozen='// ==OpenDeskParams==\n// @version 1\n// @param text query "搜索关键词" required minLength=1 maxLength=120\n// @param number limit "结果数量" required const=3 default=3\n// @param switch showExecutionTab "显示执行标签页" default=true\n// ==/OpenDeskParams==\n';
+  const v=compileTaskSourceParams(frozen+'async function main() {}');
+  assert.equal(v.paramsSchema.properties.limit.const,3);
+  assert.deepEqual(v.paramsSchema.required,['query','limit']);
+  assert.equal(v.paramsSchema.properties.showExecutionTab.default,true);
+  assert.equal(v.paramsUi.fields.showExecutionTab.widget,'switch');
+});
+
 test('copyright and separate dependency declarations coexist in either order',()=>{
   const expected=compileTaskSourceParams(minimal);
   for(const source of ['/* Copyright\n * License */\n'+minimal,'// Copyright\n'+dependency+minimal,header+dependency+'async function main() {}','\ufeff'+dependency+minimal,packaged+minimal,header+packaged+'async function main() {}']){

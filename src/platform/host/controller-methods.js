@@ -1347,6 +1347,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     const saved = isDraft||isAppController ? null : variant || request;
     const isInstalledTask = !isDraft&&!isAppController && saved.scriptId?.startsWith('task:');
+    // Undefined is only a metadata-resolution sentinel in assertInstalledTask;
+    // an actual installed run always requires an explicit JSON object.
+    if(isInstalledTask)invariant(runParams!==undefined,'E_PARAMS','Missing installed Task parameters');
     if(Object.hasOwn(request,'retainedFrom')){
       fields(request.retainedFrom,['runId','requestId'],['runId','requestId']);
       id(request.retainedFrom.runId);id(request.retainedFrom.requestId);

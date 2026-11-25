@@ -495,6 +495,7 @@ test('Installed Task Authority sends reviewed defaults to the durable Worker, wi
       limit:{type:'integer',title:'Limit',enum:[3],default:3}},
     required:['limit']}},f.resolved);
   await assert.rejects(f.startTask(row,{paramsWire:encodeValue({limit:4})}),{code:'E_PARAMS'});
+  await assert.rejects(f.startTask(row,{paramsWire:encodeValue(undefined)}),{code:'E_PARAMS'});
   const requestId=crypto.randomUUID();
   const deadlineAt=Date.now()+30000;
   const paramsWire=encodeValue({no:false,zero:0});

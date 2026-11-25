@@ -39,7 +39,7 @@ test('R10 fixture equals R9 mirror and covers all twelve widgets',()=>{
   assert.deepEqual(plain(runtime.normalizedParams(task,{quality:0,externalOnly:false,notes:'',contentTypes:[]})).contentTypes,[]);
 });
 
-test('legacy package and default semantics remain valid; v2 is not accepted by legacy validator',async()=>{
+test('legacy package and default semantics remain valid; explicit v2 semantics are not a legacy fallback',async()=>{
   const pkg=JSON.parse(read('task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json'));
   assert.equal(pkg.manifest.version,'1.1.6');
   assert.equal(Object.hasOwn(pkg.manifest,'paramsUi'),false);
@@ -49,6 +49,14 @@ test('legacy package and default semantics remain valid; v2 is not accepted by l
   assert.deepEqual(validateTaskParams(schema,{query:'浏览器',showExecutionTab:false}),{query:'浏览器',limit:3,showExecutionTab:false});
   assert.throws(()=>validateTaskParams(schema,{}),/Missing required parameter/);
   assert.throws(()=>checkParamsSchema(example.paramsSchema));
+  assert.equal(checkParamsSchema(example.paramsSchema,2,example.paramsUi),example.paramsSchema);
+  const v2=validateTaskParams(example.paramsSchema,{keyword:'test',quality:0,externalOnly:false,notes:'',contentTypes:[]},2,example.paramsUi);
+  assert.equal(v2.limit,20);assert.equal(v2.quality,0);assert.equal(v2.externalOnly,false);assert.equal(v2.notes,'');
+  assert.deepEqual(v2.contentTypes,[]);assert.ok(!Object.hasOwn(v2,'startUrl'));
+  for(const version of [0,3,'2',null])assert.throws(()=>checkParamsSchema(schema,version),{code:'E_SCHEMA'});
+  assert.throws(()=>checkParamsSchema(schema,1,{version:1}),{code:'E_SCHEMA'});
+  // Keep installation closed until the consumers have version-aware UI and admission.
+  await assert.rejects(verifyTaskPackage({...pkg,manifest:{...pkg.manifest,...example}}),{code:'E_SCHEMA'});
 });
 
 // The Markdown examples are a derived view, never a second parameter source.

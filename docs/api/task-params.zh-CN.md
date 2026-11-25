@@ -30,7 +30,7 @@ async function main() {
 - 每行一个 @param，控件名与参数名为 ASCII 标识，label 双引号；后续属性之间用空格分隔，属性名与等号之间不得插空格。required 为唯一裸布尔标志，省略为 false；其他属性为 key=value；值使用 JSON 标量/数组字面量（双引号字符串、数字、true/false、数组），支持标准转义；不允许 null、对象、函数、表达式、JSX/HTML、任意正则或组件代码。
 - options 仅用标量数组或 [真实值,"显示名"] 元组数组，例如 options=["a","b"] 或 options=[["markdown","Markdown"],["json","JSON"]]；标量显示 String(value)，元组显式 label。选择类 valueType 缺省 string，可显式 integer/number/boolean，不能自动把数值或布尔转字符串。
 - 与原 R10.1 控件规则一致：数值控件默认 integer，小数写 valueType="number"；min/max/step 唯一映射到 minimum/maximum/multipleOf；unit 仅显示。checkbox/switch 可缺失 default，不能等同 false；required 是存在性，非空文本还需 minLength:1。固定值使用 const；默认值缺失/false/0/""/[] 分别保留。
-- 文本扫描只接受白名单属性，重复字段/属性、错误引号、数组深度超过两层、数组超过 32 项、非法标识、未知头部版本、超过 16 参数、参数头部超过 65536 UTF-8 bytes 均拒绝；正式入口还需原 UTF-8 source/request budget。参考解析与 R10.1 转换仅检查形状与投影；完整日期、精度、范围、默认值、控件兼容及权限由下文唯一 v2 语义准入处理。
+- 文本扫描只接受白名单属性，重复字段/属性、错误引号、数组深度超过两层、数组超过 32 项、非法标识、未知头部版本、超过 16 参数、参数头部超过 65536 UTF-8 bytes 均拒绝；正式入口还需原 UTF-8 source/request budget。parseTaskParamsHeader 与 compileParamItems 检查形状与投影；R11.2 起 compileTaskSourceParams 再调用唯一 v2 语义核心检查日期、精度、范围、默认值及控件兼容。权限仍由原运行准入处理。
 
 | 控件 | 一行属性示例（接在显示名称后） | 实际数据 |
 | --- | --- | --- |
@@ -83,6 +83,8 @@ async function main() {
 ### R11.2 正式运行前置修复：规范化参数不得丢弃
 
 基于 `0623837ca4189b122916c9f0a39acc66f0013baa`，已核查已安装 Task 的 Authority 原先校验 params 后仍将原 paramsWire 持久化，本地项目运行原先校验后仍将原 params 传给 RunHost。本增量使已安装任务使用同一事务中校验返回的 normalizedParams 生成耐久 Worker 输入，并使本地项目使用校验返回值；原请求摘要、准备/委托/计划比对、安装身份与权限检查保持不变。本地项目仍为原 draft 路径，不因此取得已安装任务的权威参数定义。增加原 Authority 和 Local UI 组件回归断言；完整仓库依赖环境及真实 Chrome 未验证，v2 Manifest 尚未开放。
+
+**语义核心增量（R11.2）**：`src/platform/tasks/params-v2.js` 实现 v2 声明/值/UI 语义检查、精确十进制步长、真实日历/时间/HTTP(S) URL、唯一枚举数组、默认值补齐与 64 KiB 输入及输出预算。`checkParamsSchema(schema,2,paramsUi)` 和 `validateTaskParams(schema,params,2,paramsUi)` 显式分派；缺省仍为原 legacy，未知版本拒绝。`compileTaskSourceParams` 在源头投影后调用同一语义核心。`validateTaskManifest` 暂仍拒绝 v2，避免未接入版本字段的 UI、调度、Authority 和安装消费者提前接受新包。已安装任务真实准入拒绝 undefined（metadata sentinel），旧包的声明约束不改变。隔离 Node 22 使用现有 protocol 的相关导出代码执行 `node --test tests/environment/task-params-v2-semantics-r11.test.mjs`，7/7 通过；测试源码和语义核心 Git blob 与此提交一致。不是全仓依赖、原 Authority/Local UI 组件、生产构建或 Chrome 通过；新增 R10 分派及静态头部回归仍待在完整环境执行。
 
 百度稳定 1.1.6、Google 稳定 1.0.7、Google interaction 1.0.0 的活动源码仍无 @param，三者 legacy 参数均为 query（必填、1–120）、limit（固定 3、默认 3、required）和 showExecutionTab（默认 true、可选）。新版本应保持这些业务语义，以 const=3 表达固定值，保留原参数名和零参数 main()，不把 Top3 改为可变数量或删除业务非空白检查。先完成通用 v2 准入与正式构建，再由活动作者源码生成新版本候选；冻结旧发行包及 pin 不重写，interaction 不晋升为默认任务。
 

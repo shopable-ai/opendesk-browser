@@ -1,6 +1,7 @@
 import {validExactSiteOrigins} from '../local-project-site-scope.js';
 import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
 import {canonical, digest, digestUtf8, invariant} from '../protocol.js';
+import {checkParamsSchemaV2,validateTaskParamsV2} from './params-v2.js';
 
 export const TASK_PACKAGE_FORMAT = 'opendesk.task-package.v1';
 export const TASK_MANIFEST_FORMAT = 'opendesk.task.v1';
@@ -30,7 +31,9 @@ function validValue(rule, value) {
     (rule.maximum === undefined || value <= rule.maximum),'E_PARAMS','Invalid numeric parameter');
   if (rule.enum) invariant(rule.enum.includes(value),'E_PARAMS','Parameter not in allowed choices');
 }
-export function checkParamsSchema(schema) {
+export function checkParamsSchema(schema,version=1,paramsUi) {
+  if(version===2)return checkParamsSchemaV2(schema,paramsUi);
+  invariant(version===1&&paramsUi===undefined,'E_SCHEMA','Unsupported Task parameter schema version or legacy UI metadata');
   object(schema,['type','properties','required','additionalProperties']);
   invariant(schema.type === 'object' && schema.additionalProperties === false,'E_SCHEMA','Parameters must be a closed object');
   invariant(schema.properties && typeof schema.properties==='object' && !Array.isArray(schema.properties),
@@ -62,8 +65,9 @@ export function checkParamsSchema(schema) {
   canonical(schema);
   return schema;
 }
-export function validateTaskParams(schema, params) {
-  checkParamsSchema(schema);
+export function validateTaskParams(schema, params,version=1,paramsUi) {
+  if(version===2)return validateTaskParamsV2(schema,params,paramsUi);
+  checkParamsSchema(schema,version,paramsUi);
   object(params,Object.keys(schema.properties),[]);
   const normalized = {};
   for (const [key,rule] of Object.entries(schema.properties)) {

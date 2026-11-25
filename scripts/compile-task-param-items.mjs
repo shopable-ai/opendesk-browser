@@ -1,5 +1,6 @@
-// Build-time reference adapter for R10.1. No runtime or permission changes.
+// Build-time authoring adapter for R10.1; projection and shared v2 semantic validation.
 import {leadingLineComments,readSourceLine} from "../src/scripting/source-trivia.js";
+import {checkParamsSchema} from "../src/platform/tasks/contract.js";
 // Input is already parsed JSON; raw duplicate-member detection belongs to the input parser.
 export function compileParamItems(input) {
   const own=(o,k)=>Object.hasOwn(o,k);
@@ -239,5 +240,8 @@ export function parseTaskParamsHeader(source) {
 
 export function compileTaskSourceParams(source) {
   const declaration=parseTaskParamsHeader(source);
-  return declaration===null?null:compileParamItems(declaration);
+  if(declaration===null)return null;
+  const compiled=compileParamItems(declaration);
+  checkParamsSchema(compiled.paramsSchema,compiled.paramsSchemaVersion,compiled.paramsUi);
+  return compiled;
 }
