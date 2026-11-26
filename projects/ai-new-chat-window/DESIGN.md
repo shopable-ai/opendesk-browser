@@ -1,6 +1,6 @@
 # R1 交互与技术决策 · DESIGN_CANDIDATE
 
-> R2 执行前新增技术合同与具体路由实验见第七节；真实新对话机制仍未验证。
+> 第七节为 R2.2 当前最小实施合同；第 1–6 节为历史设计。已有用户 DOM/URL 样本，真实新对话机制尚未独立验证。
 
 ## 一、产品与范围
 对外名称建议 AI New Chat / AI 新建对话，内部目录及 ID 保留；不建新 Sidebar 工具，不引入项目管理平台。默认直接新标签页（通常前台，原任务在后台继续），正常用户使用无需设置面板。已有其他站点不删除；独立窗口次要能力可在未来审查，不在本轮新增快捷键约定。
@@ -47,37 +47,39 @@ G4 定向回归其他已有站点、实测布局；补真实证据与独立评�
 ## 六、下一阶段任务（可直接复制）
 GOAL OD-AI-NEW-CHAT-R2：基于当前 main 的 projects/ai-new-chat-window，读取 README.zh-CN.md、REQUIREMENTS.zh-CN.md、RESEARCH.md、DESIGN.md、ACCEPTANCE.md、preview/index.html 及现有 src/tests。不要重做 R1、不要新建 ai-new-chat，不改 ID、不发布、不扩大权限。原始目标：在 ChatGPT 项目条目 hover/focus 点击独立图标，默认新标签页 B 可直接输入同项目新对话，A 的 URL/草稿/生成不受扩展主动影响；普通新聊天独立且不串项目。先在真实已登录 Chrome 使用授权 QA 标签/项目观察 native action、项目稳定 ID、slug/同名、真实目标 URL，验证直达 composer 与用户手动合成首条发送后项目归属，不能只假设 /project；若无可靠链接，证明 Page 限制再评估可信 B-only 官方动作，拒绝私有 API、盲目重试、任何源 A 副作用。随后最小修改已有模块与测试、原 Page 生命周期和 ui.toast，按 G0–G4 及 ACCEPTANCE 矩阵执行定向验证、真实 Chrome A/B/授权/停止/归属；未知与未测明确。仅在有证据时冻结安装候选，不自动上架。保留其他站点、现有工作区及 main 并行改动。提交范围内差量，报告可操作结果、真实 SHA、失败/未测、分项及算术平均评分；目标 ≥95 但关键阻断或证据缺失不得评分伪造。 
 
-## 七、R2 技术实现合同补充（2026-11-26，候选，非业务完成）
+## 七、R2.2 最小实现合同（2026-11-26，替代 R2/R2.1 运行时过度设计）
 
-状态：SOURCE_REVIEWED / ROUTE_NOT_VERIFIED / REAL_CHROME_BLOCKED / NOT_IMPLEMENTED。本节补充并细化上面的 R1 技术候选，不重做需求、竞品、预览或验收矩阵。读取基线 `4194fb7b2ea8f05633bc2a2e0ed0c5e4efac9cee`，相比 R1 提交 `91239889481bad3f42edb30e84e1012aa1901fc0` 超前 2 个提交，本项目无差异。已读取 Browser 标签清单（只读），本机 Browser Core status 工具连接返回 429，未对真实项目执行点击、打开新页、发送消息或 DOM 验证；不写入用户真实项目/对话 ID。
+状态：SOURCE_REVIEWED / USER_DOM_AND_ROUTE_SAMPLE / REAL_CHROME_BLOCKED / NOT_IMPLEMENTED。第 1–6 节保留历史决策；本节是当前实施合同，冲突时以本节为准。用户已经提供真实网页 DOM 属性及点击项目后的 URL 样本；本轮没有独立登录网页验证（本机 Browser Core SSE probe 返回 429）。不保存用户真实项目 ID。正式源码、测试、构建、安装均未变更。
 
-### 7.1 业务机制与技术分界
+### 7.1 核心目标与新增证据
 
-打开 B、B 进入正确项目的新 composer、用户首次发送后服务端归属，分别是三种证据。项目首页如果已经具有正确且可编辑的空 composer，就直接满足第二项，不需要再点击一次或主动建立空聊天记录。旧对话的 composer 不能作为新 composer 证据。不得使用 `/project` 或当前对话 URL 的字符串猜测当作成功证明。
+从 ChatGPT 左侧指定项目行，一次点击独立标签页图标，让 B 直接进入该项目可输入的新对话，A 的现有任务、URL 和草稿不受扩展主动操作。普通新聊天单独处理。已观察到的用户样本结构（下列 ID 为合成示例）：
 
-先在已登录、明确授权的独立 QA 项目/标签执行一个最小实验：
-1. 观察两个 QA 项目的项目行公开 DOM、原生 action 是否为 anchor/button、真实 href 与可核验 identity 属性；记录脱敏路由、当前 workspace 及项目稳定 ID 的证据。无 anchor 的行不得按标题或猜测定位，子对话链接仅可作 identity 信号。
-2. 在专用测试页实际点击官方新项目对话操作，记录 before/after route、项目可见标识、是否为新 composer、是否存在旧对话内容；比较原生新普通聊天、项目首页及旧对话。验证两项目、同名与重命名后仍按稳定 ID 识别；不得假定连字符分隔的全部 path 是 ID。
-3. 在独立测试标签直接访问由实际观测得到的候选 URL。若页面进入正确项目空 composer，且不依赖 A 的 SPA 内存/前序点击/草稿，优先选择直接链接方案。若项目首页仅列历史或跳普通/旧聊天，拒绝直达假设。
-4. 由用户主动在 B 发送一次不含业务信息的合成消息，核对该新对话 ID、正确项目成员关系及刷新后历史，不能只凭标题、URL 或当前 Recents 判定。扩展自身不发送；没有用户主动发送的证据时归属验收保持 NOT_TESTED。
-5. 独立核对 A 正在生成与 A 有未发送草稿两个场景：A 的 tab/document/URL/conversation ID 保持，草稿不变、没有扩展发起的导航/刷新/Stop/发送；只比较测试草稿，生产业务不读取草稿。区分浏览器后台挂起/自然生成结束/服务端限流与扩展副作用。仅对专用 QA 页操作。
+```html
+<div data-sidebar-project-kind="local"
+     data-sidebar-project-container-id="project:g-p-0123456789abcdef0123456789abcdef">
+```
 
-记录真实证据后只选择一种 opener：
-- 路由直达成立时，优先现有 Page Program 内独立按钮 + 同步 `window.open(verifiedUrl, '_blank', 'noopener,noreferrer')`（与原实现改动最少）；若真实布局及键盘行为更适合原生独立 anchor，则使用 `target="_blank" rel="noopener noreferrer"`，不得双路同时执行。常规 Chrome 请求标签页，不传 popup/width/height；浏览器策略仍需实测。新按钮是唯一动作 owner，不触发原生项目 action，不嵌入原生 anchor/button，不改写原生 href。
-- `window.open` 在 noopener 下即使成功也会返回 null。只能显示 REQUESTED_UNCONFIRMED，不能把 null 判作拦截或把 true 判作已创建/READY；Page 不能据此获得 tabId。用户可见新页是人工核验，非程序回执。若真实测试证明这条路不能满足同窗口 tab/必要结果反馈的硬约束，不得靠改文案降级验收，进入可信能力评审。
-- 若没有可直接进入 composer 的公开路由，只有具备绑定 B 的授权能力时，才允许在 B 内执行唯一经实测的官方新对话操作：先创建 B 并获得真实身份，核对 B 的当前顶层 document、origin、workspace、project ID、授权代次和唯一官方操作，再单次执行并核对后置条件。A 从不参与该动作。若官方操作要求真实用户手势且受控链无法满足、发生重定向/歧义/超时/文档失效，停止，不绕过。
-- 可信 Host 并非已接通能力：实际 `src/platform/chrome/browser-tabs.js` 的 createBrowserTabHost 仅接受 {url}，使用 chrome.tabs.create({url,active:true})，不接受指定 windowId，不直接暴露原始 tabId，只返回所有者绑定的 tabRef；URL 变化/重载、过期、授权失效可使引用作废。其接口依赖 toolId/packageHash/installEpoch 和原 Host 授权；不能直接导入 Page USER_SCRIPT，更不能用裸 postMessage/自报 isTrusted 作为信任证明。原 Page @opendesk/tasks 是固定 Task 审批链，且一个来源槽不自动产生下一次请求，不是静默的一键多次开页 API。若必须采用可信方案，先形成最小可复现 SDK_GAP/BLOCKED 证据并由现有平台 owner 审核；不得借本项目扩大权限、建立第二套通道、预先修改宿主或弱化现有精确 URL/document 栅栏。若获准，所需能力是从可信 sender 获得 A 的 windowId、创建 B、确认 B/document、有限单次官方动作和原意图回执（均为目标合同而非现有 API），合法路由转换需在原权限边界内重新核验，不继承过期引用。
+对应点击项目后的 URL 结构：`https://chatgpt.com/g/g-p-0123456789abcdef0123456789abcdef/project`。这是一个具体的 DOM→URL 证据，不再是毫无来源的路径猜测；尚不证明所有项目/工作区变体、属性长期稳定性或直达新 composer 的效果。kind 是网站类型标记，不作为账户认证或只允许 local 的额外限制，除非真实结构证明必要。
 
-### 7.2 模块内最小实现合同（路由验证之后）
+### 7.2 本地 Codex 首先完成一个短实验，再直接实现
 
-- destinations.js：分离普通/项目目标；projectId 独立于显示名/slug/URL，具体提取规则只来自实验；same-origin HTTPS、固定 provider、无 credentials；保留已验证路由必要参数，不盲目拼接/清除。拒绝旧 chat、共享加入链接、跨账户或未验证目标。不从当前聊天推断用户点击的项目。
-- buttons.js：独立图标，与真实 action 同行；点击时重读当前项目行及最新 href，若重绘、身份变更或多义则拒绝而非使用旧闭包。避免嵌套交互元素，隔离本按钮事件而不拦截原生按钮；hover/focus、明暗、zh/en，真页面核对菜单、折叠和窄屏。按源文档+provider+kind+稳定 projectId（普通固定键）设置同步短窗/请求栅栏（600ms 初始测试值，不是最终规定）。不同项目互不阻塞。短窗内忽略同一意图；确定失败可用户重试；不可确认打开时提示核对，下一次同目标动作须为明确新意图，未知副作用不得定时解锁后自动重放。普通/项目不互相降级。
-- main.js：使用已有 createPageUI 生命周期；确保 toast 不被隐藏 owner.host 的 CSS 误伤（按 UI API 实测），观察 nav 结构及必要 href/身份属性变化，合并刷新；不扫描正文 token stream，不增加全站事件劫持。停用/撤权/升级按原 Authority dispose 清理节点、监听、timer、observer；不关闭 B、不修改 A 聊天。
-- 状态：NOT_ELIGIBLE → REQUESTED_UNCONFIRMED（Page 直接请求）或 OPENED（可信标签回执）→ READY（项目身份及空 composer 后置条件已核验）→ 测试用 MEMBERSHIP_VERIFIED（用户发送并确认项目历史）。FAILED 为明确失败，OUTCOME_UNKNOWN 为可能发生副作用但无法确定；无自动重试。生产不要求读取对话正文/草稿、不自动发消息；不能以测试用户的手动核验声称 Page 已具备程序回执。
-- tests：原文件按实际变更扩充，包含 URL/身份/同名重命名/陈旧行/重复点击/普通与项目分离/错误与清理。Node 只证明纯逻辑或模拟，Chrome QA 证明实际标签、composer、项目归属与 A 无扩展主动操作；G1–G8 独立通过后才可称 R2 完成。保留其他站点原有适配，不引入新目录/框架、权限、发布或第三方依赖。
+1. 在已登录且授权的独立 QA 标签，用 DevTools/Playwright DOM 读取 `[data-sidebar-project-container-id]`，检查至少两个不同项目的属性值、项目标题行、该行原生 anchor/href 和右侧 action slot（若存在），识别容器是否还包裹历史列表。原生 href 仅从对应标题行/明确项目链接获取，不读取历史正文。比较项目点击后 URL 与去掉 project: 前缀构造的 URL。使用合成项目或脱敏记录；不要操作当前用户正在执行任务的 A。
+2. 在 B 直接打开实际项目地址，确认项目正确、可编辑的空白新 composer、不是旧聊天；与官方新项目对话动作的行为对照。必要时验证刷新后效果。由用户主动或明确授权的一次合成测试消息验证首次发送后项目归属与刷新历史；未经明确授权不发送，未测项如实保留。
+3. 如果直达成立，只选一个简单的站点路由来源：优先可靠的原生项目 href（若各条目均可直接取得）；否则按已核实的 container ID 去掉 project: 前缀，复用现有 projectDestination 做固定同源路径校验。仅在实际变体需要时增加相应兼容分支。选择一种 opener，优先现有同步 window.open(url, '_blank', 'noopener,noreferrer')，不传 popup/宽高；真实 Chrome 核对单次点击新建一 tab。若原生 href 带必要参数，按实测处理，不盲目删除。
+4. 只有直达失败才继续观察官方新建动作是否有其他可直接打开的公开 URL；再不成立才评估已有可信能力在 B 内执行原生动作。不能改 A、调用私有 API、增加权限、建立消息桥或预建通用编排。若现有能力不足，记录阻塞，不伪造通过。
 
-### 7.3 资料与放行
+### 7.3 生产代码保持最小
 
-公开依据：[Chrome Tabs API](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-create)、[MDN Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window/open)、[MDN anchor](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/a)、[OpenAI Projects](https://help.openai.com/en/articles/10169521-projects-in-chatgpt)。OpenAI 产品文档描述项目与聊天关系，但不是公开的新建项目对话路由/API 合同。框架依据：[Page USER_SCRIPT](../../docs/api/page-userscript.zh-CN.md)、[Browser tabs Host](../../src/platform/chrome/browser-tabs.js)。上述资料证明技术原理，不能证明具体 ChatGPT 账户 UI/路由或本项目安装效果。
+- destinations.js：保留现有四站 provider 和 projectDestination，按实测增加 ChatGPT DOM→项目目标的纯函数或窄分支，禁止硬编码用户 ID。只做非空、前缀/路径形状和同源等基础校验；不开发身份可信度评分、账户/工作区二次认证或项目身份注册表。
+- buttons.js：ChatGPT 优先按明确容器属性发现项目；仅在该项目标题行的真实 action slot 安装一个独立按钮，不以原生新建按钮存在、文本、数量或 hover 后动态出现作为功能前置。若原生按钮仅用于定位插入位置，可复用该 DOM 结构而不执行它。避免把整个含历史的容器当标题行；避免嵌套 interactive 元素、覆盖原生按钮、误把项目新建识别为全局普通聊天。点击时读取所属行最新标识/链接（简单 DOM 读取，不是身份认证）；同步打开 tab，隔离本按钮事件。默认 hover/focus 出现，复用现有样式/生命周期；短时间同按钮重复点击仅需轻量防抖，允许后续真实新意图。其他项目互不阻塞。
+- 正常路径不创建 REQUESTED/OPENED/READY/OUTCOME_UNKNOWN 状态机、跨 tab 握手、tabId 回执、持续 B 页面核验、全局未知结果锁或额外操作。window.open 在 noopener 下可返回 null，不以此推断成功或失败；不宣称成功，只有可明确判断的错误用现有 ui.toast（如必要且可见）。登录/项目权限/目标页面加载交给网站处理；不回退普通聊天、不自动重试。
+- main.js：沿用 createPageUI；保留现有 SPA 清理和去重，仅为实测缺陷调整观察范围/属性/必要生命周期；不引入新框架或全页高频扫描。保留 Claude、Gemini、DeepSeek 原有行为和站点范围；ChatGPT 的 DOM 规则不传播到其他站，非 ChatGPT 现有行为不因这次修复改变。普通 ChatGPT 新聊天默认独立 tab。没有新增设置、快捷键、后台权限、依赖或发行流程。
 
-本轮仅技术合同收敛，未改 src/tests、未构建、未安装或发行。优先执行 7.1 真实 QA 路由实验，证据成立后按所选单一路径修现有业务；没有真实授权测试环境则记录阻塞，不推进 R3，不以自评达到 95 取代真实 G1–G8 或独立专家审查。
+### 7.4 最小证据与验收
+
+运行现有 node --test projects/ai-new-chat-window/tests/*.test.mjs，补当前变更相关用例：真实结构脱敏 fixture、ID→URL、普通/项目分离、无效目标不打开、默认 tab、单次点击/重绘不重复、旧站定向回归。按原项目构建/校验及现有授权安装方式真实测试：两个项目、B 空 composer、A 流式/草稿隔离（分别测试）、首条授权合成消息归属、普通聊天及官方控件。相关 ACCEPTANCE 项继续保留，回执、状态机、账号识别不是直达路径的运行时放行条件；这些测试可在 QA 中观察，无须写入生产。现有不相关历史矩阵不重做、不用 Mock 冒充真站证据。没有环境或授权时写明实际阻塞，未经真实验证不宣称核心功能完成、不发布。
+
+目标 ≥95：产品、DOM、Chrome、架构简洁性、测试及反方审计分别 100 分并算术平均；评分对象区分设计与真实实现。独立专家/agent 仅在确实运行时声称，否则为多视角自评；关键真实证据缺失不能靠分数放行。
+
+本轮只更新实施合同，不预写未验证 DOM 适配业务代码。后续本地 Codex 读取本节、src/、tests/，直接按 7.2→7.4 验证、实现、测试、修复并提交 main 范围内差量；不用重新做需求、竞品、交互原型或新项目目录。
