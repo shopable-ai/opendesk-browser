@@ -1,5 +1,14 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
+## 2026-11-26 · 退役旧网页网站适配界面（源码清理）
+
+- 按用户反馈删除 `src/site-configuration.js` 中旧网站适配齿轮、设置面板、样式和旧写入/事件处理实现；正式 `installScrollSiteRuntime` 保留原配置读回、结构观察、实时验证和临时点选。
+- 正式设置唯一归属为 `trusted/react-controls.tsx` 的 `ScrollSiteManager` 及原可信 Host。保留 `dock`、`reply`，仅点选期间允许 `picker`；目标网站不得新建 `data-opendesk-ai-scroll-navigation="settings"`。
+- 旧界面测试迁移：真实 Page 选择、验证、只读配置、生命周期和手势覆盖新版运行时；保存、CAS、读回、授权、删除和草稿等侧边栏业务继续由 `tests/environment/ai-scroll-react-manager-r38.test.mjs` 及导航设置测试覆盖。新增正式源码/冻结包无旧设置挂载回归。
+- 已核对清理前正式冻结包 1.0.0/r46 已不含旧设置挂载。本次不手工修改安装包、发行状态或已安装用户配置；仍在运行的历史 Page 必须通过原安装器检查版本/撤除旧注册及生命周期，再刷新目标页验证。不得以 CSS 隐藏或无身份 DOM 删除冒充脚本退役。
+- 本轮仅源码与测试调整；Node、同源打包、真实 Chrome 旧安装迁移及网页验收待执行，不能以源码检查替代实测。下面 R4 记录中的“旧视觉模块仍保留”为历史状态。
+
+
 **随 OpenDesk Browser 内置并默认预装。** 当前已批准的预装版本为 **0.4.10/r14**。最新可手动导入的 [Page JSON](ai-scroll-navigation.opendesk-page.json) 为 **1.0.0/r46**，已核对包与编译源码一致，发行保持阻断。已有安装可在「扩展 → AI 对话滚动导航 → 管理 → 更新 / 导入新版…」选择该文件并审阅。滚动导航继续使用 Chrome 的网站访问权限和「允许用户脚本」开关。升级 Browser 不会替换已有安装，也不会恢复主动停用或卸载的程序。
 
 发布维护：通过正式验收的新版本，在更新 [Page 发行状态](../../official-pages/sources.json) 时，同步保存原安装包字节并更新 [预装版本记录](../../official-pages/preinstalled/opendesk.ai-scroll-navigation/release.json)。构建器核对 SHA-256 及项目包字节；仅生成新候选时继续保留已批准预装包。
