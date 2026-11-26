@@ -1,8 +1,14 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
-**随 OpenDesk Browser 内置并默认预装。** 当前已批准的预装版本为 **0.4.10/r14**。最新本地候选 [Page JSON](ai-scroll-navigation.opendesk-page.json) 为 **1.0.1/r47**，已核对包与编译源码一致，发行保持阻断；候选尚未进行真实安装验证。已有安装可在「扩展 → AI 对话滚动导航 → 管理 → 更新 / 导入新版…」选择该文件并审阅。滚动导航继续使用 Chrome 的网站访问权限和「允许用户脚本」开关。升级 Browser 不会替换已有安装，也不会恢复主动停用或卸载的程序。
+**随 OpenDesk Browser 内置并默认预装。** 当前已批准的预装版本 **0.4.10/r14** 仍会在 ChatGPT 注入旧网页设置。项目的 [Page JSON](ai-scroll-navigation.opendesk-page.json) 是仓库冻结包；R4.3 另用两次独立构建核对 **1.0.24/r48** 候选的字节一致，并在隔离 Chrome 通过原安装审阅升级，发行仍保持阻断。滚动导航继续使用 Chrome 的网站访问权限和「允许用户脚本」开关。升级 Browser 不会替换已有安装，也不会恢复主动停用或卸载的程序。
 
 发布维护：通过正式验收的新版本，在更新 [Page 发行状态](../../official-pages/sources.json) 时，同步保存原安装包字节并更新 [预装版本记录](../../official-pages/preinstalled/opendesk.ai-scroll-navigation/release.json)。构建器核对 SHA-256 及项目包字节；仅生成新候选时继续保留已批准预装包。
+
+## 2026-11-26 · R4.3 退役旧网页设置：增量验收
+
+- **已定位可复现的来源。** 隔离 Chrome 干净安装后自动预装的 `opendesk.ai-scroll-navigation` **0.4.10/r14** 在真实 ChatGPT 页面创建了 1 个旧设置元素。用原侧栏安装审阅升级至 **1.0.24/r48** 后，原文档无需刷新即归零；刷新、新标签和隔离扩展重载后的新标签均保持 0。注册仍为同一个稳定启动脚本，且新文档只有一个当前运行时 owner。
+- **侧栏回归。** 在隔离 Chrome 原生侧栏切换「滚动时固定回复导航（ChatGPT）」后，收到「导航设置已保存并读回」回执。未用首页的 DOM 检查替代对话导航、点选或跨站回归。
+- **尚未完整通过。** 默认预装仍是 r14；日用 Chrome 原报告标签缺当时的安装回执，不能回溯其确切版本。Ego 的实装包为 **1.0.24/r70**，与隔离 r48 分开记证。完整场景、包身份与剩余缺口见 [R4.3 去敏证据](evidence/legacy-settings-removal-r4.3-20261126.md)。
 
 ## 2026-11-26 · 退役旧网页网站适配界面（源码清理）
 
@@ -10,7 +16,7 @@
 - 正式设置唯一归属为 `trusted/react-controls.tsx` 的 `ScrollSiteManager` 及原可信 Host。保留 `dock`、`reply`，仅点选期间允许 `picker`；目标网站不得新建 `data-opendesk-ai-scroll-navigation="settings"`。
 - 旧界面测试迁移：真实 Page 选择、验证、只读配置、生命周期和手势覆盖新版运行时；保存、CAS、读回、授权、删除和草稿等侧边栏业务继续由 `tests/environment/ai-scroll-react-manager-r38.test.mjs` 及导航设置测试覆盖。新增正式源码/冻结包无旧设置挂载回归。
 - 清理前的冻结包 1.0.0/r46 已不含旧设置挂载。仍在运行的历史 Page 必须通过原安装器检查版本、旧注册撤除及生命周期，再刷新目标页验证。不得以 CSS 隐藏或无身份 DOM 删除冒充脚本退役。
-- 真实 Chrome 旧安装迁移及网页验收待执行，不能以源码检查替代实测。下面 R4 记录中的“旧视觉模块仍保留”为历史状态。
+- 真实 Chrome 旧安装迁移的结果见上方 R4.3。下面 R4 记录中的“旧视觉模块仍保留”为历史状态。
 
 遇到导航没有出现、窄屏遮挡或开关已保存但网页未变化，见[故障排查与经验记录](经验记录.zh-CN.md)。
 

@@ -80,7 +80,7 @@ test('R1.2.4 Page discovery controls route through the original authority review
   assert.match(center,/row\.kind==='page'&&!row\.installed/);
   assert.match(center,/row\.release\?\.status==='available'\)add\(t\('reviewInstall'\)/);
   assert.match(center,/row\.record\?\.installed:null/);
-  assert.match(center,/current\?\.installed!==false\|\|current\?\.release!==row\.release/);
+  assert.match(center,/current\?\.installed===false&&current\.release===row\.release/);
   assert.match(host,/loadOfficialPagePackage\(release,\{api,fetcher\}\)/);
   assert.match(host,/await reviewPagePackage\(pkg,/);
   assert.match(host,/foundationClient\.request\('importPageInstallPackage'/);

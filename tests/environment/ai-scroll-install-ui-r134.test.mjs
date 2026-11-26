@@ -98,7 +98,7 @@ async function installPackage(){
   return {...pkg,packageHash:await digest(pkg)};
 }
 function receipt(pkg,overrides={}){return {programId:pkg.programId,revision:pkg.revision,sourceHash:pkg.sourceHash,
-  manifestHash:'a'.repeat(64),pageRules:pkg.pageRules,enabled:true,nativeState:'registered',error:null,
+  version:pkg.version,manifestHash:'a'.repeat(64),pageRules:pkg.pageRules,enabled:true,nativeState:'registered',error:null,
   authorization:{installationId:'existing-installation',generation:3,status:'active'},...overrides};}
 
 
@@ -120,7 +120,7 @@ for(const change of ['error','paths','generation'])test(`AI Scroll rejects incon
   await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review'||f.get('sidebar-tool-import').hidden);
   assert.equal(f.get('sidebar-tool-import').hidden,false);
   assert.equal(f.get('page-install-import-status').attributes['data-state'],'pending-review');
-  assert.doesNotMatch(f.get('sidebar-tool-status').textContent,/已更新网页增强|已安装网页增强/);
+  assert.notEqual(f.view.getSnapshot().toast?.type,'success');
   assert.equal(sent,1);assert.equal(f.get('sidebar-tool-install').disabled,true);
 });
 
@@ -139,7 +139,7 @@ test('AI Scroll permission denial keeps candidate uninstalled and discloses Chro
   await settle(()=>f.get('page-install-import-status').attributes['data-state']==='permission-denied');
   assert.equal(prompts,1);assert.equal(f.requests.filter(r=>r.operation==='importPageInstallPackage').length,0);
   assert.equal(f.get('sidebar-tool-import').hidden,false);
-  assert.doesNotMatch(f.get('sidebar-tool-status').textContent,/已安装网页增强/);
+  assert.notEqual(f.view.getSnapshot().toast?.type,'success');
 });
 
 for(const mode of ['stale','unknown','disabled'])test(`AI Scroll install handles ${mode} without false active success`,async t=>{
@@ -160,7 +160,7 @@ for(const mode of ['stale','unknown','disabled'])test(`AI Scroll install handles
   if(mode==='disabled'){
     const toast=f.view.getSnapshot().toast;
     assert.equal(toast.type,'success');
-    assert.match(toast.message,/已更新网页增强/);
+    assert.equal(toast.message,'已更新「'+pkg.title+'」');
     assert.match(toast.caption,/原有停用状态已保留/);
     assert.doesNotMatch(toast.caption,/打开或刷新/);
     assert.equal(f.get('sidebar-tool-status').textContent,'');
@@ -168,7 +168,7 @@ for(const mode of ['stale','unknown','disabled'])test(`AI Scroll install handles
   else{
     assert.equal(f.get('sidebar-tool-import').hidden,false);
     assert.equal(f.get('sidebar-tool-install').disabled,true);
-    assert.doesNotMatch(f.get('sidebar-tool-status').textContent,/已更新网页增强|已安装网页增强/);
+    assert.notEqual(f.view.getSnapshot().toast?.type,'success');
   }
 });
 

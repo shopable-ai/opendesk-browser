@@ -245,12 +245,15 @@ test('AI Scroll home restore uses the original trusted enabled intent and instal
     enabled:true,installationId:'installation-r8',expectedGeneration:3});
   assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'home');
   assert.equal(f.state.detailModel.pageControl.state,'ready');
-  assert.equal(f.doc.querySelector('.ec-page-state'),null);
+  const statusRows=[...f.doc.querySelectorAll('.ec-page-state')];
+  assert.deepEqual(statusRows.map(row=>row.dataset.state),['ready'],
+    'a successful restore shows only the confirmed status');
+  assert.equal(buttonWithText(f.doc,'恢复自动运行'),undefined);
 });
 test('R4.0 formal React home, all built-ins and compact four-field editor',async t=>{
   const f=await fixture(t);
   await tick();
-  assert.equal(f.entry.getAttribute('aria-label'),'打开「AI 对话滚动导航」');
+  assert.equal(f.entry.getAttribute('aria-label'),'网站与权限「AI 对话滚动导航」');
   assert.equal(f.state.rowsModel.rows.find(r=>r.key==='page:'+id).kind,'page');
   assert.equal(f.doc.querySelectorAll('.ec-page-diagnostics').length,0);
   assert.equal(f.doc.querySelectorAll('.ec-scroll-builtins li').length,2,
