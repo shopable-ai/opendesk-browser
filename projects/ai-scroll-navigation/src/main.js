@@ -4,10 +4,6 @@ import {findSiteBindings,findSiteConversation,siteForUrl} from './site-adapters.
 import {installFloatingNavigation} from './floating-navigation.js';
 import {installScrollSiteRuntime,resolveConfiguredConversation} from './site-configuration.js';
 
-// A new Program ID is a separately reviewed installation, not an in-place
-// permission transfer. Existing legacy installations remain independent and
-// are managed by Page Authority; removing their repository import artifact does
-// not revoke, uninstall or mutate an already-installed copy.
 export const PROGRAM_ID='opendesk.ai-scroll-navigation';
 const pageRules={
   matches:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],
@@ -15,16 +11,11 @@ const pageRules={
 };
 
 export default async function main() {
-  // An AI site can enter its conversation route through SPA navigation
-  // after document_idle. Keep an inert owner on approved origins and activate
-  // only when a fixed adapter resolves a real transcript.
   const origin=window.location.origin,configApi=globalThis.__openDeskScrollConfig||null;
   const builtIn=[
     'https://chatgpt.com','https://chat.deepseek.com','https://gemini.google.com'
   ].includes(origin);
-  // Additional origins are never trusted because a user saved a selector.
-  // This scoped capability is injected only by the original authorized
-  // Installed Page executor after its native scope/document checks.
+  // The Installed Page executor supplies this scoped capability after authorization.
   if(window!==window.top||(!builtIn&&!configApi))
     return {programId:PROGRAM_ID,status:'skipped'};
   const owner=createPageUI({
@@ -44,6 +35,7 @@ export default async function main() {
     if (builtIn) replies=installJumpToTop({
       doc:document,win:window,owner,
       resolveBindings:findSiteBindings,resolveNavigation,
+      pinReplies:site==='chatgpt',
       refreshDock:()=>dock?.refresh(),
       regionSelector:'main,[role="main"],header,#root,.ds-message,chat-window,model-response',
       regionDirections:{top:true,bottom:true},
@@ -52,8 +44,7 @@ export default async function main() {
     dock=installFloatingNavigation({doc:document,win:window,owner,resolveNavigation,
       resolveConversation:()=>{
         const custom=settings.activeRule();
-        // An explicitly enabled but invalid user rule fails closed instead
-        // of silently scrolling the fixed adapter's unrelated container.
+        // An invalid enabled rule must not fall back to another container.
         return custom?resolveConfiguredConversation(custom,document,window):
           findSiteConversation(document,window);
       }

@@ -1,8 +1,9 @@
+import {installVisualSiteConfiguration} from '../src/legacy-site-editor.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {parseHTML} from 'linkedom';
-import {installVisualSiteConfiguration,installScrollSiteRuntime,resolveConfiguredConversation,scrollConfiguredEdge} from '../src/site-configuration.js';
+import {installScrollSiteRuntime,resolveConfiguredConversation,scrollConfiguredEdge} from '../src/site-configuration.js';
 import {installFloatingNavigation} from '../src/floating-navigation.js';
 
 const rule={origin:'https://chatgpt.com',pathScope:'/c',mainSelector:'#thread',

@@ -2,6 +2,7 @@ import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createPortal,flushSync} from 'react-dom';
 import {SidebarAppShell} from './app-shell.tsx';
+import {TaskAcceptanceSurface} from './task-acceptance.tsx';
 import {claimExtensionCenterNodes} from './extension-center-ownership.js';
 import {createDeveloperView} from '../develop-view.js';
 import {createMyWorkbenchView} from '../my-workbench-view.js';
@@ -80,7 +81,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'},cloudPageModel={};
   let rowMenuModel=null,bookmarkPilot=null,promptPilot=null,knowledgePilot=null,aiProxyPilot=null;
-  let debugModel={},debugActions={},development=null;
+  let debugModel={},debugActions={},development=null,taskAcceptance=null;
   let browserHistoryModel=null,browserHistoryActions=null;
   const ownedNodes=[];
   function dispose(){
@@ -111,6 +112,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       view:extensionView,onBack:onExtensionBack,openWebFeaturesOnLoad};
     flushSync(()=>root.render(<>
       <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS+'\n'+updateNoticeCSS+'\n'+confirmationCSS+'\n'+workflowCSS}</style>
+      {taskAcceptance?<TaskAcceptanceSurface {...taskAcceptance}/>:<>
       <SidebarAppShell activeTab={navigationTab} pageSurface={pageSurface} localeController={localeController}
         debugEnabled={debugEnabled} appDebugEnabled={appDebugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
@@ -145,6 +147,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
          renderBusiness={dock=><BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}
            onStateChange={bookmarkPilot.onStateChange} dock={dock}/>}/>
         </>,bookmarkPilot.container)}
+      </>}
     </>));
   }
   try{
@@ -345,6 +348,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       debugActions=next??{};paint();
     },
     renderDevelopmentStatus(next){if(disposed||!debugEnabled)return;development=next;paint();},
+    renderTaskAcceptance(next){if(disposed||!debugEnabled)return;taskAcceptance=next;paint();},
     renderBrowserHistory(next){if(disposed)return;browserHistoryModel=next;paint();},
     connectBrowserHistoryActions(next){if(disposed)return;browserHistoryActions=next??null;paint();},
     renderDebugDiagnostics(next){

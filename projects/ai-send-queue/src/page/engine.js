@@ -1,5 +1,5 @@
 import {normalizeQueueCache} from './cache.js';
-// Single-document queue with guarded refresh-cache recovery. Unknown effects never auto-retry.
+// Never retry unknown sends.
 const MAX_ITEMS=20, MAX_TEXT=8192, IDLE_MS=1100, ACK_MS=15000, STOP_MS=12000;
 const REPLY_HISTORY_CHANGED='原对话历史节点已变化，已停止自动发送；请核对原对话';
 const STORAGE_ERROR='队列缓存保存失败，已阻止网页操作；请保留原文并检查存储后重试';
@@ -47,8 +47,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       observed:{users:[...snap.users],assistants:[...snap.assistants],history:snap.history?.slice()}};
   }
   function answerReady(snap) {
-    // Keep observing exact history while busy, so a later completed snapshot
-    // cannot silently substitute nodes seen during an earlier poll.
+    // Pin observed history through reply completion.
     const previous=state.answerGate.observed?.history?.at(-1);
     const verified=typeof site.replyComplete==='function' &&
       site.replyComplete(state.answerGate.before,state.answerGate.confirmedUser,snap,state.answerGate)===true;
@@ -63,7 +62,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       assistantCount:before.assistants.length}:undefined};
     markUnknown(reason);return true;
   }
-  // Read-only preflight before any destructive website draft operation.
   function checkEnqueue(text,route) {
     if(!route)return {ok:false,reason:'当前对话暂不能加入队列'};
     if(typeof text!=='string'||!site.normal(text))return {ok:false,reason:'原生草稿为空'};
@@ -81,7 +79,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if (state.phase==='waiting') state.reason='';
     emit();return true;
   }
-  // Pausing keeps this row's ID and order; only the dispatcher skips it.
   function pause(id) {
     const item=items.find(v=>v.id===id);
     if(!item||item.state!=='queued'||state.phase==='unknown'||
@@ -114,8 +111,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(i<0||toIndex<0||toIndex>=items.length||state.inFlight?.item===items[i])return false;
     const [item]=items.splice(i,1);items.splice(toIndex,0,item);idleSince=null;emit();return true;
   }
-  // 'Edit' means reclaiming one unsent item into the official composer.
-  // Removal is atomic from the queue's perspective and never a send request.
+  // Reclaim returns a draft without sending.
   function reclaim(id) {
     const item=items.find(v=>v.id===id);
     if(!item || state.inFlight ||
@@ -123,8 +119,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       item.state==='confirmed')return false;
     return remove(id);
   }
-  // Explicitly take back the draft already in the website, without rewriting
-  // it. A possibly clicked send can never be made retryable this way.
+  // Reclaim in place only before any possible click.
   function reclaimPrepared(id) {
     const flight=state.inFlight;
     if(!flight || flight.item.id!==id || flight.phase!=='unknown' ||
@@ -145,8 +140,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     flight.clickAttempted=true;
     if(flight.phase==='await-native-ready')
       state.inFlight={item:flight.item,phase:'await-confirm',started:clock(),before:token.before,clickAttempted:true};
-    // The website has not handled its native event yet. The existing poll
-    // publishes this state without rendering inside the capture listener.
+    // Render on the next poll, after the native handler.
     nativeAttemptChanged=true;return true;
   }
   // Called only after main observes a paired trusted beforeinput/input change.
@@ -178,11 +172,12 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     state.answerGate=newAnswerGate(before,snap);
     idleSince=null;emit();return true;
   }
-  // A newly edited draft sent natively is a separate intention, even when
-  // its text equals a queued item. Observe its reply without consuming a row.
-  function observeNativeAdmission(before,text,snap) {
-    if(state.inFlight||!snap.ok||snap.route!==state.route||
+  // A native send never consumes a queue row.
+  function observeNativeAdmission(before,text,snap,{initial=false}={}) {
+    if(state.inFlight||!snap.ok||!snap.route||
+      (snap.route!==state.route&&!(initial&&state.route===null))||
       !site.confirm(before,text,snap))return false;
+    state.route=snap.route;
     state.answerGate ||= newAnswerGate(before,snap);
     state.forceId=null;idleSince=null;emit();return true;
   }
@@ -195,7 +190,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route)return {ok:false,reason:'会话已变化'};
     if(snap.rich || snap.composing || snap.draft!=='')return {ok:false,reason:'请先处理原生草稿、附件或输入法'};
-    // This call is itself the explicit user action; do not require another click.
     if(snap.busy){
       const ok=beginForceStop(item,snap);
       return !ok&&state.reason===STORAGE_ERROR?{ok:false,reason:STORAGE_ERROR}:{ok};
@@ -255,8 +249,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(nativeAttemptChanged){nativeAttemptChanged=false;emit();}
     if(!items.length && !state.answerGate)return;
     const snap=site.inspect();
-    // Keep read-only reconciliation alive even after a network/layout timeout.
-    // Check before deadlines or committing: the user may have sent the draft.
+    // Accept late receipts, including after a timeout.
     if(['await-native-ready','await-confirm','unknown'].includes(state.inFlight?.phase) &&
       confirmFlight(snap))return;
     if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
@@ -266,12 +259,9 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
         snap.route!==state.route?'等待返回原对话':!canSubmit?submitBlockReason:null;
       if(blocked)state.inFlight.readinessReason='原生就绪检查被阻止：'+blocked;
     }
-    // These deadlines survive blocked submission, navigation and composer loss.
-    // Once prepared, the user may have sent the draft outside this engine.
+    // Deadlines survive navigation or a lost composer.
     if(state.inFlight?.phase==='await-stop' && t-state.inFlight.started>STOP_MS){
-      // Only Stop has been clicked: this item's draft was never prepared or
-      // submitted. Preserve it as paused and editable, without retrying Stop
-      // or waiving any existing reply/identity gate for the other messages.
+      // Stop timeout pauses the untouched row; the reply gate still applies.
       state.inFlight.item.state='paused';state.inFlight=null;state.forceId=null;
       state.phase='waiting';state.reason='停止后网页尚未就绪，此条已暂停，可取回编辑或恢复';
       idleSince=null;emit();return;

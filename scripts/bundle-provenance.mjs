@@ -39,15 +39,17 @@ const packagedTaskInputs=Object.freeze({
 // 2026-11-24 review: one crown in the native bottom controls, with separate editor space.
 // 2026-11-24 review: all queue buttons match the native action; keep the crown inside overflow clips.
 // 2026-11-25 review: the fixed Page status reports the existing 1.0.0 package version.
+// 2026-11-26 review: an empty composer crown click checks the existing queue.
+// 2026-11-26 review: ChatGPT home submits the native first draft once; receipts gate the queue.
 const compiledSendQueueInputs=Object.freeze({
   'projects/ai-send-queue/assets/crown-premium.webp':'46ea350497498f7854fcecc9c31b0593081c7e68',
-  'projects/ai-send-queue/assets/queue.css':'dcf7b0bd310e583edb047479dc84adad6448167f',
+  'projects/ai-send-queue/assets/queue.css':'3173b90d48b60f5a4a180ab6d38ca555338430a4',
   'projects/ai-send-queue/src/page/cache.js':'6b3845894d3de10a31d525236ae6d060613cc035',
-  'projects/ai-send-queue/src/page/engine.js':'1fd9e1168a01328c153fd0002205306562f2c68f',
-  'projects/ai-send-queue/src/page/main.js':'293584bc562e687b52a913916d59149bc07821f0',
-  'projects/ai-send-queue/src/page/site.js':'d65c06b0606ddb500e19434650796559724460f0',
+  'projects/ai-send-queue/src/page/engine.js':'93ba682f74eba3c655a71416a83a6e3bfee10aa3',
+  'projects/ai-send-queue/src/page/main.js':'1e45cb5b94f25f97c24f27d6202cbd77c594cc44',
+  'projects/ai-send-queue/src/page/site.js':'3a18dfb4cf2d4574f47915bcef29ba2cbfbba89c',
   'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
-  'projects/ai-send-queue/src/page/view.js':'8220bef929ff204dcd59d67ecb44f188183768df',
+  'projects/ai-send-queue/src/page/view.js':'b0b6369095c4a55f3d0b58d4ac38de64ed15d5f4',
   'projects/ai-send-queue/trusted/fixed-page.js':'f777652963c87a78c50d8032c272a64e78c63497'
 });
 function reviewedCompiledSendQueue(target,path,root){
@@ -720,11 +722,13 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 // the four existing locale tables only; no imports, authority or behavior changed.
 // 2026-11-24 controls review: present those states and retain focus across the
 // existing read-only retry callback; trusted input, write guards and shell-only admission remain.
+// 2026-11-25 review: add localized reply pin settings for compatible installs.
+// The setting uses the existing trusted gesture and configuration write path.
 const compiledExtensionSettingsInputs=Object.freeze({
   'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
   'projects/ai-scroll-navigation/trusted/ai-controls.tsx':'ba7e94499c399aba685b7c80cf004bb56e2888f0',
-  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'e9f27c08fd9bfdc053901c1514b832f7444c53cc',
-  'projects/ai-scroll-navigation/trusted/host-localization.js':'fbc3ee37df898dbb109a0b21ed83f8542157b6ac',
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'0414340695efd785e9d1626bf33a4bc64793a113',
+  'projects/ai-scroll-navigation/trusted/host-localization.js':'ccbb1d3f058d852b81a2a55fc64fdaa315062e05',
   'projects/time-review/trusted/react-controls.tsx':'2a9155f4a6c56969d1aebcd7420405b84fd4eaf4',
   'projects/time-review/trusted/localization.js':'7478e9c91f33317c8e1fe08f33d2e49c47b47818',
   'projects/prompt-shortcuts/trusted/host-localization.js':'8a83cf4b2fff65af0ff12656d3f4aeafe62111d4'

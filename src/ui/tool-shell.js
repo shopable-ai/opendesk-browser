@@ -68,7 +68,7 @@ export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,
   }catch(error){return {ok:false,error:{code:error.code || 'E_DRAFT_IMPORT',message:error.message || String(error)}};}
 }
 
-export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
+export function initToolShell(installDevelopment=null,{debugEnabled=false,openAcceptance=null}={}) {
   const hostUrl = new URL(location.href);
   // A fixed app.html route may select only a real installed App UI, never
   // arbitrary JS. Its Host identity is minted and bound to the native tab.
@@ -98,7 +98,7 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
         location.replace(canonicalToolHostUrl(hostUrl.href,fresh));return;
       }
       globalThis.__opendeskAppPageBound=true;
-      initToolShell(installDevelopment,{debugEnabled});
+      initToolShell(installDevelopment,{debugEnabled,openAcceptance});
     }).catch(()=>refuse('无法确认应用页面的可信标签页身份，已拒绝加载。'));
     return;
   }
@@ -138,12 +138,15 @@ if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
 let trustedHistoryWorkbench=null,shellClosed=false,panelToolIntents=null,marketPanelIntents=null,livePreview=null,toolDevelopmentControls=null,marketInstallSheet=null;
 let verifiedSidePanel; // Pending until Chrome classifies this document.
+let developmentStatus=null,offlineAcceptance=null,acceptanceOpening=false,acceptanceError='';
+const everydayPresentation=()=>!shellClosed&&!acceptanceOpening&&!offlineAcceptance;
+let pageBridgePending=0,lastMenuTicket='',menuOpening=false;
 let panelPreviewId=null,panelPreviewKey=null,panelPreviewListener=null,panelPreviewEpoch=0;
 // Do not construct or query the privileged History controller while Extensions
 // (or any ordinary tab) is active. Leaving Debug also clears private results.
 function syncTrustedHistory(view=pendingReactTab){
   if(shellClosed)return;
-  if(!verifiedSidePanel||!debugEnabled||view!=='debug'){
+  if(!verifiedSidePanel||!debugEnabled||view!=='debug'||offlineAcceptance){
     trustedHistoryWorkbench?.dispose();
     trustedHistoryWorkbench=null;
     return;
@@ -276,7 +279,7 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
     if(!options.initial&&view!=='tools')extensionCenter?.exitDetail();
     tabMemory.record(view,options);
   },
-  reactNavigation,myView,developerView});
+  reactNavigation,myView,developerView,isPresentationActive:everydayPresentation});
 extensionList.renderNavigation(pendingReactTab);
 // R1.2 is one business adapter on the existing trusted Client and exact RunHost.
 // Only the positively verified Side Panel in the source tab's window responds.
@@ -295,16 +298,17 @@ const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:founda
     if(Object.values(rows||{}).some(row=>!['ACKNOWLEDGED','FAILED_CONFIRMED'].includes(row?.state)))return false;
     return providerRuntime.developmentIdle()&&nativeAgentHost.developmentIdle();
   },
-  isVerifiedSidePanel:()=>verifiedSidePanel===true&&!shellClosed});
+  isVerifiedSidePanel:()=>verifiedSidePanel===true&&everydayPresentation()});
 const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
   // New persistent candidates have one SW/Offscreen owner. Old manual and
   // already-in-flight panel requests retain this exact Host and transport.
   if(message?.kind==='auto-task'||message?.backgroundOwner===true)return false;
   if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery','list-tasks','prepare-task','adopt-task','authorize-task','approve-conversation-task','show-execution-page','preapprove-next-task','bind-preapproved-task','auto-task'].includes(message.kind)||
-    !verifiedSidePanel||shellClosed||
+    !verifiedSidePanel||!everydayPresentation()||
     sender?.tab?.windowId!==currentPageTarget.snapshot?.windowId)return false;
   message=routeChatGPTBridgeMessage(message,hostInstanceId,{visible:document.visibilityState==='visible'});
   if(!message)return false;
+  pageBridgePending++;
   Promise.resolve().then(()=>message.kind==='list-tasks'?fixedPageChatBridge.listTasks(message,sender):
     message.kind==='auto-task'?fixedPageChatBridge.admitAutoTask(message,sender):
     message.kind==='approve-conversation-task'?fixedPageChatBridge.approveConversationTask(message,sender):
@@ -318,7 +322,7 @@ const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
     fixedPageChatBridge.cancel(message,sender):fixedPageChatBridge.handle(message,sender)).then(
     data=>sendResponse({ok:true,bridgeHostId:hostInstanceId,data}),
     error=>sendResponse({ok:false,bridgeHostId:hostInstanceId,error:{code:error?.code||'E_BRIDGE_FAILURE',
-      message:error?.message||'受信任务调用未能完成，未知结果不会重放'}}));
+      message:error?.message||'受信任务调用未能完成，未知结果不会重放'}})).finally(()=>{pageBridgePending--;});
   return true;
 };
 chrome.runtime.onMessage.addListener(fixedPageChatBridgeListener);
@@ -463,15 +467,60 @@ scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
     void extensionCenter?.refresh();
   }
 }});
-const disposeDevelopment=installDevelopment?.({api:chrome,onStatus:value=>extensionList.renderDevelopmentStatus(value),
-  canReload:providerRuntime.developmentIdle,prepareReload:async()=>
+function canOpenAcceptance(){
+  return Boolean(openAcceptance&&verifiedSidePanel&&!shellClosed&&!offlineAcceptance&&
+    developmentStatus?.connected&&developmentStatus.appliedRevision&&!developmentStatus.preparing);
+}
+function renderDevelopment(){
+  extensionList.renderDevelopmentStatus(developmentStatus&&{...developmentStatus,
+    openAcceptance:canOpenAcceptance()?startOfflineAcceptance:null,acceptanceBusy:acceptanceOpening,acceptanceError});
+}
+async function startOfflineAcceptance(event){
+  if(event?.isTrusted!==true||acceptanceOpening||!canOpenAcceptance())return;
+  const everydayIdle=()=>!sharedRunHost.executionPending&&!sharedRunHost.currentRun&&
+    !taskWorkbench.busy&&!pageBridgePending&&!menuOpening&&
+    providerRuntime.developmentIdle()&&nativeAgentHost.developmentIdle()&&
+    !myView.data.taskRunSheet&&!sidebarTools.isDirty()&&!sidebarTools.isPreviewActive()&&
+    !document.querySelector('[role="dialog"][aria-modal="true"]');
+  if(!everydayIdle()){
+    acceptanceError='请先完成当前日用任务或关闭已打开的操作界面。';renderDevelopment();return;
+  }
+  const revision=developmentStatus.appliedRevision;
+  const registrationId=foundationClient.registration?.registrationId;
+  if(!registrationId){acceptanceError='原侧栏的运行主机尚未注册。';renderDevelopment();return;}
+  acceptanceOpening=true;acceptanceError='';renderDevelopment();
+  let next,disconnected=false;
+  const renderOffline=()=>{
+    if(offlineAcceptance!==next||!next||shellClosed)return;
+    extensionList.renderTaskAcceptance({scope:next,disconnected,exit:exitOfflineAcceptance});
+  };
+  function exitOfflineAcceptance(event){
+    if(event?.isTrusted!==true||offlineAcceptance!==next||!disconnected&&next.busy)return;
+    offlineAcceptance=null;next.disconnect();extensionList.renderTaskAcceptance(null);
+    syncTrustedHistory();renderDevelopment();
+  }
+  try{
+    next=await openAcceptance({api:chrome,document,hostInstanceId,registrationId,revision,
+      expectedWindowId:currentPageTarget.windowId,createTaskWorkbench,
+      onNavigate:renderOffline,onDisconnect:()=>{disconnected=true;renderOffline();}});
+    if(disconnected||!canOpenAcceptance()||developmentStatus.appliedRevision!==revision||!everydayIdle()||
+      foundationClient.registration?.registrationId!==registrationId)
+      throw new Error('原侧栏身份、开发 revision 或当前操作已变化。');
+    offlineAcceptance=next;syncTrustedHistory();renderOffline();
+  }catch(error){
+    if(offlineAcceptance===next)offlineAcceptance=null;
+    next?.disconnect();acceptanceError=error.message||'无法打开离线验收';
+  }finally{acceptanceOpening=false;if(!shellClosed)renderDevelopment();}
+}
+const disposeDevelopment=installDevelopment?.({api:chrome,onStatus:value=>{developmentStatus=value;renderDevelopment();},
+  canReload:()=>!offlineAcceptance&&!acceptanceOpening&&providerRuntime.developmentIdle(),prepareReload:async()=>
   !sidebarTools.isDirty()&&nativeAgentHost.developmentIdle()&&await scriptEditor.prepareDevelopmentReload()&&nativeAgentHost.developmentIdle()});
 let sidebarSurface=false, draftImportAttached=false;
 const draftImportListener=(message,sender,sendResponse)=>{
-  if(shellClosed)return false;
+  if(!everydayPresentation())return false;
   const response=receiveSidebarDraft({message,sender,windowId:currentPageTarget.snapshot.windowId,sidebarSurface,
     api:chrome,receiveDraft:sourceUtf8=>{
-      if(shellClosed)throw Object.assign(new Error('Sidebar 已关闭'),{code:'E_HOST_CLOSED'});
+      if(!everydayPresentation())throw Object.assign(new Error('日用侧栏当前不可用'),{code:'E_HOST_CLOSED'});
       return taskWorkbench.receiveDraft(sourceUtf8);
     }});
   if(response?.then) {response.then(sendResponse);return true;}
@@ -588,6 +637,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   const actualSidePanel=await isActualSidePanelContext({api:chrome,href:hostUrl.href});
   if(shellClosed)return;
   verifiedSidePanel=actualSidePanel;
+  if(openAcceptance)renderDevelopment();
   // Only the native Side Panel context can reinterpret a saved toolId
   // locator as a compact panel; legacy tab links stay PC presentation.
   currentToolSurface=verifiedToolSurface(hostUrl.pathname,hasToolLocator,actualSidePanel);
@@ -797,16 +847,15 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
 }).catch(error => console.warn('Tool tab surface unavailable',error));
 // Native menu launch context is never posted to the sandbox. The trusted host
 // binds a one-shot ticket to the exact iframe instance first.
-let lastMenuTicket='',menuOpening=false;
 async function receiveMenuLaunch(){
-  if(shellClosed||menuOpening)return;
+  if(!everydayPresentation()||menuOpening)return;
   const tab=await chrome.tabs.getCurrent?.();
-  if(shellClosed||tab?.id)return; // A context menu opens its window's Side Panel, not arbitrary tool tabs.
+  if(!everydayPresentation()||tab?.id)return; // A context menu opens its window's Side Panel, not arbitrary tool tabs.
   const stored=(await chrome.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
-  if(shellClosed)return;
+  if(!everydayPresentation())return;
   const windowId=currentPageTarget.snapshot?.windowId ??
     (await chrome.windows.getCurrent()).id;
-  if(shellClosed)return;
+  if(!everydayPresentation()||menuOpening)return;
   const row=Object.values(stored).filter(value=>value?.state==='pending'&&!value.boundTo&&
     value.windowId===windowId&&Date.now()<value.expiresAt).sort((a,b)=>b.issuedAt-a.issuedAt)[0];
   if(!row||row.ticketId===lastMenuTicket)return;
@@ -815,7 +864,7 @@ async function receiveMenuLaunch(){
   let binding=null;
   try{
     await sidebarTools.ready;
-    if(shellClosed)return;
+    if(!everydayPresentation())return;
     if(taskWorkbench.navigate('tools')===false)return;
     // A trusted gate prevents sandbox JS starting before launch.bind ACK.
     // Bind failures never publish sensitive selection to the iframe.
@@ -857,6 +906,7 @@ Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.
     {subscriptions: listeners.length + developHostControls.resourceSnapshot().subscriptions + Number(draftImportAttached) + currentPageTarget.resourceSnapshot().subscriptions})
 })});
 listen(window, 'pagehide', () => {
+  offlineAcceptance?.disconnect();
   fixedPageChatBridge.dispose();
   marketInstallSheet?.dispose();
   ++panelPreviewEpoch;

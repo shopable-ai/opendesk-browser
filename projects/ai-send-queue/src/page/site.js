@@ -5,7 +5,7 @@ const ASSISTANT = '[data-message-author-role="assistant"],[data-message-role="as
 const SEND_LABEL = /^(send message|send prompt|send|发送消息|发送|送出)$/i;
 const STOP_LABEL = /^(stop generating|stop generation|stop responding|stop|停止生成|停止回复|停止)$/i;
 const RICH = 'img,video,canvas,iframe,[data-attachment-id],[data-file-id]';
-// Large native pastes can become a text resource card without a file ID.
+// Large pastes can become cards without file IDs.
 const ATTACHMENTS = '[data-attachment-id],[data-file-id],[data-composer-attachments][data-visible-attachments]';
 
 export const normal = value => String(value ?? '').replace(/\r\n?/g, '\n').replace(/\u00a0/g, ' ').trim();
@@ -74,7 +74,6 @@ function routeFor(win) {
   if (win.location.origin !== URL_ORIGIN) return null;
   const match = win.location.pathname.match(/(?:^|\/)c\/([a-z0-9-]{8,})(?:\/|$)/i);
   if(match)return {route:'c/' + match[1].toLowerCase()};
-  // Home/project composers have no queue or refresh-cache identity.
   if(/^\/$/.test(win.location.pathname)||
     /^\/g\/g-p-[a-z0-9-]+\/project\/?$/i.test(win.location.pathname))
     return {route:null};
@@ -104,6 +103,12 @@ function explicitStreaming(root) {
 const chatgpt = Object.freeze({
   routeFor, editors:EDITOR, users:USER, assistants:ASSISTANT, attachments:ATTACHMENTS,
   composer:editor=>editor.closest('form'), controlRole:role, messageText, assistantCompleted, streaming,
+  ownsHistoryNode(node,win){
+    // New Chat can leave the previous transcript mounted with no layout box.
+    // A message outside that known transcript surface still counts as history.
+    const transcript=node.closest?.('[data-rail-chat-transcript]');
+    return !transcript||visible(transcript,win)||visible(node,win);
+  },
   placement(anchor,form,editor){
     const trailing=anchor?.closest('[data-composer-trailing-controls]');
     const grid=trailing?.parentElement;
@@ -126,7 +131,6 @@ export const createChatGPTSite=options=>createConversationSite(chatgpt,options);
 export const geminiRoute=location=>{
   if(location?.origin!=='https://gemini.google.com')return null;
   const match=/^\/app(?:\/([a-z0-9_-]+))?\/?$/i.exec(location.pathname);
-  // Keep the site's exact conversation ID spelling.
   return match?{route:match[1]?'app/'+match[1]:null}:null;
 };
 const geminiHidden='[hidden],[inert],[aria-hidden="true"],[role="dialog"],[aria-modal="true"]';
@@ -159,7 +163,6 @@ const gemini=Object.freeze({
     return null;
   },
   idleControls:'.speech_dictation_mic_button button,button.speech-button,button[aria-label="Use microphone"],button[aria-label="使用麦克风"]',
-  // The toolbar outlives the native microphone/send/stop nodes.
   placement(_button,form,editor){
     const toolbar=one([...form.querySelectorAll('.input-buttons-wrapper-bottom')]);
     const trailing=toolbar?.closest('.trailing-actions-wrapper');
@@ -214,8 +217,7 @@ const gemini=Object.freeze({
     if(!explicitStreaming(root))return false;
     const body=geminiStoppedBody(root,win,user,historyRoot,geminiBody(root));
     if(!body)return true;
-    // Gemini leaves aria-busy on this markdown after its native Stop receipt.
-    // Any other streaming evidence, including the composer's Stop, still vetoes.
+    // Gemini can leave stale aria-busy after Stop; other streaming signals still veto.
     const signals='[data-is-streaming="true"],[aria-busy="true"],.result-streaming';
     return root.matches(signals)||[...root.querySelectorAll(signals)].some(el=>
       el!==body||el.matches('[data-is-streaming="true"],.result-streaming'));
@@ -302,7 +304,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     if (!editor) return {ok:false,route,reason:'原生输入框不存在或不唯一'};
     const form = profile.composer(editor);
     if (!form || !form.isConnected) return {ok:false,route,reason:'原生输入表单无法确认'};
-    // Ignore stale conversation turns when DeepSeek returns home.
     const historyless=profile===deepSeek&&route===null;
     const historyRoot=historyless?doc:profile.historyRoot?profile.historyRoot(doc,win):doc;
     if(!historyRoot||(historyRoot!==doc&&!(profile.ownsComposer?
@@ -310,7 +311,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
       return {ok:false,route,reason:'原生会话区域不存在或不唯一'};
     const blocked=profile.blocked?.(form,historyRoot,win);
     if(blocked)return {ok:false,route,reason:blocked};
-    // DOM ownership only vetoes; the trusted Host authorizes writes.
     if(form.hasAttribute('data-opendesk-composer-owner'))
       return {ok:false,route,reason:'等待其他操作释放原生输入框'};
     const nativeButtons = [...form.querySelectorAll(profile.controlSelector||'button')].filter(el => visible(el,win) && !el.closest('[data-opendesk-ui-owner]'));
@@ -323,7 +323,8 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     const nearby=profile.idleControls?nativeButtons.filter(el=>el.matches(profile.idleControls)):[];
     const loadingButton=nativeButtons.find(el=>profile.controlRole(el)==='loading');
     const anchorButton=stopButton||sendButton||loadingButton||one(nearby);
-    const findHistory=selector=>historyless?[]:[...historyRoot.querySelectorAll(selector)];
+    const findHistory=selector=>historyless?[]:[...historyRoot.querySelectorAll(selector)].filter(node=>
+      !profile.ownsHistoryNode||profile.ownsHistoryNode(node,win));
     const users = findHistory(userSelector).filter(el=>!el.parentElement?.closest(userSelector));
     const assistants = findHistory(assistantSelector).filter(el=>!el.parentElement?.closest(assistantSelector));
     const history = findHistory(historySelector)
@@ -360,8 +361,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     };
     if(!unchanged())return false;
     editor.focus();
-    // Focusing may synchronously restore a website draft or replace its
-    // composer. Check again before any destructive selection/write.
     if(!unchanged())return false;
     if (typeof editor.value === 'string') {
       const proto = editor.tagName === 'TEXTAREA' ? win.HTMLTextAreaElement?.prototype : win.HTMLInputElement?.prototype;
@@ -374,7 +373,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
       range.selectNodeContents(editor);
       selection.removeAllRanges(); selection.addRange(range);
       if(text&&profile.insertText){
-        // Gemini's native edit command writes synchronously; Quill paste does not.
         if(!profile.insertText(doc,text))return false;
       }else if(text){
         // Use site-local paste: long multiline insertText can stall ChatGPT.
@@ -390,8 +388,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     if(!snapshot.route)return {ok:false,reason:'当前对话暂不能加入队列'};
     if (!snapshot.ok || snapshot.rich || snapshot.composing || !normal(snapshot.draft)) return {ok:false,reason:'草稿为空、包含附件或输入法尚未完成'};
     const text=snapshot.draft;
-    // Website input handlers can replace the composer after the old element
-    // accepted the clear. Only the currently active editor can confirm it.
     let cleared=false;
     try{cleared=setDraft(snapshot.editor,'',snapshot);}
     catch{/* The write may have happened before the website handler threw. */}
@@ -413,7 +409,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     return after.ok && after.route===snapshot.route && after.form===snapshot.form &&
       after.editor===snapshot.editor && !after.rich && !after.composing && after.draft===text;
   }
-  // Reclaim only into an exactly empty composer; ambiguous writes keep the item.
   function reclaimToComposer(text,initial) {
     const fresh=inspect();
     if(!initial?.ok||!fresh.ok||!initial.route||
@@ -444,7 +439,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
       return {ok:false,mayHaveWritten:false,reason:'会话、输入框或原生草稿已改变'};
     const before={users:fresh.users,assistants:fresh.assistants,history:fresh.history,
       assistantCount:fresh.assistants.length,route:fresh.route};
-    // Once attempted, even a failed draft write may have reached the page.
     try {
       if(!setDraft(fresh.editor,text,fresh))
         return {ok:false,mayHaveWritten:true,reason:'网页编辑器未确认完整接收待发内容'};
@@ -459,7 +453,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
       text,before}};
   }
   function commit(token) {
-    // Recheck on the poll after the draft write; identity changes forbid a click.
     const fresh=inspect();
     if(!token.route || !fresh.ok || fresh.route!==token.route || fresh.form!==token.form ||
       fresh.editor!==token.editor || fresh.rich || fresh.composing ||
@@ -472,10 +465,35 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     if(!fresh.idle)return {ok:false,retry:true,reason:'上一条回复尚未确认完成'};
     if(disabled(fresh.sendButton))
       return {ok:false,retry:true,reason:'原生发送按钮尚未启用'};
-    // After this click the outcome is UNKNOWN until an exact new user turn is seen.
     try {fresh.sendButton.click();}
     catch {return {ok:false,stage:'after-click',reason:'原生发送点击结果未知'};}
     return {ok:true,before:token.before};
+  }
+  function submitFirst(initial) {
+    const fresh=inspect();
+    const reject=reason=>({ok:false,stage:'before-click',reason:reason+'；草稿已保留'});
+    if(profile!==chatgpt||win.location.pathname!=='/'||!initial?.ok||initial.route!==null||
+      !fresh.ok||fresh.route!==null||fresh.form!==initial.form||fresh.editor!==initial.editor||
+      fresh.draft!==initial.draft||!normal(fresh.draft))return reject('新聊天或输入框已变化');
+    if(initial.history.length||fresh.history.length)return reject('新聊天仍显示会话消息');
+    if(fresh.rich)return reject('当前草稿包含附件或富内容');
+    if(fresh.composing)return reject('请先完成输入法编辑');
+    if(fresh.busy||!fresh.idle)return reject('ChatGPT 正在处理请求');
+    if(!fresh.sendButton||
+      fresh.sendButton!==initial.sendButton||disabled(fresh.sendButton))
+      return reject('当前输入框的发送按钮不可用');
+    // Send the native draft in place.
+    try{fresh.sendButton.click();}
+    catch{return {ok:false,stage:'after-click'};}
+    return {ok:true};
+  }
+  function firstAdmission(before,snapshot) {
+    if(profile!==chatgpt||before.route!==null||!snapshot.ok||!snapshot.route||
+      !/^\/c\/[a-z0-9-]{8,}\/?$/i.test(win.location.pathname)||
+      snapshot.history[0]!==snapshot.users[0]||
+      (snapshot.history.length===2&&snapshot.history[1]!==snapshot.assistants[0]))return null;
+    const bound={...before,route:snapshot.route};
+    return confirm(bound,before.draft,snapshot)?bound:null;
   }
   function canReclaimPrepared(token,{snapshot: fresh=inspect(),allowComposing=false}={}) {
     return !!token?.route && fresh.ok && fresh.route===token.route &&
@@ -501,11 +519,9 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     return profile.admissionIssue?.(newMessage,snapshot)??null;
   }
   function sameHistory(before,snapshot,confirmedQueueUser) {
-    // Require a timeline anchor even if either role loses its entire prefix.
     if(!matchesHistoryTail(before.users,snapshot.users,0,false))return false;
     if(matchesHistoryTail(before.assistants,snapshot.assistants,0,false) &&
       matchesConversationTail(before,snapshot,0))return true;
-    // A late native reply must follow the retained latest user.
     const user=before.users.at(-1),reply=snapshot.assistants.at(-1);
     return !!user&&(!!before.busy||user===confirmedQueueUser)&&!!reply&&before.history?.at(-1)===user&&
       snapshot.history?.at(-2)===user&&snapshot.history.at(-1)===reply&&
@@ -518,14 +534,12 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
   function replyComplete(before,confirmedUser,snapshot,gate) {
     if(gate?.historyInvalid || !confirmedUser || !snapshot.ok || snapshot.route!==before?.route)return false;
     const rejectHistory=()=>{
-      // Loss of identity latches for the lifetime of this reply gate.
       if(gate)gate.historyInvalid=true;
       return false;
     };
     if(!matchesReplyHistory(before,snapshot,requireRoleAnchor) ||
       (gate?.observed && !matchesReplyHistory(gate.observed,snapshot,requireRoleAnchor)))return rejectHistory();
     const {users,assistants,history}=snapshot;
-    // Require order and uniqueness; native follow-ups cannot prove admission.
     if(new Set(history).size!==history.length || history.length!==users.length+assistants.length ||
       history.some(node=>users.includes(node)===assistants.includes(node)) ||
       [users,assistants].some(nodes=>{
@@ -535,7 +549,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     const added=history.filter(node=>!before.history.includes(node));
     if(added[0]!==confirmedUser || !users.includes(confirmedUser) ||
       added.some((node,i)=>assistants.includes(node) && !users.includes(added[i-1])))return rejectHistory();
-    // Record growth while busy so later polls cannot replace observed follow-ups.
     if(gate)gate.observed={users:[...users],assistants:[...assistants],history:[...history]};
     const latestUser=users.at(-1),reply=assistants.at(-1);
     if(snapshot.busy || !snapshot.idle || !snapshot.answerComplete ||
@@ -554,5 +567,5 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
       disabled(fresh.stopButton)) return false;
     try { fresh.stopButton.click(); interrupted=fresh; return true; } catch { return false; }
   }
-  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,canReclaimPrepared,confirm,confirmationIssue,sameHistory,replyComplete,stop,normal});
+  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,submitFirst,firstAdmission,canReclaimPrepared,confirm,confirmationIssue,sameHistory,replyComplete,stop,normal});
 }

@@ -732,13 +732,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   starterSource.fill();
   sourceInput();
-  return {host,model:view,openRun,async prepareDevelopmentReload(){
+  const editorIdle=()=>!editingBusy&&!isStopping()&&!isRunning()&&!pagePreviewFlow?.busy&&
+    !candidatePreparing&&!controllerRunner?.preparing&&!componentRemote?.busy&&!localRunner?.managed&&!pagePreviewFlow?.managed&&
+    !host.executionPending&&!host.currentRun&&!resultDownloads.busy()&&!client.resourceSnapshot?.().pending;
+  return {host,model:view,openRun,get busy(){return !disposed&&!editorIdle();},async prepareDevelopmentReload(){
     // Preserve RunHost / Native / download idle gating during development
     // reload. There is no source backup or post-reload restoration.
-    return !disposed&&!editingBusy&&!isStopping()&&!isRunning()&&!pagePreviewFlow?.busy&&
-      !candidatePreparing&&!controllerRunner?.preparing&&!componentRemote?.busy&&!localRunner?.managed&&!pagePreviewFlow?.managed&&
-      !host.executionPending&&!host.currentRun&&!resultDownloads.busy()&&
-      !client.resourceSnapshot?.().pending;
+    return !disposed&&editorIdle();
   },connectLocalProjects(adapter,{onInstalled}={}){
     if(localProject||!find('local-project-mode'))return;
     localInstaller.setOnInstalled(onInstalled);

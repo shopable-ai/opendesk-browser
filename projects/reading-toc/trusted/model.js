@@ -89,9 +89,26 @@ export function createReadingTocIndex(doc) {
     return false;
   }
   function chatDisplayValue(heading) {
-    // Observed ChatGPT DIL metrics: a tabular-number title paired with its
-    // text label in a box/row. The same H1-H6 tags also render real sections;
-    // text alone (years, Roman numerals, short names) cannot distinguish them.
+    // DIL uses the same heading tags for real sections and display values.
+    // A grid cell with just a caption and a value is a metric even without
+    // tabular-number styling. A cell containing prose can still be a section.
+    if(heading.matches?.('[data-d-component="grid"] > [data-d-component="grid-item"] > [data-d-component="caption"]:first-child + [data-d-component="title"]:last-child')&&
+       heading.closest('[data-dil-response]'))return true;
+    if(heading.closest('[data-dil-response]')){
+      // A metric card adds a note below its labeled value. A score table
+      // can instead put the value on the right of a summary row.
+      if(heading.matches?.('[data-d-component="grid"] > [data-d-component="grid-item"] > [data-d-component="card"] > [data-d-component="caption"]:first-child + [data-d-component="title"][data-d-tabular-nums="true"]:has(+ [data-d-component="caption"]:last-child)'))return true;
+      if(heading.matches?.('[data-d-component="box"][data-d-direction="col"] > [data-d-component="divider"] + [data-d-component="row"][data-d-direction="row"] > p[data-d-component="text"]:first-child + [data-d-component="spacer"] + [data-d-component="title"]:last-child'))return true;
+      // The large score layout puts a caption column beside its value.
+      if(heading.matches?.('[data-d-component="row"][data-d-direction="row"] > [data-d-component="title"][data-d-tabular-nums="true"]:first-child')){
+        const children=heading.parentElement.children;
+        const caption=children[1];
+        if(children.length===2&&caption?.matches('[data-d-component="box"][data-d-direction="col"]')&&
+           caption.children.length===2&&caption.children[0].matches('p[data-d-component="text"]')&&
+           caption.children[1].matches('span[data-d-component="caption"]'))return true;
+      }
+    }
+    // Earlier metric layout: a tabular title paired with its text label.
     const container=heading.parentElement;
     return heading.matches?.('[data-d-component="title"][data-d-tabular-nums="true"]')&&
       container?.matches?.('[data-d-component="box"],[data-d-component="row"]')&&
@@ -116,7 +133,10 @@ export function createReadingTocIndex(doc) {
     }
     // The Writing portal's DOM position differs from its position in the
     // transcript. Preserve reading order using the real heading geometry.
-    if(adapter==='chatgpt'&&headings.some(heading=>writingSurface(heading))){
+    if(adapter==='chatgpt'&&headings.some(heading=>{
+      const writing=writingSurface(heading);
+      return writing&&sourceRoot(heading,adapter)===writing;
+    })){
       headings.sort((a,b)=>a.getBoundingClientRect().top-b.getBoundingClientRect().top);
     }
     const primaryRoot=adapter==='article'?primaryContentRoot(headings):null;
@@ -141,12 +161,18 @@ export function createReadingTocIndex(doc) {
       }
       const id=idFor(heading,headingKeys,'h-');
       const rank=Number(heading.tagName.slice(1));
-      const stack=stacks.get(sourceId)||[];
+      // An inline Writing prompt is a document inside a reply section.
+      // Keep its heading ranks local and leave the reply's stack intact.
+      const writing=adapter==='chatgpt'?writingSurface(heading):null;
+      const widget=writing?.closest('[data-client-defined-widget="writing_block"]');
+      const inline=widget?.closest('[data-dil-response]')&&root!==writing&&withinRoot(widget,root);
+      const stackKey=inline?writing:root;
+      const stack=stacks.get(stackKey)||[];
       while(stack.length && stack[stack.length-1].rank>=rank)stack.pop();
-      const parent=stack.at(-1);
+      const parent=stack.at(-1)||(inline?stacks.get(root)?.at(-1):null);
       const item={id,sourceId,label,rank,depth:parent?parent.depth+1:0,
         parentId:parent?.id||null,topId:parent?parent.topId:id,element:heading};
-      next.push(item);stack.push(item);stacks.set(sourceId,stack);
+      next.push(item);stack.push(item);stacks.set(stackKey,stack);
     }
     // Body mutations (streaming paragraphs, clocks, other extensions) do not
     // necessarily change the outline. Keep both its revision and resolved

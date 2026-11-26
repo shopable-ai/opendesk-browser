@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-examples/ai-scroll-navigation",
-  "version": "1.0.0",
+  "version": "1.0.24",
   "private": true,
   "type": "module",
   "description": "AI 对话滚动导航：支持 ChatGPT、Gemini、DeepSeek 中已识别的长回复和对话轮次，以及对话顶底和悬浮回顶；仅在已授权且明确适配的页面启用。",

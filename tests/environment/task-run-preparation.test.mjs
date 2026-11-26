@@ -18,6 +18,18 @@ import {readTaskDelegationApp} from '../../src/platform/tasks/delegation-install
 import {withWebflowTaskRunRecovery} from '../../projects/webflow/trusted/task-run-recovery.js';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
 import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {readFile} from 'node:fs/promises';
+import {decodeValue} from '../../src/platform/page-port/codec.js';
+import {decodeValue as controlDecode} from '../../src/framework/control/value.js';
+import {createPackagedPageSession} from '../../src/scripting/packaged/registry.js';
+import {createOfflineController} from './offline-controller-support.mjs';
+import {createTaskAcceptanceTarget} from '../../src/development/task-acceptance-target.js';
+import {BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../../src/libs/runtime-contract.js';
+import {ACCEPTANCE_INSTALL,createTaskAcceptanceSession} from '../../src/development/task-acceptance-session.js';
+import {createTaskAcceptanceStorage,readTaskAcceptanceSource} from '../../src/development/task-acceptance-storage.js';
+import {openTaskAcceptancePage} from '../../src/development/task-acceptance-page.js';
+import {ACCEPTANCE_PROTOCOL} from '../../src/development/task-acceptance-contract.js';
+import {taskKey,taskScriptId,scriptStorageKey} from '../../src/platform/tasks/contract.js';
 function authoritySerialStore() {
   let rows = new Map(), tail = Promise.resolve(); const writes = [];
   return {writes, transaction(names, mode, body) {
@@ -513,10 +525,7 @@ test('a shared preparation blocks My, drafts, legacy Task admission and other ho
   assert.equal((await f.prepare('another')).preparation.state,'prepared');
 });
 
-test('My React double Run for valid task B cannot replace bound task A while discovery is pending', {timeout:10000}, async t=>{
-  const f=await boundFixture();
-  const b=await f.installPackage({...f.manifest,taskId:'authorization.second',title:'Second installed task'});
-  const {preparation}=await f.prepare('original-A',{binding:f.binding});
+async function mountTaskSheet(t){
   const React=await import('react'),{parseHTML}=await import('linkedom');
   const {build}=await import('esbuild'),{mkdtemp,rm}=await import('node:fs/promises');
   const temp=await mkdtemp(new URL('../../artifacts/r4-sheet-react-',import.meta.url));
@@ -541,13 +550,21 @@ test('My React double Run for valid task B cannot replace bound task A while dis
     }
     await rm(temp,{recursive:true,force:true});
   });
-  // The real React handler closes the My sheet after synchronous acceptance;
   // linkedom supplies events/dialog lifecycle, not native Chrome user gestures.
   await build({entryPoints:['src/ui/react/tabs/task-run-sheet.tsx'],bundle:true,packages:'external',platform:'node',
     format:'esm',outfile:temp+'/sheet.mjs',logLevel:'silent'});
   const {TaskRunSheet}=await import(temp+'/sheet.mjs');
   Object.assign(globalThis,globals);
   const {createRoot}=await import('react-dom/client');
+  root=createRoot(document.getElementById('mount'));
+  return {React,document,window,render:async view=>React.act(async()=>root.render(React.createElement(TaskRunSheet,{view})))};
+}
+
+test('My React double Run for valid task B cannot replace bound task A while discovery is pending', {timeout:10000}, async t=>{
+  const f=await boundFixture();
+  const b=await f.installPackage({...f.manifest,taskId:'authorization.second',title:'Second installed task'});
+  const {preparation}=await f.prepare('original-A',{binding:f.binding});
+  const {React,document,window,render}=await mountTaskSheet(t);
   const originalRuns=await f.rows('runs'),writeOffset=f.storage.writes.length;
   let releaseDiscovery,discoveryEntered,admissionFinished,workers=0,discoveryReleased=false;
   const discoveryGate=new Promise(resolve=>{releaseDiscovery=()=>{discoveryReleased=true;resolve();};});
@@ -583,8 +600,7 @@ test('My React double Run for valid task B cannot replace bound task A while dis
       subscribe:fn=>{fn(page);return()=>{};}}});
   t.after(async()=>{releaseDiscovery();workbench.dispose();developerView.dispose();await host.dispose();});
   const {myView}=workbench,event={isTrusted:true};
-  root=createRoot(document.getElementById('mount'));
-  await React.act(async()=>root.render(React.createElement(TaskRunSheet,{view:myView})));
+  await render(myView);
   await entered; // Startup recovery is genuinely pending, not an empty stub.
   assert.equal(discoveries[0].preparation.preparationId,preparation.preparationId);
   await React.act(async()=>{assert.equal(myView.actions.taskParametersOpen(b.taskId,event),true);});
@@ -606,7 +622,7 @@ test('My React double Run for valid task B cannot replace bound task A while dis
     }
     await admitted;await new Promise(resolve=>setImmediate(resolve));
   });
-  assert.equal(myView.data.taskRunSheet,null,'the real My React handler closes the accepted editor');
+  assert.equal(myView.data.taskRunSheet.identity.installationId,b.installationId,'the My sheet remains open to show its admission result');
   assert.equal(discoveryReleased,false);
   assert.equal(admissions.length,1,'double-click coalesces to one real admission attempt');
   assert.equal(admissions[0].code,'E_OWNER',admissions[0].message);
@@ -616,6 +632,7 @@ test('My React double Run for valid task B cannot replace bound task A while dis
   assert.equal(workers,0);
   assert.deepEqual(await f.rows('runs'),originalRuns,'neither A nor B gains a durable Run');
   assert.deepEqual((await f.inspect('original-A')).preparation,preparation,'A identity, params and target remain pinned');
+  await React.act(async()=>myView.actions.taskSheetClose());
   await React.act(async()=>{releaseDiscovery();await new Promise(resolve=>setImmediate(resolve));});
   assert.equal(myView.data.taskRunSheet,null,'late discovery cannot revive the closed sheet');
   await React.act(async()=>{
@@ -638,6 +655,583 @@ test('My React double Run for valid task B cannot replace bound task A while dis
   assert.equal(admittedB.revision.scriptId,b.scriptId);
   assert.equal((await f.rows('runs')).length,originalRuns.length+1);
   await f.finish(admittedB);await f.authority.retireControllerTarget({runId:admittedB.runId},f.sender);
+});
+
+test('Baidu v1.1.5 My Run rejects invalid JSON and settles the corrected request once offline', {timeout:32000}, async t=>{
+  const {React,document,window,render}=await mountTaskSheet(t);
+  const guardFailures=[],dispatches=[],pageCalls=[],cleanups=[],networkAttempts=[];
+  const pkg=JSON.parse(await readFile(new URL('../../task-packs/baidu.search/releases/baidu.search.top3.1.1.5.opendesk-task.json',import.meta.url),'utf8'));
+  const {taskId,version}=pkg.manifest,manifestHash=pkg.manifestHash;
+  const f=await authorityBaseFixture();
+  const input={query:'界面验收 B',limit:3,showExecutionTab:false};
+  const url='https://www.baidu.com/s?wd='+encodeURIComponent(input.query);
+  const page={status:'available',tabId:2,windowId:1,documentId:'doc-top',url};
+  const target={mode:'borrowed',tabId:2,frameId:0,documentId:page.documentId,expectedUrl:url,expectedWindowId:page.windowId};
+  Object.assign(f.tabs.get(2),{url,windowId:page.windowId,active:true});
+  f.frames.get(2)[0].url=url;
+  f.api.tabs.query=async()=>[structuredClone(f.tabs.get(2))];
+  f.api.runtime.sendMessage=async()=>({ok:true}); // Local usage telemetry double.
+  for(const method of ['create','update','remove'])f.api.tabs[method]=async()=>{
+    networkAttempts.push(method);throw Error('Unexpected tab mutation in offline borrowed-target test');
+  };
+  const {parseHTML}=await import('linkedom');
+  const results=[1,2,3,4].map(i=>
+    '<div class="result c-container" id="'+i+'" tpl="se_com_default"><h3><a href="https://example.test/'+i+'">标题 '+i+'</a></h3><div class="c-abstract">摘要 '+i+'</div></div>');
+  const serp=parseHTML('<html><body><div id="content_left">'+results.join('')+'</div></body></html>');
+  for(const el of serp.document.querySelectorAll('*'))el.getBoundingClientRect=()=>({width:100,height:20});
+  const content=createPackagedPageSession({document:serp.document,window:{location:{href:url},getComputedStyle:()=>({})}});
+  t.after(()=>content.dispose());
+  f.api.tabs.sendMessage=(id,message,options,callback)=>{
+    void (async()=>{
+      assert.equal(id,page.tabId);
+      assert.equal(options.documentId,page.documentId);
+      if(message.action==='ping')return {type:message.type,ready:true};
+      if(message.action==='cancel'){
+        const {runId,target:bound}=message.run;
+        assert.equal(bound.tabId,page.tabId);
+        assert.equal(bound.documentId,page.documentId);
+        assert.ok(pageCalls.some(call=>call.runId===runId));
+        cleanups.push(runId);
+        return {type:message.type,cancelled:true};
+      }
+      assert.equal(message.action,'execute');
+      const e=message.envelope;
+      assert.equal(e.operation.kind,'packaged');
+      assert.ok(['url','locatorObserve','locatorRead'].includes(e.operation.method),e.operation.method);
+      assert.equal(e.target.allowedOrigin,'https://www.baidu.com');
+      pageCalls.push({runId:e.identity.runId,requestId:e.requestId,method:e.operation.method});
+      const value=await content.execute(e.operation.method,controlDecode(e.operation.args),{documentId:page.documentId,url});
+      return {requestId:e.requestId,runId:e.identity.runId,ownerEpoch:e.identity.ownerEpoch,value:controlEncode(value)};
+    })().then(callback,error=>{guardFailures.push(error);callback();});
+  };
+  const client={ready:Promise.resolve(),request:(name,args)=>f.authority[name](args,f.sender)};
+  const controls=['startControllerRun','snapshotControllerRun','controllerOperation','finishControllerRun','retireControllerTarget','stopControllerRun'];
+  client.controller=Object.fromEntries(controls.map(name=>[name,async args=>{
+    const reply=await client.request(name,args);
+    if(name==='startControllerRun')dispatches.push({requestId:args.requestId,runId:reply.runId});
+    return reply;
+  }]));
+  const workers=[];
+  const host=createRunHost({api:f.api,client,document:null,templateModuleFactory:null,controllerFactory:({context})=>{
+    workers.push(context.identity.runId);return createOfflineController({context,networkAttempts});
+  }});
+  t.after(()=>host.dispose());
+  await client.request('importTaskPackage',{package:pkg});
+  const trial=await host.start({source:{kind:'draft',sourceUtf8:pkg.sourceUtf8},params:input,target,deadlineAt:Date.now()+20000});
+  const verificationRun=await host.completion;
+  assert.equal(verificationRun.state,'completed',JSON.stringify({verificationRun,guardFailures:guardFailures.map(e=>e.message)}));
+  assert.equal(decodeValue(verificationRun.result.outcome.valueWire).status,'success');
+  const verified=await client.request('verifyTaskCandidate',{taskId,version,runId:trial.runId});
+  assert.equal(verified.verification.runId,trial.runId);
+  await client.request('makeTaskAvailable',{taskId,version,manifestHash});
+  await client.request('installTask',{taskId,version,manifestHash,expectedInstalledVersion:null,expectedGeneration:null,expectedInstallationId:null});
+  const installed=await client.request('resolveInstalledTask',{taskId});
+  assert.equal(installed.version,version);
+
+  const developerView=createDeveloperView();
+  const attempts=[];
+  const workbench=createTaskWorkbench({client,host,api:f.api,document,developerView,
+    observeManualAttempt:(requestId,phase)=>attempts.push({requestId,phase}),
+    currentPageTarget:{snapshot:page,capture:()=>page,revalidate:async()=>true,subscribe:fn=>{fn(page);return()=>{};}}});
+  t.after(()=>{workbench.dispose();developerView.dispose();});
+  const {myView}=workbench;
+  const tick=()=>new Promise(resolve=>setImmediate(resolve));
+  async function click(node){
+    const event=new window.Event('click',{bubbles:true,cancelable:true});
+    Object.defineProperty(event,'isTrusted',{value:true});node.dispatchEvent(event);
+  }
+  await render(myView);
+  await React.act(async()=>{await workbench.refresh(taskId);await tick();});
+  await React.act(async()=>{assert.equal(myView.actions.taskParametersOpen(taskId,{isTrusted:true}),true);});
+  assert.equal(myView.data.taskRunSheet.identity.installationId,installed.installationId);
+  assert.equal(myView.data.taskHistory.length,0,'draft verification is not installed-task history');
+  await React.act(async()=>myView.actions.taskParamsModeChange('json'));
+  const editor=document.getElementById('task-params-json');
+  const edit=raw=>React.act(async()=>{
+    editor.value=raw;
+    editor.dispatchEvent(new window.Event('input',{bubbles:true}));
+  });
+  const bad='{ "query": "界面验收 B",';
+  await edit(bad);
+  const button=document.getElementById('task-run');assert.ok(button);
+  const baseline=await client.controller.snapshotControllerRun({});
+  const journals=await f.rows('commandJournal');
+  assert.equal(baseline.slotAvailable,true);
+  await React.act(async()=>{await click(button);await tick();});
+  assert.equal(editor.value,bad);
+  assert.equal(editor.getAttribute('aria-invalid'),'true');
+  assert.match(editor.getAttribute('aria-describedby'),/task-params-json-error/);
+  assert.ok(document.getElementById('task-params-json-error').textContent);
+  assert.equal(host.currentRun,null);
+  assert.deepEqual(await client.controller.snapshotControllerRun({}),baseline);
+  assert.deepEqual(await f.rows('commandJournal'),journals);
+  assert.deepEqual(myView.data.taskHistory,[]);
+  assert.equal(dispatches.length,1,'the invalid click did not dispatch after the earlier trial');
+  assert.deepEqual(attempts.map(event=>event.phase),['submitted','rejected-before-dispatch']);
+  assert.equal(attempts[0].requestId,attempts[1].requestId);
+  assert.ok(dispatches.every(event=>event.requestId!==attempts[0].requestId));
+  await edit(JSON.stringify(input));
+  assert.equal(editor.getAttribute('aria-invalid'),null);
+  assert.equal(document.getElementById('task-run'),button);
+  const dispatched=new Promise(resolve=>{
+    const remove=host.subscribe(claim=>{if(claim.runId!==trial.runId&&claim.sourceUtf8){remove();resolve(claim);}});
+  });
+  let claim,completion;
+  await React.act(async()=>{await click(button);claim=await dispatched;completion=await host.completion;await tick();});
+  assert.equal(completion.state,'completed',JSON.stringify({
+    error:completion.result?.outcome?.error,retirement:completion.retirement,
+    guardFailures:guardFailures.map(error=>error.message),networkAttempts,pageCalls,
+  }));
+  assert.equal(completion.retirement.state,'released');
+  assert.equal(completion.result.runId,claim.runId);
+  assert.equal(attempts.length,3);
+  assert.deepEqual(attempts[2],{requestId:dispatches[1].requestId,phase:'submitted'});
+  assert.notEqual(attempts[2].requestId,attempts[0].requestId);
+  assert.deepEqual(workers,[trial.runId,claim.runId]);
+  assert.deepEqual(cleanups,workers);
+  assert.equal(dispatches.length,2);
+  assert.equal(myView.data.taskHistory.length,1);
+  const [receipt]=myView.data.taskHistory;
+  assert.equal(receipt.runId,claim.runId);
+  assert.equal(receipt.installation.installationId,installed.installationId);
+  const stored=await client.controller.snapshotControllerRun({runId:claim.runId});
+  assert.equal(stored.run.requestId,dispatches[1].requestId);
+  const result=decodeValue(completion.result.outcome.valueWire);
+  assert.equal(result.status,'success');assert.equal(result.sourceUrl,url);
+  assert.equal(result.query,input.query);
+  assert.deepEqual(result.results.map(row=>row.title),['标题 1','标题 2','标题 3']);
+  assert.ok(pageCalls.some(call=>call.runId===claim.runId&&call.method==='locatorRead'));
+  assert.deepEqual(networkAttempts,[]);
+  assert.deepEqual(guardFailures,[]);
+});
+
+test('serve acceptance rejects mismatched native window or context before connecting',async t=>{
+  const {parseHTML}=await import('linkedom');
+  for(const scenario of ['window mismatch','wrong document URL','duplicate context','missing document id']){
+    await t.test(scenario,async()=>{
+      const {document}=parseHTML('<html><body></body></html>');
+      const hostInstanceId=crypto.randomUUID();
+      const ownUrl='chrome-extension://extension/sidepanel.html?hostInstanceId='+hostInstanceId;
+      Object.defineProperty(document,'location',{value:{href:ownUrl}});
+      const row={contextType:'SIDE_PANEL',contextId:'native-context',documentId:'native-doc',
+        documentUrl:ownUrl,windowId:-1,frameId:0,incognito:false};
+      if(scenario==='wrong document URL')row.documentUrl+='&toolId=demo-tool';
+      if(scenario==='missing document id')delete row.documentId;
+      let connected=0;
+      const api={windows:{getCurrent:async()=>({id:scenario==='window mismatch'?8:7,incognito:false})},
+        runtime:{getURL:path=>'chrome-extension://extension/'+path,
+          getContexts:async()=>scenario==='duplicate context'?[row,{...row,contextId:'duplicate'}]:[row],
+          connect(){connected++;throw Error('Must reject before connecting');}}};
+      await assert.rejects(openTaskAcceptancePage({api,document,hostInstanceId,expectedWindowId:7}),{code:'E_OWNER'});
+      assert.equal(connected,0);
+    });
+  }
+});
+
+test('serve acceptance rechecks window ownership before publishing or sending later requests',async t=>{
+  const {parseHTML}=await import('linkedom');
+  for(const stage of ['delayed open reply','workbench ready','published scope']){
+    await t.test(stage,async t=>{
+      const {document}=parseHTML('<html><body></body></html>');
+      const hostInstanceId=crypto.randomUUID(),revision='a'.repeat(64);
+      const ownUrl='chrome-extension://extension/sidepanel.html?hostInstanceId='+hostInstanceId;
+      Object.defineProperty(document,'location',{value:{href:ownUrl}});
+      const proof={windowId:7,contextId:'native-context',documentId:'native-doc'};
+      const row={...proof,windowId:-1,contextType:'SIDE_PANEL',documentUrl:ownUrl,frameId:0,incognito:false};
+      // Window 7 remains live while this trusted document moves to window 8.
+      const windows=new Map([[7,{id:7,incognito:false}],[8,{id:8,incognito:false}]]);
+      let currentWindowId=7,disconnected=false,client,replyToOpen,openEntered,workbenchEntered,ready;
+      const openPosted=new Promise(resolve=>{openEntered=resolve;});
+      const workbenchCreated=new Promise(resolve=>{workbenchEntered=resolve;});
+      const workbenchReady=new Promise(resolve=>{ready=resolve;});
+      t.after(()=>ready());
+      const posted=[],onMessage=authorityEvent(),onDisconnect=authorityEvent();
+      const port={onMessage,onDisconnect,disconnect(){disconnected=true;onDisconnect.emit();},
+        postMessage(message){
+          posted.push(message);
+          const reply=data=>queueMicrotask(()=>onMessage.emit({id:message.id,ok:true,data}));
+          if(message.type==='open'){
+            replyToOpen=()=>reply({identity:{hostInstanceId,revision,...proof},
+              page:{status:'available',windowId:7,tabId:11,documentId:'fixture-doc',url:'https://www.baidu.com/s?wd=fixture'},
+              registration:{registrationId:'isolated-panel'}});
+            openEntered();if(stage!=='delayed open reply')replyToOpen();
+          }else if(message.type==='request'){
+            const values={listControllerScripts:[],listPagePrograms:{catalog:[],installed:[]},
+              snapshotControllerRun:{runs:[],results:[],slotAvailable:true}};
+            assert.ok(Object.hasOwn(values,message.payload.method),message.payload.method);
+            reply(values[message.payload.method]);
+          }else assert.fail('Unexpected scoped message: '+message.type);
+        }};
+      t.after(()=>port.disconnect());
+      const api={windows:{getCurrent:async()=>({...windows.get(currentWindowId)}),get:async id=>({...windows.get(id)})},
+        runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path,
+          getContexts:async()=>[{...row}],connect(){return port;}}};
+      let published=false;
+      const opening=openTaskAcceptancePage({api,document,hostInstanceId,registrationId:'live-panel',revision,expectedWindowId:7,
+        createTaskWorkbench(options){
+          client=options.client;workbenchEntered();
+          return {ready:workbenchReady,dispose(){}};
+        }}).then(scope=>{published=true;return scope;});
+      if(stage==='delayed open reply'){
+        const rejected=assert.rejects(opening,{code:'E_OWNER'});
+        await openPosted;currentWindowId=8;ready();replyToOpen();
+        await rejected;
+      }else if(stage==='workbench ready'){
+        const rejected=assert.rejects(opening,{code:'E_OWNER'});
+        await workbenchCreated;currentWindowId=8;ready();
+        await rejected;
+      }else{
+        ready();const scope=await opening;
+        await new Promise(resolve=>setImmediate(resolve));
+        assert.equal(disconnected,false,'scope must remain connected until ownership changes');
+        const count=posted.length;
+        currentWindowId=8;
+        await assert.rejects(client.request('listPagePrograms'),{code:'E_OWNER'});
+        assert.equal(posted.length,count,'ownership drift must reject before postMessage/dispatch');
+        await assert.rejects(scope.inspect(),{code:'E_HOST_CLOSED'});
+        assert.equal(posted.length,count,'closed scope must not send another message');
+      }
+      assert.equal(disconnected,true);
+      assert.equal(published,stage==='published scope','stale scope must never be published');
+      assert.equal(windows.get(7).id,7);assert.equal(row.windowId,-1);
+    });
+  }
+});
+
+test('serve acceptance bounds initial and final native proof reads and ignores late completion',async t=>{
+  const {parseHTML}=await import('linkedom');
+  for(const stage of ['initial read','final read after workbench ready']){
+    await t.test(stage,async t=>{
+      const {document}=parseHTML('<html><body></body></html>');
+      const hostInstanceId=crypto.randomUUID(),revision='a'.repeat(64);
+      const ownUrl='chrome-extension://extension/sidepanel.html?hostInstanceId='+hostInstanceId;
+      Object.defineProperty(document,'location',{value:{href:ownUrl}});
+      const proof={windowId:7,contextId:'native-context',documentId:'native-doc'};
+      const nativeWindow={id:7,incognito:false};
+      const contexts=[{...proof,windowId:-1,contextType:'SIDE_PANEL',documentUrl:ownUrl,frameId:0,incognito:false}];
+      let finishNativeRead,readEntered,workbenchEntered,ready,client;
+      let hangFinalRead=false,connected=0,disconnected=false,published=false,settled=false,disposed=0;
+      const lateNativeRead=new Promise(resolve=>{finishNativeRead=resolve;});
+      const nativeReadPending=new Promise(resolve=>{readEntered=resolve;});
+      const workbenchCreated=new Promise(resolve=>{workbenchEntered=resolve;});
+      const workbenchReady=new Promise(resolve=>{ready=resolve;});
+      const posted=[],onMessage=authorityEvent(),onDisconnect=authorityEvent();
+      const port={onMessage,onDisconnect,disconnect(){disconnected=true;onDisconnect.emit();},
+        postMessage(message){
+          posted.push(message);
+          const reply=data=>queueMicrotask(()=>onMessage.emit({id:message.id,ok:true,data}));
+          if(message.type==='open')reply({identity:{hostInstanceId,revision,...proof},
+            page:{status:'available',windowId:7,tabId:11,documentId:'fixture-doc',url:'https://www.baidu.com/s?wd=fixture'},
+            registration:{registrationId:'isolated-panel'}});
+          else if(message.type==='request'){
+            const values={listControllerScripts:[],listPagePrograms:{catalog:[],installed:[]},
+              snapshotControllerRun:{runs:[],results:[],slotAvailable:true}};
+            assert.ok(Object.hasOwn(values,message.payload.method),message.payload.method);
+            reply(values[message.payload.method]);
+          }else assert.fail('Unexpected scoped message: '+message.type);
+        }};
+      const api={windows:{getCurrent:async()=>{
+        if(stage==='initial read'){readEntered();return lateNativeRead;}
+        return nativeWindow;
+      }},runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path,
+        getContexts:async()=>{
+          if(hangFinalRead){readEntered();return lateNativeRead;}
+          return contexts;
+        },connect(){connected++;return port;}}};
+      t.mock.timers.enable({apis:['setTimeout']});
+      t.after(()=>{ready();port.disconnect();t.mock.timers.reset();});
+      const opening=openTaskAcceptancePage({api,document,hostInstanceId,registrationId:'live-panel',revision,expectedWindowId:7,
+        createTaskWorkbench(options){
+          client=options.client;workbenchEntered();return {ready:workbenchReady,dispose(){disposed++;}};
+        }}).then(scope=>{published=true;settled=true;return scope;},error=>{settled=true;throw error;});
+      const rejected=assert.rejects(opening,{code:'E_OWNER_TIMEOUT'});
+      if(stage!=='initial read'){
+        await workbenchCreated;
+        await new Promise(resolve=>setImmediate(resolve));
+        assert.equal(client.resourceSnapshot().pending,0,'only the final proof read should be outstanding');
+        hangFinalRead=true;ready();
+      }
+      await nativeReadPending;
+      t.mock.timers.tick(14999);
+      await new Promise(resolve=>setImmediate(resolve));
+      assert.equal(settled,false,'native read must remain pending until its 15-second deadline');
+      assert.equal(disconnected,false);
+      t.mock.timers.tick(1);
+      await rejected;
+      assert.equal(published,false);assert.equal(connected,stage==='initial read'?0:1);
+      assert.equal(disconnected,stage!=='initial read');assert.equal(disposed,stage==='initial read'?0:1);
+      const count=posted.length;
+      finishNativeRead(stage==='initial read'?nativeWindow:contexts);
+      await new Promise(resolve=>setImmediate(resolve));
+      assert.equal(published,false,'late valid native metadata must never publish the expired scope');
+      assert.equal(posted.length,count,'late native completion must not post or dispatch');
+      assert.equal(connected,stage==='initial read'?0:1);
+      if(client)await assert.rejects(client.request('listPagePrograms'),{code:'E_HOST_CLOSED'});
+      assert.equal(posted.length,count);
+    });
+  }
+});
+
+test('serve acceptance mounts the real workbench on the scoped port and fences exit while a request is pending',async t=>{
+  const {parseHTML}=await import('linkedom');
+  const {document}=parseHTML('<html><body></body></html>');
+  const hostInstanceId=crypto.randomUUID(),revision='a'.repeat(64),registrationId='live-panel';
+  const page={status:'available',windowId:7,tabId:11,documentId:'fixture-doc',
+    url:'https://www.baidu.com/s?wd=fixture',title:'离线验收网页'};
+  const ownUrl='chrome-extension://extension/sidepanel.html?hostInstanceId='+hostInstanceId;
+  Object.defineProperty(document,'location',{value:{href:ownUrl}});
+  const windowProof={windowId:7,contextId:'native-context',documentId:'native-doc'};
+  const identity={hostInstanceId,revision,...windowProof,installation:ACCEPTANCE_INSTALL};
+  const onMessage=authorityEvent(),onDisconnect=authorityEvent(),views=[];
+  const unexpected=[];
+  let finishInspection,inspectionEntered,scopedApi,disconnected=false;
+  const inspectionPosted=new Promise(resolve=>{inspectionEntered=resolve;});
+  const port={onMessage,onDisconnect,disconnect(){disconnected=true;onDisconnect.emit();},
+    postMessage({id,type,payload}){
+      const reply=data=>queueMicrotask(()=>onMessage.emit({id,ok:true,data}));
+      if(type==='open'){
+        assert.deepEqual(payload,{hostInstanceId,revision,registrationId,windowProof});
+        reply({identity,page,registration:{registrationId:'isolated-panel'}});
+      }else if(type==='request'){
+        const data={listControllerScripts:[],snapshotControllerRun:{runs:[],results:[],slotAvailable:true},
+          listTaskCatalog:{catalog:[],installed:[]},listPagePrograms:{catalog:[],installed:[]},inspectTaskRun:null};
+        if(!Object.hasOwn(data,payload.method))unexpected.push(payload.method);
+        reply(data[payload.method]);
+      }else if(type==='inspect'){finishInspection=reply;inspectionEntered();}
+      else assert.fail('Unexpected scoped message: '+type);
+    }};
+  const api={windows:{getCurrent:async()=>({id:7,incognito:false})},
+    runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path,
+    getContexts:async query=>{
+      assert.deepEqual(query,{contextTypes:['SIDE_PANEL'],documentUrls:[ownUrl]});
+      return [{...windowProof,windowId:-1,contextType:'SIDE_PANEL',documentUrl:ownUrl,frameId:0,incognito:false}];
+    },
+    connect({name}){assert.equal(name,ACCEPTANCE_PROTOCOL);return port;}}};
+  const scope=await openTaskAcceptancePage({api,document,hostInstanceId,registrationId,revision,expectedWindowId:7,
+    createTaskWorkbench(options){scopedApi=options.api;return createTaskWorkbench(options);},
+    onNavigate:()=>views.push('selected')});
+  t.after(()=>scope.disconnect());
+  assert.equal(scope.view,'tasks');
+  assert.deepEqual(unexpected,[]);
+  assert.equal(scope.developerView.fields['script-allow-cookies'].checked,false);
+  assert.equal(scope.developerView.getSnapshot().fields['script-allow-cookies'].checked,false);
+  const ordinaryDeveloperView=createDeveloperView();
+  t.after(()=>ordinaryDeveloperView.dispose());
+  assert.equal(ordinaryDeveloperView.fields['script-allow-cookies'].checked,true);
+  assert.equal(ordinaryDeveloperView.getSnapshot().fields['script-allow-cookies'].checked,true);
+  assert.equal(scope.developerView.fields['script-current-page-title'].textContent,page.title);
+  assert.equal(scope.developerView.fields['script-current-page-url'].textContent,page.url);
+  assert.equal(scope.navigate('develop'),true);
+  assert.equal(scope.view,'develop');
+  assert.equal(scope.navigate('tools'),false);
+  assert.equal(scope.view,'develop');
+  assert.equal(views.length,2);
+  const inspection=scope.inspect();
+  assert.equal(scope.busy,true);
+  await assert.rejects(scope.selectQuery('测试'),/等待当前离线操作结算/);
+  await inspectionPosted;
+  const record={identity,runs:[],results:[],activeRunId:null,events:[{type:'existing-observation'}]};
+  finishInspection(record);
+  assert.deepEqual(await inspection,{...record,draftStorage:{kind:'session-map',entries:0,committedWrites:0}});
+  assert.equal(scope.busy,false);
+  await scopedApi.storage.session.set({'acceptance-draft':{query:'界面验收 A'}});
+  await scopedApi.storage.session.set({'acceptance-draft':{query:'界面验收 B'}});
+  assert.deepEqual(await scopedApi.storage.session.get('acceptance-draft'),{'acceptance-draft':{query:'界面验收 B'}});
+  const changedDraft=scope.inspect();
+  await new Promise(resolve=>setImmediate(resolve));
+  finishInspection(record);
+  assert.deepEqual(await changedDraft,{...record,draftStorage:{kind:'session-map',entries:1,committedWrites:2}});
+  assert.equal(api.storage,undefined,'draft writes must stay inside the scoped session map');
+  scope.disconnect();
+  assert.equal(disconnected,true);
+  await assert.rejects(scope.inspect(),{code:'E_HOST_CLOSED'});
+});
+
+test('serve acceptance target resolves builtin resources and rejects escaped paths or foreign roots',t=>{
+  const root='chrome-extension://extension/',delegated=[],events=[];
+  const manifest={manifest_version:3,name:'Offline target fixture',version:'2.0.0'};
+  let returnedRoot=root;
+  const runtime={id:'extension',getURL:path=>{delegated.push(path);return returnedRoot+path;},
+    getManifest:()=>manifest};
+  const target=createTaskAcceptanceTarget({runtime,windowId:7,checkPermission:async()=>true,
+    onEvent:event=>events.push(event)});
+  t.after(()=>target.close());
+  for(const path of ['',BUILTIN_RUNTIME_CATALOG.resourceManifest,...BUILTIN_RESOURCE_PATHS]){
+    assert.equal(target.api.runtime.getURL(path),root+path,path);
+  }
+  const readback=target.api.runtime.getManifest();
+  assert.deepEqual(readback,manifest);
+  readback.version='mutated';
+  assert.equal(target.api.runtime.getManifest().version,manifest.version,'manifest reads must be isolated copies');
+  const validCalls=delegated.length;
+  for(const path of [
+    '.','..','./libs/runtime/bootstrap.js','libs/./runtime/bootstrap.js','libs/../manifest.json',
+    'libs/vendor/../../manifest.json','/libs/runtime/bootstrap.js','//foreign/libs/runtime/bootstrap.js',
+    'https://foreign.test/index.js','chrome-extension://foreign/libs/runtime/bootstrap.js',
+    'libs\\vendor\\index.js','%2e%2e/manifest.json','libs/%2E%2E/manifest.json',
+    'libs/%252e%252e/manifest.json','libs/..%2fmanifest.json','libs%2fvendor/index.js',
+    'libs/%2fmanifest.json','libs/%5cmanifest.json'
+  ]){
+    assert.throws(()=>target.api.runtime.getURL(path),{code:'E_CAPABILITY'},path);
+  }
+  assert.equal(delegated.length,validCalls,'invalid paths must be rejected before delegating to runtime');
+  for(const foreignRoot of ['chrome-extension://foreign/','https://extension/','chrome-extension://extension/other/']){
+    returnedRoot=foreignRoot;
+    for(const path of ['',BUILTIN_RUNTIME_CATALOG.resourceManifest,BUILTIN_RUNTIME_CATALOG.libraries.myUtils.output]){
+      assert.throws(()=>target.api.runtime.getURL(path),{code:'E_CAPABILITY'},foreignRoot+path);
+    }
+  }
+  assert.ok(events.filter(event=>event.type==='blocked').every(event=>event.call==='runtime.getURL'));
+});
+
+test('serve acceptance storage diagnostics count committed mutations and exclude rollback or reads',async t=>{
+  const storage=createTaskAcceptanceStorage();t.after(()=>storage.close());
+  const initial=storage.diagnostics();
+  assert.ok(initial.instanceId);
+  assert.deepEqual(initial,{instanceId:initial.instanceId,kind:'memory-map',entries:{},committedTransactions:0,committedWrites:0});
+  await storage.transaction(['drafts'],'readwrite',async tx=>{
+    await tx.put('drafts',{value:'original'},'keep');await tx.put('drafts',{value:'remove'},'drop');
+  });
+  const committed=storage.diagnostics();
+  assert.deepEqual(committed,{...initial,entries:{drafts:2},committedTransactions:1,committedWrites:2});
+  await assert.rejects(storage.transaction(['drafts'],'readwrite',async tx=>{
+    await tx.put('drafts',{value:'overwritten'},'keep');await tx.put('drafts',{value:'new'},'uncommitted');
+    await tx.delete('drafts','drop');throw Error('Rollback fixture');
+  }),/Rollback fixture/);
+  assert.deepEqual(storage.diagnostics(),committed);
+  assert.deepEqual(await storage.transaction(['drafts'],'readonly',tx=>tx.all('drafts')),[{value:'original'},{value:'remove'}]);
+  await assert.rejects(storage.transaction(['drafts'],'readonly',tx=>tx.put('drafts',{},'denied')),{code:'E_SCHEMA'});
+  assert.deepEqual(storage.diagnostics(),committed,'readonly and rejected writes must not change commit counters');
+  await storage.transaction(['drafts'],'readwrite',async tx=>{
+    await tx.delete('drafts','drop');await tx.put('drafts',{value:'updated'},'keep');
+  });
+  assert.deepEqual(storage.diagnostics(),{...initial,entries:{drafts:1},committedTransactions:2,committedWrites:4});
+});
+
+test('serve acceptance revalidates the exact installation and runs on the isolated target', {timeout:32000},async t=>{
+  const {taskId,version,installationId,generation,manifestHash,sourceHash}=ACCEPTANCE_INSTALL;
+  const pkg=JSON.parse(await readFile(new URL('../../task-packs/baidu.search/releases/baidu.search.top3.1.1.5.opendesk-task.json',import.meta.url),'utf8'));
+  const runtime={id:'extension',getURL:path=>'chrome-extension://extension/'+path};
+  const hostInstanceId=crypto.randomUUID(),namespace='tool:extension',scriptId=taskScriptId(taskId,version);
+  const sender={id:runtime.id,url:runtime.getURL('sidepanel.html?hostInstanceId='+hostInstanceId),documentId:'native-doc',frameId:0};
+  const live=createTaskAcceptanceStorage(),stores=['frameworkKV','scriptHeads','scriptRevisions'];
+  const {abi,sha256:bundleSha256,catalogSha256}=fakeBuiltinSource;
+  const builtinIdentity={abi,bundleSha256,catalogSha256};
+  const base={taskId,version},candidate={tag:'task-candidate-v1',namespace,...base,package:pkg,stage:'available',builtinIdentity,
+    verification:{manifestHash,sourceHash,builtinIdentity,builtinAbi:abi,origin:pkg.manifest.siteOrigins[0]}};
+  const row={tag:'task-installed-v1',namespace,...base,scriptId,manifestHash,builtinIdentity,enabled:true,
+    authorization:{tag:'task-install-authorization-v1',installationId,generation,
+      scope:{capabilities:pkg.manifest.permissions,siteOrigins:pkg.manifest.siteOrigins,networkOrigins:[]}}};
+  await live.transaction(stores,'readwrite',async tx=>{
+    await tx.put('frameworkKV',row,installedKey(namespace,taskId));
+    await tx.put('frameworkKV',candidate,taskKey(namespace,taskId,version));
+    await tx.put('scriptHeads',{tag:'script-head',namespace,scriptId,revision:1,contentHash:sourceHash},scriptStorageKey(namespace,scriptId));
+    await tx.put('scriptRevisions',{tag:'script-revision',namespace,scriptId,revision:1,contentHash:sourceHash,
+      sourceUtf8:pkg.sourceUtf8,builtinIdentity},scriptStorageKey(namespace,scriptId,1));
+  });
+  const liveBaseline=live.diagnostics();
+  const liveRecords=()=>live.transaction(stores,'readonly',async tx=>
+    Object.fromEntries(await Promise.all(stores.map(async name=>[name,await tx.all(name)]))));
+  const originalRecords=await liveRecords();
+  const reads=[];
+  const source=await readTaskAcceptanceSource({transaction(names,mode,work){
+    assert.deepEqual(names,stores);assert.equal(mode,'readonly');reads.push(mode);return live.transaction(names,mode,work);
+  }},namespace,ACCEPTANCE_INSTALL);
+  const events=[],networkAttempts=[];
+  const target=createTaskAcceptanceTarget({runtime,windowId:7,checkPermission:async request=>{
+    assert.deepEqual(request,{origins:['https://www.baidu.com/*']});return true;
+  },onEvent:event=>events.push(event)});
+  const scope=await createTaskAcceptanceSession({source,sender,hostInstanceId,target,
+    audit:event=>events.push(event),loadBuiltin:async()=>fakeBuiltinSource});
+  const client={ready:Promise.resolve(scope.registration),registration:scope.registration,request:scope.request};
+  client.controller=Object.fromEntries(['startControllerRun','snapshotControllerRun','controllerOperation','finishControllerRun',
+    'retireControllerTarget','stopControllerRun'].map(name=>[name,args=>scope.request(name,args)]));
+  const host=createRunHost({api:target.api,client,document:null,templateModuleFactory:null,
+    controllerFactory:({context})=>createOfflineController({context,networkAttempts})});
+  t.after(async()=>{await host.dispose();scope.close();live.close();});
+  const before=await scope.inspect();
+  assert.deepEqual(await scope.request('listPagePrograms'),{catalog:[],installed:[]});
+  assert.deepEqual(before.installation,{installationId,generation,version,manifestHash});
+  assert.deepEqual(before.results,[]);
+  assert.equal(before.storage.kind,'memory-map');
+  assert.notEqual(before.storage.instanceId,liveBaseline.instanceId);
+  assert.deepEqual(before.storage.baseline,{instanceId:before.storage.instanceId,kind:'memory-map',
+    entries:{frameworkKV:2,scriptHeads:1,scriptRevisions:1},committedTransactions:1,committedWrites:4});
+  assert.ok(before.storage.committedTransactions>before.storage.baseline.committedTransactions);
+  assert.ok(before.storage.committedWrites>before.storage.baseline.committedWrites);
+  assert.deepEqual((await scope.inspect()).storage,before.storage,'inspection must not count as a committed write');
+  assert.deepEqual(before.candidate,{taskId,version,stage:'available',
+    builtinIdentity:{...builtinIdentity,bundleSha256:'0'.repeat(64)},verification:candidate.verification});
+  await assert.rejects(scope.request('resolveInstalledTask',{taskId}),{code:'E_BUILTIN_VERSION_UNAVAILABLE'});
+  const input={query:'界面验收 B',limit:3,showExecutionTab:false};
+  const page=target.selectQuery(input.query);
+  assert.equal(page.title,'百度搜索 · 离线验收');
+  const borrowed={mode:'borrowed',tabId:page.tabId,frameId:0,documentId:page.documentId,expectedUrl:page.url,expectedWindowId:page.windowId};
+  const trial=await host.start({source:{kind:'draft',sourceUtf8:pkg.sourceUtf8},params:input,target:borrowed});
+  const proof=await host.completion;
+  assert.equal(proof.state,'completed',JSON.stringify(proof));
+  assert.equal(proof.retirement.state,'released');
+  const verified=await scope.request('verifyTaskCandidate',{...base,runId:trial.runId});
+  assert.equal(verified.verification.runId,trial.runId);
+  const verifiedState=await scope.inspect();
+  assert.ok(verifiedState.journal.some(e=>e.runId===trial.runId&&e.resultReceipt&&e.state==='durable'));
+  assert.equal(verifiedState.candidate.stage,'verified');
+  assert.deepEqual(verifiedState.candidate.builtinIdentity,builtinIdentity);
+  const verification={runId:trial.runId,resultId:proof.result.resultId,sourceHash,manifestHash};
+  for(const [key,value] of Object.entries(verification))assert.equal(verifiedState.candidate.verification[key],value,key);
+  assert.deepEqual(verifiedState.candidate.verification.builtinIdentity,builtinIdentity);
+  assert.ok(verifiedState.candidate.verification.nativeReceiptCount>0);
+  const available=await scope.request('makeTaskAvailable',{...base,manifestHash});
+  const update=await scope.request('installTask',{...base,manifestHash,expectedInstallationId:installationId,expectedGeneration:generation,expectedInstalledVersion:version});
+  const installed=await scope.request('resolveInstalledTask',{taskId});
+  assert.equal(installed.generation,generation+1);assert.equal(installed.installationId,installationId);
+  const operationEvents=events.filter(event=>event.type==='authority-task-operation');
+  assert.deepEqual(operationEvents.map(event=>event.method),['verifyTaskCandidate','makeTaskAvailable','installTask']);
+  assert.equal(new Set(operationEvents.map(event=>event.operationId)).size,3);
+  for(const event of operationEvents){
+    assert.match(event.operationId,/^[a-f0-9-]{36}$/);
+    assert.equal(event.session,scope.session);assert.equal(event.ok,true);
+    assert.equal(event.taskId,taskId);assert.equal(event.version,version);
+  }
+  for(const [event,response] of [[operationEvents[0],verified],[operationEvents[1],available]]){
+    assert.equal(event.stage,response.stage);assert.deepEqual(event.verification,response.verification);
+    for(const [key,value] of Object.entries(verification))assert.equal(event.verification[key],value,key);
+  }
+  assert.deepEqual(operationEvents[2].installation,update);
+  assert.equal(operationEvents[2].installation.manifestHash,manifestHash);
+  const requestId=crypto.randomUUID();
+  const claim=await host.start({source:{kind:'saved',scriptId,revision:1,contentHash:sourceHash},params:input,target:borrowed,
+    expectedTaskInstallationId:installationId,expectedTaskGeneration:installed.generation,requestId});
+  const pending=await scope.inspect();
+  assert.equal(pending.activeRunId,claim.runId);
+  assert.ok(!pending.results.some(e=>e.runId===claim.runId));
+  const completed=await host.completion,after=await scope.inspect();
+  assert.equal(completed.state,'completed',JSON.stringify(completed));
+  assert.equal(completed.retirement.state,'released');
+  assert.equal(after.activeRunId,null);
+  assert.equal(after.candidate.stage,'available');
+  assert.deepEqual(after.candidate.builtinIdentity,builtinIdentity);
+  assert.deepEqual(after.candidate.verification,verifiedState.candidate.verification);
+  assert.deepEqual(after.installation,{installationId,generation:generation+1,version,manifestHash});
+  assert.deepEqual(after.storage.baseline,before.storage.baseline);
+  assert.equal(after.storage.instanceId,before.storage.instanceId);
+  assert.ok(pending.storage.committedWrites>before.storage.committedWrites);
+  assert.ok(after.storage.committedWrites>pending.storage.committedWrites);
+  assert.ok(after.storage.committedTransactions>pending.storage.committedTransactions);
+  assert.ok(after.storage.entries.runs>=2);assert.ok(after.storage.entries.results>=2);
+  assert.deepEqual(events.filter(e=>e.type==='runhost-dispatched'&&e.requestId===requestId).map(e=>e.runId),[claim.runId]);
+  assert.deepEqual(events.filter(e=>e.runId===claim.runId&&['finishControllerRun','retireControllerTarget'].includes(e.type))
+    .map(e=>e.type),['finishControllerRun','retireControllerTarget']);
+  assert.ok(after.journal.some(e=>e.runId===claim.runId&&e.resultReceipt&&e.state==='durable'));
+  assert.ok(after.results.some(e=>e.runId===claim.runId&&e.ok));
+  const result=decodeValue(completed.result.outcome.valueWire);
+  assert.deepEqual(result.results.map(entry=>entry.title),['入门指南','常见问题','参考资料']);
+  assert.equal(result.sourceUrl,page.url);
+  assert.deepEqual(networkAttempts,[]);
+  assert.deepEqual(reads,['readonly']);
+  assert.deepEqual(await live.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',installedKey(namespace,taskId))),row);
+  assert.deepEqual(await liveRecords(),originalRecords,'all live package and script records must remain unchanged');
+  assert.deepEqual(live.diagnostics(),liveBaseline,'isolated work must not increment live storage counters');
 });
 
 test('atomic preparation admission permits only one durable Run across retries and new request IDs',async()=>{

@@ -2,7 +2,7 @@ import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
 
 // Presentation only; the existing controller owns catalog identity and actions.
-export function TaskCatalogPage({view,hidden=false,standalone=false}){
+export function TaskCatalogPage({view,hidden=false,standalone=false,offline=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const catalog=view.data.catalogRows||{rows:[],selectedKey:''};
   const detail=view.data.catalogDetail;
@@ -107,6 +107,7 @@ export function TaskCatalogPage({view,hidden=false,standalone=false}){
         </aside>
       </div>
 
+      {offline?<MyControl view={view} as="p" id="task-catalog-status" className="hint" role="status" aria-live="polite"/>:
       <MyControl view={view} as="div" id="task-catalog-dropzone" className="od-stack task-file-dropzone od-surface"
         role="group" aria-label="拖放或选择单个任务文件" tabIndex={0} aria-describedby="task-catalog-status"
         onDragEnter={event=>view.actions.taskFileDragEnter?.('catalog',event.nativeEvent)}
@@ -119,7 +120,7 @@ export function TaskCatalogPage({view,hidden=false,standalone=false}){
           accept=".json,.js,application/json,text/javascript"
           onChange={event=>view.actions.taskPackageFileChange?.(event.nativeEvent)}/>
         <MyControl view={view} as="p" id="task-catalog-status" className="hint" role="status" aria-live="polite"/>
-      </MyControl>
+      </MyControl>}
     </div>
   </MyControl>;
 }

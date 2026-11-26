@@ -16,8 +16,8 @@ const root='/repo';
 test('AI Scroll R4.2 reviewed settings sources admit only exact bytes to the original tool-shell',async t=>{
   const inputs=[
     ['projects/ai-scroll-navigation/trusted/ai-configuration.js','c97137a3a871fb6c19fd3594fc627fafd67d03f8'],
-    ['projects/ai-scroll-navigation/trusted/react-controls.tsx','e9f27c08fd9bfdc053901c1514b832f7444c53cc'],
-    ['projects/ai-scroll-navigation/trusted/host-localization.js','fbc3ee37df898dbb109a0b21ed83f8542157b6ac']
+    ['projects/ai-scroll-navigation/trusted/react-controls.tsx','0414340695efd785e9d1626bf33a4bc64793a113'],
+    ['projects/ai-scroll-navigation/trusted/host-localization.js','ccbb1d3f058d852b81a2a55fc64fdaa315062e05']
   ];
   const project=await realpath(await mkdtemp(join(tmpdir(),'ai-scroll-r42-settings-pin-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
@@ -636,8 +636,8 @@ test('original installers share only the byte-pinned Prompt Shortcuts asset iden
 test('reviewed Scroll settings keep exact blobs and shell-only admission',async ctx=>{
   const pins={
     'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
-    'projects/ai-scroll-navigation/trusted/host-localization.js':'fbc3ee37df898dbb109a0b21ed83f8542157b6ac',
-    'projects/ai-scroll-navigation/trusted/react-controls.tsx':'e9f27c08fd9bfdc053901c1514b832f7444c53cc'
+    'projects/ai-scroll-navigation/trusted/host-localization.js':'ccbb1d3f058d852b81a2a55fc64fdaa315062e05',
+    'projects/ai-scroll-navigation/trusted/react-controls.tsx':'0414340695efd785e9d1626bf33a4bc64793a113'
   };
   const root=await realpath(await mkdtemp(join(tmpdir(),'scroll-settings-source-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));

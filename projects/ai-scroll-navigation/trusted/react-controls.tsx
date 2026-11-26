@@ -21,16 +21,18 @@ const SCROLL_BUILTINS=[
   {name:'Gemini',origin:'https://gemini.google.com'}
 ];
 const SCROLL_FLAGS=[
-  ['regionTop','regionTop'],['regionBottom','regionBottom'],
+  ['regionTop','regionTop'],['regionBottom','regionBottom'],['pinReplyNavigation','pinReplyNavigation'],
   ['conversationTop','conversationTop'],['conversationBottom','conversationBottom'],
   ['turnPaging','turnPaging'],['showTurnCount','showTurnCount'],
   ['floatingTop','floatingTop']
 ];
 const SCROLL_FLAG_GROUPS=[
-  ['longReply',SCROLL_FLAGS.slice(0,2)],
-  ['conversation',SCROLL_FLAGS.slice(2,6)],
-  ['floatingNavigation',SCROLL_FLAGS.slice(6)]
+  ['longReply',SCROLL_FLAGS.slice(0,3)],
+  ['conversation',SCROLL_FLAGS.slice(3,7)],
+  ['floatingNavigation',SCROLL_FLAGS.slice(7)]
 ];
+const scrollFlagEnabled=(navigation,key)=>['showTurnCount','pinReplyNavigation'].includes(key)
+  ? navigation?.[key]===true : navigation?.[key]!==false;
 function scrollOrigin(value){
   try{
     const url=new URL(value.trim());
@@ -59,7 +61,8 @@ const readErrorDetail=error=>error?.scrollMessage||error?.code||errorDetail(erro
 export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics,settingsFooter}){
   const locale=model.locale||'zh-CN';
   const canShowFlag=key=>(key!=='turnPaging'||model.turnPagingSupported)&&
-    (key!=='showTurnCount'||model.showTurnCountSupported);
+    (key!=='showTurnCount'||model.showTurnCountSupported)&&
+    (key!=='pinReplyNavigation'||model.pinReplyNavigationSupported);
   const availableFlags=SCROLL_FLAGS.filter(([name])=>canShowFlag(name));
   const availableGroups=SCROLL_FLAG_GROUPS.map(([name,flags])=>[name,
     flags.filter(([key])=>canShowFlag(key))]);
@@ -313,8 +316,7 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
   const toggleNavigation=async(key,value,event)=>{
     if(inFlight.current||loading||!snapshot||needsReconcile)return;
     const navigation=Object.fromEntries(availableFlags.map(([name])=>
-      [name,name===key?value:name==='showTurnCount'?
-        snapshot.value.navigation?.[name]===true:snapshot.value.navigation?.[name]!==false]));
+      [name,name===key?value:scrollFlagEnabled(snapshot.value.navigation,name)]));
     inFlight.current=true;setBusy(true);setError('');setNotice('');
     try{
       const result=await ref.current.onSaveNavigation(navigation,snapshot.etag,event.nativeEvent||event);
@@ -339,7 +341,10 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
     inFlight.current=true;setBusy(true);setError('');setNotice('');
     try{
       const result=action.type==='navigation'
-        ?await ref.current.onSaveNavigation(action.navigation,captured.snapshot.etag,captured.event,captured.authorization)
+        ?await ref.current.onSaveNavigation(Object.fromEntries(availableFlags
+          .filter(([name])=>name!=='pinReplyNavigation')
+          .map(([name])=>[name,scrollFlagEnabled(action.navigation,name)])),
+          captured.snapshot.etag,captured.event,captured.authorization)
         :await ref.current.onSave(action.rule,captured.snapshot.etag,action.editKey,captured.event,captured.authorization,captured.pageObservation);
       if(result?.review){
         if(action.type==='site'){setDraft(action.rule);setEditingKey(action.editKey);setView('editor');}
@@ -475,14 +480,14 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
             onBlurCapture={()=>{navigationGesture.current=null;}}>
               <label htmlFor={'scroll-navigation-'+key} style={{flex:1,minWidth:0}}>{t(label)}</label><Switch
               id={'scroll-navigation-'+key}
-              isSelected={key==='showTurnCount'?snapshot.value.navigation?.[key]===true:
-                snapshot.value.navigation?.[key]!==false} isDisabled={writesDisabled}
+              isSelected={scrollFlagEnabled(snapshot.value.navigation,key)} isDisabled={writesDisabled}
               aria-label={t(label)} onChange={value=>{
                 const event=navigationGesture.current;navigationGesture.current=null;
                 if(event?.isTrusted===true)void toggleNavigation(key,value,event);
               }}/></div>)}
         </div>)}</div>}
       <p className="ec-scroll-help">{t('navigationHelp')}</p>
+      {model.pinReplyNavigationSupported&&<p className="ec-scroll-help">{t('pinReplyNavigationHelp')}</p>}
       <details className="od-disclosure">
         <summary><span>{t('navigationUsage')}</span></summary>
         <div className="ec-scroll-navigation-help">

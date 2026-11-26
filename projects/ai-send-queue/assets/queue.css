@@ -75,6 +75,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #6984ff;outline-
 .sq-send[data-native-size] .sq-crown{left:50%;translate:-50% 0;max-width:100%;top:max(var(--sq-crown-y),var(--sq-crown-min-top,-100px));max-height:var(--sq-crown-max-height,none)}
 /* R5.4 CROWN-USER-FIT-END */
 .sq-toast{position:absolute;right:0;bottom:44px;width:max-content;max-width:230px;padding:7px 10px;background:#273448;color:#fff;border-radius:8px;box-shadow:0 6px 20px #0003;font-size:12px;line-height:1.45;z-index:100;white-space:normal}
+.sq-error-row{display:flex;align-items:center;gap:6px}
+.sq-error-text{user-select:text}
+.sq-toast .sq-error-copy{width:26px;height:26px;flex:none;color:inherit;background:transparent}
+.sq-toast .sq-error-copy:hover,.sq-toast .sq-error-copy:focus-visible{background:#fff3}
+.sq-error-receipt:not(:empty){margin-top:3px;color:#e3ebff}
 [hidden]{display:none!important}
 @media(pointer:coarse){.sq-row{height:46px;min-height:46px}.sq-action{height:44px;width:40px}}
 @media(max-height:560px){.sq-panel.sq-expanded .sq-rows{max-height:38vh}}

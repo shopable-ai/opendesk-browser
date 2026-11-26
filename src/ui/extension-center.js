@@ -21,7 +21,7 @@ import {loadMarketChannel} from '../marketplace/external.js';
 import {OFFICIAL_STORE_WEBSITE,navigateOfficialStore} from '../marketplace/store-website.js';
 import {readMarketInstallStatus} from '../marketplace/status.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
-import {SCROLL_CONFIG_PROGRAM_ID,scrollProgramUrlMatches} from '../scripting/user-scripts/scroll-config-contract.js';
+import {NAVIGATION_KEYS,SCROLL_CONFIG_PROGRAM_ID,scrollProgramUrlMatches} from '../scripting/user-scripts/scroll-config-contract.js';
 import {loadSendQueuePageCandidate,queuePageIdentity,sameQueuePageIdentity} from './send-queue-product.js';
 import {SEND_QUEUE_PIN} from '../platform/host/send-queue-admission.js';
 import {createExtensionDetailMemory,SIDEBAR_LAST_EXTENSION_DETAIL_KEY,
@@ -1346,6 +1346,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           const supportsTurnCount=supportsTurnPaging&&
             (versionParts[0]>0||versionParts[1]>4||
               versionParts[1]===4&&versionParts[2]>=16);
+          const supportsReplyPin=supportsTurnCount&&
+            (versionParts[0]>1||(versionParts[0]===1&&(versionParts[1]>0||versionParts[2]>=1)));
           const request={programId:pinned.programId,manifestHash:pinned.manifestHash,
             installationId:pinned.installationId,expectedGeneration:pinned.expectedGeneration};
           const ensure=()=>{
@@ -1399,7 +1401,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           };
           return {
             locale:language(),turnPagingSupported:supportsTurnPaging,
-            showTurnCountSupported:supportsTurnCount,
+            showTurnCountSupported:supportsTurnCount,pinReplyNavigationSupported:supportsReplyPin,
             identityKey:pinned.installationId+':'+pinned.manifestHash+':'+pinned.expectedGeneration,
             createConversation:()=>{
               ensure();
@@ -1462,13 +1464,16 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
               if(event?.isTrusted!==true)throw scrollError('navigationGesture','E_GESTURE');
               ensure();
               const flagCount=Object.keys(navigation||{}).length;
-              if(flagCount!==5&&!(supportsTurnPaging&&flagCount===6)&&
-                !(supportsTurnCount&&flagCount===7))
+              const validFlags=(flags,count)=>count>=5&&count<=NAVIGATION_KEYS.length&&
+                NAVIGATION_KEYS.slice(0,count).every(key=>Object.hasOwn(flags,key)&&typeof flags[key]==='boolean');
+              const max=supportsReplyPin?8:supportsTurnCount?7:supportsTurnPaging?6:5;
+              if(flagCount>max||!validFlags(navigation,flagCount))
                 throw scrollError('navigationGesture','E_CONFIG_SCHEMA');
-              return mutate('saveScrollNavigationSettings',{...request,etag,navigation},value=>
-                Object.keys(value.navigation||{}).length===flagCount&&
-                Object.entries(navigation).every(([key,flag])=>
-                  typeof flag==='boolean'&&value.navigation?.[key]===flag),authorization);
+              return mutate('saveScrollNavigationSettings',{...request,etag,navigation},value=>{
+                const saved=value.navigation||{},savedCount=Object.keys(saved).length;
+                return savedCount>=flagCount&&validFlags(saved,savedCount)&&
+                  Object.entries(navigation).every(([key,flag])=>saved[key]===flag);
+              },authorization);
             },
             onDraftChange(draft,editKey){
               if(draft)scrollDraft={...draft,editKey:editKey??null};

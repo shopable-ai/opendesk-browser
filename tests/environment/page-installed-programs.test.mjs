@@ -2333,6 +2333,26 @@ async function savedScrollHostFixture(){
     value:{version:1,sites:[site]}},f.sender);
   return {...result,saved,request:scrollHostRequest(installed)};
 }
+test('US-06 fixed reply preference survives old controls and can be explicitly turned off',async()=>{
+  const {f,request,saved,site}=await savedScrollHostFixture();
+  const enabled={...navigationFlags,turnPaging:false,showTurnCount:true,pinReplyNavigation:true};
+  const first=await f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:enabled},{});
+  assert.deepEqual(first.value,{version:1,sites:[site],navigation:enabled});
+  let edited=first;
+  const expected={...enabled};
+  for(const [count,key] of [[5,'regionTop'],[6,'floatingTop'],[7,'conversationTop']]){
+    expected[key]=false;
+    const older=Object.fromEntries(Object.entries(expected).slice(0,count));
+    edited=await f.service.saveScrollNavigationSettings({...request,etag:edited.etag,navigation:older},{});
+    assert.deepEqual(edited.value.navigation,expected,
+      'older settings preserve every unsupported option');
+  }
+  f.restart();
+  assert.deepEqual(await f.service.readScrollSiteConfig(request,{}),edited);
+  const disabled=await f.service.saveScrollNavigationSettings({...request,etag:edited.etag,
+    navigation:{...edited.value.navigation,pinReplyNavigation:false}},{});
+  assert.equal(disabled.value.navigation.pinReplyNavigation,false);
+});
 test('US-06 frozen Page writer omitting navigation preserves current flags while updating sites',async()=>{
   const {f,request,message,site,saved}=await savedScrollHostFixture();
   const configured=await f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{});

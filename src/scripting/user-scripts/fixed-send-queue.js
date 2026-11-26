@@ -79,7 +79,13 @@ const reviewedThreeSiteAndHomeSources=new Set([
   // 0.1.60 / revision 59: freeze the current three-site composer and queue source.
   '4e86a74e19ef6c93ad46ed58f41f532badcf61e22acfa383df89663f16784922',
   // 1.0.0 / revision 60: preserve the reviewed site rules for the new package.
-  '98651ca2d582881a90150ba369de28acdf9edb60d0b1bfba7ac08a43805e9d71'
+  '98651ca2d582881a90150ba369de28acdf9edb60d0b1bfba7ac08a43805e9d71',
+  // 1.0.1 / revision 61: route an empty composer crown click to normal queue dispatch.
+  '7738178bed7f4c39c87b5b23ab4a73570b52c695454cb08b09da8b33f8f131c7',
+  // 1.0.2 / revision 62: native first send and exact ChatGPT conversation receipt.
+  '1c3906a7b6d4259cc9cc63c16696cdfab77c15feda3cf09eecd48b5f1240730f',
+  // 1.0.3 / revision 63: scope ChatGPT history and copy the current first-send error.
+  '233219ec74f3bed29e4230bd3b80098866036fa3224b37e899348b6d5bec809d'
 ]);
 
 export function fixedSendQueueOrigin(href){

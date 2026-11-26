@@ -1,8 +1,9 @@
+import {installVisualSiteConfiguration} from '../src/legacy-site-editor.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {observeScrollSiteStructure,resolveConfiguredConversation,
-  installScrollSiteRuntime,installVisualSiteConfiguration} from '../src/site-configuration.js';
+  installScrollSiteRuntime} from '../src/site-configuration.js';
 
 const transcript='<main><article>Private first reply</article><article>Private last reply</article></main>';
 const noStructure={state:'unavailable',reason:'NO_STRUCTURE'};

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChatGPT reply pin · synthetic DOM / actual Page source</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/24px system-ui;background:Canvas;color:CanvasText}
+  #native{position:fixed;inset:0 0 auto;height:52px;z-index:50;background:Canvas;border-bottom:1px solid}
+  #native{display:flex;align-items:center;gap:12px;padding:6px 16px}
+  #port{height:100dvh;overflow:auto;scrollbar-width:none}
+  #column{max-width:700px;width:calc(100% - 32px);margin:auto;padding:190px 0 230px;overflow:clip}
+  article{margin-bottom:210px}
+  [data-client-defined-widget],[data-chatgpt-search-unit-key],#role-only{min-height:1300px;background:#7799bb18}
+  #mixed{padding:250px 0}
+  article header{padding:6px;background:#7799bb22}
+  form{position:sticky;bottom:0;margin:auto;width:min(95%,700px);height:82px;background:Canvas;z-index:20;padding:8px}
+  textarea{width:100%;height:58px}
+</style>
+<header id="native"><button type="button" id="native-button">原生导航</button>
+  <label><input type="checkbox" id="pin">固定（夹具开关）</label></header>
+<main><div id="port" role="region"><div id="column">
+  <article data-testid="conversation-turn-1" data-talvt-turn-state="complete">
+    <div id="first" data-content-search-unit-key="one:assistant"><div data-conversation-role="assistant">
+      <div data-client-defined-widget="writing_block" id="writing">无页头的写作块</div>
+    </div></div>
+  </article>
+  <article data-testid="conversation-turn-2" data-talvt-turn-state="complete">
+    <div data-content-search-unit-key="two:assistant"><div data-conversation-role="assistant">
+      <div data-client-defined-widget="writing_block" id="with-header"><header><button type="button">原生写作按钮</button></header>有页头的写作块</div>
+    </div></div>
+  </article>
+  <article data-testid="conversation-turn-3" data-talvt-turn-state="complete">
+    <div id="reply" data-content-search-unit-key="three:assistant" data-chatgpt-search-unit-key="three">
+      <div data-conversation-role="assistant"><div data-d-component>普通长回复</div></div>
+    </div>
+    <div class="turn-action-controls"><button aria-label="复制">复制</button>
+      <button aria-label="评价回复">评价</button><button aria-label="更多操作">更多</button></div>
+  </article>
+  <article data-testid="conversation-turn-4"><div id="role-only" data-message-author-role="assistant">
+    没有页头和操作栏的普通长回复 <a href="#column">回复内链接</a></div></article>
+  <article data-testid="conversation-turn-5"><div id="mixed" data-message-author-role="assistant">
+    写作块前的回复正文
+    <div id="nested-writing" data-client-defined-widget="writing_block">回复内的长写作块</div>
+    写作块后的回复正文
+  </div></article>
+</div><form data-chatgpt-composer data-composer-placement="thread"><textarea aria-label="原生输入框"></textarea></form></div></main>
+<script type="module">
+  import {installJumpToTop} from '../../src/conversation.js';
+  const cleanups=[];
+  const owner={
+    on(target,event,fn,options){target.addEventListener(event,fn,options);
+      return ()=>target.removeEventListener(event,fn,options);},
+    onDispose(fn){cleanups.push(fn);},
+    setTimeout(fn,ms){return setTimeout(fn,ms);},
+    observe(target,fn,options){const observer=new MutationObserver(fn);observer.observe(target,options);return observer;}
+  };
+  const toggle=document.querySelector('#pin');
+  const state={pinReplyNavigation:localStorage.getItem('fixture-pin')==='true'};
+  toggle.checked=state.pinReplyNavigation;
+  const dispose=()=>cleanups.splice(0).reverse().forEach(fn=>fn());
+  const install=()=>installJumpToTop({doc:document,win:window,owner,pinReplies:true,
+    resolveNavigation:()=>state,regionDirections:{top:true,bottom:true}});
+  let session=install();
+  toggle.addEventListener('change',()=>{
+    state.pinReplyNavigation=toggle.checked;
+    localStorage.setItem('fixture-pin',String(toggle.checked));
+    session.refresh();
+  });
+  document.querySelector('#native-button').onclick=event=>event.currentTarget.dataset.clicked=String(event.isTrusted);
+  window.replyPinFixture={dispose,refresh:()=>session.refresh(),reinstall(){dispose();session=install();}};
+  window.addEventListener('pagehide',dispose,{once:true});
+</script>
+</html>

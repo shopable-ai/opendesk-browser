@@ -13,7 +13,7 @@ const COMMAND_JOURNAL="commandJournal",PAGE_SNAPSHOTS="pageSnapshots";
 
 
 // IDB commit order, rather than a worker-local mutex, orders stop/dispatch/seal.
-export function createRunAuthority({storage, api, session, entitlement, validatePlan, clock = {now: () => Date.now()},loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloudFactory=globalThis.__opendeskCloudFactory,readMediaAsset,withTaskRunRecovery,pageTaskSource,projectPageTaskResult}) {
+export function createRunAuthority({storage, api, session, entitlement, validatePlan, clock = {now: () => Date.now()},loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloudFactory=globalThis.__opendeskCloudFactory,readMediaAsset,withTaskRunRecovery,pageTaskSource,projectPageTaskResult,taskReleases}) {
   const now = () => iso(clock);
   function tool(sender) { invariant(isToolSender(api, sender), 'E_OWNER', 'Only an actual packaged tool document may own a run'); }
   const toolIdentity = () => ({namespace:`tool:${api.runtime.id}`,principal:`extension-tool:${api.runtime.id}`});
@@ -295,7 +295,8 @@ export function createRunAuthority({storage, api, session, entitlement, validate
     await controller.recoverControllers();
   }
   const sdk = sdkMethods({storage,api,session,clock,assertHost,currentHost});
-  const tasks = taskMethods({storage,api,assertHost,currentHost,clock,loadBuiltin});
+  const tasks = taskMethods({storage,api,assertHost,currentHost,clock,loadBuiltin,
+    defaultReleases:taskReleases?.defaults,optionalReleases:taskReleases?.optional});
   const cloud = cloudFactory?.({storage,api,clock,assertHost,currentHost,resolveTask:tasks.resolveInstalledTask,emitToHost});
   const schedules=createScheduleService({storage,api,clock,session,assertHost,emitToHost});
   const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost,loadBuiltin,emitToHost,cloud,scheduled:schedules,readMediaAsset,withTaskRunRecovery,pageTaskSource,projectPageTaskResult});

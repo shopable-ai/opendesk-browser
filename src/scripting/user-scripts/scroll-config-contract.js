@@ -11,7 +11,8 @@ const error=(code,message)=>Object.assign(new Error(message),{code});
 const requireValue=(ok,code,message)=>{if(!ok)throw error(code,message);};
 const keys=(obj,expected)=>obj&&typeof obj==='object'&&!Array.isArray(obj)&&
   Object.keys(obj).every(k=>expected.includes(k))&&expected.every(k=>Object.hasOwn(obj,k));
-const NAVIGATION_KEYS=['regionTop','regionBottom','conversationTop','conversationBottom','floatingTop','turnPaging','showTurnCount'];
+export const NAVIGATION_KEYS=Object.freeze(['regionTop','regionBottom','conversationTop','conversationBottom',
+  'floatingTop','turnPaging','showTurnCount','pinReplyNavigation']);
 const RULE_KEYS=['origin','pathScope','mainSelector','scrollSelector','messageSelector','anchorSelector','enabled'];
 function urlOrigin(value) {
   requireValue(typeof value==='string'&&value.length<=256,'E_CONFIG_SCHEMA','站点 Origin 无效');
@@ -64,12 +65,11 @@ export function normalizeScrollConfig(input){
     requireValue(flags&&typeof flags==='object'&&!Array.isArray(flags)&&
       Object.keys(flags).every(key=>NAVIGATION_KEYS.includes(key)&&typeof flags[key]==='boolean'),
       'E_CONFIG_SCHEMA','导航开关必须是已知的布尔字段');
-    // Preserve legacy five/six-key snapshots without silently adding fields.
-    // The seventh field is persisted only after an explicit 0.4.16+ upgrade.
-    const outputKeys=Object.hasOwn(flags,'showTurnCount')?NAVIGATION_KEYS:
-      Object.hasOwn(flags,'turnPaging')?NAVIGATION_KEYS.slice(0,-1):NAVIGATION_KEYS.slice(0,-2);
+    // Preserve older snapshots and opt-in defaults when no new field was saved.
+    const outputKeys=NAVIGATION_KEYS.slice(0,Object.hasOwn(flags,'pinReplyNavigation')?8:
+      Object.hasOwn(flags,'showTurnCount')?7:Object.hasOwn(flags,'turnPaging')?6:5);
     normalized.navigation=Object.fromEntries(outputKeys.map(key=>[
-      key,flags[key]??(key!=='showTurnCount')]));
+      key,flags[key]??!['showTurnCount','pinReplyNavigation'].includes(key)]));
   }
   requireValue(new TextEncoder().encode(JSON.stringify(normalized)).byteLength<=16384,
     'E_CONFIG_SCHEMA','网站规则数据超过 16 KiB');

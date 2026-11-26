@@ -1808,7 +1808,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const row=await scrollHostInstall(request,sender),epoch=permissionEpoch(row);
     const before=await readScrollConfig();
     invariant(before.etag===request.etag,'E_CONFIG_CONFLICT','配置已被其他窗口修改，请读取并核对');
-    return persistScrollConfig(row,{...before.value,navigation:request.navigation},request.etag,epoch,sender);
+    // Older controls only send the fields they expose. Preserve the others under the same CAS.
+    const navigation={...before.value.navigation,...request.navigation};
+    return persistScrollConfig(row,{...before.value,navigation},request.etag,epoch,sender);
   }
   async function executeScrollSiteEditor(row,target,operation,payload,sender){
     const epoch=permissionEpoch(row);

@@ -1526,6 +1526,29 @@ test('the installed historical Baidu sheet folds placement but still requires ru
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
+test('Baidu My sheet returns to the empty keyword form after restoring defaults in JSON',async()=>{
+  const {manifest}=JSON.parse(await readFile(new URL('../../task-packs/baidu.search/releases/baidu.search.top3.1.1.5.opendesk-task.json',import.meta.url),'utf8'));
+  const f=await fixture({paramsSchema:manifest.paramsSchema});let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.querySelector('.task-card-run'),'click');
+    const sheet=f.doc.getElementById('task-parameters-sheet'),json=f.doc.getElementById('task-params-json');
+    const mode=label=>[...sheet.querySelectorAll('.task-params-mode button')].find(button=>button.textContent===label);
+    await f.fire(mode('JSON'),'click');
+    await f.input('task-params-json','{"query":"界面验收 B","limit":3,"showExecutionTab":false}');
+    await f.fire(sheet.querySelector('.task-params-reset'),'click',{isTrusted:true});
+    assert.equal(mode('JSON').getAttribute('aria-pressed'),'true');
+    await f.fire(mode('表单'),'click');
+    assert.equal(mode('表单').getAttribute('aria-pressed'),'true','a reset draft need not contain a valid keyword to switch editors');
+    assert.equal(f.doc.getElementById('task-param-query').value,'');
+    assert.equal(f.doc.getElementById('task-param-showExecutionTab').checked,true);
+    await f.fire(mode('JSON'),'click');
+    assert.deepEqual(JSON.parse(json.value),{query:'',limit:3,showExecutionTab:true});
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(json.getAttribute('aria-invalid'),'true','Run still requires a nonempty keyword');
+    assert.equal(f.state.starts.length+f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
 test('My reviews a verified fixed version for update, then runs in an owned tab under the new installation',async()=>{
   const f=await fixture({configure({installed,candidate}){
     installed.runtimeCurrent=false;candidate.runtimeCurrent=true;

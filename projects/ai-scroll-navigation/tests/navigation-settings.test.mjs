@@ -18,12 +18,14 @@ const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));
 const initial={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,
   turnPaging:true,showTurnCount:false,floatingTop:true};
 const labels={regionTop:'回到回复顶部',regionBottom:'跳到回复底部',conversationTop:'回到对话顶部',
-  conversationBottom:'跳到对话底部',turnPaging:'按对话轮次翻页',showTurnCount:'显示轮次数字',floatingTop:'滚动后悬浮回顶'};
+  conversationBottom:'跳到对话底部',turnPaging:'按对话轮次翻页',showTurnCount:'显示轮次数字',floatingTop:'滚动后悬浮回顶',
+  pinReplyNavigation:'滚动时固定回复导航（ChatGPT）'};
 
-async function fixture(t,{save}={}){
+async function fixture(t,{save,pinSupported=false}={}){
   let stored={value:{version:1,sites:[],navigation:{...initial}},etag:'initial'},navigation;
   const writes=[];
   const model={identityKey:'settings-installation',turnPagingSupported:true,showTurnCountSupported:true,
+    pinReplyNavigationSupported:pinSupported,
     onRead:async()=>structuredClone(stored),onDraftChange(){},
     async onSaveNavigation(flags,etag,event){
       writes.push({flags,etag,event});
@@ -67,6 +69,19 @@ test('each of seven switches saves its value while retaining the other flags and
   for(const key of Object.keys(initial))assert.equal(f.toggle(key).checked,expected[key],key);
 });
 
+test('fixed reply switch defaults off on an older snapshot, saves both values and stays hidden on an older install',async t=>{
+  const f=await fixture(t,{pinSupported:true});
+  assert.equal(f.toggle('pinReplyNavigation').checked,false);
+  f.click('pinReplyNavigation');await settle();
+  assert.deepEqual(f.stored.value.navigation,{...initial,pinReplyNavigation:true});
+  f.state.model={...f.state.model,identityKey:'reopen-pin'};f.paint();await settle();
+  assert.equal(f.toggle('pinReplyNavigation').checked,true);
+  f.click('pinReplyNavigation');await settle();
+  assert.deepEqual(f.stored.value.navigation,{...initial,pinReplyNavigation:false});
+  f.state.model={...f.state.model,identityKey:'old-install',pinReplyNavigationSupported:false};f.paint();await settle();
+  assert.equal(f.toggle('pinReplyNavigation'),null);
+});
+
 test('synthetic switch input does not write navigation settings',async t=>{
   const f=await fixture(t);f.click('regionTop',false);await settle();
   assert.equal(f.writes.length,0);assert.deepEqual(f.stored.value.navigation,initial);
@@ -77,11 +92,11 @@ test('pending and unknown saves stay visible, preserve stored settings and preve
   const f=await fixture(t,{save:()=>new Promise((_,reject)=>{fail=reject;})});
   f.click('floatingTop');await settle();
   assert.match(f.doc.querySelector('.ec-scroll-actionbar [role="status"]').textContent,/处理/);
-  assert.ok(Object.keys(labels).every(key=>f.toggle(key).disabled));
+  assert.ok(Object.keys(initial).every(key=>f.toggle(key).disabled));
   fail(Object.assign(Error('receipt lost'),{code:'E_CONFIG_UNKNOWN'}));await settle();
   assert.match(f.doc.querySelector('.ec-scroll-actionbar [role="alert"]').textContent,/E_CONFIG_UNKNOWN/);
   assert.deepEqual(f.stored.value.navigation,initial);
-  assert.ok(Object.keys(labels).every(key=>f.toggle(key).disabled));
+  assert.ok(Object.keys(initial).every(key=>f.toggle(key).disabled));
   assert.ok([...f.doc.querySelectorAll('button')].some(node=>node.textContent.includes('重新读取')));
   f.click('regionTop');await settle();assert.equal(f.writes.length,1);
 });

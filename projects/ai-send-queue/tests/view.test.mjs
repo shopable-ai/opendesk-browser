@@ -150,6 +150,34 @@ test('ordinary feedback uses the shared Page toast without replacing a recovery 
   assert.deepEqual(recovery.children,children);assert.equal(h.view.recovery().text,'original recovery');
 });
 
+test('copyable feedback writes only the current error and shows a clipboard receipt',async()=>{
+  const h=fixture({sharedToast:true});h.view.place(h.snap);
+  const ui=h.ui('button'),notice=ui.content.children[1],writes=[];
+  let denied=false;
+  h.doc.defaultView.navigator={clipboard:{async writeText(text){
+    if(denied)throw Error('clipboard denied');writes.push(text);
+  }}};
+  const listener=ui.listeners.find(item=>item.node===notice&&item.event==='click');
+  const select=copy=>listener.callback({target:{closest:()=>copy},stopPropagation(){}});
+  const show=error=>{
+    h.view.toast(error,{variant:'warning',copyable:true});
+    const [row,receipt]=notice.children,[text,copy]=row.children;
+    assert.equal(text.textContent,error);assert.equal(copy.getAttribute('aria-label'),'复制错误信息');
+    return {copy,receipt};
+  };
+  const previous=show('先前的错误');
+  const current=show('当前错误；草稿已保留');
+  await select(previous.copy);
+  await select(current.copy);
+  assert.deepEqual(writes,['当前错误；草稿已保留']);
+  assert.equal(current.receipt.textContent,'已复制错误信息');
+  denied=true;
+  await select(current.copy);
+  assert.match(current.receipt.textContent,/无法访问剪贴板/);
+  assert.equal(notice.hidden,false);
+  h.view.clearError();assert.equal(notice.hidden,true);
+});
+
 for(const action of ['copy','done']){
   test(`completed recovery ${action} removes its old controls when feedback uses the shared toast`,async()=>{
     const h=fixture({sharedToast:true});h.view.place(h.snap);
@@ -244,12 +272,12 @@ test('a pending backup is not repeated and a late clipboard failure cannot reviv
   assert.equal(notice.querySelectorAll('textarea').length,0);
 });
 
-test('Shift clicking the crown requests paused admission while ordinary clicks keep automatic admission',()=>{
+test('only ordinary crown clicks can send queued messages from an empty composer',()=>{
   const h=fixture();h.view.place(h.snap);
   const ui=h.ui('button'),button=ui.content.children[0];
   const click=ui.listeners.find(row=>row.node===button&&row.event==='click').callback;
   click({shiftKey:true});click({shiftKey:false});
-  assert.deepEqual(h.calls,[{paused:true},{paused:false}]);
+  assert.deepEqual(h.calls,[{paused:true},{sendQueuedIfEmpty:true}]);
   assert.match(button.title,/Shift.*暂停/);
 });
 

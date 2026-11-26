@@ -33,7 +33,7 @@ import {loadSiteProfiles,SITE_ADAPTER_VERSIONS} from './page-events/site-catalog
 import {WEB_TASK_PROTOCOL,WEB_TASK_INTENT_PROTOCOL,SITE_PROFILES_KEY} from './page-events/web-task-contract.js';
 
 
-export function initServiceWorker({development=null}={}) {
+export function initServiceWorker({development=null,attachAcceptance=null}={}) {
 let pendingFoundation=0;
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
 // One-use bridge trigger fence only. Foundation Authority/RunHost remain the sole executors.
@@ -88,6 +88,7 @@ const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadE
       await cookieAccounts.cleanup();
     }
   }});
+if(development)attachAcceptance?.({api:chrome,development,foundation});
 const analyticsNamespace='tool:'+chrome.runtime.id;
 installAnalyticsHost({api:chrome,loadAuthority:async({since}={})=>
   readAnalyticsAuthorityProjection({storage:(await foundation).storage,api:chrome,since}),

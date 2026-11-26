@@ -59,6 +59,10 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
       const siblings = node.parentElement?.children || [];
       return siblings[siblings.indexOf(node) + 1] || null;
     },
+    get previousElementSibling() {
+      const siblings = node.parentElement?.children || [];
+      return siblings[siblings.indexOf(node) - 1] || null;
+    },
     getAttribute: name => attrs.get(name) ?? null,
     hasAttribute: name => attrs.has(name),
     removeAttribute: name => attrs.delete(name),
@@ -66,7 +70,10 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
     matches(selector) {
       // The adapter uses simple tag/attribute selector lists, with no combinators.
       return selector.split(',').some(part => {
-        const simple = part.trim();
+        const negated = [...part.matchAll(/:not\(([^()]*)\)/g)];
+        if (negated.some(([, excluded]) => node.matches(excluded))) return false;
+        const simple = part.replace(/:not\([^()]*\)/g, '').trim();
+        if (simple === '*') return true;
         const classes = [...simple.matchAll(/\.([\w-]+)/g)];
         if (classes.some(([, value]) => !(node.getAttribute('class') || '').split(/\s+/).includes(value))) return false;
         const tagMatch = simple.match(/^[a-z][a-z0-9-]*/i);
@@ -231,7 +238,7 @@ function controlledEditors(count = 1) {
 
 function observerOwner() {
   let callback, options;
-  const timers = [], disposals = [], listeners = new Map();
+  const timers = [], disposals = [], listeners = new Map(), records = [];
   return {
     on(target, type, listener) {
       const events = listeners.get(target) || new Map();
@@ -240,22 +247,25 @@ function observerOwner() {
       return () => handlers.delete(listener);
     },
     click(target) {
-      for (const listener of listeners.get(target)?.get('click') || [])
-        listener({currentTarget: target, isTrusted: true, preventDefault() {}, stopPropagation() {}});
+      this.dispatch(target, 'click');
+    },
+    dispatch(target, type, fields = {}) {
+      for (const listener of listeners.get(target)?.get(type) || [])
+        listener({type, currentTarget: target, isTrusted: true, preventDefault() {}, stopPropagation() {}, ...fields});
     },
     onDispose(cleanup) { disposals.push(cleanup); },
     dispose() { disposals.forEach(cleanup => cleanup()); },
     observe(_target, listener, config) {
       callback = listener;
       options = config;
-      return {disconnect() { callback = null; }};
+      return {disconnect() { callback = null; }, takeRecords: () => records.splice(0)};
     },
     setTimeout: callback => timers.push(callback),
-    emit(record) {
-      if (record.type === 'attributes' && (!options.attributes ||
-          (options.attributeFilter && !options.attributeFilter.includes(record.attributeName)))) return;
-      if (record.type === 'childList' && !options.childList) return;
-      callback?.([record]);
+    queue: record => records.push(record),
+    emit(...batch) {
+      callback?.(batch.filter(record => record.type === 'attributes' ? options.attributes &&
+        (!options.attributeFilter || options.attributeFilter.includes(record.attributeName)) :
+        record.type !== 'childList' || options.childList));
     },
     flush() { while (timers.length) timers.shift()(); }
   };
@@ -725,6 +735,928 @@ test('region bindings resolve an explicitly controlled editor and scroll only it
   assert.equal(main.scrollTop, 940);
   assert.deepEqual(main.calls, []);
   assert.deepEqual(root.calls, []);
+});
+
+test('short writing blocks and separate code controls do not replace whole-reply navigation', () => {
+  const {doc,view}=environment();
+  const main=element({tag:'main',parent:doc.body,overflowY:'auto',height:720,scrollHeight:3500});
+  const turn=element({tag:'article',parent:main,height:1500,attributes:{'data-testid':'conversation-turn-1'}});
+  const reply=element({parent:turn,height:1400,attributes:{'data-content-search-unit-key':'one:assistant'}});
+  const body=element({parent:reply,height:1400,attributes:{'data-conversation-role':'assistant'}});
+  element({parent:body,height:100,attributes:{'data-client-defined-widget':'writing_block'}});
+  const codeHeader=header({parent:body});
+  codeHeader.querySelector('button').setAttribute('aria-controls','code');
+  const code=element({tag:'pre',parent:body,height:620,attributes:{id:'code'}});
+  const targets=()=>conversation.findRegionBindings(doc,view).map(({target})=>target);
+  assert.deepEqual(targets(),[code,reply]);
+  const extra=element({parent:turn,height:850,attributes:{'data-message-author-role':'assistant'}});
+  assert.deepEqual(targets(),[code],'ambiguous turn does not gain whole-reply controls');
+  extra.remove();
+  element({parent:turn,height:48,attributes:{class:'turn-action-controls'}});
+  assert.deepEqual(targets(),[code],'unverified native footer does not gain duplicate controls');
+});
+
+test('a finished native writing widget binds its inline editor only when it shares the transcript scroller', () => {
+  const {doc, view} = environment();
+  const main = element({tag: 'main', parent: doc.body, overflowY: 'auto', height: 730, scrollHeight: 4000});
+  const reply = element({parent: main, height: 2500, attributes: {'data-content-search-unit-key': 'b:assistant'}});
+  const widget = element({parent: reply, height: 2500, attributes: {'data-client-defined-widget': 'writing_block'}});
+  const toolbar = header({parent: widget, position: 'sticky', editor: true});
+  const anchor = toolbar.querySelector('button');
+  anchor.setAttribute('aria-label', '打开编辑器');
+  const wrap = element({parent: widget, height: 2400});
+  const editor = element({parent: wrap, height: 2400, attributes: {contenteditable: 'true', role: 'textbox'}});
+  const bindings = () => conversation.findRegionBindings(doc, view);
+  const initial = bindings();
+  assert.equal(initial.length, 1);
+  assert.ok(initial[0].target === widget && initial[0].header === toolbar && initial[0].anchor === anchor);
+  assert.equal(initial[0].writing, true);
+  wrap.style.overflowY = 'auto';
+  assert.equal(bindings().length, 0, 'the outer controls must not capture an independent editing scroller');
+  wrap.style.overflowY = 'visible';
+  editor.scrollHeight = editor.clientHeight + 100;
+  assert.equal(bindings().length, 0, 'an overflowing editor is not the natural-height transcript body');
+});
+
+test('explicit writing editor controls stay local and work with fixed reply navigation off', t => {
+  const {doc, view, main, root, rows: [{toolbar, target, anchor}]} = controlledEditors();
+  view.location = {pathname: '/c/writing'};
+  view.navigation = {};
+  const turn = toolbar.parentElement;
+  turn.setAttribute('data-content-search-unit-key', 'one:assistant');
+  const widget = element({parent: turn, height: 1000, attributes: {'data-client-defined-widget': 'writing_block'}});
+  target.tagName = 'DIV';
+  target.setAttribute('contenteditable', 'true');
+  target.setAttribute('role', 'textbox');
+  widget.append(toolbar, target);
+  anchor.setAttribute('aria-label', '打开编辑器');
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc, win: view, owner, pinReplies: true,
+    resolveNavigation: () => ({pinReplyNavigation: false}), regionDirections: {top: true, bottom: true}});
+  t.after(() => session.dispose());
+  const bindings = conversation.findRegionBindings(doc, view);
+  assert.equal(bindings.length, 1);
+  assert.equal(bindings[0].kind, 'editor');
+  assert.ok(bindings[0].target === target);
+  const host = toolbar.querySelector('[data-opendesk-ai-scroll-navigation="reply"]');
+  const [top, bottom] = host.shadowRoot.querySelectorAll('button');
+  owner.click(top);
+  assertScroll(target, 0, 27);
+  owner.click(bottom);
+  assertScroll(target, 1420, 27);
+  assert.equal(main.scrollTop, 940);
+  assert.deepEqual(main.calls, []);
+  assert.deepEqual(root.calls, []);
+  assert.equal(doc.querySelector('[data-opendesk-ai-scroll-navigation="reply-fixed"]'), null);
+  view.location.pathname = '/c/other';
+  owner.dispatch(view.navigation, 'currententrychange');
+  owner.flush();
+  assert.ok(target.isConnected && !host.isConnected, 'old local editor controls also retire');
+  const calls = target.calls.length;
+  owner.click(top);
+  assert.equal(target.calls.length, calls);
+});
+
+test('a route change retires old reply controls until the delayed transcript is replaced', t => {
+  const {doc, view} = environment();
+  const main = element({tag: 'main', parent: doc.body, overflowY: 'auto', height: 730,
+    scrollTop: 500, scrollHeight: 4000});
+  const addReply = key => {
+    const target = element({parent: main, contentTop: 20, height: 2300,
+      attributes: {'data-content-search-unit-key': key + ':assistant'}});
+    element({parent: target, height: 2200, attributes: {'data-conversation-role': 'assistant'}});
+    return target;
+  };
+  const old = addReply('old');
+  const streaming = addReply('unfinished');
+  streaming.setAttribute('data-is-streaming', 'true');
+  doc.documentElement.lang = 'en';
+  doc.createElement = tag => element({tag, connected: false, top: -80, height: 24});
+  doc.elementFromPoint = () => main;
+  view.location = {pathname: '/c/first'};
+  view.navigation = {};
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc, win: view, owner, pinReplies: true,
+    resolveNavigation: () => ({pinReplyNavigation: true}), regionDirections: {top: true, bottom: true}});
+  t.after(() => session.dispose());
+  const fixed = () => doc.querySelector('[data-opendesk-ai-scroll-navigation="reply-fixed"]');
+  const inline = () => doc.querySelector('[data-opendesk-ai-scroll-navigation="reply"]');
+  assert.ok(fixed() && inline());
+  const oldButton = inline().shadowRoot.querySelector('button');
+  view.location.pathname = '/c/second';
+  owner.dispatch(view.navigation, 'navigatesuccess');
+  assert.ok(!fixed() && !inline(), 'remove both controls before the delayed refresh');
+  owner.click(oldButton);
+  assert.deepEqual(main.calls, []);
+  owner.flush();
+  assert.ok(old.isConnected && !fixed() && !inline(), 'do not reclaim the old reply under the new URL');
+  old.setAttribute('data-content-search-unit-key', 'rewritten:assistant');
+  streaming.setAttribute('data-is-streaming', 'false');
+  session.refresh();
+  assert.ok(!fixed() && !inline(), 'rewritten and newly complete old turns stay unbound');
+  const wrapper = element({parent: main, height: 2300, attributes: {'data-turn-id': 'replacement-wrapper'}});
+  wrapper.append(old);
+  owner.emit({type:'childList', target:main, removedNodes:[], addedNodes:[wrapper]});
+  owner.flush();
+  assert.ok(old.isConnected && !fixed() && !inline(), 'a new native wrapper cannot reclaim an old reply');
+  const next = addReply('new');
+  owner.emit({type:'childList', target:main, removedNodes:[], addedNodes:[next]});
+  owner.flush();
+  assert.ok(fixed() && inline()?.nextElementSibling === next, 'new reply mounts without a manual run');
+});
+
+function routedReplies(t, roleMain = false) {
+  const {doc,view} = environment();
+  const main = element({tag:roleMain?'div':'main', attributes:roleMain?{role:'main'}:{},
+    parent:doc.body, overflowY:'auto', height:730,
+    scrollTop:500, scrollHeight:4000});
+  doc.documentElement.lang = 'en';
+  doc.createElement = tag => element({tag, connected:false, top:-80, height:24});
+  doc.elementFromPoint = () => main;
+  view.location = {pathname:'/c/a'};
+  view.navigation = {};
+  view.requestAnimationFrame = () => 1;
+  view.cancelAnimationFrame = () => {};
+  const owner = observerOwner();
+  const navigate = id => {
+    view.location.pathname = '/c/' + id;
+    owner.dispatch(view.navigation, 'currententrychange', {navigationType:'push'});
+  };
+  const shell = (key, parent = main) => element({parent, contentTop:20, height:2300,
+    attributes:{'data-content-search-unit-key':key + ':assistant'}});
+  const body = parent => element({parent, height:2200, attributes:{'data-conversation-role':'assistant'}});
+  const initial = shell('a'), originalBody = body(initial);
+  const start = () => {
+    const session = conversation.installJumpToTop({doc, win:view, owner, pinReplies:true,
+      resolveNavigation:() => ({pinReplyNavigation:true}), regionDirections:{top:true,bottom:true}});
+    t.after(() => session.dispose());
+  };
+  const host = (kind = 'reply') => doc.querySelector('[data-opendesk-ai-scroll-navigation="' + kind + '"]');
+  const added = (parent,node) => ({type:'childList', target:parent, removedNodes:[], addedNodes:[node]});
+  return {doc, view, main, owner, navigate, shell, body, initial, originalBody, start, host, added};
+}
+
+for (const timing of ['separately','in a batch','at route change']) {
+  test('late reply marker cannot rebrand a body from the previous conversation: ' + timing, t => {
+    const {main,owner,navigate,shell,body,initial,start,host,added} = routedReplies(t);
+    const mark = (target,attributeName,oldValue) => ({type:'attributes',target,attributeName,oldValue,
+      removedNodes:[],addedNodes:[]});
+    start();
+    initial.remove();
+    const old = shell('old'), stale = element({parent:old,height:2200});
+    old.setAttribute('data-is-streaming','true');
+    const extra = added(old,element({parent:old}));
+    if (timing === 'at route change') [added(main,old),extra].forEach(owner.queue);
+    else if (timing === 'in a batch') owner.emit(added(main,old),extra);
+    else {owner.emit(added(main,old));owner.emit(extra);}
+    navigate('next');
+    stale.setAttribute('data-conversation-role','assistant');
+    old.setAttribute('data-is-streaming','false');
+    owner.emit(mark(stale,'data-conversation-role',null),mark(old,'data-is-streaming','true'));
+    owner.flush();
+    assert.ok(!host() && !host('reply-fixed'), 'the old body did not become fresh by changing its role');
+    stale.remove();
+    owner.emit(added(old,body(old)));
+    owner.flush();
+    assert.equal(host()?.nextElementSibling,old);
+    owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+    assert.ok(main.scrollTop < 500, 'a truly new body in the reused shell still works');
+  });
+
+  test('late reply markers cannot carry a previous home visit into a new draft: ' + timing, t => {
+    const {main,view,owner,navigate,shell,initial,start,host,added} = routedReplies(t);
+    const route = (pathname,navigationType) => {
+      view.location.pathname = pathname;
+      owner.dispatch(view.navigation,'currententrychange',{navigationType});
+    };
+    const user = key => element({parent:main,attributes:{'data-content-search-unit-key':key + ':user'}});
+    const content = parent => element({parent,height:2200});
+    const remove = node => {
+      node.remove();
+      owner.emit({type:'childList',target:main,addedNodes:[],removedNodes:[node]});
+    };
+    const brand = (root,body,key) => {
+      root.setAttribute('data-content-search-unit-key',key+':assistant');
+      body.setAttribute('data-conversation-role','assistant');
+      return [[root,'data-content-search-unit-key'],[body,'data-conversation-role']]
+        .map(([target,attributeName])=>({type:'attributes',target,attributeName,oldValue:null,addedNodes:[],removedNodes:[]}));
+    };
+    initial.remove();
+    view.location.pathname = '/';
+    start();
+    const a = user('a');
+    owner.emit(added(main,a));
+    const old = shell('old'), oldText = content(old);
+    old.removeAttribute('data-content-search-unit-key');
+    owner.emit(added(main,old));
+    remove(old);remove(a);
+    navigate('away');
+    route('/','push');
+    main.append(old);
+    const insertOld = added(main,old);
+    if (timing === 'separately') owner.emit(insertOld);
+    const marks = brand(old,oldText,'old');
+    const b = user('b');
+    if (timing === 'separately') {owner.emit(...marks);owner.emit(added(main,b));}
+    else if (timing === 'in a batch') owner.emit(insertOld,...marks,added(main,b));
+    else [insertOld,...marks,added(main,b)].forEach(owner.queue);
+    const fresh = shell('new'), newText = content(fresh);
+    fresh.removeAttribute('data-content-search-unit-key');
+    if (timing === 'at route change') owner.queue(added(main,fresh));
+    else owner.emit(added(main,fresh));
+    route('/c/new','replace');
+    owner.flush();
+    assert.ok(!host() && !host('reply-fixed'), 'the previous draft is retired');
+    // A body known to be born with the current draft can receive its markers after replace.
+    owner.emit(...brand(fresh,newText,'new'));
+    owner.flush();
+    assert.equal(host()?.nextElementSibling,fresh);
+    owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+    assert.ok(main.scrollTop < 500, 'the current draft still mounts and responds');
+  });
+}
+
+for (const timing of ['separately','in a batch','at route change']) for (const movement of [
+  'rewrapped first body', 'rewrapped earlier body', 'detached first shell', 'detached earlier shell',
+  'filled first shell while detached', 'filled earlier shell while detached',
+  'filled first shell inside a detached wrapper', 'filled earlier shell inside a detached wrapper'
+]) test('homepage reply provenance: ' + movement + ', ' + timing, t => {
+  const {main,view,owner,shell,initial,start,host,added} = routedReplies(t);
+  initial.remove();
+  view.location.pathname = '/';
+  start();
+  const earlier = movement.includes('earlier');
+  const rewrap = movement.includes('rewrapped');
+  const filled = movement.startsWith('filled');
+  const reply = shell('first');
+  reply.removeAttribute('data-content-search-unit-key');
+  let content = filled ? null : element({parent:reply,height:2200});
+  const user = element({parent:main,attributes:{'data-content-search-unit-key':'draft:user'}});
+  user.remove();
+  reply.remove();
+  const insert = added(main,reply), draft = added(main,user);
+  const sequence = [];
+  const deliver = record => timing === 'separately' ? owner.emit(record) : sequence.push(record);
+  for (const record of earlier ? [insert,draft] : [draft,insert]) {
+    main.append(record.addedNodes[0]);
+    deliver(record);
+  }
+  const remove = (parent,node) => {
+    node.remove();
+    return {type:'childList',target:parent,addedNodes:[],removedNodes:[node]};
+  };
+  deliver(rewrap ? remove(reply,content) : remove(main,reply));
+  if (movement.includes('detached wrapper')) element().append(reply);
+  if (filled) {
+    content = element({parent:reply,height:2200});
+    deliver(added(reply,content));
+  }
+  if (rewrap) {
+    const wrapper = element({parent:reply});
+    deliver(added(reply,wrapper));
+    wrapper.append(content);
+    deliver(added(wrapper,content));
+  }
+  if (timing === 'in a batch') owner.emit(...sequence);
+  else if (timing === 'at route change') sequence.forEach(owner.queue);
+  view.location.pathname = '/c/first';
+  owner.dispatch(view.navigation,'currententrychange',{navigationType:'replace'});
+  if (!rewrap) main.append(reply);
+  const mark = (target,attributeName,value) => {
+    target.setAttribute(attributeName,value);
+    return {type:'attributes',target,attributeName,oldValue:null,addedNodes:[],removedNodes:[]};
+  };
+  owner.emit(...(!rewrap ? [added(main,reply)] : []),
+    mark(reply,'data-content-search-unit-key','first:assistant'),
+    mark(content,'data-conversation-role','assistant'));
+  owner.flush();
+  if (earlier) assert.ok(!host() && !host('reply-fixed'));
+  else {
+    assert.equal(host()?.nextElementSibling,reply);
+    owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+    assert.ok(main.scrollTop < 500);
+  }
+});
+
+for (const delivery of ['observer before next route','queued at next route']) {
+  test('rapid A → B → C ignores a retained B reply: ' + delivery, t => {
+    const {main,owner,navigate,shell,body,initial,start,host,added} = routedReplies(t);
+    start();
+    assert.ok(host('reply-fixed'));
+    navigate('b');
+    initial.remove();
+    const b = shell('b');
+    body(b);
+    const record = added(main,b);
+    if (delivery.startsWith('queued')) owner.queue(record);
+    else owner.emit(record);
+    navigate('c');
+    owner.flush();
+    assert.ok(b.isConnected && !host() && !host('reply-fixed'), 'neither control can scroll to B');
+    const c = shell('c');
+    body(c);
+    owner.emit(added(main,c));
+    owner.flush();
+    assert.equal(host()?.nextElementSibling,c);
+    owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+    assert.equal(main.calls.length,1);
+  });
+}
+
+test('a queued reply in a second visible transcript cannot move from B to C', t => {
+  const {doc,main,owner,navigate,shell,body,start,host,added} = routedReplies(t);
+  start();
+  navigate('b');
+  const other = element({tag:'main', parent:doc.body, overflowY:'auto', height:730,
+    scrollTop:500, scrollHeight:4000});
+  const fromB = shell('b',other);
+  body(fromB);
+  owner.queue(added(doc.body,other));
+  navigate('c');
+  main.setAttribute('hidden','');
+  owner.flush();
+  assert.ok(fromB.isConnected && !host() && !host('reply-fixed'));
+  const fromC = shell('c',other);
+  body(fromC);
+  owner.emit(added(other,fromC));
+  owner.flush();
+  assert.ok(host()?.nextElementSibling === fromC);
+});
+
+test('all starting transcripts are owned by the initial route during a visible overlap', t => {
+  const {doc,main,owner,navigate,shell,body,start,host,added} = routedReplies(t);
+  const other = element({tag:'main', parent:doc.body, overflowY:'auto', height:730,
+    scrollTop:500, scrollHeight:4000});
+  const old = shell('old',other);
+  body(old);
+  start();
+  assert.ok(!host() && !host('reply-fixed'), 'an ambiguous transcript never mounts controls');
+  navigate('b');
+  main.setAttribute('hidden','');
+  doc.elementFromPoint = () => other;
+  owner.flush();
+  assert.ok(old.isConnected && !host() && !host('reply-fixed'));
+  const next = shell('b',other);
+  body(next);
+  owner.emit(added(other,next));
+  owner.flush();
+  assert.equal(host()?.nextElementSibling,next);
+  owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+  assert.ok(other.scrollTop < 500, 'fixed top scrolls the newly visible transcript');
+  assert.equal(main.calls.length,0);
+});
+
+test('a reply removed inside a detached wrapper before mutation delivery stays retired', t => {
+  const {main,owner,navigate,shell,body,initial,start,host,added} = routedReplies(t);
+  const wrapper = element({parent:main});
+  start();
+  navigate('b');
+  initial.remove();
+  const fromB = shell('b',wrapper);
+  body(fromB);
+  owner.queue(added(wrapper,fromB));
+  wrapper.remove();
+  owner.queue({type:'childList',target:main,addedNodes:[],removedNodes:[wrapper]});
+  navigate('c');
+  main.append(wrapper);
+  owner.emit(added(main,wrapper));
+  owner.flush();
+  assert.ok(fromB.isConnected && !host() && !host('reply-fixed'), 'B cannot gain reply controls in C');
+  const fromC = shell('c',wrapper);
+  body(fromC);
+  owner.emit(added(wrapper,fromC));
+  owner.flush();
+  assert.equal(host()?.nextElementSibling,fromC);
+  owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+  assert.ok(main.scrollTop < 500, 'fixed top scrolls the new reply inside the restored wrapper');
+});
+
+for (const splitDelivery of [false,true]) test('a transcript that temporarily loses its main role cannot transfer a B reply to C; split delivery: ' + splitDelivery, t => {
+  const {main,owner,navigate,shell,body,initial,start,host,added} = routedReplies(t,true);
+  start();
+  assert.ok(host('reply-fixed'));
+  navigate('b');
+  initial.remove();
+  const loseMain = {type:'attributes',target:main,attributeName:'role',oldValue:'main',addedNodes:[],removedNodes:[]};
+  const old = shell('b',splitDelivery ? null : main);
+  body(old);
+  if (!splitDelivery) owner.queue(added(main,old));
+  main.removeAttribute('role');
+  if (splitDelivery) {
+    owner.emit(loseMain);
+    main.append(old);
+    owner.emit(added(main,old));
+  } else owner.queue(loseMain);
+  navigate('c');
+  main.setAttribute('role','main');
+  owner.emit({type:'attributes',target:main,attributeName:'role',oldValue:null,addedNodes:[],removedNodes:[]});
+  owner.flush();
+  assert.ok(old.isConnected && !host() && !host('reply-fixed'));
+  const current = shell('c');
+  body(current);
+  owner.emit(added(main,current));
+  owner.flush();
+  assert.equal(host()?.nextElementSibling,current);
+  owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+  assert.ok(main.scrollTop < 500);
+});
+
+for (const [marker,value] of [['data-conversation-role','assistant'],['data-client-defined-widget','writing_block']]) {
+  test('an unobserved body keeps its route after losing ' + marker, t => {
+    const {main,owner,navigate,shell,body,initial,start,host,added} = routedReplies(t);
+    start();
+    navigate('b');
+    initial.remove();
+    const fromB = shell('b');
+    const stale = element({parent:fromB,height:2200,attributes:{[marker]:value}});
+    owner.queue(added(main,fromB));
+    stale.removeAttribute(marker);
+    owner.queue({type:'attributes',target:stale,attributeName:marker,oldValue:value,addedNodes:[],removedNodes:[]});
+    fromB.remove();
+    owner.queue({type:'childList',target:main,addedNodes:[],removedNodes:[fromB]});
+    navigate('c');
+    const current = shell('c');
+    body(current);
+    current.append(stale);
+    stale.setAttribute(marker,value);
+    owner.emit(added(main,current));
+    owner.flush();
+    assert.ok(!host() && !host('reply-fixed'), 'a body from B cannot scroll in C');
+    stale.remove();
+    owner.emit({type:'childList',target:current,addedNodes:[],removedNodes:[stale]});
+    owner.flush();
+    assert.equal(host()?.nextElementSibling,current);
+    owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+    assert.ok(main.scrollTop < 500);
+  });
+}
+
+for (const marker of ['data-conversation-role','data-client-defined-widget']) {
+  test('a detached body stays retired after losing its marker: ' + marker, t => {
+    const {main,owner,navigate,shell,body,initial,originalBody,start,host,added} = routedReplies(t);
+    originalBody.removeAttribute('data-conversation-role');
+    originalBody.setAttribute(marker, marker === 'data-client-defined-widget' ? 'writing_block' : 'assistant');
+    start();
+    navigate('b');
+    originalBody.remove();
+    owner.emit({type:'childList',target:initial,addedNodes:[],removedNodes:[originalBody]});
+    owner.flush();
+    const fresh = shell('b');
+    body(fresh);
+    owner.emit(added(main,fresh));
+    owner.flush();
+    const fixed = host('reply-fixed'), inline = host();
+    assert.ok(fixed && inline);
+    originalBody.removeAttribute(marker);
+    const wrapper = element({});
+    wrapper.append(originalBody);
+    fresh.append(wrapper);
+    // Even before the observer can reindex the body, neither click may move.
+    owner.click(inline.shadowRoot.querySelector('button'));
+    owner.click(fixed.shadowRoot.querySelector('button'));
+    assert.equal(main.calls.length,0);
+    owner.emit(added(fresh,wrapper));
+    owner.flush();
+    assert.ok(originalBody.isConnected && !host() && !host('reply-fixed'));
+  });
+}
+
+test('a stale body stays retired across marker migration; a fresh body can use the old shell', t => {
+  const {main,owner,navigate,shell,body,initial,originalBody,start,host,added} = routedReplies(t);
+  initial.setAttribute('data-conversation-role','assistant');
+  start();
+  const oldButton = host('reply-fixed').shadowRoot.querySelector('button');
+  navigate('b');
+  const moved = shell('new-shell');
+  moved.setAttribute('data-conversation-role','assistant');
+  originalBody.removeAttribute('data-conversation-role');
+  moved.append(originalBody);
+  owner.emit(added(main,moved));
+  owner.flush();
+  assert.ok(originalBody.isConnected && !host() && !host('reply-fixed'));
+  owner.click(oldButton);
+  assert.equal(main.calls.length,0);
+  const fresh = body(initial);
+  owner.emit(added(initial,fresh));
+  owner.flush();
+  assert.ok(host()?.nextElementSibling === initial,'new body can use a retained shell');
+  owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+  assert.equal(main.calls.length,1);
+});
+
+test('inline activation cannot follow a moved reply into the replacement transcript', t => {
+  const {doc,main,owner,navigate,initial,start,host,added} = routedReplies(t);
+  start();
+  const controls = host();
+  const replacement = element({tag:'main', parent:doc.body, overflowY:'auto',
+    height:730, scrollTop:500, scrollHeight:4000});
+  main.setAttribute('hidden','');
+  replacement.append(controls,initial);
+  owner.queue(added(replacement,initial));
+  navigate('b');
+  owner.click(controls.shadowRoot.querySelector('button'));
+  assert.equal(replacement.scrollTop,500);
+  assert.equal(main.calls.length,0);
+  owner.flush();
+  assert.ok(!host() && !host('reply-fixed'));
+});
+
+test('a current reply rebinds when the site moves its existing controls with it', t => {
+  const {doc,main,owner,initial,start,host,added} = routedReplies(t);
+  start();
+  const controls = host();
+  const replacement = element({tag:'main', parent:doc.body, overflowY:'auto',
+    height:730, scrollTop:500, scrollHeight:4000});
+  doc.elementFromPoint = () => replacement;
+  main.setAttribute('hidden','');
+  replacement.append(controls,initial);
+  owner.emit(added(replacement,initial));
+  owner.flush();
+  assert.notEqual(host(),controls);
+  assert.equal(host()?.nextElementSibling,initial);
+  assert.ok(host('reply-fixed'));
+  owner.click(host().shadowRoot.querySelector('button'));
+  assert.ok(replacement.calls.length > 0 && replacement.scrollTop !== 500,
+    JSON.stringify({replacement:replacement.calls,old:main.calls}));
+  assert.equal(main.calls.length,0);
+});
+
+test('a former body cannot be reclassified as a shell solely by its new markers', t => {
+  const {main,owner,navigate,shell,body,initial,start,host,added} = routedReplies(t);
+  start();
+  navigate('b');
+  initial.remove();
+  const stale = body(main);
+  owner.queue(added(main,stale));
+  stale.removeAttribute('data-conversation-role');
+  owner.queue({type:'attributes',target:stale,attributeName:'data-conversation-role',
+    oldValue:'assistant',addedNodes:[],removedNodes:[]});
+  stale.setAttribute('data-content-search-unit-key','b:assistant');
+  const inner = body(stale);
+  navigate('c');
+  inner.remove();
+  const fresh = body(stale);
+  owner.emit(added(stale,fresh));
+  owner.flush();
+  assert.ok(!host() && !host('reply-fixed'));
+  stale.remove();
+  const current = shell('c');
+  body(current);
+  owner.emit(added(main,current));
+  owner.flush();
+  owner.click(host('reply-fixed').shadowRoot.querySelector('button'));
+  assert.ok(main.scrollTop < 500);
+});
+
+for (const [order, navigationType, expected, userMarker = 'data-content-search-unit-key', overlap] of [
+  ['reply first', 'replace', true], ['URL first', 'replace', true], ['reply first', 'push', false],
+  ['reply first', 'replace', true, 'data-conversation-role'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'hidden draft'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'temporarily unmarked draft'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'unique draft loses user marker'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'one draft moves with aliases'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'one draft moves before delivery'],
+  ...['separately', 'in a batch', 'before delivery'].flatMap(timing => [
+    ['reply first', 'replace', true, 'data-content-search-unit-key', 'draft moves then first reply ' + timing],
+    ['reply first', 'replace', true, 'data-content-search-unit-key', 'draft moves and rewraps ' + timing],
+    ['reply first', 'replace', true, 'data-content-search-unit-key', 'draft moves twice with reply ' + timing],
+    ['reply first', 'replace', true, 'data-content-search-unit-key', 'draft moves and replaces user body ' + timing],
+    ['reply first', 'replace', true, 'data-content-search-unit-key', 'draft moves after detach, then first reply ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'draft moves after old reply ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'draft moves before reply in abandoned main ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'reply precedes draft ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'reply precedes user role ' + timing],
+    ['reply first', 'replace', true, 'data-content-search-unit-key', 'reply shell marked late ' + timing],
+    ['reply first', 'replace', true, 'data-content-search-unit-key', 'reply body marked late ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'user key restored ' + timing],
+    ['reply first', 'replace', true, 'data-content-search-unit-key', 'user key restored with native ID ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'user body reused for different message ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'user body reused without marker ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'new user ID changed ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'user ID added then changed ' + timing],
+    ['reply first', 'replace', false, 'data-content-search-unit-key', 'user ID changed then restored ' + timing]
+  ]),
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'draft user acquires native message ID'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'foreign reply crosses mains'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'foreign reply crosses mains before delivery'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'user body replaced inside stable turn'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'user body replaced inside stable turn before delivery'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'user body replaced by a different message inside reused turn'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'removed user leaves heading and reply'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'abandoned draft replaced before delivery'],
+  ['reply first', 'replace', true, 'data-content-search-unit-key', 'unrelated'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'competing draft'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'nested competing draft'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'competing draft loses user marker'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'nested competing draft loses user marker'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'competing drafts merge'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'competing drafts merge before delivery'],
+  ['reply first', 'replace', false, 'data-content-search-unit-key', 'competing draft loses user marker before delivery']
+]) test(`homepage first chat: ${order}, history ${navigationType}, user marker ${userMarker}, ${overlap || "no overlap"}`, t => {
+  const {doc, view} = environment();
+  const main = element({tag:'div', parent:doc.body, overflowY:'auto', height:730,
+    scrollTop:500, scrollHeight:4000, attributes:{role:'main'}});
+  doc.documentElement.lang = 'en';
+  doc.createElement = tag => element({tag, connected:false, top:-80, height:24});
+  doc.elementFromPoint = () => main;
+  view.location = {pathname:'/'};
+  view.navigation = {};
+  view.requestAnimationFrame = () => 1;
+  view.cancelAnimationFrame = () => {};
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc, win:view, owner, pinReplies:true,
+    resolveNavigation:() => ({pinReplyNavigation:true}), regionDirections:{top:true, bottom:true}});
+  t.after(() => session.dispose());
+  const changeUrl = () => {
+    view.location.pathname = '/c/first';
+    owner.dispatch(view.navigation, 'currententrychange', {navigationType});
+  };
+  if (order === 'URL first') changeUrl();
+  const userShell = (overlap?.startsWith('user body') || overlap?.includes('replaces user body') ||
+    overlap?.startsWith('new user ID')) ? element({tag:'section',parent:main,
+    attributes:{'data-turn-id':'user-turn-1'}}) : main;
+  const user = element({parent:userShell, height:120, attributes:{
+    ...(userShell !== main ? {'data-message-id':'message-1'} : {}),
+    [userMarker]: userMarker === 'data-conversation-role' ? 'user' : 'draft:user'}});
+  let reply = element({parent:main, contentTop:20, height:2300, attributes:{
+    'data-content-search-unit-key':'draft:assistant', 'data-is-streaming':'true'}});
+  element({parent:reply, height:2200, attributes:{'data-conversation-role':'assistant'}});
+  const deliverBatch = batch => {
+    if (overlap.endsWith('before delivery')) batch.forEach(owner.queue);
+    else if (overlap.endsWith('in a batch')) owner.emit(...batch);
+    else batch.forEach(record => owner.emit(record));
+  };
+  let other, competingUser, staleReply, scrollport = main;
+  const addition = (...nodes) => ({type:'childList',target:main,removedNodes:[],addedNodes:nodes});
+  const initial = addition(userShell === main ? user : userShell, reply);
+  const earlierReply = overlap?.startsWith('reply precedes draft');
+  const lateUser = overlap?.startsWith('reply precedes user role');
+  const lateReply = overlap?.startsWith('reply ') && overlap.includes('marked late');
+  const newIdentity = overlap?.startsWith('new user ID');
+  if (earlierReply) {
+    if (overlap.endsWith('separately')) {
+      user.remove();
+      owner.emit(addition(reply));
+      main.append(user);
+      owner.emit(addition(user));
+    } else deliverBatch([addition(reply), addition(user)]);
+  } else if (lateUser) {
+    user.removeAttribute(userMarker);
+    user.setAttribute('data-message-id','native-1');
+    owner.emit(addition(user));
+    if (overlap.endsWith('separately')) owner.emit(addition(reply));
+    user.setAttribute('data-conversation-role','user');
+    const role = {type:'attributes',target:user,attributeName:'data-conversation-role',oldValue:null,
+      addedNodes:[],removedNodes:[]};
+    deliverBatch(overlap.endsWith('separately') ? [role] : [addition(reply),role]);
+  } else if (lateReply) {
+    const content = reply.querySelector('[data-conversation-role="assistant"]');
+    const shellMarkedLate = overlap.includes('shell');
+    const key = reply.getAttribute(userMarker);
+    content.removeAttribute('data-conversation-role');
+    if (shellMarkedLate) reply.removeAttribute(userMarker);
+    owner.emit(addition(user));
+    if (overlap.endsWith('separately')) owner.emit(addition(reply));
+    const mark = (target,attributeName,value) => {
+      target.setAttribute(attributeName,value);
+      return {type:'attributes',target,attributeName,oldValue:null,addedNodes:[],removedNodes:[]};
+    };
+    const batch = [mark(content,'data-conversation-role','assistant')];
+    if (shellMarkedLate) batch.unshift(mark(reply,userMarker,key));
+    deliverBatch(overlap.endsWith('separately') ? batch : [addition(reply),...batch]);
+  } else if (!newIdentity) {
+    if (overlap?.includes('with native ID')) user.setAttribute('data-message-id','native-1');
+    owner.emit(initial);
+  }
+  if (!lateUser && !lateReply) owner.flush();
+  if (earlierReply || lateUser || lateReply) {}
+  else if (newIdentity) {
+    const change = {type:'attributes',target:user,attributeName:'data-message-id',oldValue:'message-1',addedNodes:[],removedNodes:[]};
+    if (overlap.endsWith('separately')) owner.emit(initial);
+    user.setAttribute('data-message-id','message-2');
+    deliverBatch(overlap.endsWith('separately') ? [change] : [initial,change]);
+  }
+  else if (overlap === 'hidden draft') main.setAttribute('hidden','');
+  else if (overlap === 'temporarily unmarked draft') {
+    main.removeAttribute('role');
+    owner.queue({type:'attributes', target:main, attributeName:'role', oldValue:'main', removedNodes:[], addedNodes:[]});
+  }
+  else if (overlap === 'unique draft loses user marker') {
+    const attr = 'data-content-search-unit-key';
+    user.removeAttribute(attr);
+    owner.queue({type:'attributes', target:user, attributeName:attr, oldValue:'draft:user', removedNodes:[], addedNodes:[]});
+  }
+  else if (overlap?.startsWith('one draft moves')) {
+    const deliver = overlap.endsWith('before delivery') ? owner.queue : owner.emit;
+    const replacement = element({tag:'main', parent:doc.body, overflowY:'auto', height:730,
+      scrollTop:500, scrollHeight:4000});
+    const wrap = element({parent:replacement, attributes:{'data-turn-key':'first'}});
+    wrap.append(user);
+    const alias = element({parent:user, attributes:{'data-message-author-role':'user'}});
+    replacement.append(reply);
+    deliver({type:'childList', target:main, removedNodes:[user,reply], addedNodes:[]});
+    main.remove();
+    deliver({type:'childList', target:doc.body, removedNodes:[main], addedNodes:[replacement]});
+    deliver({type:'childList', target:wrap, removedNodes:[], addedNodes:[user,alias]});
+    scrollport = replacement;
+    doc.elementFromPoint = () => replacement;
+  }
+  else if (overlap?.startsWith('foreign reply crosses mains')) {
+    const deliver = overlap.endsWith('before delivery') ? owner.queue : owner.emit;
+    other = element({tag:'main',parent:doc.body,overflowY:'auto',height:730});
+    staleReply = element({parent:other,contentTop:80,height:2300,
+      attributes:{'data-content-search-unit-key':'old:assistant'}});
+    element({parent:staleReply,height:2100,attributes:{'data-message-author-role':'assistant'}});
+    deliver({type:'childList',target:doc.body,addedNodes:[other],removedNodes:[]});
+    deliver({type:'childList',target:other,addedNodes:[staleReply],removedNodes:[]});
+    main.append(staleReply);
+    deliver({type:'childList',target:other,addedNodes:[],removedNodes:[staleReply]});
+    deliver({type:'childList',target:main,addedNodes:[staleReply],removedNodes:[]});
+  }
+  else if (overlap?.startsWith('draft moves ')) {
+    const destination = element({tag:'main',parent:doc.body,overflowY:'auto',height:730,
+      scrollTop:500,scrollHeight:4000});
+    reply.remove();
+    owner.emit({type:'childList',target:main,addedNodes:[],removedNodes:[reply]});
+    const batch = [];
+    const record = change => overlap.endsWith('separately') ? owner.emit(change) : batch.push(change);
+    const add = (target, node) => record({type:'childList',target,addedNodes:[node],removedNodes:[]});
+    add(doc.body,destination);
+    const detached = overlap.includes('after detach');
+    const draft = userShell === main ? user : userShell;
+    const removeUser = {type:'childList',target:main,addedNodes:[],removedNodes:[draft]};
+    if (detached) {
+      user.remove();
+      owner.emit(removeUser);
+    }
+    const moveUser = () => {
+      destination.append(draft);
+      if (!detached) record(removeUser);
+      add(destination,draft);
+    };
+    const retire = () => {
+      main.remove();
+      record({type:'childList',target:doc.body,addedNodes:[],removedNodes:[main]});
+    };
+    const addReply = (parent = destination) => {
+      reply = element({parent,contentTop:20,height:2300,
+        attributes:{'data-content-search-unit-key':'destination:assistant','data-is-streaming':'true'}});
+      element({parent:reply,height:2200,attributes:{'data-conversation-role':'assistant'}});
+      add(parent,reply);
+    };
+    if (overlap.includes('abandoned main')) {
+      moveUser();
+      addReply(main);
+      destination.append(reply);
+      record({type:'childList',target:main,addedNodes:[],removedNodes:[reply]});
+      add(destination,reply);
+    } else {
+      if (expected) moveUser();
+      if (overlap.includes('replaces user body')) {
+        user.remove();
+        const replacement = element({parent:draft,height:120,attributes:{[userMarker]:'draft:user','data-message-id':'message-1'}});
+        record({type:'childList',target:draft,addedNodes:[replacement],removedNodes:[user]});
+      }
+      addReply();
+      if (!expected) moveUser();
+    }
+    retire();
+    let final = destination;
+    if (overlap.includes('rewraps')) {
+      const wrapper = element({parent:destination});
+      add(destination,wrapper);
+      wrapper.append(user);
+      record({type:'childList',target:destination,addedNodes:[],removedNodes:[user]});
+      add(wrapper,user);
+    } else if (overlap.includes('twice')) {
+      final = element({tag:'main',parent:doc.body,overflowY:'auto',height:730,scrollTop:500,scrollHeight:4000});
+      add(doc.body,final);
+      final.append(user,reply);
+      record({type:'childList',target:destination,addedNodes:[],removedNodes:[user,reply]});
+      record({type:'childList',target:final,addedNodes:[user,reply],removedNodes:[]});
+      destination.remove();
+      record({type:'childList',target:doc.body,addedNodes:[],removedNodes:[destination]});
+    }
+    deliverBatch(batch);
+    scrollport = final;
+    doc.elementFromPoint = () => final;
+  }
+  else if (overlap?.startsWith('user body reused')) {
+    if (overlap.includes('without marker')) {
+      user.removeAttribute(userMarker);
+      owner.emit({type:'attributes',target:user,attributeName:userMarker,oldValue:'draft:user',addedNodes:[],removedNodes:[]});
+    }
+    user.setAttribute('data-message-id','message-2');
+    deliverBatch([{type:'attributes', target:user, attributeName:'data-message-id', oldValue:'message-1',
+      addedNodes:[], removedNodes:[]}]);
+  }
+  else if (overlap === 'draft user acquires native message ID') {
+    user.setAttribute('data-message-id','message-1');
+    owner.emit({type:'attributes',target:user,attributeName:'data-message-id',oldValue:null,addedNodes:[],removedNodes:[]});
+  }
+  else if (overlap?.startsWith('user key restored')) {
+    const set = value => {
+      const oldValue = user.getAttribute(userMarker);
+      user.setAttribute(userMarker,value);
+      return {type:'attributes',target:user,attributeName:userMarker,oldValue,addedNodes:[],removedNodes:[]};
+    };
+    if (overlap.endsWith('separately')) {
+      owner.emit(set('other:user'));
+      owner.emit(set('draft:user'));
+    } else deliverBatch([set('other:user'),set('draft:user')]);
+  }
+  else if (overlap?.startsWith('user ID ')) {
+    const attr = 'data-message-id';
+    const set = value => {
+      const oldValue = user.getAttribute(attr);
+      user.setAttribute(attr,value);
+      return {type:'attributes',target:user,attributeName:attr,oldValue,addedNodes:[],removedNodes:[]};
+    };
+    const restored = overlap.includes('restored');
+    if (restored) owner.emit(set('message-1'));
+    if (overlap.endsWith('separately')) {
+      owner.emit(set(restored ? 'message-2' : 'message-1'));
+      owner.emit(set(restored ? 'message-1' : 'message-2'));
+    } else deliverBatch([set(restored ? 'message-2' : 'message-1'),set(restored ? 'message-1' : 'message-2')]);
+  }
+  else if (overlap?.startsWith('user body replaced')) {
+    const deliver = overlap.endsWith('before delivery') ? owner.queue : owner.emit;
+    user.remove();
+    const next = element({parent:userShell,height:120,attributes:{
+      [userMarker]:'draft:user','data-message-id':overlap.includes('different message') ? 'message-2' : 'message-1'}});
+    deliver({type:'childList',target:userShell,removedNodes:[user],addedNodes:[next]});
+  }
+  else if (overlap === 'removed user leaves heading and reply') {
+    const heading = element({tag:'h4', parent:main, attributes:{'data-conversation-role':'user'}});
+    owner.emit({type:'childList', target:main, removedNodes:[], addedNodes:[heading]});
+    user.remove();
+    owner.emit({type:'childList', target:main, removedNodes:[user], addedNodes:[]});
+  }
+  else if (overlap === 'abandoned draft replaced before delivery') {
+    user.remove();
+    const old = reply;
+    old.remove();
+    reply = element({parent:main, contentTop:20, height:2300,
+      attributes:{'data-content-search-unit-key':'unrelated:assistant','data-is-streaming':'true'}});
+    element({parent:reply, height:2200, attributes:{'data-conversation-role':'assistant'}});
+    owner.queue({type:'childList', target:main, removedNodes:[user,old], addedNodes:[reply]});
+  }
+  else if (overlap) {
+    const parent = overlap.startsWith('nested') ? main : doc.body;
+    other = element({tag:'main', parent, overflowY:'auto', height:730, scrollHeight:4000});
+    const markerLost = overlap.includes('loses user marker');
+    const turn = element({parent:other, height:120, attributes:markerLost ? {'data-conversation-role':'user'} :
+      {'data-content-search-unit-key':overlap.includes('competing draft') ? 'competing:user' : 'unrelated:assistant'}});
+    const appear = {type:'childList', target:parent, removedNodes:[], addedNodes:[other]};
+    const deliver = overlap.endsWith('before delivery') ? owner.queue : owner.emit;
+    deliver(appear);
+    if (markerLost) {
+      competingUser = turn;
+      turn.removeAttribute('data-conversation-role');
+      owner.queue({type:'attributes', target:turn, attributeName:'data-conversation-role', oldValue:'user', removedNodes:[], addedNodes:[]});
+    }
+    if (overlap.startsWith('competing drafts merge')) {
+      const peer = element({parent:other, contentTop:35, height:2200, attributes:{'data-content-search-unit-key':'competing:assistant'}});
+      element({parent:peer, height:2100, attributes:{'data-conversation-role':'assistant'}});
+      deliver({type:'childList', target:other, removedNodes:[], addedNodes:[turn,peer]});
+      main.removeAttribute('role');
+      deliver({type:'attributes', target:main, attributeName:'role', oldValue:'main', removedNodes:[], addedNodes:[]});
+      main.append(turn,peer);
+      deliver({type:'childList', target:other, removedNodes:[turn,peer], addedNodes:[]});
+      deliver({type:'childList', target:main, removedNodes:[], addedNodes:[turn,peer]});
+    }
+    assert.ok(turn.isConnected);
+  }
+  if (order === 'reply first') changeUrl();
+  competingUser?.setAttribute('data-conversation-role','user');
+  main.removeAttribute('hidden');
+  main.setAttribute('role','main');
+  other?.setAttribute('hidden','');
+  reply.setAttribute('data-is-streaming','false');
+  owner.emit({type:'attributes', target:reply, attributeName:'data-is-streaming', removedNodes:[], addedNodes:[]});
+  owner.flush();
+  const inline = doc.querySelector('[data-opendesk-ai-scroll-navigation="reply"]');
+  const fixed = doc.querySelector('[data-opendesk-ai-scroll-navigation="reply-fixed"]');
+  assert.equal(Boolean(inline && fixed), expected);
+  if (expected) {
+    assert.equal(inline.nextElementSibling, reply);
+    if (staleReply) assert.ok(!doc.querySelectorAll('[data-opendesk-ai-scroll-navigation="reply"]')
+      .some(host=>host.nextElementSibling === staleReply),'a foreign assistant turn cannot gain navigation after moving');
+    owner.click(fixed.shadowRoot.querySelector('button'));
+    assert.equal(scrollport.calls.length, 1, 'the first reply can be reached after the URL change');
+  } else {
+    assert.ok(!inline && !fixed, 'an unproven handoff does not adopt a draft');
+    assert.equal(scrollport.scrollTop,500);
+    const fresh = element({parent:scrollport, contentTop:20, height:2200, attributes:{'data-content-search-unit-key':'fresh:assistant'}});
+    element({parent:fresh, height:2100, attributes:{'data-conversation-role':'assistant'}});
+    owner.emit({type:'childList', target:scrollport, removedNodes:[], addedNodes:[fresh]});
+    owner.flush();
+    assert.equal(doc.querySelector('[data-opendesk-ai-scroll-navigation="reply"]')?.nextElementSibling,fresh);
+    const freshPin = doc.querySelector('[data-opendesk-ai-scroll-navigation="reply-fixed"]');
+    assert.ok(freshPin);
+    owner.click(freshPin.shadowRoot.querySelector('button'));
+    assert.ok(scrollport.scrollTop < 500);
+  }
 });
 
 test('natural-height editable writing block uses its local Chinese action and outer scrollport', () => {

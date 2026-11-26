@@ -1,13 +1,12 @@
-// Managed Shadow DOM UI; native composers retain ownership of their editors.
 const path=d=>['path',{d}];
 const ICON={send:[path('M12 19V5m-6 6 6-6 6 6')],
   now:[path('M12 19V5m-6 6 6-6 6 6M4 20h16')],
   pause:[6,14].map(x=>['rect',{x,y:4,width:4,height:16,rx:1}]),
   resume:[path('M8 5v14l11-7Z')],
   edit:[path('M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z')],
+  copy:[['rect',{x:8,y:8,width:12,height:12,rx:2}],path('M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2')],
   status:[['circle',{cx:12,cy:12,r:9}],path('M12 7v6m0 4h.01')],
   remove:[path('M18 6 6 18M6 6l12 12')]};
-// Crown artwork is a declared, packaged transparent WebP (assets/queue.css).
 function element(doc,tag,cls,text){
   const node=doc.createElement(tag);if(cls)node.className=cls;
   if(text!==undefined)node.textContent=text;return node;
@@ -79,7 +78,6 @@ function fitCrown(button,arrow,crown,toolbar,win){
     }
     if(node===toolbar.ownerDocument.body)break;
   }
-  // Keep the decoration inside clipping ancestors, leaving room for its rotation.
   // If headroom is tight, contain the artwork above the arrow instead of moving the button.
   if(Number.isFinite(clipTop)){
     const top=clipTop+1;
@@ -109,8 +107,7 @@ function geminiSurface(form,win){
   return rect&&topSpan(rect,win.getComputedStyle(form));
 }
 function composerSurface(editor,nativeButton,form,win){
-  // site.inspect() exposes editor, not composer. Transparent layout wrappers
-  // and rounded editor-only shells are not the shared visible input surface.
+  // Skip transparent wrappers and editor-only shells when finding the input surface.
   const input=editorViewport(editor,form,win),button=visibleRect(nativeButton,win);
   if(!input||!button||!form.contains(editor))return null;
   const encloses=(outer,inner)=>inner.left>=outer.left-1&&inner.right<=outer.right+1&&
@@ -147,12 +144,18 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     throw new Error('Packaged Send Queue crown image is missing or invalid');
   const buttonCss=css.replace(imageRef,packagedImageRef);
   let list=null,button=null,root=null,blue=null,arrow=null,crown=null,toastNode=null,toastToken=0;
+  let errorNotice=null;
   let awaitingConversation=false;
   let lastSignature='',recoveryText=null,recoveryReason='';
   let cacheWarning='',cacheNotice=null,copyingBackup=false;
   let expandedScrollTop=0;
   const nativeStyles=new Map();
   let geminiLayout=false;
+  async function writeClipboard(text){
+    const clipboard=doc.defaultView.navigator?.clipboard;
+    if(!clipboard?.writeText)throw Error('clipboard unavailable');
+    await clipboard.writeText(text);
+  }
   function reset(){
     for(const prop of ['margin-left','margin-bottom'])list?.host.style.removeProperty(prop);
     root?.style.removeProperty('--sq-surface-radius');
@@ -215,12 +218,13 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       });
     }
     if(!button?.active()){
+      errorNotice=null;
       button=createPageUI({id:'opendesk.chatgpt-send-queue.button',assets,baseStyles:false});
       button.addStyle(buttonCss);
       blue=element(doc,'button','sq-send');
-      blue.type='button';blue.setAttribute('aria-label','当前草稿加入发送队列');
+      blue.type='button';blue.setAttribute('aria-label','加入队列或发送待发消息');
       blue.setAttribute('aria-keyshortcuts','Control+Enter');
-      blue.title='加入发送队列 · Ctrl + Enter；Shift 点击可暂停入队';
+      blue.title='有草稿时加入发送队列 · Ctrl + Enter；空输入框时继续发送队列；Shift 点击可暂停入队';
       crown=element(doc,'span','sq-crown');
       crown.setAttribute('aria-hidden','true');
       arrow=svg(doc,ICON.send);
@@ -231,12 +235,27 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       button.content.append(toastNode);
       button.host.style.setProperty('display','none','important');
       button.on(blue,'click',event=>{
-        if(!trustedActions||event.isTrusted===true)actions.enqueue({paused:event.shiftKey===true});
+        if(!trustedActions||event.isTrusted===true){
+          if(event.shiftKey)actions.enqueue({paused:true});
+          else actions.enqueue({sendQueuedIfEmpty:true});
+        }
       });
-      // Recovery content is transient and never auto-enqueued or auto-sent.
-      // Clipboard access happens only after an explicit user gesture.
       button.on(toastNode,'click',async event=>{
         if(trustedActions&&event.isTrusted!==true)return;
+        const copy=event.target.closest?.('button[data-action="copy"]');
+        if(copy?.dataset.action==='copy'){
+          if(copy!==errorNotice?.copy||copy.disabled||toastNode.hidden)return;
+          event.stopPropagation();
+          const notice=errorNotice;
+          copy.disabled=true;
+          try{
+            await writeClipboard(notice.message);
+            if(notice===errorNotice&&button?.active())notice.receipt.textContent='已复制错误信息';
+          }catch{
+            if(notice===errorNotice&&button?.active())notice.receipt.textContent='无法访问剪贴板，可选中文字手动复制';
+          }finally{copy.disabled=false;}
+          return;
+        }
         const target=event.target.closest?.('button[data-recovery]');
         if(!target||recoveryText===null||currentRoute&&maskRows())return;
         event.stopPropagation();
@@ -247,9 +266,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
         if(target.dataset.recovery!=='copy')return;
         const original=recoveryText;
         try{
-          const clipboard=doc.defaultView.navigator?.clipboard;
-          if(!clipboard?.writeText)throw Error('clipboard unavailable');
-          await clipboard.writeText(original);
+          await writeClipboard(original);
           if(recoveryText!==original)return;
           completeRecovery();
           toast('原草稿已复制；输入框清空且回复结束后队列自动继续');
@@ -272,6 +289,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
   }
   function showRecovery(){
     if(recoveryText===null||!toastNode)return;
+    errorNotice=null;
     const copy=element(doc,'button','sq-more','复制备份原文');
     copy.type='button';copy.dataset.recovery='copy';
     copy.setAttribute('aria-label','复制需要人工核对的原始草稿备份');
@@ -291,14 +309,30 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     ensure();recoveryText=text;recoveryReason=reason;
     onRecoveryChange();showRecovery();return true;
   }
-  function toast(message,{variant='info',duration=3000}={}){
+  function clearError(message){
+    if(!errorNotice||(message!==undefined&&message!==errorNotice.message))return;
+    errorNotice=null;
+    toastNode.replaceChildren();toastNode.hidden=true;
+  }
+  function toast(message,{variant='info',duration=3000,copyable=false}={}){
     if(typeof owner.active==='function'&&!owner.active())return;
+    if(copyable&&button?.active()&&recoveryText===null){
+      const copy=action(doc,'copy','复制错误信息');
+      copy.className='sq-action sq-error-copy';
+      const receipt=element(doc,'div','sq-error-receipt');receipt.setAttribute('role','status');
+      const row=element(doc,'div','sq-error-row');
+      row.append(element(doc,'span','sq-error-text',message),copy);
+      toastToken++;
+      errorNotice={message,copy,receipt};
+      toastNode.replaceChildren(row,receipt);toastNode.hidden=false;
+      return;
+    }
     // Page USER_SCRIPT uses its public Page UI, independently of the sidebar.
     // Keep the local status as a compatibility fallback, never a native dialog.
     if(typeof owner.toast==='function'){
       try{owner.toast({message,variant,duration,position:'top'});return;}catch{}
     }
-    if(!toastNode||recoveryText!==null)return;
+    if(!toastNode||recoveryText!==null||errorNotice)return;
     toastNode.textContent=message;toastNode.hidden=false;
     const id=++toastToken;
     owner.setTimeout(()=>{if(id===toastToken&&toastNode)toastNode.hidden=true;},3000);
@@ -347,9 +381,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     if(!text){syncBackup();return;}
     copyingBackup=true;trigger.disabled=true;
     try{
-      const clipboard=doc.defaultView.navigator?.clipboard;
-      if(!clipboard?.writeText)throw Error('clipboard unavailable');
-      await clipboard.writeText(text);
+      await writeClipboard(text);
       if(list?.active()&&notice===cacheNotice)toast('已复制备份',{variant:'success'});
     }catch{
       if(!list?.active()||notice!==cacheNotice)return;
@@ -372,7 +404,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     if(!list?.active()||!button?.active())return;
     if(currentRoute&&!currentRoute()){hide();return;}
     appendCacheWarning();syncBackup(snapshot);
-    // A different composer must never show the queue held for the previous route.
     const state=engine.view(),masked=maskRows(state),items=masked?[]:state.items;
     if(currentRoute&&recoveryText!==null)toastNode.hidden=masked;
     const previousRows=[...root.children].find(node=>node.className==='sq-rows');
@@ -500,7 +531,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
         set(trailing,{'min-width':'0','max-width':'100%','flex-wrap':'wrap','justify-content':'flex-end',
           'justify-self':'end'});
       }else{
-        // Small composers can't fit every native control and the crown on one line.
         const narrow=grid.getBoundingClientRect().width<300;
         set(grid,{'grid-template-columns':'minmax(0,1fr) minmax(0,max-content)',
           'grid-template-rows':narrow?'auto auto auto':'auto auto'});
@@ -533,7 +563,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     const toolbar=snap.placement?snap.placement.toolbar:native?.parentElement;
     if(!native?.isConnected||!toolbar?.isConnected||!snap.form.contains(toolbar)||
       toolbar.contains(snap.editor)||native===toolbar||!toolbar.contains(native))return null;
-    // Treat a native wrapper and a direct button as the same kind of toolbar slot.
     let anchor=native;
     while(anchor.parentElement!==toolbar)anchor=anchor.parentElement;
     return {native,anchor,toolbar};
@@ -570,7 +599,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     if(!prior||!input)return fail();
     const controls=[...form.querySelectorAll(snap.placement?.controls||'button')]
       .map(node=>[node,visibleRect(node,win)]).filter(([,rect])=>rect);
-    // Use layout dimensions so the site's transient button animations don't resize ours.
     const width=native.offsetWidth,height=native.offsetHeight;
     if(!(width>0&&height>0))return fail();
     ensure();
@@ -635,6 +663,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       !!visibleRect(button.host,win)&&!!editorViewport(snap.editor,snap.form,win);
   }
   owner.onDispose(destroy);
-  return Object.freeze({place,render,hide,toast,setCacheWarning,offerRecovery,hasRecovery,isPlaced,
+  return Object.freeze({place,render,hide,toast,clearError,setCacheWarning,offerRecovery,hasRecovery,isPlaced,
     recovery:()=>recoveryText===null?null:{text:recoveryText},destroy});
 }

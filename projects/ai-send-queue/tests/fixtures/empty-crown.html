@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>AI Send Queue empty composer check</title>
+<style>
+  body { font: 16px sans-serif; margin: 30px; }
+  section { width: min(640px, 100%); }
+  form { padding: 16px; border: 1px solid #555; border-radius: 20px; }
+  textarea { box-sizing: border-box; width: 100%; height: 70px; }
+  .toolbar { display: flex; justify-content: end; align-items: center; }
+  #native-send { width: 36px; height: 36px; border-radius: 50%; }
+</style>
+<p>Local queue UI with a simulated conversation and native send receipt.</p>
+<div id="history"></div>
+<section><form>
+  <textarea id="prompt-textarea" aria-label="Native composer"></textarea>
+  <div class="toolbar"><button type="button" id="native-send" data-testid="send-button" aria-label="Send">↑</button></div>
+</form></section>
+<script type="module">
+  import {createPageUI} from '../../../../src/scripting/user-scripts/page-ui.js';
+
+  const route='/c/empty-crown-fixture';
+  const locationStub=new URL('https://chatgpt.com'+route);
+  const win=new EventTarget();
+  Object.assign(win,{location:locationStub,top:win,HTMLTextAreaElement,HTMLInputElement,InputEvent,
+    getComputedStyle:node=>getComputedStyle(node)});
+  let time=Date.now(),poll,activeReply;
+  Date.now=()=>time;
+  const editor=document.querySelector('textarea'),native=document.querySelector('#native-send');
+  let stopClicks=0;
+  const sends=[];
+  function setBusy(busy){
+    native.dataset.testid=busy?'stop-button':'send-button';
+    native.setAttribute('aria-label',busy?'Stop':'Send');
+    if(activeReply)activeReply.dataset.talvtTurnState=busy?'in_progress':'complete';
+  }
+  function startReply(text){
+    const user=document.createElement('div'),reply=document.createElement('div');
+    user.dataset.messageAuthorRole='user';user.textContent=text;
+    reply.dataset.messageAuthorRole='assistant';reply.textContent='Local reply';
+    document.querySelector('#history').append(user,reply);activeReply=reply;setBusy(true);
+  }
+  native.addEventListener('click',()=>{
+    if(native.dataset.testid==='stop-button'){stopClicks++;return;}
+    const text=editor.value;sends.push(text);editor.value='';startReply(text);
+    if(locationStub.pathname==='/')locationStub.pathname=route;
+  });
+  const pageUI=({pageRules,...options})=>{
+    // Only the fixture substitutes the site URL and drives the timer explicitly.
+    const ui=createPageUI(options);
+    return {...ui,setInterval(callback,ms){if(ms===650)poll=callback;}};
+  };
+  const fixture=globalThis.emptyCrownFixture={win,pageUI,
+    go(path){locationStub.pathname=path;return poll();},
+    startReply,finishReply(){setBusy(false);},
+    advance(ms){time+=ms;},poll(){return poll();},
+    state(){
+      const list=document.querySelector('[data-od-id$="send-queue.list"]')?.shadowRoot;
+      const toast=document.__opendeskPageToastV1?.text;
+      return {draft:editor.value,sends:[...sends],stopClicks,checks:fixture.runtime?.diagnostics.checks,
+        rows:[...list?.querySelectorAll('.sq-row')||[]].map(row=>({text:row.querySelector('.sq-text').textContent,
+          paused:row.classList.contains('sq-paused')})),toast:toast?.textContent||''};
+    }};
+  const mainURL=new URL('../../src/page/main.js',location.href);
+  const source=(await (await fetch(mainURL)).text())
+    .replace("import {createPageUI} from '@opendesk/ui';",'const {win:window,pageUI:createPageUI}=globalThis.emptyCrownFixture;\n'+
+      'const createChatGPTSite=options=>chatGPTSite({...options,win:window});')
+    .replace('import {createChatGPTSite,','import {createChatGPTSite as chatGPTSite,')
+    .replace(/from '(\.\/[^']+)'/g,(_,path)=>'from '+JSON.stringify(new URL(path,mainURL).href));
+  const entryURL=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));
+  const css=await (await fetch('../../assets/queue.css')).text();
+  const file=await (await fetch('../../assets/crown-premium.webp')).arrayBuffer();
+  const crown='data:image/webp;base64,'+btoa(String.fromCharCode(...new Uint8Array(file)));
+  try{
+    const {runQueue}=await import(entryURL);
+    const sessionKey='opendesk.ai-send-queue.session.v1:'+route.slice(1);
+    sessionStorage.removeItem(sessionKey); // Only the local fixture key.
+    fixture.runtime=await runQueue({assets:{'assets/queue.css':{kind:'css',text:css},
+      'assets/crown-premium.webp':{kind:'image',url:crown}},
+      fixed:{authorize:async()=>true,own(){}}});
+    fixture.ready=true;
+  }finally{URL.revokeObjectURL(entryURL);}
+</script>

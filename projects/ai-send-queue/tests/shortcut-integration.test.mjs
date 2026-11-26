@@ -29,7 +29,7 @@ async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',fa
   function button(kind){
     return {isConnected:true,disabled:false,closest:()=>null,getClientRects:()=>[{}],
       getAttribute:n=>n==='data-testid'?kind+'-button':null,matches:()=>false,
-      click(){if(kind==='send')sent.push(editor.value);}};
+    click(){if(kind==='send'){sent.push(editor.value);state.onSend?.();}}};
   }
   const send=button('send'),stop=button('stop');
   const form={isConnected:true,hasAttribute:()=>false,
@@ -89,7 +89,7 @@ async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',fa
           return a<0||b<0?1:b>a?4:2;
         }};
       const assistant={isConnected:true,parentElement:null,complete:false,
-        closest(){return this;},
+        closest(selector){return selector==='[data-talvt-turn-state]'?this:null;},
         getAttribute:n=>n==='data-talvt-turn-state'?(assistant.complete?'complete':'in_progress'):null,
         hasAttribute:n=>n==='data-talvt-turn-state',matches:()=>false,querySelector:()=>null};
       users.push(user);assistants.push(assistant);history.push(user,assistant);
@@ -758,13 +758,13 @@ test('a change render failure cannot strand a prepared flight or discard its com
 
 
 for(const route of ['', 'g/g-p-12345678-my-project-slug/project']){
-  for(const entrance of ['shortcut','crown']){
+  for(const entrance of ['shortcut','paused crown',...(route?['crown']:[])]){
     test(`new conversation /${route} rejects queueing through ${entrance} without taking the draft`,async()=>{
       const h=await fixture({route}),text='  首条原生草稿🙂\n保留末行\n';
       h.edit(text);
       if(entrance==='shortcut'){
         const event=h.key();assert.equal(event.prevented,true);assert.equal(event.stopped,true);
-      }else h.actions.enqueue();
+      }else h.actions.enqueue(entrance==='crown'?{sendQueuedIfEmpty:true}:{paused:true});
       assert.equal(h.toasts.at(-1),'当前对话暂不能加入队列');
       for(const t of [1000,10000,30000])h.step(t);
       assert.equal(h.editor.value,text);
@@ -812,3 +812,43 @@ for(const route of ['', 'g/g-p-12345678-my-project-slug/project']){
     assert.deepEqual([...h.storage.entries.keys()],[key]);
   });
 }
+
+test('ChatGPT home crown submits the native draft once and gates FIFO on the first reply',async()=>{
+  const h=await fixture({route:''}), opts={sendQueuedIfEmpty:true};
+  h.edit('first');
+  h.state.onSend=()=>assert.equal(h.actions.enqueue(opts),false,'reentry must be locked before native click');
+  assert.equal(h.actions.enqueue(opts),true);
+  h.state.onSend=null;
+  assert.equal(h.actions.enqueue(opts),false);
+  assert.equal(h.engine.view().items.length,0);
+  assert.equal(h.clears,0);
+  assert.equal(h.storage.entries.size,0);
+  h.admit('first');h.win.location.pathname='/c/87654321';h.poll();
+  assert.ok(h.engine.view().answerGate);
+  queue(h,'second');queue(h,'third');
+  h.step(3500);
+  assert.deepEqual(h.sent,['first']);
+  assert.deepEqual(h.engine.view().items.map(item=>item.text),['second','third']);
+  h.finishReply();h.step(4000);h.step(5200);h.step(6400);h.step(7050);
+  assert.deepEqual(h.sent,['first','second']);
+});
+
+test('an unknown first send neither replays nor unlocks on an unrelated conversation',async()=>{
+  const h=await fixture({route:''}), opts={sendQueuedIfEmpty:true};
+  h.edit('first');assert.equal(h.actions.enqueue(opts),true);
+  h.step(16000);assert.match(h.toasts.at(-1),/不会自动重发/);
+  assert.equal(h.actions.enqueue(opts),false);
+  h.admit('unrelated');h.win.location.pathname='/c/87654321';h.poll();
+  h.edit('new draft');assert.equal(h.actions.enqueue(opts),false);
+  assert.deepEqual(h.sent,['first']);assert.equal(h.editor.value,'new draft');
+});
+
+test('a blocked first send keeps the native draft and permits a fresh click when ready',async()=>{
+  const h=await fixture({route:'',busy:true}),opts={sendQueuedIfEmpty:true};
+  h.edit('first');assert.equal(h.actions.enqueue(opts),false);
+  assert.equal(h.editor.value,'first');assert.deepEqual(h.sent,[]);
+  h.finishReply();h.composition('compositionstart');assert.equal(h.actions.enqueue(opts),false);
+  h.composition('compositionend');assert.equal(h.actions.enqueue(opts),false);
+  h.step(101);assert.equal(h.actions.enqueue(opts),true);
+  assert.deepEqual(h.sent,['first']);
+});

@@ -62,6 +62,28 @@ function pasteEditorFixture(){
   return {...f,setText,get commands(){return commands;}};
 }
 
+test('ChatGPT New Chat ignores the dormant transcript and binds first send to the new one',()=>{
+  const {site,state,editor,win}=fixture();
+  const rendered=shown=>({isConnected:true,closest:()=>null,getClientRects:()=>shown?[{}]:[],
+    getBoundingClientRect:()=>({width:shown?300:0})});
+  const dormant=rendered(false),active=rendered(true);
+  const turn=(text,transcript,shown)=>({...rendered(shown),
+    closest:selector=>selector==='[data-rail-chat-transcript]'?transcript:null,
+    querySelector:()=>null,innerText:text});
+  const oldUser=turn('previous question',dormant,false),oldReply=turn('previous reply',dormant,false);
+  const unexpected=turn('current history',active,true);
+  win.location.pathname='/';editor.current='first message';
+  state.users=[oldUser,unexpected];state.assistants=[oldReply];
+  assert.equal(site.submitFirst(site.inspect()).reason,'新聊天仍显示会话消息；草稿已保留');
+  assert.equal(editor.value,'first message');assert.equal(state.clicks,0);
+  state.users=[oldUser];
+  const before=site.inspect();
+  assert.equal(site.submitFirst(before).ok,true);assert.equal(state.clicks,1);
+  win.location.pathname='/c/87654321';
+  state.users.push(turn('first message',active,true));
+  assert.equal(site.firstAdmission(before,site.inspect()).route,'c/87654321');
+});
+
 test('contenteditable writes one exact plaintext paste without touching the clipboard or native blocks',()=>{
   const f=pasteEditorFixture(),text='  <script>literal</script>🙂\n\n```js\ncode();\n```\n';
   let event;
@@ -96,7 +118,8 @@ test('native stop clicks once but does not imply that generation has stopped',()
 function interruptedTurn(f){
   const turn={getAttribute:name=>name==='data-talvt-turn-state'?'in_progress':null,
     hasAttribute:name=>name==='data-talvt-turn-state',querySelector:()=>null};
-  const assistant={isConnected:true,parentElement:null,closest:()=>turn,
+  const assistant={isConnected:true,parentElement:null,
+    closest:selector=>selector==='[data-talvt-turn-state]'?turn:null,
     matches:()=>!!f.state.streaming,querySelector:()=>null};
   const user={isConnected:true,parentElement:null,compareDocumentPosition:()=>4};
   f.state.users=[user];f.state.assistants=[assistant];f.state.history=[user,assistant];

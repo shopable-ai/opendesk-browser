@@ -2,7 +2,7 @@ import * as React from 'react';
 import {DevelopField,useDevelop,DevelopIcon} from './develop-controls.tsx';
 
 // JSX-only region: the trusted DevelopProvider remains in DeveloperPage.
-export function DevelopExecution({section='editor',children}={}){
+export function DevelopExecution({section='editor',children,offline=false}={}){
   const {model,snapshot}=useDevelop();
   const resultAvailable=!snapshot.fields['script-copy-result'].disabled;
   const taskState=snapshot.fields['script-task-status'].data.state;
@@ -15,7 +15,7 @@ export function DevelopExecution({section='editor',children}={}){
     !snapshot.fields['script-user-scripts-recovery'].hidden;
   return <div className="developer-output od-stack" hidden={!showArea}>
         <div className="developer-run-area od-stack" hidden={!showArea}>
-          <div hidden={section==='diagnostics'}><DevelopField as="div" id="script-user-scripts-recovery" className="developer-execution-help od-alert od-alert--warning" data-state="blocked">
+          {!offline&&<div hidden={section==='diagnostics'}><DevelopField as="div" id="script-user-scripts-recovery" className="developer-execution-help od-alert od-alert--warning" data-state="blocked">
             <DevelopField as="p" id="script-user-scripts-recovery-status" role="status" aria-live="polite">
             </DevelopField>
             <div className="developer-execution-help-actions">
@@ -26,18 +26,18 @@ export function DevelopExecution({section='editor',children}={}){
                 {"重新检测"}
               </DevelopField>
             </div>
-          </DevelopField></div>
-          {section==='editor'&&unknown&&<button type="button" id="developer-unknown-history" className="od-button od-button--quiet"
+          </DevelopField></div>}
+          {!offline&&section==='editor'&&unknown&&<button type="button" id="developer-unknown-history" className="od-button od-button--quiet"
             onClick={()=>model.actions['developer-unknown-history']?.(snapshot.fields['script-task-status'].data.runId)}>查看原运行记录</button>}
           <div hidden={!['editor','history','diagnostics'].includes(section)}>
             <DevelopField as="section" id="developer-results-panel" className="developer-results" aria-label="运行结果">
               <div className="developer-result-head"><h2>{section==='editor'?'运行结果':'所选运行结果'}</h2>
                 <DevelopField as="span" id="script-result-kind" className="hint">尚无结果</DevelopField>
-                <span hidden={!resultAvailable}>
+                {!offline&&<span hidden={!resultAvailable}>
                   <DevelopField as="button" type="button" id="script-copy-result" className="od-icon-button od-icon-button--quiet" title="复制运行结果" aria-label="复制运行结果">
                     <DevelopIcon name="copy"/>
                   </DevelopField>
-                </span>
+                </span>}
               </div>
               <div className="developer-results-body">
                 <DevelopField as="pre" id="script-result" data-opendesk-react-owner="developer-result" aria-label="脚本返回值" className="od-result">尚无结果</DevelopField>

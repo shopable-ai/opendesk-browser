@@ -122,7 +122,7 @@ function MyTaskWorkspace({view}){
 </div>
 </MyControl>);}
 
-export function MyTasksPage({view,agent=null,hidden=false}){
+export function MyTasksPage({view,agent=null,hidden=false,offline=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const addHeading=React.useRef(null);
   const addOpen=!hidden&&!view.field('my-task-surface').hidden&&!view.field('task-add-menu').hidden;
@@ -146,7 +146,7 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 <circle cx="8" cy="17" r="3"/>
 </svg>
 </MyControl>
-<MyControl view={view} as="button" id="schedule-open" onClick={event=>view.actions.scheduleOpenClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel">
+{!offline&&<><MyControl view={view} as="button" id="schedule-open" onClick={event=>view.actions.scheduleOpenClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <circle cx="12" cy="12" r="9"/>
 <path d="M12 7v5l3 2"/>
@@ -157,6 +157,7 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 <path d="M12 5v14M5 12h14"/>
 </svg>
 </MyControl>
+</>}
 </div>
 </div>
 <MyControl view={view} as="section" id="task-add-menu" className="task-add-menu od-surface" aria-labelledby="task-add-title"

@@ -158,7 +158,8 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       checking=false;
     }
   }
-  return {runHostIdle:developmentRunHostIdle,get held(){return held;},get nativePending(){return nativePending;},nativeStarted(){nativePending++;return ()=>nativePending--;},
+  return {runHostIdle:developmentRunHostIdle,get held(){return held;},get appliedRevision(){return applied?.revision;},
+    get nativePending(){return nativePending;},nativeStarted(){nativePending++;return ()=>nativePending--;},
     tryStartPageBootstrap(){if(reloading)return false;pageBootstrapVersion++;return true;},
     start(canReload){checkIdle=canReload;tick();timer=setInterval(tick,intervalMs);},
     dispose(){clearInterval(timer);detailObservation.dispose();api.runtime.onConnect.removeListener(connect);for(const {port} of ports.values())port.disconnect();ports.clear();}};

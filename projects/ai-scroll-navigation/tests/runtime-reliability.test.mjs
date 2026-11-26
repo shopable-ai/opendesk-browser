@@ -6,7 +6,8 @@ import {installScrollSiteRuntime,resolveConfiguredConversation} from '../src/sit
 import {installFloatingNavigation} from '../src/floating-navigation.js';
 
 const flags=Object.freeze({regionTop:false,regionBottom:false,
-  conversationTop:false,conversationBottom:false,floatingTop:false,turnPaging:false,showTurnCount:false});
+  conversationTop:false,conversationBottom:false,floatingTop:false,turnPaging:false,showTurnCount:false,
+  pinReplyNavigation:false});
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(){
   const {document:doc,window}=parseHTML('<html><body><main id="thread" data-ready="yes"><article data-testid="conversation-turn-1">First</article><article data-testid="conversation-turn-2">Last</article></main></body></html>');

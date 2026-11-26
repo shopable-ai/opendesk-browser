@@ -40,7 +40,8 @@ const baiduRunPresentation=(row,info)=>Boolean(matchesBaiduRelease(row,info,baid
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
   document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,
   isAppDebugAllowed=()=>false,onNavigate,onTabSelected,onTaskInstalled,notify,
-  reactNavigation=null,developerView=null,myView=createMyWorkbenchView({document:doc})}) {
+  reactNavigation=null,developerView=null,myView=createMyWorkbenchView({document:doc}),localCatalog=false,
+  observeManualAttempt=null,isPresentationActive=()=>true}) {
   const get=id=>doc.getElementById(id),ui=id=>myView.field(id);
   // A React Side Panel has no standalone catalog controls. Its installed
   // task snapshot must still load without binding that separate DOM surface.
@@ -73,7 +74,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     return previous&&row?row.manifest.siteOrigins.filter(origin=>!manifest?.siteOrigins.includes(origin)):[];
   }
   let latestResultDisplay=null;
-  let catalogSurface=false, catalogQuery='', catalogFilter='all', catalogInitialization=null;
+  let catalogSurface=false, catalogQuery='', catalogFilter='all', catalogInitialization=null,localView='tasks';
   let localQuery='', taskManagementMode=false, pendingTaskUninstall=null,taskUninstallTimer=null;
   const unknownUninstalls=new Map();
   const parameterDrafts=new Map();
@@ -186,16 +187,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     };
   }
   async function openPageTaskRequest(requestId){
-    if(disposed||pendingTaskUninstall||sheetBusy||running||working||host.currentRun)return false;
+    if(disposed||!isPresentationActive()||pendingTaskUninstall||sheetBusy||running||working||host.currentRun)return false;
     const sequence=++sheetSequence;
     await client.ready;await refresh(undefined,{skipUnchanged:true});
     const reply=await client.request('readPageTaskRequest',{requestId});
     const request=reply?.request;
-    if(disposed||pendingTaskUninstall||sequence!==sheetSequence)return false;
+    if(disposed||!isPresentationActive()||pendingTaskUninstall||sequence!==sheetSequence)return false;
     if(request?.requestId!==requestId||!request.preparationId||request.target?.mode!=='owned')
       throw {code:'E_OWNER',message:'缺少原网页任务请求'};
     const existing=await inspectPreparation(reply.preparation?.preparationId);
-    if(disposed||pendingTaskUninstall||sequence!==sheetSequence)return false;
+    if(disposed||!isPresentationActive()||pendingTaskUninstall||sequence!==sheetSequence)return false;
     if(existing?.preparation&&existing.preparation.pageRequestId!==requestId)
       throw {code:'E_TASK_BUSY',message:'已有原任务准备占用；请先核对原请求'};
     bindPageApproval(request);
@@ -218,17 +219,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     return true;
   }
   async function refreshPageTaskRequests(){
-    if(disposed||pendingTaskUninstall||pageDiscovery||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun||
+    if(disposed||!isPresentationActive()||pendingTaskUninstall||pageDiscovery||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun||
       typeof client.subscribePageTasks!=='function')return;
     const task=(async()=>{
       const {requests}=await client.request('listPageTaskRequests',{});
-      if(disposed||pendingTaskUninstall||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
+      if(disposed||!isPresentationActive()||pendingTaskUninstall||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
       const source=currentPageTarget?.snapshot;
       const recoveryLocator=requests?.find(row=>sharedPreparation&&!sharedPreparation.runId&&
         row.requestId===sharedPreparation.pageRequestId&&row.preparationId===sharedPreparation.preparationId&&
         !dismissedPageRequests.has(row.requestId));
       const recovery=recoveryLocator?(await client.request('readPageTaskRequest',{requestId:recoveryLocator.requestId}))?.request:null;
-      if(disposed||pendingTaskUninstall||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
+      if(disposed||!isPresentationActive()||pendingTaskUninstall||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
       const request=(recovery?.reprepareAllowed===true&&recovery.requestId===recoveryLocator.requestId&&
         recovery.preparationId===recoveryLocator.preparationId?recovery:null)||requests?.find(row=>['pending-approval','prepared','source-stale'].includes(row.state)&&!dismissedPageRequests.has(row.requestId)&&
         row.pageBinding?.tabId===source?.tabId&&row.pageBinding?.url===source?.url&&
@@ -368,7 +369,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   let updates=null;
   const announce=()=>updates?.postMessage({type:'catalog-changed'});
   const focus=(id,options)=>{
-    myView.publish();queueMicrotask(()=>get(id)?.focus?.(options));
+    myView.publish();queueMicrotask(()=>{if(!disposed&&isPresentationActive())get(id)?.focus?.(options);});
   };
   function registerAction(name,fn){
     const callback=myView.action(fn);myView.actions[name]=callback;
@@ -392,6 +393,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(name==='discover')name='tasks';
     if(name==='debug'&&!debugEnabled||name==='app-debug'&&!isAppDebugAllowed())return false;
     if(!['tasks','workflow','develop','app-debug','tools','cloud','catalog','debug'].includes(name))return;
+    if(localCatalog){
+      if(!['tasks','develop','catalog'].includes(name))return false;
+      catalogSurface=name==='catalog';localView=name;
+    }
     if(name==='catalog'&&!catalogSurface) {
       // Package import and installation live only in a separate full-size
       // extension tab. Sidebar Discover is a view of installed local tasks.
@@ -403,7 +408,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(name!=='tasks')dismissTaskUninstall();
     reactNavigation?.select(name);
     syncRunDock(name);
-    if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
+    if(!localCatalog&&doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
     if(name==='tasks')renderInstalledCards();
     if(name==='debug')onNavigate?.('debug');
     if(name==='cloud')onNavigate?.('cloud');
@@ -414,7 +419,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   // Keep the owning Stop control visible across Sidebar tab changes;
   // do not move or restart the run when the user enters Discover/Developer.
-  function syncRunDock(view=doc.documentElement?.dataset?.opendeskTab) {
+  function syncRunDock(view=localCatalog?localView:doc.documentElement?.dataset?.opendeskTab) {
     syncParamsReset();
     const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
     // Task admission may claim RunHost before start() returns its exact runId.
@@ -485,6 +490,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     myView.publish();
   }
   async function openCatalogTaskReview(taskId,version) {
+    if(localCatalog){
+      // Keep review inside the same scoped client and document. A new tab
+      // would bind the everyday installation and its own authority.
+      await refresh(version?taskId+'@'+version:undefined);
+      if(disposed)return;
+      if(!version)selectTaskReview(taskId);
+      navigate('catalog');
+      return;
+    }
     const url=new URL(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
     url.searchParams.set('taskReviewId',taskId);
     if(version)url.searchParams.set('taskReviewVersion',version);
@@ -574,11 +588,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!reset)rememberParams();
     renderKey=key;
     const schema=row.manifest.paramsSchema,prior=reset?{}:parameterDrafts.get(key)||{};
-    const defaults={};
     const fields=Object.entries(schema.properties).map(([name,rule])=>{
       const control=ui('task-param-'+name),saved=prior[name];
       const hasDefault=Object.hasOwn(rule,'default'),required=schema.required.includes(name);
-      if(reset&&hasDefault)defaults[name]=rule.default;
       control.error='';
       control.omitted=saved?saved.omitted===true:
         !required&&!hasDefault&&(reset||rule.type==='boolean'&&!rule.enum);
@@ -588,9 +600,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return {name,rule,required};
     });
     if(!reset)myView.data.taskParamsMode=prior.$editor?.mode==='json'?'json':'form';
-    // JSON contains declared defaults only; missing required input is still
-    // validated on Run. Form controls keep their existing initial choices.
-    ui('task-params-json').value=reset?JSON.stringify(defaults,null,2):
+    // Reset both editors to the same draft, including empty required controls.
+    // A generated draft can switch editors; Run still validates the schema.
+    ui('task-params-json').value=reset?JSON.stringify(paramsFromForm(schema,{draft:true,mode:'form'}),null,2):
       typeof prior.$editor?.value==='string'?prior.$editor.value:'';
     ui('task-params-json').error='';
     myView.project('taskParams',fields);
@@ -1199,7 +1211,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   // Only a real trusted click is an active attempt; this is telemetry only,
   // never an execution requirement or a permission prompt.
   const reportTaskUsage=(kind,taskId,runId)=>{
-    if(typeof taskId!=='string'||!taskId)return;
+    if(localCatalog||typeof taskId!=='string'||!taskId)return;
     void api.runtime.sendMessage({protocol:'opendesk.analytics.v1',
       kind,event:kind==='event.manual_attempt'?'tool.manual_attempt':'tool.manual_result',
       toolId:'opendesk',channel:'extension',toolIdentity:taskId,
@@ -1212,6 +1224,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return expectedIdentity?false:undefined;
     }
     const writeAuthorization=preparation?sheetAuthorization:null;
+    const attemptId=observeManualAttempt&&expectedIdentity&&!preparation&&!agentIntent?crypto.randomUUID():null;
+    if(attemptId)observeManualAttempt(attemptId,'submitted');
     let chosen,params,site,permission,captured,runTarget,startRequested=false,parameterError=false;
     try {
       chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
@@ -1252,6 +1266,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(targetUrl)]}});
     }catch(error){
+      if(attemptId)observeManualAttempt(attemptId,'rejected-before-dispatch');
       const sheet=myView.data.taskRunSheet;
       if(error.code==='E_REVISION'&&!agentIntent&&!preparation&&sheet?.source==='my'&&
         sameInstallation(sheet.identity,expectedIdentity)){
@@ -1303,7 +1318,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }
       agentStartSubmitted=Boolean(agentIntent);
       startRequested=true;
-      if(control.manual)control.requestId=crypto.randomUUID();
+      if(control.manual)control.requestId=attemptId??crypto.randomUUID();
       const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,
           contentHash:resolved.contentHash},params,expectedTaskGeneration:chosen.generation??null,expectedTaskInstallationId:chosen.installationId??null,
         target:runTarget,
@@ -1963,20 +1978,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected){
     refresh().then(()=>refreshHistory()).catch(fail);void refreshPageTaskRequests().catch(fail);
   }else dismissTaskUninstall();});
-  client.ready.then(async()=>{
+  const ready=client.ready.then(async()=>{
     await restoreParams().catch(error=>console.warn('Task parameter drafts could not be restored',error));
     if(!disposed){await refresh();await inspectPreparation().catch(error=>console.warn('Task preparation recovery unavailable',error));
       await refreshPageTaskRequests();}
-  }).catch(fail);
+  });
+  void ready.catch(fail);
   navigate('tasks',{initial:true});update();
   // Subscribe to cross-document refresh hints only once the instance can be
   // returned and its existing dispose() can own the channel's lifetime.
-  updates=typeof globalThis.BroadcastChannel==='function'
+  updates=!localCatalog&&typeof globalThis.BroadcastChannel==='function'
     ?new globalThis.BroadcastChannel('opendesk-task-catalog-updates-v1'):null;
   updates?.addEventListener?.('message',event=>{
     if(!disposed&&event.data?.type==='catalog-changed')refresh().catch(fail);
   });
-  return {navigate,showCatalogPage,refresh,myView,openTaskRunSheet,openPageTaskRequest,setWorkflowRunOwner(runId) {
+  return {navigate,showCatalogPage,refresh,ready,myView,openTaskRunSheet,openPageTaskRequest,
+    get busy(){return Boolean(working||sheetBusy||running||pageDiscovery);},
+    setWorkflowRunOwner(runId) {
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
     if(!disposed)syncRunDock();

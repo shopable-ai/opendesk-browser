@@ -90,8 +90,10 @@ function unsettledControllerEffect(operation) {
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost,
   loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled,readMediaAsset,withTaskRunRecovery=work=>work(),
   pageTaskSource,projectPageTaskResult}) {
-  const isolatedTransport=createIsolatedHttpTransport({api});
-  const nativeTransport=createNativeHttpTransport({api});
+  // DOM-only controllers do not need browser or Native HTTP resources.
+  // Each factory retains its existing per-API instance and security checks.
+  const isolatedTransport={request:(...args)=>createIsolatedHttpTransport({api}).request(...args)};
+  const nativeTransport={request:(...args)=>createNativeHttpTransport({api}).request(...args)};
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
   const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];

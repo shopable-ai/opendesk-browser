@@ -6,7 +6,7 @@ import {BROWSER_PUBLIC_CONFIG} from '../../../config/browser-config.js';
 import {DevelopPromptButton} from './develop-ai-prompt.tsx';
 
 // Keep the current-page controls and the single editable source projection separate.
-export function DevelopContextHeader(){
+export function DevelopContextHeader({offline=false}={}){
   return (
         <div className="developer-context od-stack">
           <section aria-label="当前网页" className="developer-target">
@@ -26,7 +26,7 @@ export function DevelopContextHeader(){
               </div>
             </DevelopField>
           </section>
-          <DevelopField as="div" id="developer-source-switch" className="developer-source-switch od-toolbar od-page-head" role="group" aria-label="代码来源" data-mode="manual">
+          {!offline&&<DevelopField as="div" id="developer-source-switch" className="developer-source-switch od-toolbar od-page-head" role="group" aria-label="代码来源" data-mode="manual">
             <DevelopField as="span" className="od-page-title" id="developer-source-title">
               {"直接编辑"}
             </DevelopField>
@@ -46,13 +46,13 @@ export function DevelopContextHeader(){
                 </span>
               </label>
             </div>
-          </DevelopField>
+          </DevelopField>}
 
         </div>
   );
 }
 
-export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
+export function DevelopSourceEditor({view,actions,locale='zh-CN',offline=false}){
   const {fields}=React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const framework=fields['page-component-react'].checked?'react':fields['page-component-vue'].checked?'vue':'javascript';
   const page=fields['script-javascript-world'].value==='page';
@@ -73,7 +73,7 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
             </label>
             <DevelopField as="select" id="program-source-files" className="od-field"/>
           </DevelopField>
-          <div className="developer-editor-controls">
+          {!offline&&<div className="developer-editor-controls">
           <DevelopField as="div" id="page-component-editor-tools" className="od-toolbar">
             <DevelopField as="fieldset" id="page-component-framework" aria-describedby="page-component-hint">
               <legend className="visually-hidden">
@@ -105,7 +105,7 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
             <span className="page-component-label">运行位置</span>
             <DevelopWorldChoices/>
           </DevelopField>
-          </div>
+          </div>}
           <div className="developer-source-input">
           <div className="developer-editor-card">
           <div className="developer-editor-head">
@@ -113,7 +113,7 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
               <span className="developer-editor-readonly">{t('readOnly')}</span>
               <span className="developer-editor-filename od-technical" title={filename}>{filename}</span>
             </div>}
-            <div className="developer-editor-actions" role="group" aria-label={t('references')}>
+            {!offline&&<div className="developer-editor-actions" role="group" aria-label={t('references')}>
               <DevelopPromptButton/>
               {reference&&['examples','help'].map(kind=>{
                 const label=t(kind,{mode:referenceMode});
@@ -121,7 +121,7 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
                   href={reference[kind]} target="_blank" rel="noopener noreferrer"
                   title={label} aria-label={label}><DevelopIcon name={kind==='examples'?'code':'help'}/></a>;
               })}
-            </div>
+            </div>}
           </div>
           <DevelopField as="label" htmlFor="script-source" className="visually-hidden" id="developer-source-label">
             {"JavaScript、React JSX 或 Vue SFC 源码编辑器"}
@@ -178,7 +178,7 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
             </div>
           </details>
           </div>
-          <DevelopDependencies view={view} actions={actions}/>
+          {!offline&&<><DevelopDependencies view={view} actions={actions}/>
           <DevelopField as="section" id="page-component-remote" className="od-stack" aria-label="组件 HTTPS 依赖准备">
             <DevelopField as="p" id="page-component-remote-status" role="status" aria-live="polite">
             </DevelopField>
@@ -210,7 +210,7 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
             </summary>
             <DevelopField as="pre" id="program-generated-source">
             </DevelopField>
-          </DevelopField>
+          </DevelopField></>}
         </DevelopField>
 
   </>;

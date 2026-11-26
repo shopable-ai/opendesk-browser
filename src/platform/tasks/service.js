@@ -177,7 +177,8 @@ async function installInTransaction(tx,ns,request,current,clock) {
  * No task is run, no website permission is granted and no native proof is made.
  */
 export async function ensureBuiltinTasks({storage,namespace,environment:current,
-  loadBuiltinTask=loadPackagedTask,clock={now:()=>Date.now()}}) {
+  loadBuiltinTask=loadPackagedTask,clock={now:()=>Date.now()},
+  defaultReleases=BUILTIN_TASK_RELEASES,optionalReleases=OPTIONAL_TASK_RELEASES}) {
   invariant(typeof namespace==='string'&&namespace.length>0,'E_SCHEMA','Task namespace required');
   assertBuiltinIdentity(current,current);
   let initializingTaskId=null;
@@ -190,8 +191,8 @@ export async function ensureBuiltinTasks({storage,namespace,environment:current,
       const priorRows=(await tx.all(TASK_STORE)).filter(row=>row?.namespace===ns);
       const firstTaskInitialization=!priorRows.some(row=>['task-installed-v1',
         'task-candidate-v1','task-builtin-state-v1','task-removed-v1'].includes(row.tag));
-      const defaultIds=new Set(BUILTIN_TASK_RELEASES.map(row=>row.taskId));
-      for(const release of [...BUILTIN_TASK_RELEASES,...OPTIONAL_TASK_RELEASES]){
+      const defaultIds=new Set(defaultReleases.map(row=>row.taskId));
+      for(const release of [...defaultReleases,...optionalReleases]){
         const {taskId,version}=release;
         initializingTaskId=taskId;
         const stateKey=builtinTaskStateKey(ns,taskId);
@@ -280,7 +281,8 @@ export async function ensureBuiltinTasks({storage,namespace,environment:current,
   }
 }
 
-export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinWorkerSource,loadBuiltinTask=loadPackagedTask}) {
+export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinWorkerSource,
+  loadBuiltinTask=loadPackagedTask,defaultReleases,optionalReleases}) {
   async function scoped(sender,stores,mode,run) {
     const host=await assertHost(sender);
     return storage.transaction([...new Set([...stores,'commandJournal'])],mode,async tx=>{
@@ -312,7 +314,7 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
   }
   async function initializeBuiltins(sender,current) {
     const host=await assertHost(sender);
-    return ensureBuiltinTasks({namespace:host.namespace,environment:current,loadBuiltinTask,clock,
+    return ensureBuiltinTasks({namespace:host.namespace,environment:current,loadBuiltinTask,clock,defaultReleases,optionalReleases,
       storage:{transaction:(stores,mode,work)=>scoped(sender,stores,mode,async(tx,ns)=>{
         invariant(ns===host.namespace,'E_OWNER','Task host namespace changed');
         return work(tx);

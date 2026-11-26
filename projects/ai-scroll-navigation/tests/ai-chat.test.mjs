@@ -30,7 +30,7 @@ async function fixture(t,options={}){
     manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),enabled:true,nativeState:'registered',
     authorization:{status:'active',generation:3,installationId:'installation-r8'},
     pageRules:{matches:['https://chatgpt.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
-  let present=true,saved={value:{version:1,sites:[{...site}],navigation:{...navigation}},etag:'initial'};
+  let present=true,saved={value:{version:1,sites:[{...site}],navigation:{...navigation,...options.extraFlags}},etag:'initial'};
   const requests=[],rounds=[],continuations=[],leases=[],providers=new Set(),grants=new Set();
   let disposed=0,cancelled=0,sequence=0;
   const client={async request(method,payload){
@@ -40,7 +40,7 @@ async function fixture(t,options={}){
     if(method==='observeScrollSitePage')return options.observe?options.observe(payload):structuredClone(observed);
     if(method==='saveScrollNavigationSettings'){
       if(payload.etag!==saved.etag)throw coded('E_CONFIG_CONFLICT');
-      saved={value:{...saved.value,navigation:structuredClone(payload.navigation)},etag:'saved-'+(++sequence)};
+      saved={value:{...saved.value,navigation:{...saved.value.navigation,...payload.navigation}},etag:'saved-'+(++sequence)};
       return structuredClone(saved);
     }
     if(method==='saveScrollSiteRule'){
@@ -150,6 +150,16 @@ test('explicit floatingTop off saves through original controller, etag and readb
   await click(f,'#scroll-settings');
   const flag=[...f.doc.querySelectorAll('[role="switch"]')].find(node=>node.getAttribute('aria-label')==='滚动后悬浮回顶');
   assert.ok(flag);assert.equal(flag.checked,false);
+});
+
+test('AI can save a supported change on an old install without submitting or losing newer flags',async t=>{
+  const extraFlags={showTurnCount:true,pinReplyNavigation:true};
+  const f=await fixture(t,{extraFlags});await openChat(f);await send(f);
+  f.resolve(0);await settle();
+  assert.equal(f.writes().length,1);
+  assert.deepEqual(f.writes()[0].payload.navigation,{...navigation,floatingTop:false});
+  assert.deepEqual(f.saved().value.navigation,{...navigation,...extraFlags,floatingTop:false});
+  assert.match(log(f),/saved-1/);
 });
 
 test('pure chat displays the response without business writes or write authorization',async t=>{
