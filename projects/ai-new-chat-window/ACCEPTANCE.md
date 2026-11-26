@@ -112,6 +112,17 @@ packageHash 65183369595fef7145f0e5482d34694e3bd73c71b83c5218a1abc47a92410a8a
 
 恢复条件：在隔离 QA Profile 经正常流程完成 ChatGPT 网站验证并登录，提供两个允许测试的项目，并按 Chrome 正常流程授权该实例运行用户脚本。安装和注册读回后，尚需核对两个真实项目的标题行与操作槽、悬停/离开与键盘、SPA 不重复、菜单与窄侧栏及两种主题；点击各项目后应只新增一个标签，打开正确项目的空白编辑器，首次授权发送合成消息及刷新后保持项目归属；并核实普通入口、双击、原页流式与草稿、错误反馈及停用恢复和资源清理。真实 P0 未关闭，当前候选不放行，不生成最终验收提示词。
 
+### Ego 入口与独立 Chrome QA 复查（2026-11-26）
+
+| 验证项 | 本轮实际结果 |
+|---|---|
+| Ego Lite 2.2.1，TaskSpace 35 | 实际为共享 Default Profile。同一浏览器上下文可见扩展 worker `ccfcjegpkdlgbclopjmadlcjedelidmf`，但扩展加载路径、开发服务连接及用户脚本能力未验证。另两个 Ego Profile 均有其他任务的空间，未确认可供本任务使用。只检查新任务空白页与扩展 target 元数据，未进入 ChatGPT、未安装或修改权限，已关闭 TaskSpace。 |
+| Chrome for Testing 154.0.8037.92，独立 QA `test-chatgpt-02` | 重新启动本人租约下的无界面实例。登录 helper 无结果；随后直接读该实例的页面标题，ChatGPT 为「请稍候…」，可见网站验证 iframe。登录、项目 DOM、编辑器、发送、原页流式和草稿均 NOT_TESTED。未导入 Cookie、未绕过验证或使用其他任务的浏览器。 |
+| 原宿主与权限 | 实际进程加载 `/private/tmp/od-ai-new-chat-r24.ZFY2Xy/static-host/development`，扩展 worker 回报 ID `ejhkmahaeofhjochpmjmaldppdpnaekj`、宿主 2.0.0；静态开发快照，未连接开发服务，非 production。只读查询时用户脚本 API 仍不可用；未重新点击确认、无安装或注册回执。该浏览器已正常退出，QA 租约已释放。 |
+| 候选与回归 | 0.1.1 修订 1 的文件仍在，内嵌 sourceHash、packageHash 与上表一致；原文件 SHA-256 为 `a42f651f691b6ed45a1357fb08eeb0f8298222d8ec853640fa06ea8c2ea68ec5`。源码、测试和项目配置与已核验基线相同，复用 11 项 Node、10 组合成 Chromium 与已有 Page 构建证据，没有重跑或重建。 |
+
+真实 P0 仍未验证。本轮只新增测试入口和阻塞证据，沿用下方八维评审，不据此上调分数。恢复时可以使用明确授权、已登录且可安装的独立 Ego Profile；若 Ego 无法完成原生安装合同，使用上述独立 Chrome QA 正常完成网站登录与用户脚本授权，再从原「扩展 → 导入」审阅读回安装及注册结果。
+
 ### R2.4 多视角评审（安装审阅追加证据前）
 
 两名 AI 子代理评审，非独立人类专家。各列取八维算术平均；以下分数对应 Page 候选构建后、真实 Chrome 导入审阅追加证据前，新增审阅证据不等同于安装或业务验收。
