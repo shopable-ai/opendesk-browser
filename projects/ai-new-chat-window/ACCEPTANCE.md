@@ -1,4 +1,6 @@
-# R1 验收矩阵与证据
+# 验收矩阵与证据
+
+当前结果见 [R2.4 真实验证与安装记录](#r24-真实验证与安装记录2026-11-26)。其余阶段记录保留为历史证据。
 
 R1 只设计及模拟，所有真实 Chrome+登录 ChatGPT+安装候选的业务验收均 NOT_TESTED。验收区分源代码、Mock、真实网站、正式安装；任何一类不能替代下一类。基线源代码 commit bdb0f4089bb8310f2bb35d7240cf5c7caf216599。
 
@@ -86,6 +88,47 @@ T14 明确失败的业务代码与 toast 参数调用已通过合成故障注入
 三列等权汇总参考值 86.67/100，不替代各阶段分数与 P0 门禁。扣分集中在真实 DOM/布局未观测、项目直接路由/首次归属未证明、安装和实际流式/草稿未验证、正式 build 未运行；无独立专家参与。未达到 ≥95，不放行。
 
 **剩余执行边界：** 保持同一候选和唯一 owner，下一步获取两个独立授权 QA 项目的脱敏 DOM、直达空 composer 与首发归属证据，基于实际差异修正标题定位；只补必要功能，运行正式 validate/build，按现有 Authority 安装并补真实 P0。无需重做需求、竞品或原型；尚未完成正式业务闭环，不生成最终本地 Codex 验收交接提示词。
+
+## R2.4 真实验证与安装记录（2026-11-26）
+
+基线 3f0fd7666091a849986f0ce31cf5ded3aa268e58；Program ID opendesk.ai-new-chat-window；候选 0.1.1、修订 1。业务源码与基线一致，复用 11 项 Node 和 10 组 Chromium 合成 DOM 测试，无新增源码或针对假定 DOM 的测试。
+
+| 验证项 | 结果 | 实际证据与边界 |
+|---|---|---|
+| 本地工作区 | 可用 | 直接在完整仓库的 main 上校验、构建，不依赖上一阶段不可用的 CodexPro 连接或隔离容器 Git DNS |
+| 项目校验、正式 Page 编译与安装包 | PASS | node scripts/validate-program-project.mjs projects/ai-new-chat-window、npm run build:program -- projects/ai-new-chat-window 和现有 build-page-install-package.mjs 成功；编译回执 BUILT_UNVERIFIED |
+| Chrome 宿主 | 开发快照 PASS；production 未验收 | 校验通过的是从现有开发目录冻结的静态开发宿主，未改 watcher。现有 production 目录有额外 libs/manifest.json；独立 production 重建停在宿主 ui/tool-shell.js 体积门槛（3,245,465 > 3,145,728 字节） |
+| K3 真 Chrome 导入和审阅 | PASS | 独立 QA Profile 的 Chrome for Testing 154.0.8037.92 加载静态开发宿主；真实 SIDE_PANEL「扩展 → 导入」展示“AI 对话新标签页”、0.1.1 和现有四站访问范围 |
+| K3 确认、安装、Chrome 注册 | BLOCKED / 未安装 | 已从原侧栏审阅点击一次「确认安装」；结果提示需在 Chrome 扩展设置开启「允许运行用户脚本」。未开启该授权，未观察到 Page Authority 安装成功回执或 Chrome 注册 |
+| K1 真实项目 DOM 与 K2 核心闭环 | BLOCKED / NOT_TESTED | 独立 QA Profile 打开 chatgpt.com 后停在「请稍候…」网站验证页，登录未验证，没有账号菜单或编辑器。未读取真实项目、未发送消息、未操作用户日常工作标签；QA 浏览器已正常关闭，租约已释放 |
+
+本地包文件：
+
+~~~text
+artifacts/programs/opendesk.ai-new-chat-window/0.1.1/r31-production/d981066d7ade650c-992a9a810963/ai-new-chat-window.opendesk-page.json
+sourceHash  d981066d7ade650caba519151e5529028577e339997e9e142d82099e17a4f7a8
+packageHash 65183369595fef7145f0e5482d34694e3bd73c71b83c5218a1abc47a92410a8a
+~~~
+
+恢复条件：在隔离 QA Profile 经正常流程完成 ChatGPT 网站验证并登录，提供两个允许测试的项目，并按 Chrome 正常流程授权该实例运行用户脚本。安装和注册读回后，尚需核对两个真实项目的标题行与操作槽、悬停/离开与键盘、SPA 不重复、菜单与窄侧栏及两种主题；点击各项目后应只新增一个标签，打开正确项目的空白编辑器，首次授权发送合成消息及刷新后保持项目归属；并核实普通入口、双击、原页流式与草稿、错误反馈及停用恢复和资源清理。真实 P0 未关闭，当前候选不放行，不生成最终验收提示词。
+
+### R2.4 多视角评审（安装审阅追加证据前）
+
+两名 AI 子代理评审，非独立人类专家。各列取八维算术平均；以下分数对应 Page 候选构建后、真实 Chrome 导入审阅追加证据前，新增审阅证据不等同于安装或业务验收。
+
+| 评审维度 | 技术方案 | 正式源码实现 | 实际验收证据 |
+|---|---:|---:|---:|
+| 产品需求完整性 | 95 | 82 | 64 |
+| 核心技术原理正确性 | 89 | 80 | 59 |
+| 正式业务代码质量 | 92 | 81 | 76 |
+| UI/UX 交互质量 | 89 | 76 | 49 |
+| Chrome 扩展兼容性 | 93 | 87 | 62 |
+| 软件架构简洁性 | 96 | 86 | 79 |
+| 软件测试与交付质量 | 92 | 86 | 64 |
+| 反方审计 | 87 | 78 | 43 |
+| 算术平均 | 91.63 | 82.00 | 62.00 |
+
+三项均未达到 95 分。主要缺口为真实 ChatGPT 路由和项目归属、真实侧栏布局与输入触发、安装后运行及停用恢复；源码评审待核对项见 DESIGN.md 7.8。
 
 ## 测试矩阵
 | ID | 级别 | 操作/可验证预期 | R1 HTML 本地模拟 |

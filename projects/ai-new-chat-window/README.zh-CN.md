@@ -1,14 +1,14 @@
 # AI New Chat / AI 新建对话 · 项目导航
 
-## 当前任务：OD-AI-NEW-CHAT-R2.3-CLOSE（仅 ChatGPT）
+## 当前任务：OD-AI-NEW-CHAT-R2.4（仅 ChatGPT）
 
-**状态（2026-11-26）：0.1.1 SOURCE_CANDIDATE / NODE_PASS_11 / SYNTHETIC_CHROMIUM_PASS_10 / REAL_CHROME_BLOCKED / BUILD_NOT_RUN / INSTALL_NOT_TESTED。** 继承 58d18b06bd785fa99aa4f9ceb1d517c28092c2ad；本轮已完成可证实源码缺陷的定向修复，不是正式放行版本。
+**状态（2026-11-26）：0.1.1 已校验、编译并打包。真实 Chrome 已打开候选的安装审阅，确认后被 Chrome 用户脚本开关拦住；真实 ChatGPT 业务验收被网站验证拦住。** 业务源码与已核验提交 3f0fd7666091a849986f0ce31cf5ded3aa268e58 相同，0.1.1 尚未放行。
 
 **用户目标：** 鼠标经过 ChatGPT 左侧项目标题行显示新增图标，一次点击在独立标签页打开该项目的空白新对话，首次用户主动发送正确归属，原标签页任务和草稿不被扩展主动影响；普通新聊天也默认独立标签页，两个入口不串线。
 
 **唯一 owner：** projects/ai-new-chat-window/，Program ID opendesk.ai-new-chat-window，main。维持原 Page USER_SCRIPT、权限及 Claude、DeepSeek、Gemini 既有行为；不创建其他项目、不自动发布。
 
-## 本轮已修复
+## R2.3-CLOSE 已修复项（本轮沿用）
 
 - destinations.js：ChatGPT 只接受现有证据中的 32 位十六进制项目 ID（允许合法连字符 slug）；排除空、仅 query/hash、无效 ID 和未经归一化的 opener 目标。正常 href 继续经现有归一化；其他站点路由保持不变。
 - buttons.js：明确无效 href 不再退回容器 ID；无效旧项目行的直接链接不误判为普通新聊天；主区原生入口点击时重新核验；点击时发现目标无效、请求拒绝或同步异常，通过已有 owner.toast 发出可关闭的持久错误提示。正常 noopener 返回 null 不报成功或失败，不重试。保留最小 opener 与原生命周期。
@@ -16,7 +16,7 @@
 
 ## 文件导航
 
-- [DESIGN.md 第七节](DESIGN.md)：最小技术合同，7.6 为历史候选，7.7 为本轮增量。
+- [DESIGN.md 第七节](DESIGN.md)：最小技术合同，7.6–7.7 为已有候选及修复，7.8 为 R2.4 的实测边界。
 - [REQUIREMENTS.zh-CN.md](REQUIREMENTS.zh-CN.md)：原始目标与功能合同。
 - [RESEARCH.md](RESEARCH.md)：已有资料与证据，禁止重复研究。
 - [ACCEPTANCE.md](ACCEPTANCE.md)：历史证据及本轮测试、剩余真实验收和放行门禁。
@@ -24,11 +24,11 @@
 
 ## 实际测试与剩余阻塞
 
-Node 22.16.0：11/11 PASS；Chromium 144.0.7559.96：10 组 PASS。测试使用与 GitHub 基线 blob 一致的源码副本；合成 DOM 及 open 参数记录替身。另有真实 Chromium 新页面事件实验：只创建一个 about:blank 替代页、opener 为 null、原合成草稿不变；这不是 ChatGPT 登录态或实际项目归属证据。错误提示测试验证 Page UI toast 调用参数，不等于已安装 UI 的视觉实测。
+复用与当前源码相同的历史证据：Node 11/11、合成 DOM 下的 Chromium 测试 10 组通过。真实 Chromium 的独立开页实验使用的是 about:blank 替代目标，不能证明 ChatGPT 项目归属。
 
-本地 CodexPro workspace 连接失败（UNAVAILABLE / Connection failed）；隔离环境没有完整仓库，GitHub git DNS 失败，正式 validate/build 未运行，未安装。没有明确授权的独立已登录 Chrome QA profile 可用，因此不读取或操作用户正在工作的标签，不进行真实发送。
+完整仓库已可用。运行项目校验和正式 Page 编译后，生成了 0.1.1（修订 1）的本地候选 ai-new-chat-window.opendesk-page.json。Chrome for Testing 154 在隔离 Profile 的静态开发宿主内打开「扩展 → 导入」，正确展示版本和访问范围；点击「确认安装」后提示「允许运行用户脚本」尚未开启，没有安装成功或注册回执。与此同时，真实 ChatGPT 只显示网站验证页；未读取真实项目 DOM、未发送消息、未操作用户的日常标签。详见 [ACCEPTANCE](ACCEPTANCE.md#r24-真实验证与安装记录2026-11-26)。
 
-**下一步只补未通过的证据：** 真实两个项目标题 DOM 与右侧插入位置、直达空 composer、首次合成消息项目归属、A 真实流式/草稿、原生入口、错误提示及窄屏/主题；在完整仓库中 validate/build 并沿现有 Authority 安装/撤权验收。直接项目 URL 不成立才按 DESIGN 7.2 调查必要修复，禁止扩大权限或回到源标签。核心 P0 未通过，不生成最终验收交接、不宣称完成。
+**恢复条件：** 在独立 QA Profile 正常通过 ChatGPT 网站验证并登录，提供两个授权测试项目；在同一 QA 环境按 Chrome 正常流程允许用户脚本，沿原审阅入口读到安装和注册回执。恢复后再实测两个项目标题行和右侧插入点、独立空编辑器、授权首条合成消息发送与刷新后的项目归属、原页草稿及流式生成、普通入口及停用恢复。没有实际不匹配证据，暂不调整选择器或更换 opener。
 
 ---
 
