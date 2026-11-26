@@ -1,4 +1,3 @@
-import {installVisualSiteConfiguration} from '../src/legacy-site-editor.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
@@ -191,21 +190,19 @@ test('oversized and deeply nested documents fail closed before selector queries'
   }
 });
 
-test('current and legacy editors refuse observation during picking and after disposal',async()=>{
-  for(const install of [installScrollSiteRuntime,installVisualSiteConfiguration]){
-    const f=fixture();
-    try{
-      install(f);await Promise.resolve();await Promise.resolve();await Promise.resolve();
-      const editor=globalThis.__opendeskAiScrollEditorV1;
-      assertCandidates(f,editor.observe());
-      const pending=editor.pick({field:'main',mainSelector:'main'});
-      assert.deepEqual(editor.observe(),{state:'busy'});
-      f.owner.dispose();
-      assert.deepEqual(editor.observe(),{state:'closed'});
-      assert.equal((await pending).state,'closed');
-      assert.equal(globalThis.__opendeskAiScrollEditorV1,undefined);
-    }finally{f.owner.dispose();f.win.close();}
-  }
+test('Page editor refuses observation during picking and after disposal',async()=>{
+  const f=fixture();
+  try{
+    installScrollSiteRuntime(f);await Promise.resolve();await Promise.resolve();await Promise.resolve();
+    const editor=globalThis.__opendeskAiScrollEditorV1;
+    assertCandidates(f,editor.observe());
+    const pending=editor.pick({field:'main',mainSelector:'main'});
+    assert.deepEqual(editor.observe(),{state:'busy'});
+    f.owner.dispose();
+    assert.deepEqual(editor.observe(),{state:'closed'});
+    assert.equal((await pending).state,'closed');
+    assert.equal(globalThis.__opendeskAiScrollEditorV1,undefined);
+  }finally{f.owner.dispose();f.win.close();}
 });
 
  test('large conversations and structural turn-key groups do not require application defaults',()=>{

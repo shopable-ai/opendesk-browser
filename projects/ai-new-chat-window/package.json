@@ -1,9 +1,9 @@
 {
   "name": "@opendesk/ai-new-chat-window",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
-  "description": "在不覆盖原 AI 对话的情况下，从原生新对话或项目入口打开新的浏览器窗口",
+  "description": "ChatGPT 项目或普通新对话独立标签页；保留其他 AI 站点原有窗口行为",
   "scripts": {"test": "node --test tests/*.test.mjs"},
   "opendesk": {
     "format": "opendesk.project.v1",

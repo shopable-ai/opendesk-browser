@@ -1,7 +1,7 @@
 import {findConversationScroller} from './conversation.js';
 
-// Per-installation visual site adapter. All persistence flows through the
-// authenticated Installed Page USER_SCRIPT broker; this module grants nothing.
+// Per-installation site adapter and read-only Page runtime. Settings and
+// persistence belong to the trusted extension UI and broker.
 const OWN='data-opendesk-ai-scroll-navigation';
 const EXCLUDE='aside,nav,form,pre,textarea,input,select,[contenteditable],[role="dialog"],[aria-modal="true"],[inert],[aria-hidden="true"]';
 function shown(node,win){
@@ -270,8 +270,6 @@ export function observeScrollSiteStructure({doc,win}={}){
     return candidates.length?{state:'observed',candidates}:unavailable();
   }catch{return unavailable();}
 }
-
-export {OWN,sole,allowedNode,safeUniqueSelector,safeMessageGroupSelector,validateLiveRule};
 
 // The installed Page Program retains a read-only config consumer and a
 // bounded structural observer and one-shot document-scoped selector picker.

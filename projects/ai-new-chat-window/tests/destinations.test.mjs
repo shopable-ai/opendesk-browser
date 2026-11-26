@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {PAGE_MATCHES,providerFor,newChatDestination,projectDestination,requestNewChat}
+import {PAGE_MATCHES,providerFor,newChatDestination,projectDestination,chatGPTProjectDestination,requestNewChat}
   from '../src/destinations.js';
 
 const chat='https://chatgpt.com/c/abc-def';
 const project='https://chatgpt.com/g/g-p-6abf8a999a548191919851197b47446f/project';
 const claude='https://claude.ai/project/123e4567-e89b-12d3-a456-426614174000';
+const containerId='project:g-p-6abf8a999a548191919851197b47446f';
 
 test('fixed reviewable website scopes, no blanket all-site grant',()=>{
   assert.deepEqual(PAGE_MATCHES,[
@@ -47,17 +48,42 @@ test('project links strip query and fragment and refuse cross-site and malformed
   assert.equal(projectDestination('/g/g-p-6abf8a999a548191919851197b47446f/project',chat).url,project);
 });
 
-test('opening asks a separate window or tab, never changes source location',()=>{
+test('ChatGPT explicit container ID resolves without requiring a native new chat button or href',()=>{
+  assert.deepEqual(chatGPTProjectDestination(containerId,chat),{url:project,kind:'project',provider:'chatgpt'});
+  const href=project.replace('/project','-example/project');
+  assert.equal(chatGPTProjectDestination(containerId,chat,href).url,href);
+  assert.equal(chatGPTProjectDestination(containerId,chat,project+'?x=1#fragment').url,project);
+});
+
+test('ChatGPT malformed, cross-origin or conflicting container/link never resolves to ordinary chat',()=>{
+  for(const id of [null,'','g-p-6abf8a999a548191919851197b47446f','project:g-p-short','project:g-p-6abf8a999a548191919851197b47446f/other'])
+    assert.equal(chatGPTProjectDestination(id,chat),null);
+  assert.equal(chatGPTProjectDestination(containerId,claude),null);
+  assert.equal(chatGPTProjectDestination(containerId,chat,claude),null);
+  assert.equal(chatGPTProjectDestination(containerId,chat,'/c/old'),null);
+  assert.equal(chatGPTProjectDestination(containerId,chat,project.replace('6abf','4abf')),null);
+  assert.equal(chatGPTProjectDestination(containerId,chat,project.replace('chatgpt.com','someone@chatgpt.com')),null);
+});
+
+test('ChatGPT requests independent tab by default, project and ordinary, without touching source',()=>{
   const calls=[],source=new URL(chat);
   const win={location:source,open:(...args)=>{calls.push(args);return null;}};
-  const destination=newChatDestination(chat);
-  assert.equal(requestNewChat(win,destination),true);
-  assert.deepEqual(calls[0].slice(0,2),['https://chatgpt.com/','_blank']);
-  assert.match(calls[0][2],/noopener/);
-  assert.match(calls[0][2],/popup=yes/);
-  assert.equal(requestNewChat(win,destination,{mode:'tab'}),true);
-  assert.equal(calls[1][2],'noopener,noreferrer');
+  assert.equal(requestNewChat(win,newChatDestination(chat)),true);
+  assert.deepEqual(calls[0],['https://chatgpt.com/','_blank','noopener,noreferrer']);
+  assert.equal(requestNewChat(win,chatGPTProjectDestination(containerId,chat)),true);
+  assert.deepEqual(calls[1],[project,'_blank','noopener,noreferrer']);
   assert.equal(win.location.href,chat);
+});
+
+test('existing other providers retain default popup and explicit tab modes',()=>{
+  for(const href of [claude,'https://chat.deepseek.com/','https://gemini.google.com/app']){
+    const calls=[],win={open:(...args)=>{calls.push(args);return null;}};
+    const destination=newChatDestination(href);
+    assert.equal(requestNewChat(win,destination),true);
+    assert.match(calls[0][2],/popup=yes/);
+    assert.equal(requestNewChat(win,destination,{mode:'tab'}),true);
+    assert.equal(calls[1][2],'noopener,noreferrer');
+  }
 });
 
 test('reject fabricated destinations and unsupported modes without opening',()=>{
@@ -66,4 +92,23 @@ test('reject fabricated destinations and unsupported modes without opening',()=>
   assert.equal(requestNewChat(win,{url:'https://chatgpt.com/c/old',kind:'ordinary',provider:'chatgpt'}),false);
   assert.equal(requestNewChat(win,newChatDestination(chat),{mode:'same-tab'}),false);
   assert.equal(calls.length,0);
+});
+
+test('ChatGPT only accepts observed 32-hex project IDs with optional hyphenated slug',()=>{
+  for(const id of ['abcdefghijkl','1234567890123456789012345678901','z'.repeat(32),'6abf8a999a548191919851197b47446fextra','6abf8a999a548191919851197b47446f-']){
+    const url=`https://chatgpt.com/g/g-p-${id}/project`;
+    assert.equal(projectDestination(url,chat),null);
+    assert.equal(requestNewChat({open:()=>assert.fail('invalid target opened')},{url,kind:'project',provider:'chatgpt'}),false);
+  }
+  assert.equal(projectDestination(project.replace('/project','-example_slug/project'),chat).url,project.replace('/project','-example_slug/project'));
+});
+
+test('ChatGPT opener rejects unnormalized project destinations, resolver supplies canonical route',()=>{
+  const calls=[],win={open:(...args)=>calls.push(args)};
+  for(const raw of [project+'?x=1',project+'#old',project+'/']){
+    assert.equal(requestNewChat(win,{url:raw,kind:'project',provider:'chatgpt'}),false);
+    assert.equal(requestNewChat(win,projectDestination(raw,chat)),true);
+  }
+  for(const href of ['', '  ', '?x=1', '#old', null])assert.equal(projectDestination(href,project),null);
+  assert.deepEqual(calls,Array.from({length:3},()=>[project,'_blank','noopener,noreferrer']));
 });
