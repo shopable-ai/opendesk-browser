@@ -103,7 +103,7 @@ Phase 0–3 / Gate A 中先按[五种使用场景](../../docs/api/extension-deve
 
 ## 三、核心新增：需求推理引擎（不是问卷）
 
-通用语义、递归算子、关系图、Skill 契约及两案例审计见 [Requirement Reasoning Engine R2（设计态）](../../docs/engineering/requirement-reasoning/README.md)。本文件仍是 OpenDesk 唯一扩展创建工作流；不新增 Skill 路由、Runner 或产品状态库；正式 F/S/A、权限及 Gate A–D 继续由现有合同管理。
+通用需求推理方法的候选研究已迁移至 [VizTell · 需求推理与需求工程](https://github.com/shopable-ai/VizTell/tree/main/docs/软件与系统工程宇宙/需求推理与需求工程/)；正式通用协议由 AI-Project-OS 原有治理维护。本文件仍是 OpenDesk 唯一扩展创建工作流；研究不能替代正式 F/S/A、权限及 Gate A–D，不新增 Skill 路由或 Runner。
 
 ### 1. 证据顺序与冲突解决
 
