@@ -2,7 +2,7 @@
 
 ## 当前任务：OD-AI-NEW-CHAT-R2.3（仅 ChatGPT 正式实施）
 
-状态：SOURCE_REVIEWED / USER_DOM_AND_ROUTE_SAMPLE / PREVIEW_MOCK_PASS / REAL_CHATGPT_NOT_TESTED / R2_IMPLEMENTATION_PENDING（2026-11-26）。当前 0.1.0 业务源码尚未按 R2.2 方案修改。R2.3 仅收敛本轮范围，不重新设计。
+状态（2026-11-26）：0.1.1 SOURCE_CANDIDATE / NODE_PASS_9 / SYNTHETIC_CHROMIUM_PASS / REAL_CHROME_BLOCKED / BUILD_NOT_RUN / INSTALL_NOT_TESTED。已修改 ChatGPT 业务源码并完成隔离测试；当前仍为待真实 Chrome 验收的候选，不是已安装可用或正式放行版本。
 
 **目标：** 在 ChatGPT 左侧已有项目条目鼠标经过/键盘聚焦时显示新增图标，一次点击打开独立标签页中的同项目新对话，原页任务和草稿不受扩展主动影响；普通新聊天也默认独立标签页，两个入口不串线。
 
@@ -17,7 +17,14 @@
 - [preview/index.html](preview/index.html)：历史模拟原型，不代表真实安装效果。
 - `src/`、`tests/`：现有正式业务源码及测试；在当前目录增量修改。
 
-下一步直接由具备授权登录态 Chrome 的本地 Codex 执行：验证 ChatGPT 实际项目行 DOM 与直接新 composer，修改现有代码、运行相关测试、构建并授权安装、真实验收、修复、提交 main。核心证据未通过时不可宣称完成，不自动发布。此前 Browser Core 连接返回 429；当前仅更新文档，未完成本地验证、实现、构建或安装。
+本轮候选实现：ChatGPT 项目容器 ID / 同项目 href 解析、标题行候选与历史区分离、无原生＋时入口、默认新 tab（不传 popup）、点击重新读取项目地址、同按钮 450ms 防重复、SPA href/ID 变化重绑。旧站点保持原模式，main.js 和权限不变。真实标题行结构、右侧插入槽、实际新 composer 和项目归属仍须核验，详见 DESIGN.md 7.6 与 ACCEPTANCE.md。
+
+已运行的定向测试（隔离环境，非安装验收）：
+
+- `node --test projects/ai-new-chat-window/tests/*.test.mjs`：9/9 PASS。
+- `CHROMIUM_EXECUTABLE=/usr/bin/chromium python projects/ai-new-chat-window/tests/browser-fixture.py`：6 组断言 PASS。可选 Python Playwright + Chromium（本轮未新增生产依赖）；fixture 使用合成 DOM 及记录 open 参数的替身，不打开实际 ChatGPT。
+
+下一步由具备授权登录态 Chrome 和完整仓库的本地 Codex 执行：只做 DESIGN 7.2 的两个项目实证、按证据调整候选定位、验证直接打开空 composer，运行测试和项目 validate/build、授权安装、真实验收及必要修复。Browser Core SSE 429、本地工作区连接失败、浏览器内容读取权限阻止 ChatGPT 观测，隔离环境 GitHub DNS 不可达，故未获取完整构建环境；未做真实操作/发送/安装。明确失败的可见反馈、真实主题/窄屏以及 24 项矩阵相关缺口继续验收。核心证据未通过不可宣称完成，不自动发布。
 
 ---
 

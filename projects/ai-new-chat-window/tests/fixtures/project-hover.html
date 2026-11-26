@@ -1,13 +1,22 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><title>Hover actions fixture</title>
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><title>Project hover fixture (synthetic)</title>
 <style>
-body{font-family:Arial;margin:30px}.item{width:320px;display:flex;align-items:center;gap:4px;margin:8px 0;background:#f5f6f8;border-radius:8px;padding:4px 8px;min-height:34px}.item a{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#344;text-decoration:none}.native{border:0;background:#e6e9ef;border-radius:5px;width:25px;height:26px;cursor:pointer}
+body{font-family:Arial;margin:30px}.item{width:320px;display:flex;align-items:center;gap:4px;margin:8px 0;background:#f5f6f8;border-radius:8px;padding:4px 8px;min-height:34px}.item a,.item .title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#344;text-decoration:none}.native{border:0;background:#e6e9ef;border-radius:5px;width:25px;height:26px;cursor:pointer}
 #project-row .native{opacity:0;pointer-events:none}#project-row:hover .native,#project-row:focus-within .native{opacity:1;pointer-events:auto}
+.history{padding:8px 30px}.history a{display:block}
 </style></head><body><nav id="sidebar"><button id="global-new" aria-label="New chat">+ 新聊天</button>
-  <div class="item" id="project-row"><a id="project-title" href="/g/g-p-6abf8a999a548191919851197b47446f/project">Project One</a>
-    <button class="native" id="native-plus" aria-label="New chat in project">+</button></div>
-  <div class="item" id="project-only"><a href="/g/g-p-4abf8a999a548191919851197b47446f/project">Project without native button</a></div>
-  <div class="item" id="project-dynamic"><a id="dynamic-title" href="/g/g-p-5abf8a999a548191919851197b47446f/project">Project with dynamic +</a></div>
-</nav>
+  <div id="project-one" data-sidebar-project-kind="local" data-sidebar-project-container-id="project:g-p-6abf8a999a548191919851197b47446f">
+    <div class="item" id="project-row"><a id="project-title" href="/g/g-p-6abf8a999a548191919851197b47446f/project">Project One</a>
+      <button class="native" id="native-plus" aria-label="New chat in project">+</button><button id="menu" aria-label="More">···</button></div>
+    <div class="history" id="history"><a href="/g/g-p-6abf8a999a548191919851197b47446f/c/old">Old chat</a></div>
+  </div>
+  <div id="project-two" data-sidebar-project-kind="local" data-sidebar-project-container-id="project:g-p-4abf8a999a548191919851197b47446f">
+    <div class="item" id="project-only"><button class="title" aria-expanded="true">Project without href or native new chat</button><button id="menu2" aria-label="More">···</button></div>
+    <div class="history" id="history2"><a href="/c/old-two">Old chat 2</a><button id="history-action" aria-label="New chat">+</button></div>
+  </div>
+  <div class="item" id="project-dynamic"><a id="dynamic-title" href="/g/g-p-5abf8a999a548191919851197b47446f/project">Legacy href row with dynamic +</a></div>
+  <div id="conflict" data-sidebar-project-container-id="project:g-p-7abf8a999a548191919851197b47446f"><div class="item"><a href="/g/g-p-8abf8a999a548191919851197b47446f/project">Conflicting link</a><button aria-label="New chat">+</button></div></div>
+  <div id="unknown" data-sidebar-project-container-id="project:g-p-9abf8a999a548191919851197b47446f"><div class="history"><a href="/c/old-three">History only</a><button aria-label="New chat">+</button></div></div>
+</nav><textarea id="draft">preserved synthetic draft</textarea><p id="outside">Outside navigation</p>
 <script type="module">
 import {installNewChatButtons} from '../../src/buttons.js';
 const disposers=[];
@@ -18,11 +27,13 @@ const owner={
   setInterval(fn,delay){const id=window.setInterval(fn,delay);disposers.push(()=>window.clearInterval(id));return id},
   observe(target,cb,options){const observer=new MutationObserver(cb);observer.observe(target,options);disposers.push(()=>observer.disconnect());return observer}
 };
-const state={calls:[],native:0,owner};
+const state={calls:[],native:0,menu:0,owner};
 const fakeWindow={location:{href:'https://chatgpt.com/c/old-conversation'},open:(...args)=>{state.calls.push(args);return null}};
-state.dispose=()=>{disposers.slice().reverse().forEach(off=>off())};
+state.dispose=()=>{disposers.splice(0).reverse().forEach(off=>off())};
+state.reinstall=()=>{state.mount=installNewChatButtons({doc:document,win:fakeWindow,owner})};
 document.querySelector('#native-plus').addEventListener('click',()=>state.native++);
 document.querySelector('#global-new').addEventListener('click',()=>state.native++);
+document.querySelector('#menu').addEventListener('click',()=>state.menu++);
 const dynamic=document.querySelector('#project-dynamic');
 dynamic.addEventListener('pointerenter',()=>{
   if(dynamic.querySelector('button'))return;
@@ -31,6 +42,6 @@ dynamic.addEventListener('pointerenter',()=>{
   dynamic.append(btn);
 });
 dynamic.addEventListener('pointerleave',()=>dynamic.querySelector('button')?.remove());
-state.mount=installNewChatButtons({doc:document,win:fakeWindow,owner});
+state.reinstall();
 window.__fixture=state;
 </script></body></html>

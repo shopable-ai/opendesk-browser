@@ -10,6 +10,37 @@ R1 只设计及模拟，所有真实 Chrome+登录 ChatGPT+安装候选的业务
 
 本轮只进行 ChatGPT 项目及普通新对话的真实实施和验收；T22 其他网站专项真实测试为 DEFERRED，不作为本轮 P0 前置。不得删除已有站点能力或修改其独有行为。共用代码如有变更，执行已有自动化定向回归，修复本次引入的问题；不扩展到其他站点的专项改造。其他 P0 仅以 ChatGPT 的相关真实证据判定，保留所有历史测试与证据。详见 DESIGN.md 7.5。
 
+## R2.3 当前源码候选测试记录（2026-11-26）
+
+基线 a122c9ac6edfa49bb517f466faf3e1973d4633b3；候选 0.1.1。真实 Chrome + 登录 ChatGPT + 安装候选依旧 **NOT_TESTED / BLOCKED**。以下是本轮新增的实际隔离测试，不覆盖或升级历史 R1 矩阵的真实证据级别。
+
+| 测试 | 结果 | 证据边界 |
+|---|---|---|
+| Node 22.16.0，node --test projects/ai-new-chat-window/tests/*.test.mjs | 9/9 PASS | 真实执行候选路由、ID/冲突/同源、ChatGPT tab 请求参数、其他三站路由及默认 popup/显式 tab 回归；不打开真实站 |
+| Chromium 144.0.7559.96，tests/browser-fixture.py，Python Playwright | 6 组 PASS | 合成 DOM，实际浏览器 hover/leave、键盘、trusted click/dblclick、原生控件替身、属性变化、重绘/清理；open 为记录参数替身，未创建目标真实 tab |
+| Node 源码语法检查 src/buttons.js、src/destinations.js | PASS | 不等于正式构建 |
+| 真站 DOM / composer / 归属 / 原页真实生成及草稿 | BLOCKED / NOT_TESTED | 浏览器读取 ChatGPT 被权限策略拒绝；Browser Core SSE 429；本地 Codex workspace 连接失败 |
+| 正式 validate、build:program、用户本地授权安装、停用撤权 | NOT_RUN / NOT_TESTED | 完整仓库不在隔离环境且 GitHub DNS 解析失败，本地 workspace 不可达；未生成安装包、未安装、未上架 |
+| 其他三站专项真实测试 | DEFERRED | 仅既有路由和 opener 定向自动化回归 PASS |
+
+合成 Chromium 六组：①默认隐藏、悬停/移出、历史/冲突/未知项目不注入、普通与项目数量区分；②两个合成项目、双击仅一次 open 请求、普通目标、合成源页 URL/草稿不变；③原生 +、菜单、全局 New chat 替身与动态 + 共存；④pointerdown 后 ID 改变，点击读最新地址，href 冲突不打开，属性变化后重绑；⑤SPA 行替换、重复刷新不重复、键盘 Tab/Enter；⑥清理与重新安装 fixture 实例、无 pageerror。隔离浏览器用 set_content 加载本项目合成 HTML，并将源码模块 import 改为 data URL 以便无网络测试；未访问真实网站。可选复现：`CHROMIUM_EXECUTABLE=/usr/bin/chromium python projects/ai-new-chat-window/tests/browser-fixture.py`（需要 Python Playwright 和 Chromium；也可使用 Playwright 自带 Chromium）。
+
+待真实验证：两个项目标题行/真实 slot，ID-only 结构是否实际存在，空白 composer、发送后历史归属，真实 tab 数量及 A 正在生成/草稿分别保持，真实 native 操作及窄屏/200%/语言/主题、明确错误可见反馈（当前冲突仅阻止打开，异常仍 console.warn）、已安装版本和撤权/性能。所有真实 P0 仍不能标 PASS；不以 mock 结果替代；不自动发布。
+
+### R2.3 多视角自评（不是独立专家或放行分）
+
+| 视角 | 设计 | 实现与证据 | 主要未完成项 |
+|---|---:|---:|---|
+| 产品需求 | 98 | 95 | 用户真实操作闭环待证 |
+| 前端 DOM | 87 | 79 | 标题行和真实 action slot 未观测 |
+| Chrome 扩展 | 94 | 76 | 真 tab、构建安装、授权运行未测 |
+| 软件架构 | 98 | 97 | 沿用原 Page Program，未扩权 |
+| 软件开发 | 96 | 92 | 9 项 Node 与合成 Chromium 通过，正式构建未运行 |
+| UX 交互 | 91 | 82 | 真站布局、主题、错误反馈未验证 |
+| 软件测试 | 95 | 74 | 真实 P0 与归属未测试 |
+| 反方审计 | 89 | 83 | 路由、身份与源页任务的真实证据缺失 |
+| 算术平均 | 93.50 | 84.75 | 目标 ≥95 未达到，不能放行 |
+
 ## 测试矩阵
 | ID | 级别 | 操作/可验证预期 | R1 HTML 本地模拟 |
 |---|---|---|---|

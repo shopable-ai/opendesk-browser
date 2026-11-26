@@ -16,7 +16,7 @@ export function providerFor(href){
   }catch{return null;}
 }
 
-// OpenAI and Claude have URL-addressable project landing/composer pages.
+// OpenAI and Claude have URL-addressable project landing pages.
 // A /c/<conversation-id> path carries no reliable project identity.
 export function projectDestination(href,pageHref){
   let url,page;
@@ -33,6 +33,19 @@ export function projectDestination(href,pageHref){
   return null;
 }
 
+// User-observed DOM/route sample: project:g-p-<32 hex> -> /g/g-p-.../project.
+// The landing page's empty composer and real project attribution still need QA.
+export function chatGPTProjectDestination(containerId,pageHref,projectHref=null){
+  if(providerFor(pageHref)?.id!=='chatgpt')return null;
+  const id=/^project:(g-p-[a-fA-F0-9]{32})$/.exec(containerId||'')?.[1];
+  if(!id)return null;
+  if(projectHref===null)return projectDestination('/g/'+id+'/project',pageHref);
+  const linked=projectDestination(projectHref,pageHref);
+  if(!linked)return null;
+  const linkedId=new URL(linked.url).pathname.split('/')[2];
+  return linkedId===id||linkedId.startsWith(id+'-')?linked:null;
+}
+
 export function newChatDestination(pageHref,{projectHref=null,fromProjectPage=false}={}){
   let page;
   try{page=new URL(pageHref);}catch{return null;}
@@ -43,10 +56,9 @@ export function newChatDestination(pageHref,{projectHref=null,fromProjectPage=fa
   return {url:page.origin+provider.newPath,kind:'ordinary',provider:provider.id};
 }
 
-// window.open is synchronous inside an actual trusted user click. Browser UI
-// decides whether popup features create a top-level window; do not report a
-// successful opening when noopener deliberately provides no window handle.
-export function requestNewChat(win,destination,{mode='window'}={}){
+// A synchronous trusted click requests an independent tab/window; browser UI
+// decides the result. noopener deliberately provides no success handle.
+export function requestNewChat(win,destination,{mode=destination?.provider==='chatgpt'?'tab':'window'}={}){
   if(!destination||!['ordinary','project'].includes(destination.kind)||
      !['window','tab'].includes(mode)||typeof win?.open!=='function')return false;
   const expected=newChatDestination(destination.url);
