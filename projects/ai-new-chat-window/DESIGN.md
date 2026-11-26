@@ -83,3 +83,16 @@ GOAL OD-AI-NEW-CHAT-R2：基于当前 main 的 projects/ai-new-chat-window，读
 目标 ≥95：产品、DOM、Chrome、架构简洁性、测试及反方审计分别 100 分并算术平均；评分对象区分设计与真实实现。独立专家/agent 仅在确实运行时声称，否则为多视角自评；关键真实证据缺失不能靠分数放行。
 
 本轮只更新实施合同，不预写未验证 DOM 适配业务代码。后续本地 Codex 读取本节、src/、tests/，直接按 7.2→7.4 验证、实现、测试、修复并提交 main 范围内差量；不用重新做需求、竞品、交互原型或新项目目录。
+
+### 7.5 多站点适配补充：统一动作，不统一网站 DOM（2026-11-26）
+
+公开研究与证据边界见 RESEARCH.md 最后一节。此补充不改 7.2–7.4 的 ChatGPT 优先实施次序。
+
+- **共用部分**：新增按钮、Hover/focus、事件隔离、轻量防抖、同步独立开页、现有受管 SPA 更新与清理。禁止为每站复制整个 UI、状态或平台框架。
+- **站点差异**：现有 providerFor 按精确 HTTPS origin 分派。每站独立确定全局 New Chat、项目标题行（如果有）、插入点、目标 URL 解析规则。当前只需在 destinations.js 的 provider/newChatDestination/projectDestination 和 buttons.js 的 discover 中划清边界；按实际重复量可提取小 helper，暂不新建适配器 SDK、规则 DSL、远程配置或额外平台权限。
+- 最小接口概念：入口发现输出现有 {destination,row} 或等价的 {kind,anchor,row}；点击按实际所属 row/anchor 重新读取当前公开地址，复用目标解析与 requestNewChat。项目目标不可默默退化为 ordinary。特别检查现有 isProjectRowAction 只认项目链接的问题：ChatGPT DOM-ID-only 项目中的原生新建按钮也应排除出全局普通入口；不能把包裹历史列表的整个项目容器当标题行。无需额外身份验证。
+- 匹配优先级：真实标题行的可用同源 href → 已验证公开 data-* ID + 路由模板 → 站点已实测的具体 testid/aria-label/局部结构作为定位辅助。官方可见的名称用于识别动作而非项目 ID；不使用全局模糊文本、历史 chat href、hash CSS class 或深层父节点猜测。多变体只在实证需要时增加。
+- ChatGPT：按 7.2 验证用户提供的 DOM/URL 样本，项目和普通入口分别发现。Claude：既有 /new 和 /project/{UUID} 候选有公开依据；在现有/新版可见 UI 中实测 href、插入点、直接新 composer 和归属后再改项目逻辑，未测不宣称通过。Gemini：普通 /app 与公开观察的 /u/{n}/app 候选，优先原生 href 并核对选中账号路径是否保留；不得删除经证实必要的路由参数或把 Skills 当项目。DeepSeek：只保留已有普通入口，项目能力未证实则不新增。各站保留原始权限/功能，未知站不注入。
+- 分阶段：P0 ChatGPT 项目与普通独立 tab 真机验收；P1 现有 Claude、Gemini、DeepSeek 定向回归，能在实际账户验证的最小缺陷可后续独立修复（包括普通入口保留已验证账号路径、统一默认 tab 的产品决策需真实回归），不因其他站未登录而阻塞 ChatGPT，亦不得把未测试站点标为完成。无需本轮扩 Grok、Kimi 等新站。
+- 每站回归最小样本：全局 New Chat → 一个 B/空 composer/A 不变；具有项目功能的站点额外检查两个真实项目 → 正确项目与首次授权合成消息归属；Gemini 多账号检查从 /u/{n}/ 开启后仍为同一账号。DOM fixture 只保存脱敏最小结构、旧聊天/未知入口负例、SPA 重绘与重复按钮断言；真实浏览器结果单列。对单站失败只修该站分支，复跑共用逻辑回归。
+- 本次只补研究及设计，未执行已登录网站操作、业务源码修改、构建、安装或验收。后续在 R2.2 同一次本地实施中读取本节，不再另起重复研究轮次。评分按真实证据区分设计与交付，关键 P0 未测不得放行。
