@@ -79,11 +79,12 @@ function isProjectRowAction(node,pageHref){
 function chatGPTTitleEvidence(row,pageHref){
   if(!row?.isConnected||row.closest(CLICKABLE)||row.matches(NAV)||
      row.querySelector(`${CHATGPT_CONTAINER},a[href*="/c/"],ul,ol,[role="list"]`))return null;
-  const hrefs=new Set([...row.querySelectorAll(PROJECT_LINK)]
-    .map(link=>projectDestination(link.getAttribute('href'),pageHref)?.url).filter(Boolean));
-  if(hrefs.size>1)return null;
+  const links=[...row.querySelectorAll(PROJECT_LINK+','+TITLE_TOGGLE)].filter(node=>node.matches('a[href]'));
+  const hrefs=new Set(links.map(link=>projectDestination(link.getAttribute('href'),pageHref)?.url));
+  // A malformed explicit href is not evidence of an ID-only title.
+  if(hrefs.has(undefined)||hrefs.size>1)return null;
   if(hrefs.size===1)return {href:[...hrefs][0]};
-  return [...row.children].some(node=>node.matches(TITLE_TOGGLE))?{href:null}:null;
+  return [...row.children].some(node=>node.matches(TITLE_TOGGLE)&&!node.matches('a[href]'))?{href:null}:null;
 }
 function chatGPTRowDestination(row,container,pageHref){
   if(row?.closest(CHATGPT_CONTAINER)!==container)return null;
@@ -117,7 +118,8 @@ function isChatGPTProjectAction(node,pageHref){
     /(?:project|项目)/i.test(node.getAttribute(name)||'')))return true;
   // Legacy href-only rows: do not mistake a sibling project action for global New Chat.
   const row=node.parentElement;
-  return Boolean(row&&!row.matches(NAV)&&chatGPTTitleEvidence(row,pageHref)?.href);
+  return Boolean(row&&!row.matches(NAV)&&(chatGPTTitleEvidence(row,pageHref)?.href||
+    [...row.children].some(child=>child.matches(PROJECT_LINK))));
 }
 function discover(doc,win){
   const found=new Map(),pageHref=win.location.href;
@@ -152,7 +154,8 @@ function discover(doc,win){
     if(main){
       const native=[...main.querySelectorAll(CLICKABLE)].filter(isNativeNewChat);
       if(native.length===1)found.set(native[0],{destination:project,row:null,
-        ...(provider.id==='chatgpt'?{resolve:()=>newChatDestination(win.location.href,{fromProjectPage:true})}:{})});
+        ...(provider.id==='chatgpt'?{resolve:()=>native[0].isConnected&&main.contains(native[0])&&
+          isNativeNewChat(native[0])?newChatDestination(win.location.href,{fromProjectPage:true}):null}:{})});
       // Do not invent an action or attach to a transcript heading.
     }
   }
@@ -177,16 +180,28 @@ function newButton(doc,entry,owner,win){
   const path=doc.createElementNS('http://www.w3.org/2000/svg','path');
   path.setAttribute('d',PATH);svg.append(path);button.append(svg);
   let lastRequest=-Infinity;
+  function failure(message){
+    if(!isChatGPT)return;
+    try{owner.toast({message,variant:'error',duration:0,dismissible:true});}
+    catch(error){console.warn('OpenDesk new chat feedback unavailable',error);}
+  }
   const off=owner.on(button,'click',event=>{
     if(event.isTrusted!==true||!host.isConnected)return;
     event.preventDefault();event.stopPropagation();
     if(isChatGPT&&performance.now()-lastRequest<450)return;
-    const current=resolve?resolve():destination;
-    if(!current)return; // A changed project must never fall back to ordinary chat.
     try{
-      if(requestNewChat(win,current,{mode:isChatGPT||event.altKey?'tab':'window'})&&isChatGPT)
-        lastRequest=performance.now();
-    }catch(error){console.warn('OpenDesk new chat window request failed',error);}
+      const current=resolve?resolve():destination;
+      if(!current){
+        failure('新对话入口已失效，请重新选择项目或新聊天入口。');
+        return; // Never fall back to ordinary chat.
+      }
+      if(requestNewChat(win,current,{mode:isChatGPT||event.altKey?'tab':'window'})){
+        if(isChatGPT)lastRequest=performance.now();
+      }else failure('无法打开新对话：目标地址或浏览器打开能力无效。');
+    }catch(error){
+      failure('打开新对话失败，请检查浏览器设置后重新点击。');
+      console.warn('OpenDesk new chat window request failed',error);
+    }
   });
   shadow.append(style,button);
   return {host,off,destination,row,inside:entry.inside,container:entry.container};

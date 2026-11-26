@@ -24,7 +24,7 @@ with sync_playwright() as pw:
     assert_count(project,3); assert_count(ordinary,1)
     for row in ['#project-row','#project-only','#project-dynamic']:
         assert_count(row+' '+mark,1); expect(button(row)).to_be_hidden()
-    for row in ['#history','#history2','#unknown','#conflict']:
+    for row in ['#history','#history2','#unknown','#conflict','#invalid-link','#invalid-legacy']:
         assert_count(row+' '+mark,0)
     page.locator('#project-row').hover(); expect(button('#project-row')).to_be_visible()
     page.locator('#outside').hover(); expect(button('#project-row')).to_be_hidden()
@@ -49,7 +49,9 @@ with sync_playwright() as pw:
     page.wait_for_timeout(100); assert_count('#project-row '+mark,0)
     page.evaluate("document.querySelector('#project-one').setAttribute('data-sidebar-project-container-id','project:g-p-6abf8a999a548191919851197b47446f')")
     expect(page.locator('#project-row '+mark)).to_have_count(1)
-    print('PASS click-time updated ID; conflicting href prevents stale/ordinary open; attribute refresh')
+    assert page.evaluate('window.__fixture.toasts.length')==1
+    assert page.evaluate('window.__fixture.toasts[0].variant')=='error'
+    print('PASS click-time updated ID; conflicting href prevents stale/ordinary open and requests error toast; attribute refresh')
     # Replace title row; browser observer remounts exactly once.
     page.evaluate("let row=document.querySelector('#project-only');let copy=row.cloneNode(true);copy.querySelector('[data-opendesk-new-chat-window]')?.remove();row.replaceWith(copy)")
     expect(page.locator('#project-only '+mark)).to_have_count(1)
@@ -57,6 +59,48 @@ with sync_playwright() as pw:
     page.locator('#outside').hover(); page.locator('#project-only .title').focus(); page.keyboard.press('Tab'); page.keyboard.press('Tab')
     expect(button('#project-only')).to_be_focused(); page.keyboard.press('Enter'); assert calls()[-1]==expected('a')
     print('PASS SPA row replacement / repeated refresh / actual keyboard focus and Enter')
+    # An explicit bad link appearing just before click must not fall back to the container ID.
+    page.locator('#project-only').hover(); page.wait_for_timeout(470)
+    page.evaluate("document.querySelector('#project-only').addEventListener('pointerdown',()=>{const a=document.createElement('a');a.id='late-invalid';a.hidden=true;a.href='https://example.invalid/g/g-p-malformed/project';document.querySelector('#project-only').append(a)},{once:true})")
+    old_count=len(calls()); button('#project-only').click(); assert len(calls())==old_count
+    assert page.evaluate('window.__fixture.toasts.length')==2
+    expect(page.locator('#project-only '+mark)).to_have_count(0)
+    page.evaluate("document.querySelector('#late-invalid').remove()")
+    expect(page.locator('#project-only '+mark)).to_have_count(1)
+    print('PASS explicit invalid href at click cannot fall back to container ID; invalid legacy row not ordinary')
+    # Distinguish definite request failures from normal noopener null return.
+    page.evaluate('window.__fixture.fakeWindow.open=null')
+    page.locator(ordinary+' button').click(); assert len(calls())==old_count
+    page.evaluate("()=>{window.__fixture.fakeWindow.open=()=>{throw new Error('synthetic open failure')}}")
+    page.locator('#project-row').hover(); button('#project-row').click(); assert len(calls())==old_count
+    toasts=page.evaluate('window.__fixture.toasts'); assert len(toasts)==4,toasts
+    assert all(t['variant']=='error' and t['duration']==0 and t['dismissible'] and t['message'] for t in toasts),toasts
+    page.evaluate('()=>{window.__fixture.fakeWindow.open=(...args)=>{window.__fixture.calls.push(args);return null}}')
+    button('#project-row').click(); assert calls()[-1]==expected('6')
+    assert page.evaluate('window.__fixture.toasts.length')==4
+    print('PASS invalid opener and thrown error request persistent toast; noopener null not misreported')
+    # Use the browser's real opener with a local blank substitute, never a live site.
+    page.evaluate('()=>{window.__fixture.fakeWindow.open=(url,target,features)=>window.open("about:blank",target,features)}')
+    page.wait_for_timeout(470)
+    before=len(page.context.pages)
+    with page.context.expect_page(timeout=5000) as pop:
+        button('#project-row').dblclick()
+    new_page=pop.value; new_page.wait_for_load_state(); assert len(page.context.pages)==before+1
+    assert new_page.evaluate('window.opener===null'); assert page.url=='about:blank'
+    expect(page.locator('#draft')).to_have_value('preserved synthetic draft')
+    new_page.close()
+    print('PASS real Chromium new-page event / one independent blank page / no opener; synthetic destination substitute')
+    # A native main action that changes before its companion click is not a new-chat entry.
+    page.evaluate("()=>{const state=window.__fixture;state.fakeWindow.location.href='https://chatgpt.com/g/g-p-6abf8a999a548191919851197b47446f/project';const main=document.createElement('main');main.id='project-main';main.innerHTML='<button aria-label=\"New chat\">New chat</button>';document.body.append(main);state.mount.refresh();main.addEventListener('pointerdown',()=>{const native=main.querySelector('button');native.setAttribute('aria-label','Other action');native.textContent='Other action'},{once:true})}")
+    page.evaluate('()=>{window.__fixture.fakeWindow.open=(...args)=>{window.__fixture.calls.push(args);return null}}')
+    assert_count('#project-main '+project,1)
+    old_count=len(calls()); old_toasts=page.evaluate('window.__fixture.toasts.length')
+    # Keep the native button geometry stable during the trusted click.
+    page.locator('#project-main > button').evaluate("node=>{node.style.width='120px'}")
+    button('#project-main').click(); assert len(calls())==old_count
+    assert page.evaluate('window.__fixture.toasts.length')==old_toasts+1
+    page.evaluate("()=>{document.querySelector('#project-main').remove();window.__fixture.fakeWindow.location.href='https://chatgpt.com/c/old-conversation';window.__fixture.mount.refresh()}")
+    print('PASS stale project landing main action does not open a tab')
     page.evaluate('window.__fixture.dispose()'); assert_count(mark,0)
     page.evaluate('window.__fixture.reinstall()'); assert_count(mark,4)
     assert errors==[],errors

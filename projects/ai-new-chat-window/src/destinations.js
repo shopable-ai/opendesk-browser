@@ -23,9 +23,10 @@ export function projectDestination(href,pageHref){
   try{url=new URL(href,pageHref);page=new URL(pageHref);}catch{return null;}
   if(!providerFor(page.href)||url.origin!==page.origin||
      url.username||url.password||url.protocol!=='https:')return null;
+  if(page.origin==='https://chatgpt.com'&&(typeof href!=='string'||!href.trim()||/^[?#]/.test(href.trim())))return null;
   let pathname=url.pathname.replace(/\/+$/,'');
   if(page.origin==='https://chatgpt.com'&&
-     /^\/g\/g-p-[a-zA-Z0-9_-]{12,128}\/project$/.test(pathname))
+     /^\/g\/g-p-[a-fA-F0-9]{32}(?:-[a-zA-Z0-9_-]{1,95})?\/project$/.test(pathname))
     return {url:url.origin+pathname,kind:'project',provider:'chatgpt'};
   if(page.origin==='https://claude.ai'&&
      /^\/project\/[a-fA-F0-9-]{20,64}$/.test(pathname))
@@ -62,8 +63,9 @@ export function requestNewChat(win,destination,{mode=destination?.provider==='ch
   if(!destination||!['ordinary','project'].includes(destination.kind)||
      !['window','tab'].includes(mode)||typeof win?.open!=='function')return false;
   const expected=newChatDestination(destination.url);
+  const project=destination.kind==='project'?projectDestination(destination.url,destination.url):null;
   if(!expected||expected.provider!==destination.provider||
-     (destination.kind==='project'&&!projectDestination(destination.url,destination.url))||
+     (destination.kind==='project'&&(!project||destination.provider==='chatgpt'&&project.url!==destination.url))||
      (destination.kind==='ordinary'&&expected.url!==destination.url))return false;
   const features=mode==='window'?
     'noopener,noreferrer,popup=yes,width=1240,height=860':'noopener,noreferrer';

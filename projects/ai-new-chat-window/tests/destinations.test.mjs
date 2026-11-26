@@ -93,3 +93,22 @@ test('reject fabricated destinations and unsupported modes without opening',()=>
   assert.equal(requestNewChat(win,newChatDestination(chat),{mode:'same-tab'}),false);
   assert.equal(calls.length,0);
 });
+
+test('ChatGPT only accepts observed 32-hex project IDs with optional hyphenated slug',()=>{
+  for(const id of ['abcdefghijkl','1234567890123456789012345678901','z'.repeat(32),'6abf8a999a548191919851197b47446fextra','6abf8a999a548191919851197b47446f-']){
+    const url=`https://chatgpt.com/g/g-p-${id}/project`;
+    assert.equal(projectDestination(url,chat),null);
+    assert.equal(requestNewChat({open:()=>assert.fail('invalid target opened')},{url,kind:'project',provider:'chatgpt'}),false);
+  }
+  assert.equal(projectDestination(project.replace('/project','-example_slug/project'),chat).url,project.replace('/project','-example_slug/project'));
+});
+
+test('ChatGPT opener rejects unnormalized project destinations, resolver supplies canonical route',()=>{
+  const calls=[],win={open:(...args)=>calls.push(args)};
+  for(const raw of [project+'?x=1',project+'#old',project+'/']){
+    assert.equal(requestNewChat(win,{url:raw,kind:'project',provider:'chatgpt'}),false);
+    assert.equal(requestNewChat(win,projectDestination(raw,chat)),true);
+  }
+  for(const href of ['', '  ', '?x=1', '#old', null])assert.equal(projectDestination(href,project),null);
+  assert.deepEqual(calls,Array.from({length:3},()=>[project,'_blank','noopener,noreferrer']));
+});

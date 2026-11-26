@@ -41,6 +41,52 @@ R1 只设计及模拟，所有真实 Chrome+登录 ChatGPT+安装候选的业务
 | 反方审计 | 89 | 83 | 路由、身份与源页任务的真实证据缺失 |
 | 算术平均 | 93.50 | 84.75 | 目标 ≥95 未达到，不能放行 |
 
+## R2.3-CLOSE 增量修复与验收记录（2026-11-26）
+
+基线：58d18b06bd785fa99aa4f9ceb1d517c28092c2ad，候选 0.1.1。状态：**SOURCE_CANDIDATE / NODE_PASS_11 / SYNTHETIC_CHROMIUM_PASS_10 / REAL_CHROME_BLOCKED / BUILD_NOT_RUN / INSTALL_NOT_TESTED**。此前 R2.3 记录为历史证据，不重复设计研究。仅修改本项目路由、按钮及相关测试文档，不改 main.js、package.json、站点范围、权限、其他项目或平台代码。
+
+| 验证项 | 结果 | 实际证据及边界 |
+|---|---|---|
+| node --test projects/ai-new-chat-window/tests/*.test.mjs | 11/11 PASS（Node 22.16.0） | 隔离副本，原基线源码/既有测试 blob 核对；新增非法 ID、纯 query/hash、非归一化目标拒绝，原四站路由和模式回归 |
+| node --check src/buttons.js 与 src/destinations.js | PASS | 语法检查；不是正式构建 |
+| CHROMIUM_EXECUTABLE=/usr/bin/chromium python projects/ai-new-chat-window/tests/browser-fixture.py | 10 组 PASS（Chromium 144.0.7559.96） | 合成 DOM，真实可信鼠标/键盘；多数 open 为参数替身，新增实际浏览器 about:blank 新页事件；toast 为调用记录替身 |
+| 正式 validate-program-project.mjs / npm run build:program | NOT_RUN / BLOCKED | 隔离环境缺完整仓库且 git DNS 解析失败；CodexPro open_current_workspace 返回 UNAVAILABLE / Connection failed |
+| 真实 ChatGPT 两个项目、直接 composer、首次发送归属、原页真实生成与草稿 | NOT_TESTED / BLOCKED | 无明确授权独立登录态 QA 环境；没有读取或操作用户真实工作标签、发送消息或尝试绕过访问限制 |
+| 正式安装、Page Authority、sourceHash、撤权恢复 | NOT_TESTED | 未生成正式安装候选、未安装或发布 |
+| Claude / DeepSeek / Gemini 专项真实测试 | DEFERRED | 已有 Node 路由与 opener 定向回归 PASS，不等于真实站验收 |
+
+十组 Chromium 证据：①项目 hover/leave 与默认隐藏、历史/冲突/无效行排除、普通/项目数量区分；②两个合成项目与普通目标，双击一次请求，合成源页 URL/草稿不变；③原生 +、菜单及动态 + 共存；④点击时 ID 变化、冲突拒绝并记录 toast、属性重绑；⑤SPA 重绘、重复刷新、Tab/Enter；⑥点击时出现明确非法 href，不按 ID 误开；⑦无效 opener、同步异常记录持久 error toast，正常 noopener null 不报错；⑧真实浏览器 context new-page 事件（目标由测试替换为 about:blank），双击仅新增一个独立页，window.opener 为 null，源合成草稿不变；⑨失效的项目首页原生动作不打开新页；⑩清理、恢复且无 pageerror。
+
+本轮实际测试所用 Git blob（提交前与上传 blob 比对一致）：
+
+| 文件 | Git blob SHA |
+|---|---|
+| src/buttons.js | 61a4aba1c25440338fd1d814884c74aeb4290226 |
+| src/destinations.js | 9693f5a7670f7afc7675a6b769b39d0674fc49ce |
+| tests/destinations.test.mjs | f4779a594f6723c8f0f50364d5f7480676436097 |
+| tests/browser-fixture.py | d89fc7ea3c7401223241967d4d077c25925bc67f |
+| tests/fixtures/project-hover.html | eca6be7e0fd438d9da1b52c5aae85acf1db3dbbb |
+
+T14 明确失败的业务代码与 toast 参数调用已通过合成故障注入，真实安装后 toast 是否显示仍 NOT_TESTED；不能将 noopener 的 null 当作阻止、不能自动重试。T03/T15 新页及双击机制有替代目标真实浏览器事件证据，但真实 ChatGPT URL 与归属仍 NOT_TESTED。T01/T02/T09/T10/T11/T18/T21 的真实标题行、右侧 action slot、窄屏、主题、原生菜单等仍待实证；T04/T05/T06/T13/T16/T17/T20/T23 等真实核心 P0 未验收。旧矩阵继续适用，不提升其真实证据等级。
+
+### 本轮多视角自评（非独立专家、非放行分）
+
+| 评审维度 | 技术方案 | 正式源码实现 | 验收证据 |
+|---|---:|---:|---:|
+| 产品需求完整性 | 98 | 95 | 70 |
+| 技术原理正确性 | 91 | 92 | 64 |
+| 正式业务代码质量 | 95 | 94 | 85 |
+| UI/UX 交互质量 | 92 | 86 | 71 |
+| Chrome 扩展兼容性 | 94 | 88 | 70 |
+| 软件架构简洁性 | 98 | 97 | 91 |
+| 测试及交付质量 | 96 | 92 | 75 |
+| 反方审计 | 91 | 90 | 65 |
+| 算术平均 | 94.38 | 91.75 | 73.88 |
+
+三列等权汇总参考值 86.67/100，不替代各阶段分数与 P0 门禁。扣分集中在真实 DOM/布局未观测、项目直接路由/首次归属未证明、安装和实际流式/草稿未验证、正式 build 未运行；无独立专家参与。未达到 ≥95，不放行。
+
+**剩余执行边界：** 保持同一候选和唯一 owner，下一步获取两个独立授权 QA 项目的脱敏 DOM、直达空 composer 与首发归属证据，基于实际差异修正标题定位；只补必要功能，运行正式 validate/build，按现有 Authority 安装并补真实 P0。无需重做需求、竞品或原型；尚未完成正式业务闭环，不生成最终本地 Codex 验收交接提示词。
+
 ## 测试矩阵
 | ID | 级别 | 操作/可验证预期 | R1 HTML 本地模拟 |
 |---|---|---|---|

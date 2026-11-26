@@ -16,6 +16,8 @@ body{font-family:Arial;margin:30px}.item{width:320px;display:flex;align-items:ce
   <div class="item" id="project-dynamic"><a id="dynamic-title" href="/g/g-p-5abf8a999a548191919851197b47446f/project">Legacy href row with dynamic +</a></div>
   <div id="conflict" data-sidebar-project-container-id="project:g-p-7abf8a999a548191919851197b47446f"><div class="item"><a href="/g/g-p-8abf8a999a548191919851197b47446f/project">Conflicting link</a><button aria-label="New chat">+</button></div></div>
   <div id="unknown" data-sidebar-project-container-id="project:g-p-9abf8a999a548191919851197b47446f"><div class="history"><a href="/c/old-three">History only</a><button aria-label="New chat">+</button></div></div>
+  <div id="invalid-link" data-sidebar-project-container-id="project:g-p-9abf8a999a548191919851197b47446f"><div class="item"><button aria-expanded="true">Invalid explicit link</button><a href="/g/g-p-malformed/project">Bad</a></div></div>
+  <div class="item" id="invalid-legacy"><a href="/g/g-p-malformed/project">Invalid legacy row</a><button aria-label="New chat">+</button></div>
 </nav><textarea id="draft">preserved synthetic draft</textarea><p id="outside">Outside navigation</p>
 <script type="module">
 import {installNewChatButtons} from '../../src/buttons.js';
@@ -23,12 +25,14 @@ const disposers=[];
 const owner={
   on(target,type,handler){target.addEventListener(type,handler);const off=()=>target.removeEventListener(type,handler);disposers.push(off);return off},
   onDispose(fn){disposers.push(fn)},
+  toast(options){state.toasts.push(options)},
   setTimeout:window.setTimeout.bind(window),
   setInterval(fn,delay){const id=window.setInterval(fn,delay);disposers.push(()=>window.clearInterval(id));return id},
   observe(target,cb,options){const observer=new MutationObserver(cb);observer.observe(target,options);disposers.push(()=>observer.disconnect());return observer}
 };
-const state={calls:[],native:0,menu:0,owner};
+const state={calls:[],toasts:[],native:0,menu:0,owner};
 const fakeWindow={location:{href:'https://chatgpt.com/c/old-conversation'},open:(...args)=>{state.calls.push(args);return null}};
+state.fakeWindow=fakeWindow;
 state.dispose=()=>{disposers.splice(0).reverse().forEach(off=>off())};
 state.reinstall=()=>{state.mount=installNewChatButtons({doc:document,win:fakeWindow,owner})};
 document.querySelector('#native-plus').addEventListener('click',()=>state.native++);

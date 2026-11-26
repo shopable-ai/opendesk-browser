@@ -1,30 +1,34 @@
 # AI New Chat / AI 新建对话 · 项目导航
 
-## 当前任务：OD-AI-NEW-CHAT-R2.3（仅 ChatGPT 正式实施）
+## 当前任务：OD-AI-NEW-CHAT-R2.3-CLOSE（仅 ChatGPT）
 
-状态（2026-11-26）：0.1.1 SOURCE_CANDIDATE / NODE_PASS_9 / SYNTHETIC_CHROMIUM_PASS / REAL_CHROME_BLOCKED / BUILD_NOT_RUN / INSTALL_NOT_TESTED。已修改 ChatGPT 业务源码并完成隔离测试；当前仍为待真实 Chrome 验收的候选，不是已安装可用或正式放行版本。
+**状态（2026-11-26）：0.1.1 SOURCE_CANDIDATE / NODE_PASS_11 / SYNTHETIC_CHROMIUM_PASS_10 / REAL_CHROME_BLOCKED / BUILD_NOT_RUN / INSTALL_NOT_TESTED。** 继承 58d18b06bd785fa99aa4f9ceb1d517c28092c2ad；本轮已完成可证实源码缺陷的定向修复，不是正式放行版本。
 
-**目标：** 在 ChatGPT 左侧已有项目条目鼠标经过/键盘聚焦时显示新增图标，一次点击打开独立标签页中的同项目新对话，原页任务和草稿不受扩展主动影响；普通新聊天也默认独立标签页，两个入口不串线。
+**用户目标：** 鼠标经过 ChatGPT 左侧项目标题行显示新增图标，一次点击在独立标签页打开该项目的空白新对话，首次用户主动发送正确归属，原标签页任务和草稿不被扩展主动影响；普通新聊天也默认独立标签页，两个入口不串线。
 
-**唯一 owner：** `projects/ai-new-chat-window/`，Program ID `opendesk.ai-new-chat-window` 不变，main 分支。不要创建新项目、目录、平台框架或增加权限。已有 Claude、Gemini、DeepSeek 代码与功能保持原样；其他站点专项实测、新项目功能及新站点适配后移，不是本轮交付前置。共用代码变更只需已有自动化定向回归，发现直接引入的回归须修复。
+**唯一 owner：** projects/ai-new-chat-window/，Program ID opendesk.ai-new-chat-window，main。维持原 Page USER_SCRIPT、权限及 Claude、DeepSeek、Gemini 既有行为；不创建其他项目、不自动发布。
+
+## 本轮已修复
+
+- destinations.js：ChatGPT 只接受现有证据中的 32 位十六进制项目 ID（允许合法连字符 slug）；排除空、仅 query/hash、无效 ID 和未经归一化的 opener 目标。正常 href 继续经现有归一化；其他站点路由保持不变。
+- buttons.js：明确无效 href 不再退回容器 ID；无效旧项目行的直接链接不误判为普通新聊天；主区原生入口点击时重新核验；点击时发现目标无效、请求拒绝或同步异常，通过已有 owner.toast 发出可关闭的持久错误提示。正常 noopener 返回 null 不报成功或失败，不重试。保留最小 opener 与原生命周期。
+- main.js、package.json、Program ID、Page 权限和安装合同未改；0.1.1 保留为候选版本。
 
 ## 文件导航
 
-- [DESIGN.md 第七节](DESIGN.md)：R2.2 最小技术合同及 R2.3 当前实施边界（7.5）；优先真实 DOM/href→URL→独立标签页实验，成立即最小实现。
-- [REQUIREMENTS.zh-CN.md](REQUIREMENTS.zh-CN.md)：原始目标与功能要求。
-- [RESEARCH.md](RESEARCH.md)：已有公开资料、真实 DOM/路由样本、各站候选及证据限制，已保存；不重复网络研究，不把其他站点候选当作当前工作。
-- [ACCEPTANCE.md](ACCEPTANCE.md)：相关真实验收、历史 Mock 及放行标准。
-- [preview/index.html](preview/index.html)：历史模拟原型，不代表真实安装效果。
-- `src/`、`tests/`：现有正式业务源码及测试；在当前目录增量修改。
+- [DESIGN.md 第七节](DESIGN.md)：最小技术合同，7.6 为历史候选，7.7 为本轮增量。
+- [REQUIREMENTS.zh-CN.md](REQUIREMENTS.zh-CN.md)：原始目标与功能合同。
+- [RESEARCH.md](RESEARCH.md)：已有资料与证据，禁止重复研究。
+- [ACCEPTANCE.md](ACCEPTANCE.md)：历史证据及本轮测试、剩余真实验收和放行门禁。
+- src/、tests/：正式业务源及定向回归；[preview/index.html](preview/index.html) 仅历史模拟原型。
 
-本轮候选实现：ChatGPT 项目容器 ID / 同项目 href 解析、标题行候选与历史区分离、无原生＋时入口、默认新 tab（不传 popup）、点击重新读取项目地址、同按钮 450ms 防重复、SPA href/ID 变化重绑。旧站点保持原模式，main.js 和权限不变。真实标题行结构、右侧插入槽、实际新 composer 和项目归属仍须核验，详见 DESIGN.md 7.6 与 ACCEPTANCE.md。
+## 实际测试与剩余阻塞
 
-已运行的定向测试（隔离环境，非安装验收）：
+Node 22.16.0：11/11 PASS；Chromium 144.0.7559.96：10 组 PASS。测试使用与 GitHub 基线 blob 一致的源码副本；合成 DOM 及 open 参数记录替身。另有真实 Chromium 新页面事件实验：只创建一个 about:blank 替代页、opener 为 null、原合成草稿不变；这不是 ChatGPT 登录态或实际项目归属证据。错误提示测试验证 Page UI toast 调用参数，不等于已安装 UI 的视觉实测。
 
-- `node --test projects/ai-new-chat-window/tests/*.test.mjs`：9/9 PASS。
-- `CHROMIUM_EXECUTABLE=/usr/bin/chromium python projects/ai-new-chat-window/tests/browser-fixture.py`：6 组断言 PASS。可选 Python Playwright + Chromium（本轮未新增生产依赖）；fixture 使用合成 DOM 及记录 open 参数的替身，不打开实际 ChatGPT。
+本地 CodexPro workspace 连接失败（UNAVAILABLE / Connection failed）；隔离环境没有完整仓库，GitHub git DNS 失败，正式 validate/build 未运行，未安装。没有明确授权的独立已登录 Chrome QA profile 可用，因此不读取或操作用户正在工作的标签，不进行真实发送。
 
-下一步由具备授权登录态 Chrome 和完整仓库的本地 Codex 执行：只做 DESIGN 7.2 的两个项目实证、按证据调整候选定位、验证直接打开空 composer，运行测试和项目 validate/build、授权安装、真实验收及必要修复。Browser Core SSE 429、本地工作区连接失败、浏览器内容读取权限阻止 ChatGPT 观测，隔离环境 GitHub DNS 不可达，故未获取完整构建环境；未做真实操作/发送/安装。明确失败的可见反馈、真实主题/窄屏以及 24 项矩阵相关缺口继续验收。核心证据未通过不可宣称完成，不自动发布。
+**下一步只补未通过的证据：** 真实两个项目标题 DOM 与右侧插入位置、直达空 composer、首次合成消息项目归属、A 真实流式/草稿、原生入口、错误提示及窄屏/主题；在完整仓库中 validate/build 并沿现有 Authority 安装/撤权验收。直接项目 URL 不成立才按 DESIGN 7.2 调查必要修复，禁止扩大权限或回到源标签。核心 P0 未通过，不生成最终验收交接、不宣称完成。
 
 ---
 

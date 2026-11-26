@@ -109,3 +109,15 @@ GOAL OD-AI-NEW-CHAT-R2：基于当前 main 的 projects/ai-new-chat-window，读
 - package.json 候选版本 0.1.1；main.js、Program ID、Page 匹配、运行世界和其他站点代码路径均保持，未发布。测试增加合成 ID-only、真实 Chromium hover/键盘/双击/属性变化/重绘/清理等断言，详见 ACCEPTANCE。
 
 下一步仅执行一次真实本地验证、修复和构建安装：先观察两个授权 QA 项目的实际标题 DOM 与官方 href/动作，直达 B 检查正确空 composer、主动合成首条发送后归属和刷新；成立即沿当前简单 opener，不成立则按 7.2 条件调查，不能用私有 API 或扩权。只修证据指向的当前候选缺陷。执行项目 validate/build，沿现有 Page Authority 安装后验收真实 A/B、草稿、流式、普通入口、原生操作、重复与撤权。真实核心 P0 未测，不能正式放行。
+
+### 7.7 R2.3-CLOSE 定向缺陷修复（2026-11-26）
+
+基线 58d18b06bd785fa99aa4f9ceb1d517c28092c2ad；0.1.1 继续为源码候选。7.6 为历史结果，当前测试证据以 ACCEPTANCE.md 的 R2.3-CLOSE 增量为准。
+
+- 路由：明确的 ChatGPT 项目 href 必须符合已观察的 32 位 hex 项目 ID 模板，可有连字符 slug（沿既有 128 字符上限）；空 href、纯 query/hash、错误 ID、跨域/冲突及未经归一化的 ChatGPT opener 目标拒绝。保留真实链接 query/hash 归一化的既有行为，是否需要特定参数仍待真实 QA。该语法限制仅基于目前已知 ID 样本，不证明所有未来站点 ID 形态。
+- 行证据：显式项目样式链接/带 href 的标题 toggle 若不合法，不能忽略后按 ID 模板猜测；旧无容器行的无效直接项目链接也不应导出普通 New Chat。主区候选按钮点击前检查连接状态、原 main 归属及是否仍是新聊天控件。未更改基于已知容器与标题证据的插入位置；真实 DOM 与 action slot 未观察到，继续按真实证据调整，不扩大猜测选择器。
+- 错误处理：复用现有 @opendesk/ui createPageUI 返回的 owner.toast（message、variant:error、duration:0、dismissible:true），显示明确无效目标、无法发起请求和同步异常；不另建通知系统、不自动重放。window.open 的正常 noopener null 不代表失败，保留浏览器/网站原生处理登录、权限、项目删除及未知拦截。Toast 实际已安装呈现待测。
+- 不改变 450ms 同按钮防双击、同步 window.open(url, '_blank', 'noopener,noreferrer')、现有 Page Program、权限或其他站点业务；不引入跨标签桥、状态机、依赖或平台代码。
+
+实际 11 项 Node 与 10 组 Chromium 用例通过；其中真实新页事件仅使用 about:blank 目标替身。真实站点、正式构建和安装未通过证据门禁：本地 workspace UNAVAILABLE / Connection failed，隔离容器 GitHub git DNS 不可达且无完整仓库，无明确授权独立登录态 QA 环境。未操作用户正在工作的真实页面或发送消息。最小技术原理的核心假设（目标项目空白 composer 与首次发送归属）仍需实证；不提前宣称正式功能完成。
+
