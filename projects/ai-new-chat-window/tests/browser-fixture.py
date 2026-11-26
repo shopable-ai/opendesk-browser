@@ -101,6 +101,38 @@ with sync_playwright() as pw:
     assert page.evaluate('window.__fixture.toasts.length')==old_toasts+1
     page.evaluate("()=>{document.querySelector('#project-main').remove();window.__fixture.fakeWindow.location.href='https://chatgpt.com/c/old-conversation';window.__fixture.mount.refresh()}")
     print('PASS stale project landing main action does not open a tab')
+    # Match the real nested ChatGPT row and its right-side presentation slot.
+    page.locator('#sidebar').evaluate("""nav=>{
+      const project=document.createElement('div');
+      const id='project:g-p-cabf8a999a548191919851197b47446f';
+      project.setAttribute('data-sidebar-project-container-id',id);
+      project.innerHTML='<div><div><div id="marked" class="item" role="button" tabindex="0" aria-expanded="false" data-app-action-sidebar-project-row><span class="title">Nested project</span><div><div role="presentation" style="display:flex;gap:6px"><button aria-haspopup="menu">Menu</button><button aria-label="New chat in project">+</button></div></div></div></div></div><a id="marked-history" href="/c/old">History</a>';
+      const row=project.querySelector('#marked');row.setAttribute('data-app-action-sidebar-project-id',id.slice('project:'.length));
+      const state=window.__fixture;state.rowActivations=0;
+      row.addEventListener('click',()=>state.rowActivations++);
+      row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')state.rowActivations++});
+      nav.prepend(project);
+    }""")
+    slot='#marked [role="presentation"]'
+    expect(page.locator(slot+' > '+mark)).to_have_count(1)
+    expect(button('#marked')).to_be_hidden()
+    page.locator('#marked').hover(); expect(button('#marked')).to_be_visible()
+    assert_count(slot+' > button',2); assert_count('#marked-history '+mark,0)
+    old_count=len(calls()); button('#marked').click()
+    assert len(calls())==old_count+1 and calls()[-1]==expected('c')
+    page.locator('#outside').hover(); page.locator('#marked').focus()
+    for _ in range(3): page.keyboard.press('Tab')
+    expect(button('#marked')).to_be_focused(); page.wait_for_timeout(470)
+    page.keyboard.press('Space'); assert len(calls())==old_count+2 and calls()[-1]==expected('c')
+    assert page.evaluate('window.__fixture.rowActivations')==0
+    page.locator('#marked').evaluate("row=>row.setAttribute('data-app-action-sidebar-project-id','g-p-dabf8a999a548191919851197b47446f')")
+    expect(page.locator('#marked '+mark)).to_have_count(0)
+    page.locator('#marked').evaluate("row=>row.setAttribute('data-app-action-sidebar-project-id','g-p-cabf8a999a548191919851197b47446f')")
+    expect(page.locator(slot+' > '+mark)).to_have_count(1)
+    page.locator(slot).evaluate("slot=>{const next=slot.cloneNode(true);next.querySelector('[data-opendesk-new-chat-window]').remove();slot.replaceWith(next)}")
+    expect(page.locator(slot+' > '+mark)).to_have_count(1)
+    page.locator('#marked').evaluate("row=>row.closest('[data-sidebar-project-container-id]').remove()")
+    print('PASS nested live-layout fixture / native slot / isolated mouse and keyboard activation / ID mismatch and slot replacement')
     page.evaluate('window.__fixture.dispose()'); assert_count(mark,0)
     page.evaluate('window.__fixture.reinstall()'); assert_count(mark,4)
     assert errors==[],errors

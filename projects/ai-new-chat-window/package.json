@@ -1,6 +1,6 @@
 {
   "name": "@opendesk/ai-new-chat-window",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "ChatGPT 项目或普通新对话独立标签页；保留其他 AI 站点原有窗口行为",

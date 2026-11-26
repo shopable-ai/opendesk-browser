@@ -6,6 +6,8 @@ const CLICKABLE='a[href],button,[role="button"]';
 const PROJECT_LINK='a[href*="/g/g-p-"],a[href*="/project/"]';
 const CHATGPT_CONTAINER='[data-sidebar-project-container-id]';
 const CHATGPT_ID='data-sidebar-project-container-id';
+const CHATGPT_ROW='[data-app-action-sidebar-project-row]';
+const CHATGPT_ROW_ID='data-app-action-sidebar-project-id';
 const TITLE_TOGGLE='button[aria-expanded]:not([aria-haspopup]),[role="button"][aria-expanded]:not([aria-haspopup]),a[href][aria-expanded]:not([aria-haspopup])';
 const STYLE=`:host{all:initial;display:inline-flex;align-items:center;flex:none;margin-inline:4px;vertical-align:middle}
 button{appearance:none;box-sizing:border-box;width:28px;height:28px;display:grid;place-items:center;
@@ -74,8 +76,7 @@ function isProjectRowAction(node,pageHref){
   return false;
 }
 
-// A project container can wrap its history; only a bounded, non-interactive
-// title row is eligible. Link/toggle layouts are candidates until real DOM QA.
+// Legacy project containers can wrap their history; only a bounded title row is eligible.
 function chatGPTTitleEvidence(row,pageHref){
   if(!row?.isConnected||row.closest(CLICKABLE)||row.matches(NAV)||
      row.querySelector(`${CHATGPT_CONTAINER},a[href*="/c/"],ul,ol,[role="list"]`))return null;
@@ -93,6 +94,13 @@ function chatGPTRowDestination(row,container,pageHref){
   return container?chatGPTProjectDestination(container.getAttribute(CHATGPT_ID),pageHref,evidence.href)
     :projectDestination(evidence.href,pageHref);
 }
+function chatGPTMarkedSlot(row,container){
+  if(!row.isConnected||!row.matches(CHATGPT_ROW+'[role="button"][aria-expanded]:not([aria-haspopup])')||
+     row.closest(CHATGPT_CONTAINER)!==container||row.closest('a[href]')||
+     row.querySelector(`${CHATGPT_CONTAINER},a[href*="/c/"],ul,ol,[role="list"]`)||
+     `project:${row.getAttribute(CHATGPT_ROW_ID)}`!==container.getAttribute(CHATGPT_ID))return null;
+  return row.lastElementChild?.querySelector(':scope > [role="presentation"]')||null;
+}
 function discoverChatGPTProjects(doc,navRoots,win,found){
   const pageHref=win.location.href;
   function add(row,container){
@@ -101,6 +109,23 @@ function discoverChatGPTProjects(doc,navRoots,win,found){
     if(destination)found.set(row,{destination,row,inside:true,resolve,container});
   }
   for(const container of doc.querySelectorAll(CHATGPT_CONTAINER)){
+    const marked=[...container.querySelectorAll(CHATGPT_ROW)].filter(row=>row.closest(CHATGPT_CONTAINER)===container);
+    if(marked.length){
+      if(marked.length!==1)continue;
+      const [row]=marked,slot=chatGPTMarkedSlot(row,container);
+      if(!slot)continue;
+      const resolve=()=>{
+        if(chatGPTMarkedSlot(row,container)!==slot||
+           [...container.querySelectorAll(CHATGPT_ROW)].some(other=>other!==row&&other.closest(CHATGPT_CONTAINER)===container))return null;
+        const destination=chatGPTProjectDestination(container.getAttribute(CHATGPT_ID),win.location.href);
+        if(!destination||[...row.querySelectorAll(PROJECT_LINK)].some(link=>
+          projectDestination(link.getAttribute('href'),win.location.href)?.url!==destination.url))return null;
+        return destination;
+      };
+      const destination=resolve();
+      if(destination)found.set(row,{destination,row,inside:true,resolve,container,slot});
+      continue;
+    }
     const rows=[...container.children].filter(row=>chatGPTTitleEvidence(row,pageHref));
     if(rows.length===1)add(rows[0],container);
     else if(!rows.length&&[...container.children].some(node=>
@@ -168,7 +193,8 @@ function newButton(doc,entry,owner,win){
   host.setAttribute(OWN,destination.kind);
   if(row)host.style.setProperty('display','none','important');
   const shadow=host.attachShadow({mode:'open'});
-  const style=doc.createElement('style');style.textContent=STYLE+(isChatGPT?CHATGPT_STYLE:'');
+  const style=doc.createElement('style');style.textContent=STYLE+(isChatGPT?CHATGPT_STYLE:'')+
+    (entry.slot?':host{margin-inline:0}button{width:20px;height:20px;outline-offset:-2px}svg{width:14px;height:14px}':'');
   const button=doc.createElement('button');
   button.type='button';
   const title=destination.kind==='project'?'在新标签页打开此项目的新对话':'在新标签页打开新对话';
@@ -185,7 +211,11 @@ function newButton(doc,entry,owner,win){
     try{owner.toast({message,variant:'error',duration:0,dismissible:true});}
     catch(error){console.warn('OpenDesk new chat feedback unavailable',error);}
   }
-  const off=owner.on(button,'click',event=>{
+  function isolateActivation(event){
+    if(event.key==='Enter'||event.key===' ')event.stopPropagation();
+  }
+  const keyboardOff=entry.slot?['keydown','keyup'].map(type=>owner.on(button,type,isolateActivation)):[];
+  const clickOff=owner.on(button,'click',event=>{
     if(event.isTrusted!==true||!host.isConnected)return;
     event.preventDefault();event.stopPropagation();
     if(isChatGPT&&performance.now()-lastRequest<450)return;
@@ -204,7 +234,8 @@ function newButton(doc,entry,owner,win){
     }
   });
   shadow.append(style,button);
-  return {host,off,destination,row,inside:entry.inside,container:entry.container};
+  const off=()=>{clickOff();for(const release of keyboardOff)release();};
+  return {host,off,destination,row,inside:entry.inside,container:entry.container,slot:entry.slot};
 }
 
 export function installNewChatButtons({doc,win,owner}){
@@ -228,12 +259,13 @@ export function installNewChatButtons({doc,win,owner}){
     for(const [target,item] of mounted){
       const next=found.get(target);
       if(!target.isConnected||!next||next.destination.url!==item.destination.url||
-         next.row!==item.row||next.inside!==item.inside||next.container!==item.container||!item.host.isConnected)clear(target);
+         next.row!==item.row||next.inside!==item.inside||next.container!==item.container||
+         next.slot!==item.slot||!item.host.isConnected)clear(target);
     }
     for(const [target,entry] of found){
       if(!target.isConnected||mounted.has(target))continue;
       const item=newButton(doc,entry,owner,win);
-      if(entry.inside)target.append(item.host);
+      if(entry.inside)(entry.slot||target).append(item.host);
       else target.insertAdjacentElement('afterend',item.host);
       mounted.set(target,item);
     }
@@ -266,7 +298,7 @@ export function installNewChatButtons({doc,win,owner}){
         .some(node=>node.nodeType===1&&node.matches?.(`${navScope},header,main`)));
     }))schedule();
   },navScope===NAV?{childList:true,subtree:true}:{childList:true,subtree:true,attributes:true,
-    attributeFilter:['href',CHATGPT_ID]});
+    attributeFilter:['href',CHATGPT_ID,CHATGPT_ROW_ID,'data-app-action-sidebar-project-row']});
   // Account for SPA routing which can change project identity without a reload.
   owner.setInterval(refresh,1600);
   owner.onDispose(()=>{disposed=true;for(const target of [...mounted.keys()])clear(target);});
