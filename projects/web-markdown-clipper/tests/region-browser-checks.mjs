@@ -11,7 +11,9 @@ export async function runRegionBrowserChecks(page,{baseUrl='http://127.0.0.1:187
   overlay:!!document.querySelector('[data-opendesk-clip-root]'),websiteActions:regionTest.websiteActions,hash:location.hash}));
  const done=async()=>{await page.waitForFunction(()=>!!regionTest.result||!!regionTest.error);return state();};
  const start=()=>page.click('#start');
- await start();await page.click('#chapter-18 p');
+ await start();await page.hover('#chapter-18 p');
+ await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');
+ await page.keyboard.press('Enter');
  let s=await done();assert.equal(s.selected,'reply-a');
  const markdown=s.result.markdown;
  for(const part of ['# 目标回答 A','第 1 章','第 36 章','END\\_OF\\_REPLY\\_A','**重要结论**',
@@ -20,20 +22,20 @@ export async function runRegionBrowserChecks(page,{baseUrl='http://127.0.0.1:187
  checks.push({id:'long-answer-format-isolation',status:'PASS',bytes:Buffer.byteLength(markdown),chapters:36});
 
  await start();await page.click('#other');s=await done();
- assert.equal(s.selected,'reply-b');assert.doesNotMatch(s.result.markdown,/目标回答 A/);
+ assert.equal(s.selected,'other');assert.doesNotMatch(s.result.markdown,/目标回答 A/);
  checks.push({id:'reselect-other-answer',status:'PASS'});
 
  await start();await page.hover('#lead');await page.click('#test-link');s=await done();
- assert.equal(s.websiteActions,0);assert.equal(s.hash,'');assert.equal(s.selected,'reply-a');
+ assert.equal(s.websiteActions,0);assert.equal(s.hash,'');assert.equal(s.selected,'test-link');
  checks.push({id:'link-click-is-consumed',status:'PASS'});
 
  await start();await page.hover('#chapter-18 p');
- await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowDown');await page.click('#chapter-18 p');
+ await page.keyboard.press('ArrowUp');await page.click('#chapter-18 p');
  s=await done();assert.equal(s.selected,'chapter-18');assert.doesNotMatch(s.result.markdown,/第 1 章|第 36 章/);
  checks.push({id:'narrow-range-click',status:'PASS'});
 
  await start();await page.hover('#chapter-18 p');
- await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
+ await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');
  s=await done();assert.equal(s.selected,'chapter-18');
  checks.push({id:'keyboard-keeps-highlighted-range',status:'PASS'});
 

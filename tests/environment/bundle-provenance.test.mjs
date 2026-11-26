@@ -679,7 +679,7 @@ test('fixed Clipper relay and marketplace admit their reviewed capture dependenc
 
 test('Clipper region picker retains exact source, target and symlink fences',async ctx=>{
   const path='projects/web-markdown-clipper/trusted/region-picker.js';
-  const pin='1aff80ff37936283b6922431cb9bfd1c44d1e286';
+  const pin='45f09fae8c948bfd748b66c01d3066282e550b1c';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,pin);
@@ -699,7 +699,7 @@ test('Clipper region picker retains exact source, target and symlink fences',asy
 
 test('first-party Clipper full-text notes store is pinned exclusively to the original Sidebar Host',async ctx=>{
   const path='projects/web-markdown-clipper/trusted/notes-store.js';
-  const pin='34547422b3a85be15cfad179e8df5993146c5b80';
+  const pin='17073f63ba0d73e427d9b19697191d9c5bbda766';
   const make=(target,root=process.cwd(),source=path)=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,source)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('ui/sidebar-tool-host.js').modules[0].reviewedFirstPartyBlob,pin);
@@ -784,7 +784,7 @@ test('R1.3 pinned shared Markdown converter can only enter the existing Page Rel
     modules:{[resolve(root,path)]:{renderedLength:20,originalLength:40}}},root,lock:{packages:{}}});
   const row=make('agents/page-relay.js');
   assert.equal(row.modules[0].path,path);
-  assert.equal(row.modules[0].reviewedFirstPartyBlob,'e665625350e3eda4327e6f453c96bf997259a3d9');
+  assert.equal(row.modules[0].reviewedFirstPartyBlob,'010670edda18cf9321acd3f51372d5180692acf6');
   for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/,
       'shared converter must not cross the Page Relay boundary: '+target);
@@ -872,7 +872,7 @@ test('relocated trusted policies and tab repair keep exact source, target and sy
 
 test('Clipper region source is byte-pinned to Page Relay and never admitted elsewhere',async t=>{
   const inputs=[
-    ['projects/web-markdown-clipper/trusted/page.js','7792562f90c2b0aa78dbc154ca35413cac91fdd4'],
+    ['projects/web-markdown-clipper/trusted/page.js','a4e91daee1496fdcc4bef25f0b166daf125a3686'],
     ['projects/web-markdown-clipper/trusted/region-picker.js','1aff80ff37936283b6922431cb9bfd1c44d1e286']
   ];
   const project=await realpath(await mkdtemp(join(tmpdir(),'clipper-region-provenance-')));

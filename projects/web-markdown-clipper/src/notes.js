@@ -78,7 +78,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  const empty=()=>({items:[],total:0,matched:0,usedBytes:0,etag:null,nextOffset:null});
  let data=empty(),recent=empty();
  let clip=null,reading=null,readerOrigin='library',editing=null,editingSource=null;
- let editorReturn='library',baseline='',busy=false,pendingDelete=null;
+ let editorReturn='library',baseline='',busy=false,pendingDelete=null,copying=false;
  // List refreshes must not cancel explicit detail reads. Detail intents are
   // invalidated only by a newer detail intent or leaving their view context.
   let listGeneration=0,detailGeneration=0,recentGeneration=0,searchTimer=null,recentScroll=0,libraryScroll=0;
@@ -182,6 +182,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    open.addEventListener('click',()=>void openReader(x.id,origin));
    const actions=el('div','clip-note-buttons');
    actions.append(
+    action('copy','复制 '+(x.title||'摘录'),()=>void copyCard(x.id)),
     action('pencil','编辑 '+(x.title||'摘录'),()=>void editCard(x.id,origin)),
     action('trash-2','删除 '+(x.title||'摘录'),()=>confirmRemove(x.id,etag,card,origin),'clip-danger')
    );
@@ -382,11 +383,33 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    q('clip-recent-retry').hidden=!store.uncertain;
   }finally{busy=false;notify();}
  }
+ async function writeFullCopy(content){
+  if(typeof content!=='string'||!content.trim())throw Error('摘录正文为空');
+  const result=await sdk.clipboard.writeText(content);
+  if(result?.copied!==true)throw Error('复制未确认');
+  msg('完整 Markdown 已复制');
+ }
+ function copyError(error){
+  if(error?.code==='E_CANCELLED')msg('已取消复制');
+  else if(error?.code==='E_OUTCOME_UNKNOWN')msg('复制结果未知，请检查系统剪贴板，勿重复操作',true);
+  else statusError(error,'复制失败：');
+ }
+ async function copyCard(id){
+  if(busy||copying)return;
+  copying=true;
+  try{
+   const result=await store.get(id);
+   if(result?.item?.id!==id)throw Error('摘录读取不一致');
+   await writeFullCopy(result.item.body);
+  }catch(error){copyError(error);}
+  finally{copying=false;}
+ }
  async function copyItem(){
-  if(!reading||busy)return;const content=reading.item.body;
-  try{const result=await sdk.clipboard.writeText(content);
-   if(result?.copied!==true)throw Error('复制未确认');msg('完整 Markdown 已复制');
-  }catch(error){statusError(error,'复制失败：');}
+  if(!reading||busy||copying)return;
+  copying=true;
+  try{await writeFullCopy(reading.item.body);}
+  catch(error){copyError(error);}
+  finally{copying=false;}
  }
  async function downloadItem(){
   if(!reading||busy)return;const item=reading.item;

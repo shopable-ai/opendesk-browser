@@ -1338,12 +1338,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       // expand a valid Markdown byte sixfold (e.g. control characters).
       const fields={source:8192,title:2000,site:1000,capturedAt:64,mode:32};
       if(!data||typeof data!=='object'||Array.isArray(data)||
-         Object.keys(data).some(key=>!['markdown','loadedOnly','streaming',...Object.keys(fields)].includes(key))||
+         Object.keys(data).some(key=>!['markdown','loadedOnly','streaming','append',...Object.keys(fields)].includes(key))||
          typeof data.markdown!=='string'||encoder.encode(data.markdown).length>160000||
          typeof data.source!=='string'||
          Object.entries(fields).some(([key,max])=>data[key]!==undefined&&
            (typeof data[key]!=='string'||encoder.encode(data[key]).length>max))||
-         ['loadedOnly','streaming'].some(key=>data[key]!==undefined&&typeof data[key]!=='boolean')||
+         ['loadedOnly','streaming','append'].some(key=>data[key]!==undefined&&typeof data[key]!=='boolean')||
          (data.mode!==undefined&&data.mode!=='clip.region'))
         throw new Error('剪藏响应过大或格式无效');
       session.finished=true;
@@ -4568,7 +4568,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportClick,exportPort,null,proxyAction,observeClick,regionRequest,importAdmission);
     });
     const work=importAdmission?Promise.race([pendingWork,importAdmission.expiry]):pendingWork;
-    if(message.operation==='storage.set')queued.set(tool.id,work);
+    if(message.operation==='storage.set'||message.operation==='clipNotes.setPreference')queued.set(tool.id,work);
     work.then(async result=>{
       if(importBegin){
         importAdmission.check();

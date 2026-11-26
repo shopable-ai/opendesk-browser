@@ -31,13 +31,13 @@
 </header>
 <p id="clip-title" class="clip-page-title" hidden>打开网页，提取文章或选中文字</p>
 <div class="clip-modes" role="group" aria-label="剪藏范围">
- <button type="button" data-clip-mode="article" aria-pressed="true">文章</button>
+ <button type="button" data-clip-mode="region" aria-pressed="true">区域</button>
+ <button type="button" data-clip-mode="article" aria-pressed="false">文章</button>
  <button type="button" data-clip-mode="selection" aria-pressed="false">选区</button>
  <button type="button" data-clip-mode="quote" aria-pressed="false">引用</button>
  <button type="button" data-clip-mode="link" aria-pressed="false">链接</button>
- <button type="button" data-clip-mode="region" aria-pressed="false">区域</button>
 </div>
-<button type="button" id="clip-fetch" class="primary clip-fetch" aria-label="提取当前文章">提取当前文章</button>
+<button type="button" id="clip-fetch" class="primary clip-fetch" aria-label="点选网页区域">点选网页区域</button>
 <div class="clip-actions" role="toolbar" aria-label="显示方式">
  <button type="button" id="clip-show-preview" aria-pressed="true"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-eye"></use></svg>预览</button>
  <button type="button" id="clip-show-source" aria-pressed="false"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-code-2"></use></svg>Markdown</button>
@@ -49,7 +49,7 @@
   </select>
  </details>
 </div>
-<textarea id="clip-source" spellcheck="false" readonly hidden aria-label="剪藏的 Markdown 源码" placeholder="请先提取当前网页内容"></textarea>
+<textarea id="clip-source" spellcheck="false" hidden aria-label="编辑剪藏的 Markdown 源码" placeholder="请先提取当前网页内容"></textarea>
 <div id="clip-preview" class="clip-preview" role="document" aria-label="Markdown 只读预览"></div>
 <div class="clip-export" role="group" aria-label="摘录操作">
  <button type="button" id="clip-save" class="primary" disabled><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-save"></use></svg>保存摘录</button>
@@ -57,7 +57,7 @@
  <button type="button" id="clip-download" aria-label="下载 Markdown" title="下载为本地 .md 文件"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-download"></use></svg>下载 .md</button>
 </div>
 <p id="clip-save-explain" class="clip-hint" hidden></p>
-<p id="clip-status" class="clip-status" role="status" aria-live="polite">选择文章提取，或先在网页中选中文字。</p>
+<p id="clip-status" class="clip-status" role="status" aria-live="polite">点选网页区域，或选择其他剪藏方式。</p>
 <section id="clip-recent" aria-labelledby="clip-recent-title">
  <div class="clip-recent-head">
   <div class="clip-recent-label"><strong id="clip-recent-title">最近摘录</strong><span id="clip-recent-count" aria-label="全部摘录数量">0</span></div>

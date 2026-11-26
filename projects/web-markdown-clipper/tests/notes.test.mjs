@@ -257,7 +257,7 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
  class Element{
   constructor(id){this.id=id;this.value='';this.textContent='';this.dataset={};this.events={};this.children=[];this.hidden=false;this.disabled=false;this.classList={add(){}};}
   addEventListener(type,fn){(this.events[type]??=[]).push(fn);}
-  async fire(type){await Promise.all((this.events[type]||[]).map(fn=>fn()));}
+  async fire(type){await Promise.all((this.events[type]||[]).map(fn=>fn({preventDefault(){},stopPropagation(){}})));}
   append(...items){this.children.push(...items);}
   replaceChildren(...items){this.children=items;}
   setAttribute(key,value){this[key]=value;}
@@ -284,8 +284,8 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
  };
  const ctx={OpenDeskTool:{setState(){}}};
  runInNewContext(source,{globalThis:ctx,document:doc,TextEncoder,URL,Date,Math,setTimeout,clearTimeout});
- const changes=[];
- const notes=ctx.OpenDeskClipNotes.create({root,request,sdk:{},
+ const changes=[];let copied=null;
+ const notes=ctx.OpenDeskClipNotes.create({root,request,sdk:{clipboard:{writeText:async text=>{copied=text;return {copied:true};}}},
   onStatus:()=>{},renderMarkdown:()=>{},
   onSaveBusy:active=>changes.push(active)});
  notes.setClip({body:'旧网页敏感正文',title:'原文',source:'https://old.example/a'});
@@ -311,12 +311,18 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
  await elements['clip-note-cancel'].fire('click');
  await elements['clip-note-discard'].fire('click');
  await elements['clip-recent-new'].fire('click');
- elements['clip-note-body'].value='从主页新建并保存的便签';
+ elements['clip-note-body'].value='从主页新建并保存的便签\n'+'长正文'.repeat(100);
  await elements['clip-note-body'].fire('input');
  await elements['clip-note-save'].fire('click');
  for(let i=0;i<40;i++)await Promise.resolve();
  assert.equal(elements['clip-home'].hidden,false,'confirmed saves from recent notes must return home while the save lock is held');
  assert.equal(elements['clip-note-editor'].hidden,true);
+ const card=elements['clip-recent-list'].children[0];
+ assert.equal(card.children[1].children.length,3,'copy/edit/delete share the existing card actions');
+ await card.children[1].children[0].fire('click');
+ for(let i=0;i<20;i++)await Promise.resolve();
+ assert.equal(copied,writeInput.body,'copy must read complete body, not the list summary');
+ assert.equal(elements['clip-home'].hidden,false,'copy must not navigate');
  elements['clip-reader-content'].scrollTop=8000;
  await elements['clip-recent-list'].children[0].children[0].fire('click');
  for(let i=0;i<20;i++)await Promise.resolve();
@@ -373,4 +379,18 @@ test('R1.11 formal controls, preview and installable package use identical offic
  assert.match(css,/--opendesk-host-available-height/);
  for(const name of ['arrow-left','plus','list','pencil','trash-2','refresh-cw','copy','download','save','search','filter','eye','code-2','settings-2','archive','chevron-down'])
   assert.ok(html.includes('id="clip-i-'+name+'"'),'missing semantic icon '+name);
+});
+
+test('last mode preference preserves large note libraries and accepts only known modes',async()=>{
+ const f=fixture();
+ assert.equal((await f.run('clipNotes.getPreference')).mode,null);
+ const body=makeBody(100000),saved=await f.run('clipNotes.save',note(body));
+ const before=f.read();
+ await f.run('clipNotes.setPreference',{mode:'quote'});
+ assert.equal((await f.run('clipNotes.getPreference')).mode,'quote');
+ assert.deepEqual(f.read().clips,before.clips);
+ assert.equal(f.read().unrelated,before.unrelated);
+ assert.equal((await f.run('clipNotes.get',{id:saved.id})).item.body,body);
+ await assert.rejects(f.run('clipNotes.setPreference',{mode:'invalid'}),e=>e.code==='E_SCHEMA');
+ assert.equal((await f.run('clipNotes.getPreference')).mode,'quote');
 });

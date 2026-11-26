@@ -27,8 +27,9 @@ if(help){
   target?.focus();
  });
 }
-let mode='article',version=0,pageEpoch=0,pageKey='',pageInfo=null;
-let results=Object.create(null),record=null,markdown='',exportBusy=false,extracting=false,saving=false;
+let mode=modes.find(button=>button.getAttribute?.('aria-pressed')==='true')?.dataset.clipMode||'region',version=0,pageEpoch=0,pageKey='',pageInfo=null;
+ let modeIntent=0;
+let results=Object.create(null),drafts=Object.create(null),record=null,markdown='',exportBusy=false,extracting=false,saving=false;
 let activePickId=null;
 const newPickId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,15);
 function stopRegionPick(){
@@ -39,7 +40,7 @@ const emptyHints=Object.freeze({
  article:'点击「提取当前文章」',
  selection:'请先在网页选中文字',
  quote:'先选择文字，再生成带来源引用',
- link:'生成当前网页链接',region:'点击「点选网页区域」，然后在网页单击目标回答'
+ link:'生成当前网页链接',region:'点击「点选网页区域」，然后在网页单击目标内容'
 });
 const actions=Object.freeze({article:'提取当前文章',selection:'提取选中文字',
  quote:'生成引用',link:'生成链接',region:'点选网页区域'});
@@ -48,7 +49,7 @@ const helpHints=Object.freeze({
  selection:'先在网页选中文字，再点击「提取选中文字」。也可在网页右键选择「保存选中内容到我的摘录」。',
  quote:'先在网页选中文字，再点击「生成引用」，为所选内容加上引用格式。',
  link:'点击「生成链接」，将当前页面的标题和地址组合成 Markdown 链接。',
- region:'点击「点选网页区域」后，在网页移动鼠标高亮内容，单击提取；↑/↓ 调整范围，Esc 取消。'
+ region:'点击「点选网页区域」后，在网页移动鼠标高亮内容，单击替换；Ctrl/Cmd + 单击追加；↑/↓ 调整范围，Esc 取消。'
 });
 const say=(value,error=false)=>{state.textContent=String(value);state.dataset.error=String(error);};
 const setExportBusy=busy=>{exportBusy=busy;updateExportButtons();};
@@ -164,8 +165,9 @@ function renderPreview(content,target=display){
  flush();target.replaceChildren(out);
 }
 function updateExportButtons(){
- q('clip-copy').disabled=!markdown||exportBusy||saving;
- q('clip-download').disabled=!markdown||exportBusy||saving;
+ q('clip-copy').disabled=!markdown.trim()||exportBusy||saving||extracting;
+  q('clip-download').disabled=!markdown.trim()||exportBusy||saving||extracting;
+  input.readOnly=!record||saving||extracting;
 }
 function updateFetchButton(){
  const button=q('clip-fetch');
@@ -194,46 +196,95 @@ function cacheFor(target){
  }
  return null;
 }
-function composeMarkdown(raw){
- if(!raw)return '';
- if(mode==='link')return raw.markdown;
- const content=mode==='quote'
-  ?raw.markdown.trim().split('\n').map(line=>line?'> '+line:'>').join('\n')+'\n'
-  :raw.markdown;
- if(q('clip-meta').value==='footer')return content+'\n'+cite(raw)+'\n';
- if(q('clip-meta').value==='yaml')
-  return '---\n'+Object.entries({title:clean(raw.title),source:clean(raw.source),
+function metaParts(raw,format,target=mode){
+  if(target==='link'||!raw)return {head:'',tail:''};
+  if(format==='footer')return {head:'',tail:'\n'+cite(raw)+'\n'};
+  if(format==='yaml')return {head:'---\n'+Object.entries({title:clean(raw.title),source:clean(raw.source),
    site:clean(raw.site),captured_at:clean(raw.capturedAt)})
-   .map(([key,value])=>key+': '+JSON.stringify(value)).join('\n')+'\n---\n\n'+content;
- return content;
-}
-function refresh(){
- record=cacheFor(mode);
- markdown=composeMarkdown(record);
- input.value=markdown;input.placeholder=emptyHints[mode];
- q('clip-site').textContent=record?.site||pageInfo?.site||'当前网页';
- q('clip-title').textContent=record?.title||pageInfo?.title||'打开网页，提取文章或选中文字';
- if(markdown)renderPreview(markdown);
- else{
-  const hint=previewNode('p',emptyHints[mode]);hint.className='clip-empty-hint';
-  display.replaceChildren(hint);
+   .map(([key,value])=>key+': '+JSON.stringify(value)).join('\n')+'\n---\n\n',tail:''};
+  return {head:'',tail:''};
  }
- notes?.setClip(record?{body:markdown,title:record.title,source:record.source}:null);
- updateExportButtons();updateFetchButton();
- const home=q('clip-home');if(home)home.dataset.clipState=extracting?'extracting':record?'ready':'empty';
-}
-function invalidate(text='网页已变化，请重新剪藏'){
+ function composeMarkdown(raw,format=q('clip-meta').value,target=mode){
+  if(!raw)return '';
+  const content=target==='quote'
+   ?raw.markdown.trim().split('\n').map(line=>line?'> '+line:'>').join('\n')+'\n'
+   :raw.markdown;
+  const {head,tail}=metaParts(raw,format,target);
+  return head+content+tail;
+ }
+ function joinMarkdown(a,b){
+  if(!a)return b;
+  if(!b)return a;
+  const trailing=(a.match(/\n*$/)||[''])[0].length;
+  const leading=(b.match(/^\n*/)||[''])[0].length;
+  return a+'\n'.repeat(Math.max(0,2-trailing-leading))+b;
+ }
+ function draftMarkdown(raw){
+  if(!raw)return '';
+  const draft=drafts[mode],format=q('clip-meta').value;
+  if(!draft)return composeMarkdown(raw,format);
+  if(draft.format!==format){
+   const old=metaParts(raw,draft.format),next=metaParts(raw,format);
+   // Only replace the exact generated wrapper; user-edited metadata is content.
+   if(!draft.customMeta&&(!old.head||draft.text.startsWith(old.head))&&(!old.tail||draft.text.endsWith(old.tail))){
+    const body=draft.text.slice(old.head.length,old.tail?draft.text.length-old.tail.length:undefined);
+    draft.text=next.head+body+next.tail;
+   }else draft.customMeta=true;
+   draft.format=format;
+  }
+  return draft.text;
+ }
+ function syncOutput(){
+  if(markdown.trim()){if(!display.hidden)renderPreview(markdown);}
+  else{
+   const hint=previewNode('p',emptyHints[mode]);hint.className='clip-empty-hint';
+   display.replaceChildren(hint);
+  }
+  notes?.setClip(record&&markdown.trim()&&!extracting?{body:markdown,title:record.title,source:record.source}:null);
+  updateExportButtons();updateFetchButton();
+  const home=q('clip-home');if(home)home.dataset.clipState=extracting?'extracting':record?'ready':'empty';
+ }
+ function refresh(){
+  record=cacheFor(mode);
+  markdown=draftMarkdown(record);
+  if(input.value!==markdown)input.value=markdown;
+  input.placeholder=emptyHints[mode];
+  q('clip-site').textContent=record?.site||pageInfo?.site||'当前网页';
+  q('clip-title').textContent=record?.title||pageInfo?.title||'打开网页，提取文章或选中文字';
+  syncOutput();
+ }
+ input.addEventListener('input',()=>{
+  if(!record||saving||extracting){input.value=markdown;return;}
+  if(input.value===markdown)return;
+  version++;markdown=input.value;
+  const format=q('clip-meta').value,{head,tail}=metaParts(record,format);
+  drafts[mode]={text:markdown,format,customMeta:(!head||markdown.startsWith(head))&&(!tail||markdown.endsWith(tail))?false:true};
+  syncOutput();
+ });
+ function invalidate(text='网页已变化，请重新剪藏'){
  stopRegionPick();
- version++;pageEpoch++;pageKey='';pageInfo=null;results=Object.create(null);
+ version++;pageEpoch++;pageKey='';pageInfo=null;results=Object.create(null);drafts=Object.create(null);
  extracting=false;refresh();say(text);
 }
 function selectMode(next){
- if(next===mode||saving||!Object.hasOwn(actions,next))return;
- stopRegionPick();
+  if(saving||!Object.hasOwn(actions,next))return;
+  const firstIntent=modeIntent++===0;
+  if(next!==mode||firstIntent)void request('clipNotes.setPreference',{mode:next}).catch(()=>{});
+  if(next===mode)return;
+  stopRegionPick();
  mode=next;version++;extracting=false;refresh();
  say(record?'已恢复本页'+(next==='link'?'链接':next==='quote'?'引用':next==='selection'?'选区':next==='region'?'区域':'文章')+' Markdown':emptyHints[next]);
 }
 modes.forEach(button=>button.addEventListener('click',()=>selectMode(button.dataset.clipMode)));
+ async function restoreMode(){
+  const ticket=version,intent=modeIntent;
+  try{
+   const result=await request('clipNotes.getPreference');
+   if(ticket===version&&intent===modeIntent&&!saving&&Object.hasOwn(actions,result?.mode)){
+    mode=result.mode;refresh();say(record?'已恢复本页 Markdown':emptyHints[mode]);
+   }
+  }catch{/* Default to the first (region) tab when preferences are unavailable. */}
+ }
 q('clip-meta').addEventListener('change',()=>{
  if(saving)return;
  if(activePickId){stopRegionPick();extracting=false;version++;}
@@ -251,10 +302,10 @@ q('clip-fetch').addEventListener('click',async()=>{
  const pickId=selectedMode==='region'?newPickId():null;
  if(pickId)activePickId=pickId;
  if(selectedMode==='selection'||selectedMode==='quote'){
-  delete results.selection;delete results.quote;
- }else delete results[selectedMode];
+   delete results.selection;delete results.quote;delete drafts.selection;delete drafts.quote;
+  }else if(selectedMode!=='region'){delete results[selectedMode];delete drafts[selectedMode];}
  extracting=true;refresh();say(selectedMode==='region'
-  ?'移动鼠标预览范围，单击提取；Esc 或「取消点选」退出'
+  ?'单击替换 · Ctrl/Cmd + 单击追加 · Esc 取消'
   :'正在读取授权网页…');
  const operation=selectedMode==='region'?'clip.region':selectedMode==='article'?'clip.article':selectedMode==='link'?'clip.link':'clip.selection';
  try{
@@ -268,16 +319,35 @@ q('clip-fetch').addEventListener('click',async()=>{
   if(selectedMode==='region'&&typeof TextEncoder==='function'&&
      new TextEncoder().encode(result.markdown).length>160000)
    throw Error('所选区域超过单条摘录限制，请选择较小范围；内容未截断');
-  pageKey=source;
-  const raw={...result,source};
+  const previous=selectedMode==='region'?results.region:null;
+   const adding=Boolean(previous&&result.append===true);
+   let raw={...result,source};
+   let nextDraft=null;
+   if(adding){
+    const draft=drafts.region,format=q('clip-meta').value;
+    raw={...previous,markdown:joinMarkdown(previous.markdown,result.markdown),streaming:previous.streaming===true||result.streaming===true};
+    if(draft){
+     const {tail}=metaParts(previous,format,'region');
+     const oldText=draft.text;
+     const hasTail=!draft.customMeta&&tail&&oldText.endsWith(tail);
+     nextDraft={...draft,format,text:hasTail?joinMarkdown(oldText.slice(0,-tail.length),result.markdown)+tail:joinMarkdown(oldText,result.markdown)};
+    }
+    const combined=nextDraft?.text??composeMarkdown(raw,format,'region');
+    if(typeof TextEncoder==='function'&&new TextEncoder().encode(combined).length>160000)
+     throw Error('追加后超过 160,000 字节，已保留原内容，请缩小范围');
+   }
+   pageKey=source;
   if(selectedMode==='link')
    raw.markdown='['+escapeLabel(raw.title)+']('+source+')\n';
   if(selectedMode==='selection'||selectedMode==='quote'){
    results.selection=raw;results.quote=raw;
-  }else results[selectedMode]=raw;
+  }else{
+    results[selectedMode]=raw;
+    if(nextDraft)drafts[selectedMode]=nextDraft;else delete drafts[selectedMode];
+   }
   extracting=false;refresh();
   say(selectedMode==='region'
-   ?(result.streaming?'已提取正在生成的回答快照，内容可能未完整生成；可稍后重新选择':
+   ?(adding?'已追加区域，原 Markdown 已保留'+(result.streaming?'（当前内容仍在生成）':''):result.streaming?'已提取正在生成的回答快照，内容可能未完整生成；可稍后重新选择':
       '已提取所选区域当前已加载的 Markdown（DOM 快照；虚拟化未加载内容不在其中）')
    :'已提取完整 Markdown，可保存到「我的摘录」、复制或下载');
  }catch(error){
@@ -296,12 +366,13 @@ q('clip-show-source').addEventListener('click',()=>{
 });
 q('clip-show-preview').addEventListener('click',()=>{
  input.hidden=true;display.hidden=false;
+ if(markdown.trim())renderPreview(markdown);
  q('clip-show-source').setAttribute('aria-pressed','false');
  q('clip-show-preview').setAttribute('aria-pressed','true');
 });
 q('clip-copy').addEventListener('click',async()=>{
- if(exportBusy)return;
- if(!markdown)return say('请先剪藏',true);
+ if(exportBusy||saving||extracting)return;
+  if(!markdown.trim())return say('请先剪藏',true);
  const ticket=version,content=markdown;
  const current=()=>ticket===version&&content===markdown;
  setExportBusy(true);
@@ -319,8 +390,8 @@ q('clip-copy').addEventListener('click',async()=>{
  }finally{setExportBusy(false);}
 });
 q('clip-download').addEventListener('click',async()=>{
- if(exportBusy)return;
- if(!markdown)return say('请先剪藏',true);
+ if(exportBusy||saving||extracting)return;
+  if(!markdown.trim())return say('请先剪藏',true);
  const ticket=version,content=markdown;
  setExportBusy(true);
  const filename=(clean(record?.title).replace(/[\/\\:*?"<>|]/g,'-').replace(/^\.+/,'').trim().slice(0,60)||'web-clip')+'.md';
@@ -352,10 +423,10 @@ async function readCurrentPage(){
 }
 async function receiveRightClick(){
  // The Host validates the one-use launch document, origin and expiry.
- const ticket=version,epoch=pageEpoch;
+ const ticket=version,epoch=pageEpoch,intent=modeIntent;
  try{
   const launch=await globalThis.OpenDeskSDK.browser.launch.consume();
-  if(ticket!==version||epoch!==pageEpoch)return;
+  if(ticket!==version||epoch!==pageEpoch||intent!==modeIntent)return;
   if(launch?.toolId!=='web-markdown-clipper'||launch.actionId!=='save-selection'||
      typeof launch.selection!=='string'||!launch.selection.trim()||
      !Number.isFinite(launch.expiresAt)||Date.now()>=launch.expiresAt)return;
@@ -363,7 +434,8 @@ async function receiveRightClick(){
   if(!source||(pageKey&&pageKey!==source))return;
   const host=new URL(source).hostname;
   pageKey=source;
-  version++;mode='selection';extracting=false;
+  version++;modeIntent++;mode='selection';extracting=false;
+   delete drafts.selection;delete drafts.quote;
   const rich=typeof launch.selectionMarkdown==='string'&&launch.selectionMarkdown.trim();
   const raw={markdown:rich?launch.selectionMarkdown:launch.selection,title:host,site:host,source,
    capturedAt:new Date().toISOString(),mode:'clip.selection'};
@@ -377,6 +449,7 @@ root.addEventListener('opendesk-page-changed',()=>{
  invalidate();if(notes)void readCurrentPage();
 });
 refresh();
-if(notes){void readCurrentPage();void receiveRightClick();}
+ void restoreMode();
+ if(notes){void readCurrentPage();void receiveRightClick();}
 
 })();

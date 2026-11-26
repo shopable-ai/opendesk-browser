@@ -56,17 +56,17 @@ function fixture(){
   preventDefault(){this.defaultPrevented=true;},stopPropagation(){},stopImmediatePropagation(){},...extra});
  return {doc,win,thread,a,b,p,q,event};
 }
-test('one AI answer is preferred; conversation containing multiple articles is excluded',()=>{
+test('small hit is preferred; conversation containing multiple articles is excluded',()=>{
  const {doc,win,thread,p,a,b}=fixture();
  const nodes=regionCandidates(p,doc,win);
  assert.ok(nodes.includes(a));
  assert.ok(!nodes.includes(thread));
  assert.ok(!nodes.includes(b));
- assert.equal(nodes[preferredRegionIndex(nodes)],a);
+ assert.equal(nodes[preferredRegionIndex(nodes)],p);
 });
 test('one trusted click extracts one connected region, prevents page activation and releases listeners',async()=>{
  const {doc,win,p,a,event}=fixture();let calls=0;
- const pick=beginRegionPick({doc,win,extract:node=>{calls++;assert.equal(node,a);return '## A\n\nBody\n';}});
+ const pick=beginRegionPick({doc,win,extract:node=>{calls++;assert.equal(node,p);return '## A\n\nBody\n';}});
  await doc.fire('mousemove',event(p));
  const click=event(p);
  await doc.fire('click',click);
@@ -142,7 +142,7 @@ test('interactive input and password regions are not selectable',()=>{
  assert.deepEqual(regionCandidates(input,doc,win),[]);
 });
 
-test('Enter on a focused link uses current response and suppresses page navigation',async()=>{
+test('Enter on a focused link uses the exact link and suppresses page navigation',async()=>{
  const {doc,win,p,a,event}=fixture();let captured=null;
  const anchor=doc.createElement('a');anchor.textContent='Read link';p.append(anchor);
  doc.activeElement=anchor;
@@ -152,7 +152,7 @@ test('Enter on a focused link uses current response and suppresses page navigati
  await doc.fire('keydown',enter);
  const result=await pick.promise;
  assert.equal(result.markdown,'# keyboard\n');
- assert.equal(captured,a);
+ assert.equal(captured,anchor);
  assert.equal(enter.defaultPrevented,true);
 });
 
@@ -161,7 +161,40 @@ test('keyboard confirmation keeps the highlighted child instead of stale launch 
  const launch=doc.createElement('button');doc.body.append(launch);doc.activeElement=launch;
  const pick=beginRegionPick({doc,win,extract:node=>{captured=node;return 'child';}});
  await doc.fire('mousemove',event(p));
+ await doc.fire('keydown',event(a,{key:'ArrowUp'}));
  await doc.fire('keydown',event(a,{key:'ArrowDown'}));
  await doc.fire('keydown',event(launch,{key:'Enter'}));
  assert.equal((await pick.promise).markdown,'child');assert.equal(captured,p);
+});
+
+test('tiny text region is selectable and Ctrl/Cmd changes the returned intent',async()=>{
+ const {doc,win,p,event}=fixture();
+ const tiny=doc.createElement('span');tiny.textContent='短';
+ tiny.getBoundingClientRect=()=>({left:5,top:30,right:14,bottom:39,width:9,height:9});p.append(tiny);
+ assert.equal(regionCandidates(tiny,doc,win)[0],tiny);
+ for(const modifier of ['ctrlKey','metaKey']){
+  let captured;
+  const pick=beginRegionPick({doc,win,extract:node=>{captured=node;return node.textContent;}});
+  await doc.fire('mousemove',event(tiny,{[modifier]:true}));
+  await doc.fire('click',event(tiny,{[modifier]:true}));
+  const result=await pick.promise;
+  assert.equal(captured,tiny);assert.equal(result.markdown,'短');assert.equal(result.append,true);
+ }
+ const pick=beginRegionPick({doc,win,extract:node=>node.textContent});
+ await doc.fire('mousemove',event(p,{ctrlKey:true}));
+ await doc.fire('keyup',event(p,{key:'Control',ctrlKey:false}));
+ await doc.fire('click',event(p));
+ assert.equal((await pick.promise).append,false);
+});
+test('a click on a new descendant cannot commit stale parent highlight',async()=>{
+ const {doc,win,p,a,event}=fixture();let captured;
+ const pick=beginRegionPick({doc,win,extract:node=>{captured=node;return 'hit';}});
+ await doc.fire('mousemove',event(a));await doc.fire('click',event(p));
+ await pick.promise;assert.equal(captured,p);
+});
+test('ArrowUp intentionally expands to full answer before click',async()=>{
+ const {doc,win,p,a,event}=fixture();let captured;
+ const pick=beginRegionPick({doc,win,extract:node=>{captured=node;return 'whole answer';}});
+ await doc.fire('mousemove',event(p));await doc.fire('keydown',event(p,{key:'ArrowUp'}));
+ await doc.fire('click',event(p));await pick.promise;assert.equal(captured,a);
 });

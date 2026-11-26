@@ -60,7 +60,7 @@ const heading=document.createElement('strong');
 heading.textContent='UI_PREVIEW_ONLY · 模拟 AI 对话网页';
 demo.append(heading);
 const guide=document.createElement('p');
-guide.textContent='在上方选择「区域」→「点选网页区域」，再点下方回答；↑/↓ 调整，Enter/空格选择，Esc 取消。';
+guide.textContent='在上方选择「区域」→「点选网页区域」，单击替换，Ctrl/Cmd + 单击追加；↑/↓ 调整，Esc 取消。';
 demo.append(guide);
 const cases=document.createElement('div');cases.style.cssText='display:flex;flex-wrap:wrap;gap:5px';
 let regionCase='normal',pendingRegion=null;
@@ -102,58 +102,63 @@ function demoMarkdown(reply,section){
 function previewPick(id){
  if(pendingRegion)pendingRegion.cancel('已开始新的点选');
  return new Promise((resolve,reject)=>{
-  let active=null,level=0,done=false;
+  let active=null,done=false,append=false;
   const clear=()=>{
    document.removeEventListener('mousemove',hover,true);
    document.removeEventListener('pointermove',hover,true);
    document.removeEventListener('click',click,true);
    document.removeEventListener('keydown',key,true);
+   document.removeEventListener('keyup',keyUp,true);
+   window.removeEventListener('blur',blur);
    if(active?.node)active.node.style.outline='';
    if(pendingRegion?.id===id)pendingRegion=null;
   };
   const finish=(error,result)=>{if(done)return;done=true;clear();error?reject(error):resolve(result);};
+  const paint=()=>{if(active?.node)active.node.style.outline='2px solid '+(append?'#0ea5e9':'#2563eb');};
   const hover=e=>{
    const article=e.target.closest?.('[data-demo-reply]');
-   if(!article)return;
+   append=Boolean(e.ctrlKey||e.metaKey);
+   if(!article){if(active?.node)active.node.style.outline='';active=null;return;}
+   if(active?.target===e.target){paint();return;}
    if(active?.node)active.node.style.outline='';
-   const sub=e.target.closest('[data-demo-section]');
-   const node=level===1&&sub?sub:article;
-   node.style.outline='3px solid #2563eb';
-   active={article,sub,node};
+   const nodes=[];for(let n=e.target;n;n=n.parentElement){nodes.push(n);if(n===article)break;}
+   active={article,target:e.target,nodes,index:0,node:nodes[0]};paint();
   };
   const deliver=()=>{
    if(!active?.article)return;
    if(regionCase==='oversize')return finish(reason('E_BODY_LIMIT','演示：内容超过 160,000 字节，未截断保存'));
    if(regionCase==='failure')return finish(reason('E_CLIP_READ','演示：网页区域读取失败'));
-   const markdown=demoMarkdown(active.article.dataset.demoReply,active.node===active.sub?active.sub.dataset.demoSection:null);
+   const node=active.node;
+   const markdown=node===active.article?demoMarkdown(active.article.dataset.demoReply,null):
+    node.dataset.demoSection?demoMarkdown(active.article.dataset.demoReply,node.dataset.demoSection):
+    (/^H[1-6]$/.test(node.tagName)?'#'.repeat(Number(node.tagName[1]))+' ':'')+node.textContent.trim()+'\n';
    send('模拟点选成功（非真实 Chrome）',enc.encode(markdown).length);
    finish(null,{markdown,title:pageTitle(),site:new URL(source).hostname,source,capturedAt:new Date().toISOString(),
-    mode:'clip.region',loadedOnly:true,streaming:regionCase==='streaming'});
+    mode:'clip.region',loadedOnly:true,streaming:regionCase==='streaming',append});
   };
   const click=e=>{
    if(!e.target.closest?.('[data-demo-reply]'))return;
    e.preventDefault();e.stopImmediatePropagation();hover(e);deliver();
   };
   const key=e=>{
+   append=Boolean(e.ctrlKey||e.metaKey||e.key==='Control'||e.key==='Meta');paint();
    if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish(reason('E_CANCELLED','演示：Esc 取消区域点选'));return;}
-   if(e.key==='Enter'||e.key===' '){
-    e.preventDefault();e.stopPropagation();
-    if(document.activeElement?.closest?.('[data-demo-reply]'))hover({target:document.activeElement});
-    deliver();return;
-   }
-   if(['ArrowUp','ArrowDown'].includes(e.key)){
-    level=e.key==='ArrowDown'?1:0;
-    if(active){if(active.node)active.node.style.outline='';
-     active.node=level&&active.sub?active.sub:active.article;
-     active.node.style.outline='3px solid #2563eb';}
-    e.preventDefault();e.stopPropagation();
+   if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();deliver();return;}
+   if(['ArrowUp','ArrowDown'].includes(e.key)&&active){
+    active.node.style.outline='';
+    active.index=Math.max(0,Math.min(active.nodes.length-1,active.index+(e.key==='ArrowUp'?1:-1)));
+    active.node=active.nodes[active.index];paint();e.preventDefault();e.stopPropagation();
    }
   };
+  const keyUp=e=>{append=Boolean(e.ctrlKey||e.metaKey);paint();};
+  const blur=()=>{append=false;paint();};
   pendingRegion={id,cancel:message=>finish(reason('E_CANCELLED',message))};
   document.addEventListener('mousemove',hover,true);
   document.addEventListener('pointermove',hover,true);
   document.addEventListener('click',click,true);
   document.addEventListener('keydown',key,true);
+  document.addEventListener('keyup',keyUp,true);
+  window.addEventListener('blur',blur);
   send('正在模拟区域点选，UI_PREVIEW_ONLY');
  });
 }
@@ -167,6 +172,8 @@ globalThis.OpenDeskTool={
  }:{}),
  async request(operation,args={}){
   if(latencyMs&&operation.startsWith('clipNotes.'))await new Promise(resolve=>setTimeout(resolve,latencyMs));
+  if(operation==='clipNotes.getPreference')return {mode:local.lastMode??null};
+  if(operation==='clipNotes.setPreference'){if(!['region','article','selection','quote','link'].includes(args.mode))throw reason('E_SCHEMA','剪藏范围无效');local.lastMode=args.mode;persist();return {mode:args.mode};}
   if(operation==='clip.region.cancel'){
     const cancelled=pendingRegion?.id===args.pickId;
     if(cancelled)pendingRegion.cancel('演示：已取消区域点选');

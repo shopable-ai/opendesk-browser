@@ -40,7 +40,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
     const site=String(win.location.hostname).slice(0,250);
     const canonical=safeClipSource(currentUrl);
     if(!canonical)return {ok:false,error:'当前网页地址不支持剪藏'};
-    let markdown,streaming=false,loadedOnly=false;
+    let markdown,streaming=false,loadedOnly=false,append=false;
     try{
       if(message.operation==='clip.link'){
         const label=title.replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim()||'网页链接';
@@ -66,7 +66,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
         try{
           const result=await session.promise;
           markdown=result.markdown;
-          streaming=result.streaming===true;loadedOnly=true;
+          streaming=result.streaming===true;loadedOnly=true;append=result.append===true;
         }finally{
           if(activeRegion?.session===session)activeRegion=null;
           cancelledRegionIds.delete(id);
@@ -80,7 +80,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
     if((saved[TOOL_REVOCATION_EPOCHS_STORE]?.[message.toolId]??null)!==(confirmed[TOOL_REVOCATION_EPOCHS_STORE]?.[message.toolId]??null))
       return {ok:false,error:'读取期间工具实例已撤销'};
     return {ok:true,data:{markdown,title,source:canonical,site,capturedAt:new Date().toISOString(),mode:message.operation,
-      ...(loadedOnly?{loadedOnly:true,streaming}:{} )}};
+      ...(loadedOnly?{loadedOnly:true,streaming,append}:{} )}};
   };
   const listener=(message,sender,reply)=>{
     if(message?.protocol!==CLIP_PROTOCOL)return false;

@@ -297,7 +297,7 @@ for(const [label,patch] of [
   ['ASCII overflow',{markdown:'a'.repeat(160001)}],['UTF8 overflow',{markdown:'中'.repeat(53334)}],
   ['missing source',{source:undefined}],['oversized source',{source:'s'.repeat(8193)}],
   ['oversized title',{title:'t'.repeat(2001)}],['malformed metadata',{streaming:'yes'}],
-  ['unknown unbounded field',{extra:'x'.repeat(200000)}],['wrong mode',{mode:'clip.article'}]
+  ['unknown unbounded field',{extra:'x'.repeat(200000)}],['wrong mode',{mode:'clip.article'}],['invalid append intent',{append:'true'}]
 ])test(`region rejects ${label}`,async t=>{
   const f=await regionFixture(t);
   f.ask('clip.region',{pickId:'invalid_pick'},'pick');await settle(()=>f.calls.length===1);

@@ -10,25 +10,27 @@ class Node {
   addEventListener(name,fn){(this.events[name]??=[]).push(fn);}
   async fire(name){await Promise.all((this.events[name]||[]).map(fn=>fn()));}
   setAttribute(key,value){this[key]=value;}
+  getAttribute(key){return this[key]??null;}
   append(...items){this.children.push(...items);}
   replaceChildren(...items){this.children=[...items];}
   focus(){this.focused=true;}
   select(){this.selected=true;}
 }
 function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),download=async()=>({started:true}),
-  launch=async()=>{throw Error('E_LAUNCH_EXPIRED');},notesFactory=null}={}){
+  launch=async()=>{throw Error('E_LAUNCH_EXPIRED');},notesFactory=null,initialMode='article',preferences=null}={}){
   const ids=['clip-source','clip-preview','clip-status','clip-site','clip-title','clip-meta','clip-fetch',
     'clip-show-source','clip-show-preview','clip-copy','clip-download','clip-home','clip-selection-hint'];
   const nodes=Object.fromEntries(ids.map(id=>[id,new Node(id)]));
   nodes['clip-meta'].value='none';
-  const modes=['article','selection','quote','link','region'].map(name=>{const n=new Node(name);n.dataset.clipMode=name;return n;});
+  const modes=['article','selection','quote','link','region'].map(name=>{const n=new Node(name);n.dataset.clipMode=name;n.setAttribute('aria-pressed',String(name===initialMode));return n;});
   const root={querySelector:key=>nodes[key.slice(1)],querySelectorAll:()=>modes,events:{},
     addEventListener(name,fn){this.events[name]=fn;}};
   const document={createElement:tag=>new Node(tag),createDocumentFragment:()=>new Node('fragment')};
-  const context={OpenDeskTool:{root,request},OpenDeskSDK:{browser:{
+  const uiRequest=(operation,args)=>['clipNotes.getPreference','clipNotes.setPreference'].includes(operation)?(preferences?preferences(operation,args):Promise.resolve({mode:null})):request(operation,args);
+  const context={OpenDeskTool:{root,request:uiRequest},OpenDeskSDK:{browser:{
     clipboard:{writeText:clipboard},downloads:{text:download},launch:{consume:launch}}}};
   if(notesFactory)context.OpenDeskClipNotes={create:notesFactory};
-  runInNewContext(source,{globalThis:context,document,URL,Date});
+  runInNewContext(source,{globalThis:context,document,URL,Date,TextEncoder});
   return {nodes,modes,root};
 }
 test('switching modes invalidates stale extraction without unlocking a newer request',async()=>{
@@ -542,4 +544,57 @@ test('region mode: switching to an existing legacy mode cancels without replay',
  assert.equal(nodes['clip-source'].value,'');
  await nodes['clip-fetch'].fire('click');
  assert.equal(nodes['clip-source'].value,'ARTICLE');
+});
+
+test('region keeps edited content on cancel, appends before the single generated footer, and replaces on plain click',async()=>{
+ const replies=[];let saved=null,copied=null,downloaded=null;
+ const response=(markdown,append=false)=>({mode:'clip.region',source:'https://example.com/a',title:'标题',markdown,append});
+ const {nodes,modes}=mounted({initialMode:'region',request:async op=>{
+  if(op==='currentPage.info')return {};
+  if(op==='clip.region.cancel')return {cancelled:true};
+  return await replies.shift();
+ },notesFactory:()=>({setClip:v=>{saved=v;}}),clipboard:async v=>{copied=v;return {copied:true};},download:async v=>{downloaded=v.text;return {started:true};}});
+ nodes['clip-meta'].value='footer';
+ replies.push(response('第一段\n'));await nodes['clip-fetch'].fire('click');
+ await nodes['clip-show-source'].fire('click');
+ nodes['clip-source'].value=nodes['clip-source'].value.replace('第一段','手动修改');
+ await nodes['clip-source'].fire('input');
+ const original=nodes['clip-source'].value;
+ const pending=deferred();replies.push(pending.promise);
+ const reading=nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,original);
+ await nodes['clip-fetch'].fire('click');pending.resolve(response('过期回执'));await reading;
+ assert.equal(nodes['clip-source'].value,original);
+ replies.push(response('第二段\n',true));await nodes['clip-fetch'].fire('click');
+ const combined=nodes['clip-source'].value;
+ assert.equal(combined,'手动修改\n\n第二段\n\n来源：[标题](https://example.com/a)\n');
+ assert.equal(saved.body,combined);
+ await nodes['clip-copy'].fire('click');await nodes['clip-download'].fire('click');
+ assert.equal(copied,combined);assert.equal(downloaded,combined);
+ await modes[0].fire('click');await modes[4].fire('click');
+ assert.equal(nodes['clip-source'].value,combined);
+ replies.push(response('替换段落'));await nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,'替换段落\n来源：[标题](https://example.com/a)\n');
+});
+test('region append overflow leaves the previous draft untouched',async()=>{
+ const replies=[];
+ const {nodes}=mounted({initialMode:'region',request:async()=>replies.shift()});
+ const response=(markdown,append=false)=>({mode:'clip.region',source:'https://example.com/a',markdown,append});
+ replies.push(response('旧正文'));await nodes['clip-fetch'].fire('click');
+ replies.push(response('x'.repeat(160000),true));await nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,'旧正文');assert.match(nodes['clip-status'].textContent,/超过/);
+});
+test('last selected tab restores from scoped storage and late reads cannot override user input',async()=>{
+ let cached='quote',writes=[];
+ const {nodes,modes}=mounted({initialMode:'region',preferences:async(op,args)=>{
+  if(op==='clipNotes.getPreference')return {mode:cached};
+  cached=args.mode;writes.push(args.mode);return {mode:cached};
+ }});
+ await Promise.resolve();await Promise.resolve();
+ assert.equal(nodes['clip-fetch'].textContent,'生成引用');
+ await modes[3].fire('click');assert.equal(cached,'link');assert.deepEqual(writes,['link']);
+ const gate=deferred();
+ const second=mounted({initialMode:'region',preferences:(op,args)=>op==='clipNotes.getPreference'?gate.promise:Promise.resolve({mode:args.mode})});
+ await second.modes[0].fire('click');gate.resolve({mode:'quote'});await Promise.resolve();
+ assert.equal(second.nodes['clip-fetch'].textContent,'提取当前文章');
 });

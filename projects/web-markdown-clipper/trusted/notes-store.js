@@ -3,7 +3,8 @@ import {writeVerifiedLocalValue} from '../../../src/ui/sidebar-tools/storage-sta
 
 // A single tool-owned "clips" library; no cross-tool read or generic SDK quota relaxation.
 export const CLIP_NOTES_OPERATIONS=Object.freeze([
-  'clipNotes.list','clipNotes.get','clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'
+  'clipNotes.list','clipNotes.get','clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup',
+  'clipNotes.getPreference','clipNotes.setPreference'
 ]);
 export const CLIP_NOTES_LIMITS=Object.freeze({
   bodyBytes:160000,totalBytes:4*1024*1024,maxNotes:1000
@@ -89,12 +90,25 @@ export async function executeClipNotes({
   throw error('E_TOOL_CONTEXT','只有已安装网页剪藏可以读取自己的摘录');
  const name=operation.slice('clipNotes.'.length);
  const fields={list:['query','offset','kind'],get:['id'],save:['kind','body','title','source'],
-  edit:['id','body','ifMatch'],remove:['id','ifMatch'],backup:[]};
+  edit:['id','body','ifMatch'],remove:['id','ifMatch'],backup:[],getPreference:[],setPreference:['mode']};
  if(!payloadOnly(payload,fields[name]))throw error('E_SCHEMA','摘录请求字段无效');
  await authorize();
  const namespace=sidebarToolStorageKey(toolId);
  const stored=(await api.storage.local.get(namespace))[namespace]??{};
  if(!plain(stored))throw error('E_STORAGE_CORRUPT','工具数据异常，禁止覆盖');
+ // Preference uses the same tool lock and namespace without applying generic
+ // 32 KiB storage quotas to the existing (up to 4 MiB) note library.
+ const modes=['region','article','selection','quote','link'];
+ if(name==='getPreference'){
+  await authorize();return {mode:modes.includes(stored.lastMode)?stored.lastMode:null};
+ }
+ if(name==='setPreference'){
+  if(!modes.includes(payload.mode))throw error('E_SCHEMA','剪藏范围无效');
+  await authorize();
+  if(stored.lastMode!==payload.mode)
+   await writeVerifiedLocalValue(api,namespace,{...stored,lastMode:payload.mode},stored,'网页剪藏范围');
+  await authorize();return {mode:payload.mode};
+ }
  const library=readClipLibrary(stored.clips);
  await authorize();
  if(name==='list'){

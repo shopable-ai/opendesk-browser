@@ -143,7 +143,8 @@ function renderBlock(node,state,depth=0){
     return content.split('\n').map(line=>line?'> '+line:'>').join('\n')+'\n\n';
   }
   if(tag==='P'||tag==='FIGCAPTION')return squeeze(inlineChildren(node,state))+'\n\n';
-  if(tag==='IMG')return inline(node,state)+'\n\n';
+  // A selected region can itself be a link or styled inline text.
+   if(['IMG','A','STRONG','B','EM','I','S','DEL','CODE'].includes(tag))return squeeze(inline(node,state))+'\n\n';
   if(['DIV','SECTION','ARTICLE','MAIN','HEADER','FIGURE','BODY','DL'].includes(tag))
     return renderChildren(node,state,depth);
   return squeeze(inlineChildren(node,state))+'\n\n';

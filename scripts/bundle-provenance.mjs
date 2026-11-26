@@ -759,7 +759,7 @@ const sharedMarkdownInputs=Object.freeze({
   // 2026-11-14 review: legacy 150,000-byte default is unchanged; the region
   // caller opts into a bounded 160,000-byte budget, including the final newline.
   // Markdown grammar, node budget and URL filtering remain identical.
-  'examples/shared/markdown/convert.js':'e665625350e3eda4327e6f453c96bf997259a3d9',
+  'examples/shared/markdown/convert.js':'010670edda18cf9321acd3f51372d5180692acf6',
   'examples/shared/markdown/selection.js':'747d1afe2cee9a745552a3a7ceb699d1af83b35b'
 });
 function reviewedCompiledSharedMarkdown(target,path,root){
@@ -781,11 +781,11 @@ const compiledWebClipperInputs=Object.freeze({
   // highlighted range. Page adapter uses the existing 160,000-byte note limit.
   // Read-only readiness retains sender/URL/grant/install-epoch checks; the
   // Host prepares only the existing fixed ISOLATED relay in that exact document.
-  'projects/web-markdown-clipper/trusted/page.js':'7792562f90c2b0aa78dbc154ca35413cac91fdd4',
+  'projects/web-markdown-clipper/trusted/page.js':'a4e91daee1496fdcc4bef25f0b166daf125a3686',
   'projects/web-markdown-clipper/trusted/page-connection.js':'1ca443c6ece3520e18896cfbd3cdc0618a4e4ad5',
-  'projects/web-markdown-clipper/trusted/region-picker.js':'1aff80ff37936283b6922431cb9bfd1c44d1e286',
+  'projects/web-markdown-clipper/trusted/region-picker.js':'45f09fae8c948bfd748b66c01d3066282e550b1c',
   'projects/web-markdown-clipper/trusted/policy.js':'6b2259c9731b3a818336403c91ea7a12f0a13b29',
-  'projects/web-markdown-clipper/trusted/notes-store.js':'34547422b3a85be15cfad179e8df5993146c5b80'
+  'projects/web-markdown-clipper/trusted/notes-store.js':'17073f63ba0d73e427d9b19697191d9c5bbda766'
 });
 function reviewedCompiledWebClipper(target,path,root){
   // Notes storage is the reviewed first-party Clipper-only service imported by
