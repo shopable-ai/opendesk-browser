@@ -1,16 +1,23 @@
-# AI New Chat / AI 新建对话 · R1 设计导航
+# AI New Chat / AI 新建对话 · 项目导航
 
-状态：DESIGN_CANDIDATE / PREVIEW_MOCK_PASS / REAL_CHATGPT_NOT_TESTED（2026-11-26）。本轮只更新设计与原型；下方 R1.1 历史说明仍描述未改动的 0.1.0 业务源码。新版交互预览是下一阶段目标，不是当前安装行为。
+## 当前任务：OD-AI-NEW-CHAT-R2.3（仅 ChatGPT 正式实施）
 
-**唯一 owner：** 本目录；Program ID `opendesk.ai-new-chat-window` 不变。不要另建 `projects/ai-new-chat/`。对外名称 AI New Chat 为建议；未改正式包名、版本、权限、发行索引和业务源码。下一阶段优先让新增图标默认创建标签页，保留原生入口；窗口模式不是首轮阻塞条件。
+状态：SOURCE_REVIEWED / USER_DOM_AND_ROUTE_SAMPLE / PREVIEW_MOCK_PASS / REAL_CHATGPT_NOT_TESTED / R2_IMPLEMENTATION_PENDING（2026-11-26）。当前 0.1.0 业务源码尚未按 R2.2 方案修改。R2.3 仅收敛本轮范围，不重新设计。
 
-- [需求、需求树与功能树](REQUIREMENTS.zh-CN.md)
-- [仓库与网络研究、证据等级、关键路由缺口](RESEARCH.md)
-- [交互、技术决策、实施计划、续接任务](DESIGN.md)
-- [验收矩阵、模拟证据、评分与放行门槛](ACCEPTANCE.md)
-- [可交互 HTML 预览](preview/index.html)（本地打开；无真实网站请求）
+**目标：** 在 ChatGPT 左侧已有项目条目鼠标经过/键盘聚焦时显示新增图标，一次点击打开独立标签页中的同项目新对话，原页任务和草稿不受扩展主动影响；普通新聊天也默认独立标签页，两个入口不串线。
 
-本轮没有新增业务源码、安装包或其他目录，不重复已有 tests/fixtures。历史的 R1.1 预览可通过 Git 历史访问。
+**唯一 owner：** `projects/ai-new-chat-window/`，Program ID `opendesk.ai-new-chat-window` 不变，main 分支。不要创建新项目、目录、平台框架或增加权限。已有 Claude、Gemini、DeepSeek 代码与功能保持原样；其他站点专项实测、新项目功能及新站点适配后移，不是本轮交付前置。共用代码变更只需已有自动化定向回归，发现直接引入的回归须修复。
+
+## 文件导航
+
+- [DESIGN.md 第七节](DESIGN.md)：R2.2 最小技术合同及 R2.3 当前实施边界（7.5）；优先真实 DOM/href→URL→独立标签页实验，成立即最小实现。
+- [REQUIREMENTS.zh-CN.md](REQUIREMENTS.zh-CN.md)：原始目标与功能要求。
+- [RESEARCH.md](RESEARCH.md)：已有公开资料、真实 DOM/路由样本、各站候选及证据限制，已保存；不重复网络研究，不把其他站点候选当作当前工作。
+- [ACCEPTANCE.md](ACCEPTANCE.md)：相关真实验收、历史 Mock 及放行标准。
+- [preview/index.html](preview/index.html)：历史模拟原型，不代表真实安装效果。
+- `src/`、`tests/`：现有正式业务源码及测试；在当前目录增量修改。
+
+下一步直接由具备授权登录态 Chrome 的本地 Codex 执行：验证 ChatGPT 实际项目行 DOM 与直接新 composer，修改现有代码、运行相关测试、构建并授权安装、真实验收、修复、提交 main。核心证据未通过时不可宣称完成，不自动发布。此前 Browser Core 连接返回 429；当前仅更新文档，未完成本地验证、实现、构建或安装。
 
 ---
 
