@@ -69,12 +69,16 @@ function poll(){
  clearPoll();if(closed||!canRead())return;
  timer=setTimeout(readStatus,800);
 }
+function protectionReason(encryption){
+ return encryption==='drm'?'视频受 DRM 保护':encryption==='encrypted'?'视频流已加密':'';
+}
 function describe(item){
  if(item.hls){
-  const p=item.hls;
-  if(p.kind==='master')return item.mode==='ready'?'HLS · 选择清晰度后下载完整视频':'HLS · 当前清晰度不可下载（独立音轨、加密或清单未确认）';
-  return ['HLS',p.vod?'完整 VOD':'非完整 VOD',p.segments+' 段',p.container,p.encryption,
-   item.mode==='ready'?'可下载':'仅检测'].join(' · ');
+  const p=item.hls,protection=protectionReason(p.encryption);
+  if(p.kind==='master')return item.mode==='ready'?'HLS · 选择清晰度后下载完整视频':
+   'HLS · '+(protection?protection+'，无法下载':'未发现可下载的清晰度');
+  return ['HLS',p.vod?'完整点播':'非完整点播',p.segments+' 段',p.container,
+   item.mode==='ready'?'可下载':protection?protection+'，无法下载':'暂不支持下载'].join(' · ');
  }
  if(item.mode==='ready')return '同源直接文件 · 可下载';
  if(item.reason==='cross-origin')return '跨源直接媒体 · 暂不下载';
@@ -85,6 +89,7 @@ function showCandidates(items){
  list.replaceChildren();controls=[];
  if(!items.length){list.textContent='未检测到可识别的视频源。请先播放视频，再点「检测」。部分临时地址或加密视频暂不支持。';return;}
  items.forEach((item,index)=>{
+  const ready=item.mode==='ready';
   const row=document.createElement('div');row.className='vd-item';
   const info=document.createElement('div');info.className='vd-item-info';
   const name=document.createElement('strong');name.textContent=(index+1)+'. '+item.format.toUpperCase();
@@ -97,15 +102,16 @@ function showCandidates(items){
     const option=document.createElement('option');option.value=variant.id;option.disabled=!variant.ready;
     option.textContent=[variant.resolution?.replace('x','×')||'未知分辨率',
      variant.bandwidth?Math.round(variant.bandwidth/1000)+' kbps':'未知码率',
-     variant.segments===null?'分段未确认':variant.segments+' 段',variant.ready?'':'不可下载'].filter(Boolean).join(' · ');
+     variant.segments===null?'分段未确认':variant.segments+' 段',
+     variant.ready?'':protectionReason(variant.encryption)||'不可下载'].filter(Boolean).join(' · ');
     select.append(option);
    }
    select.value=variants.find(x=>x.ready)?.id||'';info.append(select);
   }
-  const button=document.createElement('button');button.type='button';button.textContent='下载';
-  button.setAttribute('aria-label','下载第 '+(index+1)+' 个 '+item.format+' 文件');
-  button.addEventListener('click',()=>void start(item.id,select?.value));
-  controls.push({button,select,ready:item.mode==='ready'});row.append(info,button);list.append(row);
+  const button=document.createElement('button');button.type='button';button.textContent=ready?'下载':'不可下载';
+  button.setAttribute('aria-label',ready?'下载第 '+(index+1)+' 个 '+item.format+' 文件':'第 '+(index+1)+' 个视频不可下载');
+  if(ready)button.addEventListener('click',()=>void start(item.id,select?.value));
+  controls.push({button,select,ready});row.append(info,button);list.append(row);
  });
  refreshControls();
 }
@@ -118,8 +124,9 @@ async function scan(){
   if(closed||current!==scanEpoch)return;
   if(!Array.isArray(result?.candidates))throw Error('媒体检测回执无效');
   showCandidates(result.candidates);
-  message(!result.candidates.length?'当前网页没有可识别媒体':
-    '检测到 '+result.candidates.length+' 个候选'+(result.partial?'（部分 iframe 未访问）':''));
+  const total=result.candidates.length,ready=result.candidates.filter(item=>item.mode==='ready').length;
+  const summary=total?'已识别 '+total+' 个视频源 · '+(ready?ready+' 个可下载':'没有可下载的视频源'):'当前网页没有可识别媒体';
+  message(summary+(result.partial?'（部分嵌入页面未检测）':''));
  }catch(error){if(!closed&&current===scanEpoch)message('检测失败：'+String(error?.message||error).slice(0,120),true);}
  finally{if(!closed&&current===scanEpoch){scanning=false;refreshControls();}}
 }

@@ -41,6 +41,19 @@ test('opening the tool detects media and shows a download button without startin
   await app.tick();
   assert.equal(app.calls.length,1,'discovery is a single snapshot, not background polling');
 });
+test('recognized encrypted HLS and DRM are explained without offering a download',async()=>{
+  const candidates=['encrypted','drm'].map(encryption=>({id:encryption,format:'hls',mode:'detected_only',
+    hls:{kind:'media',vod:true,segments:31,container:'ts',encryption}}));
+  const app=ui(()=>({candidates,partial:true}));
+  await settle();
+  assert.match(app.ids['vd-message'].textContent,/已识别 2 个视频源.*没有可下载/);
+  assert.match(app.find('span')[0].textContent,/31 段.*视频流已加密，无法下载/);
+  assert.match(app.find('span')[1].textContent,/视频受 DRM 保护，无法下载/);
+  for(const button of app.find('button')){
+    assert.equal(button.textContent,'不可下载');assert.equal(button.disabled,true);await button.fire('click');
+  }
+  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect']);
+});
 test('choose a rendition and follow a segmented task through saving without a native download ID at start',async()=>{
   const states=[{state:'segments',segmentsCompleted:3,segmentsTotal:64,bytesReceived:1000},
     {state:'remuxing',segmentsCompleted:64,segmentsTotal:64,remuxBytes:50,remuxTotalBytes:100},

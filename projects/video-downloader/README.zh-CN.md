@@ -1,6 +1,12 @@
-# 视频下载 · Video Downloader R0.3.3（默认 MP4）
+# 视频下载 · Video Downloader R0.3.4（默认 MP4）
 
 唯一业务目录：`projects/video-downloader/`。UI 源为 `src/index.html`、`src/style.css`、`src/main.js`，通过原 `OpenDeskTool.request` 调用固定可信 Host。`trusted/` 由已有 Side Panel Host 静态编译，八个来源文件按精确 Git blob 审查（包含固定转封装库子集）；普通导入包不能携带或替换这些特权代码。
+
+## 0.3.4 区分已识别和可下载（2026-11-27）
+
+检测结果同时显示已识别的视频源数量和可下载数量。已确认加密或 DRM 的 HLS 会在对应条目说明原因，下载按钮保持不可用。该版只改工具界面；安装权限和固定 Host 不变。
+
+在 ego(lite)「视频下载」TaskSpace 中，已安装的 0.3.3 在 PineShorts 第 1 集检测到两条 HLS 点播清单。播放器使用 `blob:`，清单可从媒体资源记录找到；两条均有 31 段和加密声明。0.3.3 也通过同一侧栏保存了本项目自制的 1 秒 MP4，磁盘文件与样片逐字节一致。0.3.4 的提示和可下载流程通过定向 Node 测试，已晋升并校验正式包。扩展中心可见新版，更新审阅入口未能打开；0.3.4 尚未安装实测。
 
 ## 0.3.3 换页后保留原下载回执
 
@@ -141,4 +147,4 @@ node scripts/build-sidebar-tool.mjs projects/video-downloader --promote-from art
 node scripts/build-sidebar-tool.mjs projects/video-downloader --check-project
 ```
 
-项目唯一正式 UI JSON 为 `video-downloader.opendesk-tool.json`。真实特权准入还要求当前 Browser 固定代码、原官方 Catalog 的包 SHA、安装来源与撤权代际一致；单独从本地导入 JSON 不能冒充官方身份。不要绕过来源审阅来执行开发包，也不要把包晋升、Git 提交或定向编译当成 Chrome 安装成功。
+项目唯一正式 UI JSON 为 `video-downloader.opendesk-tool.json`。特权调用仍依赖固定 Browser Host、已审阅的实际安装身份、有效授权和安装代际。Catalog 摘要用于校验官方更新资源，正常使用已审阅安装包不要求版本与当前 Catalog 相同。包晋升、Git 提交和构建不代表 Chrome 已安装。
