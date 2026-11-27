@@ -11,10 +11,12 @@ const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-6,
   'expected '+actual+' to equal '+expected);
 
 for(const width of [1440,1024,720,320,200]){
-  test('scrollbar strip stays free in expanded and folded TOC at '+width+'px',()=>{
+  test('compact edge gap stays free in expanded and folded TOC at '+width+'px',()=>{
     const safe=readingTocSafeViewport(win(width));
-    const guard=Math.min(28,width/10);
-    const tabGap=width<=1100?8:12;
+    const guard=Math.min(8,width/10);
+    // Custom placement uses the existing 8px position gap, not the default
+    // wide viewport's 12px tab protrusion.
+    const tabGap=8;
     const panel={width:Math.min(254,safe.width-24),height:350};
     for(const side of ['left','right']){
       const saved={v:1,dock:side,x:side==='right'?1:0,y:.4};
@@ -23,8 +25,7 @@ for(const width of [1440,1024,720,320,200]){
       assert.equal(tab.top,220);
       const point=tocPlacementPoint(saved,panel,safe);
       const clearance=side==='left'?point.left-tabGap:width-point.left-panel.width-tabGap;
-      assert.ok(clearance>=guard-4-1e-6);
-      if(width>=280)assert.ok(clearance>=24-1e-6);
+      assert.ok(clearance>=guard-1e-6);
     }
     const defaultTab=foldPoint(width,220,'right',null,safe);
     close(width-defaultTab.left-folded.width,guard);
@@ -35,7 +36,7 @@ for(const width of [1440,1024,720,320,200]){
 }
 test('classic scrollbar width is excluded once, then the overlay guard is applied',()=>{
   const safe=readingTocSafeViewport(win(1440,1425));
-  assert.deepEqual(safe,{left:28,top:0,width:1369,height:900});
+  assert.deepEqual(safe,{left:8,top:0,width:1409,height:900});
   const measured=readingTocSafeViewport({...win(1440,1425),visualViewport:{
     width:1425,height:900,offsetLeft:0,offsetTop:0
   }});
@@ -45,8 +46,8 @@ test('visual viewport resize and offset still constrain a folded tab',()=>{
   const safe=readingTocSafeViewport({...win(1440,1425),visualViewport:{
     width:800,height:500,offsetLeft:100,offsetTop:30
   }});
-  assert.deepEqual(safe,{left:128,top:30,width:744,height:500});
+  assert.deepEqual(safe,{left:108,top:30,width:784,height:500});
   const tab=foldPoint(999,999,'right',null,safe);
-  close(tab.left+folded.width,872);
+  close(tab.left+folded.width,892);
   assert.ok(tab.top+folded.height<=530);
 });
