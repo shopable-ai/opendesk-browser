@@ -133,7 +133,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     if(!top||top.documentId!==target.documentId||top.url!==target.url||
        top.errorOccurred||top.documentLifecycle&&top.documentLifecycle!=='active')
       throw fail('E_DOCUMENT_STALE','网页文档已切换');
-    let partial=false;const unique=new Map();
+    let partial=false;const unique=new Map(),elementUrls=new Set(),resources=new Map();
     const eligible=frames.filter(row=>{
       if(row?.errorOccurred||row?.documentLifecycle&&row.documentLifecycle!=='active')return false;
       try{return new URL(row.url).origin===target.origin&&typeof row.documentId==='string';}
@@ -150,14 +150,25 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       const raw=rows?.find(x=>x.documentId===frame.documentId&&x.frameId===frame.frameId)?.result;
       const result=Array.isArray(raw)?raw:raw?.sources;
       if(!Array.isArray(result)||result.length>48){partial=true;continue;}
+      const groups=new Map();
       for(const item of result){
         const parsed=classifyMedia(item?.url,item?.mime||'',target.origin);
-        if(parsed&&!unique.has(parsed.url)&&unique.size<48)
-          unique.set(parsed.url,parsed);
+        if(!parsed)continue;
+        if(item.source==='element'&&Number.isInteger(item.video)&&item.video>=0&&item.video<24){
+          if(!groups.has(item.video))groups.set(item.video,uuid());
+          const videoKey=groups.get(item.video),key=videoKey+':'+parsed.url;
+          if(unique.size<48&&!unique.has(key)){
+            elementUrls.add(parsed.url);unique.set(key,{...parsed,videoKey});
+          }
+        }else if(resources.size<48&&!resources.has(parsed.url))resources.set(parsed.url,parsed);
       }
     }
+    for(const [url,row] of resources){
+      if(unique.size>=48)break;
+      if(!elementUrls.has(url))unique.set(url,row);
+    }
     await recheck(target,assertCurrent,assertInstalled);
-    const candidates=[];const fresh=new Map();
+    const candidates=[],masters=[];const fresh=new Map();
     for(const row of unique.values()){
       if(ticket!==generation)throw fail('E_MEDIA_STALE','检测已被新操作取代');
       const id=uuid(),entry={...row,id,target};
@@ -177,6 +188,12 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
           hls=await readHls(row.url,{fetcher,authorize,signal:scan.signal});
           entry.allowed=true;reason=null;
           if(hls.kind==='master'){
+            // Even an unsupported master can prove ownership and constrain its children.
+            const children=new Set();
+            for(const {uri} of hls.encryption==='unknown'?hls.variants.slice(0,8):hls.variants){
+              try{children.add(publicMediaUrl(uri,row.url));}catch{}
+            }
+            masters.push({videoKey:row.videoKey,children,protected:hls.encryption!=='unknown'});
             const variants=[];
             for(const rendition of hls.variants.slice(0,8)){
               let info=null,variantUrl=null,ready=false;
@@ -203,14 +220,24 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       entry.renditions=renditions;
       if(!reason&&!downloadable)reason=row.format==='hls'?'hls-detected-only':'unsupported';
       fresh.set(id,entry);
-      candidates.push({id,format:row.format,mode:downloadable?'ready':'detected_only',
+      candidates.push({id,...(row.videoKey?{videoKey:row.videoKey}:{}),format:row.format,mode:downloadable?'ready':'detected_only',
         reason,note,mp4Block:mp4Block(row.format,hls),hls:hls?{kind:hls.kind,encryption:hls.encryption,
           segments:hls.segments,container:hls.container,vod:hls.vod,originalTs:true,
           audio:hls.audio.map(({group,language,name,external})=>({group,language,name,external})),
           variants:hls.variants,truncated:hls.truncated}:null});
     }
+    const visible=candidates.filter(candidate=>{
+      if(candidate.format!=='hls'||candidate.hls?.kind==='master')return true;
+      const {url,videoKey}=fresh.get(candidate.id);
+      // Resource observations don't prove an independent player. Explicitly
+      // separate players stay separate unless this URL is a protected rendition.
+      const child=masters.some(master=>master.children.has(url)&&
+        (master.protected||!videoKey||master.videoKey===videoKey));
+      if(child)fresh.delete(candidate.id);
+      return !child;
+    });
     context=target;cache=fresh;
-    return {state:candidates.length?'available':'no-video',partial,candidates};
+    return {state:visible.length?'available':'no-video',partial,candidates:visible};
   }
   async function start(payload,assertCurrent,assertInstalled){
     if(!isPlain(payload)||Object.keys(payload).some(x=>!['candidateId','variantId','output'].includes(x))||

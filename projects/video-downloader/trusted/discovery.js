@@ -3,7 +3,7 @@
 // URLs (including signatures) are transient trusted data, never sandbox output,
 // logs or storage. Host must still check document identity and source permission.
 export function inspectMediaSources() {
-  const windowMs = 30000, sources = [], unique = new Map();
+  const windowMs = 30000, sources = [], unique = new Map(), elementUrls = new Set();
   let blobVideos = 0, recentManifestRequests = 0, manifestRequests = 0;
   const types = {
     m3u8: 'application/vnd.apple.mpegurl', mpd: 'application/dash+xml',
@@ -26,17 +26,21 @@ export function inspectMediaSources() {
   const extension = url => url.pathname.match(
     /\.(m3u8|mpd|mp4|webm|m4v|mov|ogv|m4a|mp3|aac|ogg|oga|opus|wav)$/i
   )?.[1].toLowerCase();
-  const add = (url, mime, playing, source) => {
+  const add = (url, mime, playing, video) => {
+    if (video === undefined && elementUrls.has(url.href)) return;
     const type = typeof mime === 'string' ? mime.slice(0, 128).trim() : '';
-    const previous = unique.get(url.href);
+    const key = video === undefined ? url.href : video + ':' + url.href;
+    const previous = unique.get(key);
     if (previous) {
       previous.playing ||= playing;
       if (!previous.mime) previous.mime = type || types[extension(url)] || '';
       return;
     }
     if (sources.length >= 48) return;
-    const row = {url: url.href, mime: type || types[extension(url)] || '', playing, source};
-    unique.set(url.href, row);
+    const row = {url: url.href, mime: type || types[extension(url)] || '', playing,
+      ...(video === undefined ? {source: 'resource'} : {source: 'element', video})};
+    if (video !== undefined) elementUrls.add(url.href);
+    unique.set(key, row);
     sources.push(row);
   };
 
@@ -48,7 +52,7 @@ export function inspectMediaSources() {
       if (typeof raw === 'string' && raw.length <= 4096 && /^blob:/i.test(raw.trim()))
         blob = true;
       const url = parse(raw, true);
-      if (url) add(url, mime, playing, 'element');
+      if (url) add(url, mime, playing, i);
     };
     const mime = video.getAttribute('type');
     read(video.currentSrc, mime);
@@ -83,7 +87,7 @@ export function inspectMediaSources() {
       if (!recent && !(blobVideos > 0 && manifest)) continue;
       if (manifest) { manifestRequests++; if (recent) recentManifestRequests++; }
       // A network entry cannot prove which video is playing or whether bytes are valid.
-      add(url, types[ext], false, 'resource');
+      add(url, types[ext], false);
     }
   }
   return {sources, diagnostics: {

@@ -82,9 +82,9 @@ test('element sources resolve against baseURI and take precedence over resource 
   });
   assert.deepEqual(result.sources, [
     {url: 'https://page.example/watch/clip.mp4', mime: 'video/mp4',
-      playing: true, source: 'element'},
+      playing: true, source: 'element', video: 0},
     {url: 'https://page.example/alternate.webm', mime: 'video/webm',
-      playing: true, source: 'element'}
+      playing: true, source: 'element', video: 0}
   ]);
 });
 
@@ -112,19 +112,21 @@ test('extensionless element sources preserve bounded MIME and actual playback st
   ]});
   assert.deepEqual(result.sources, [
     {url: 'https://page.example/media?id=1', mime: 'video/mp4',
-      playing: false, source: 'element'},
+      playing: false, source: 'element', video: 0},
     {url: 'https://cdn.example/media?id=2', mime: 'x'.repeat(128),
-      playing: false, source: 'element'}
+      playing: false, source: 'element', video: 1}
   ]);
 });
 
-test('deduplication retains an active element when another video or request shares its URL', () => {
+test('two players sharing a URL retain separate associations without a resource duplicate', () => {
   const result = inspect({videos: [
     media({src: '/clip.mp4', paused: true}),
     media({currentSrc: 'https://page.example/clip.mp4'})
   ], entries: [resource('https://page.example/clip.mp4')]});
   assert.deepEqual(result.sources, [{url: 'https://page.example/clip.mp4',
-    mime: 'video/mp4', playing: true, source: 'element'}]);
+    mime: 'video/mp4', playing: false, source: 'element', video: 0},
+  {url: 'https://page.example/clip.mp4',
+    mime: 'video/mp4', playing: true, source: 'element', video: 1}]);
 });
 
 test('special protocols, URL credentials, malformed and excessive URLs are excluded', () => {

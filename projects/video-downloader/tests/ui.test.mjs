@@ -29,7 +29,7 @@ function ui(handler,settings={output:'original'}){
       }
       return handler(operation,payload);
     }},
-    document:{createElement:tag=>new Element(tag)},window:new Element(),
+    document:{createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag)},window:new Element(),
     setTimeout:fn=>{timers.set(++counter,fn);return counter;},clearTimeout:id=>timers.delete(id)
   });
   const descendants=(element,tag)=>element.children.flatMap(child=>[...(child.tagName===tag?[child]:[]),...descendants(child,tag)]);
@@ -48,7 +48,7 @@ test('one persistent format setting controls each one-click download',async()=>{
   const handler=operation=>operation==='media.detect'?{candidates:[webm,tsCandidate]}:{taskId:'job',state:'segments'};
   const app=ui(handler,settings);await settle();
   assert.equal(app.ids['vd-output'].value,'original');
-  assert.deepEqual(app.find('button').map(button=>button.textContent),['下载','下载']);
+  assert.deepEqual(app.find('button').map(button=>button.attributes['aria-label']),['下载视频 1','下载视频 2']);
   await app.choose('mp4');
   assert.equal(app.find('button')[0].disabled,true);
   assert.match(app.find('span')[0].textContent,/WebM.*请选择「原格式」/);
@@ -92,7 +92,7 @@ test('opening the tool detects media and shows a download button without startin
   await settle();
   assert.equal(app.find('button').length,1,'opening should reveal the available download');
   assert.equal(app.find('button')[0].disabled,false);
-  assert.equal(app.find('select')[0].value,'low');
+  assert.match(app.find('option')[Number(app.find('select')[0].value)].textContent,/184p/);
   assert.deepEqual(app.calls.map(row=>row.operation),['media.detect','media.format.get']);
   await app.tick();
   assert.equal(app.calls.length,2,'discovery is a single snapshot, not background polling');
@@ -102,12 +102,10 @@ test('recognized encrypted HLS and DRM are explained without offering a download
     hls:{kind:'media',vod:true,segments:31,container:'ts',encryption}}));
   const app=ui(()=>({candidates,partial:true}));
   await settle();
-  assert.match(app.ids['vd-message'].textContent,/已识别 2 个视频源.*没有可下载/);
+  assert.match(app.ids['vd-message'].textContent,/已识别 2 个视频.*没有可下载/);
   assert.match(app.find('span')[0].textContent,/31 段.*视频流已加密，无法下载/);
   assert.match(app.find('span')[1].textContent,/视频受 DRM 保护，无法下载/);
-  for(const button of app.find('button')){
-    assert.equal(button.textContent,'不可下载');assert.equal(button.disabled,true);await button.fire('click');
-  }
+  assert.equal(app.find('button').length,0);
   assert.deepEqual(app.calls.map(row=>row.operation),['media.detect','media.format.get']);
 });
 test('choose a rendition and follow a segmented task through saving without a native download ID at start',async()=>{
@@ -119,8 +117,8 @@ test('choose a rendition and follow a segmented task through saving without a na
     operation==='media.start'?{taskId:'task',state:'segments',segmentsTotal:64}:states.shift());
   await settle();
   const select=app.find('select')[0];assert.ok(select,'rendition choice must be available');
-  assert.equal(select.value,'low','default to the smallest known bitrate');
-  select.value='high';await select.fire('change');
+  assert.match(app.find('option')[Number(select.value)].textContent,/184p/,'default to the smallest known bitrate');
+  select.value='1';await select.fire('change');
   await app.find('button')[0].fire('click');
   assert.deepEqual({...app.calls.find(x=>x.operation==='media.start').payload},{candidateId:'candidate',variantId:'high',output:'original'});
   assert.equal(app.ids['vd-state'].textContent,'下载分段');assert.equal(app.ids['vd-stop'].disabled,false);
@@ -202,4 +200,27 @@ test('a lost Stop receipt remains visible after navigation and is reconciled wit
   await app.click('stop');await app.click('check');
   assert.equal(app.ids['vd-state'].textContent,'Chrome 下载完成');
   assert.equal(app.calls.filter(row=>row.operation==='media.stop').length,1);
+});
+
+test('alternative formats share one direct action while independent videos remain separate',async()=>{
+  const candidates=[
+    {id:'playing',videoKey:'first',format:'mp4',mode:'ready'},
+    {id:'alternative',videoKey:'first',format:'webm',mode:'ready'},
+    {id:'independent',videoKey:'second',format:'mp4',mode:'ready'}
+  ];
+  const app=ui(op=>op==='media.detect'?{candidates}:{taskId:'done',state:'complete'});
+  await settle();
+  assert.equal(app.ids['vd-list'].children.length,2);
+  assert.equal(app.find('button').length,2);
+  assert.equal(app.find('select').length,1);
+  await app.find('button')[0].fire('click');
+  const select=app.find('select')[0];select.value='1';await select.fire('change');
+  assert.equal(app.calls.filter(row=>row.operation==='media.start').length,1);
+  await app.choose('mp4');
+  assert.match(app.find('span')[0].textContent,/WebM.*原格式/);
+  assert.equal(app.find('button')[0].disabled,true);
+  await app.choose('original');await app.find('button')[0].fire('click');
+  assert.deepEqual(app.calls.filter(row=>row.operation==='media.start').map(row=>[row.payload.candidateId,row.payload.output]),[
+    ['playing','original'],['alternative','original']
+  ]);
 });

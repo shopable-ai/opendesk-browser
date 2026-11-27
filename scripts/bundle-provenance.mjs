@@ -340,11 +340,11 @@ function reviewedCompiledVideoSVIP(target,path,root){
 // R0.4.1 persists the two-value output preference and routes each user click;
 // packaging still runs only on a supported, unencrypted and authorized stream.
 const compiledVideoDownloaderInputs=Object.freeze({
-  'projects/video-downloader/trusted/policy.js':'ccddea968fb033b596e7c3052b489cb37b0b7e2e',
+  'projects/video-downloader/trusted/policy.js':'03f0f0ce3cec6d325a7c00e58f91e78d74670790',
   'projects/video-downloader/trusted/hls.js':'e3eaebc20fc3dffb0884ef14d2f61164e7099ea0',
   'projects/video-downloader/trusted/stream.js':'5bf116cf389bc31e55b544823aee437ad246f178',
-  'projects/video-downloader/trusted/discovery.js':'43c79f8d502fd3d2697f4486ba9cc328653b82d6',
-  'projects/video-downloader/trusted/host.js':'f48531033adf2f37529a43873d4fdb884917da45',
+  'projects/video-downloader/trusted/discovery.js':'0bcda0001050402d9775485321835a4023cfede1',
+  'projects/video-downloader/trusted/host.js':'03a95005e5d80d045e0080a3b96eafa24e60415c',
   'projects/video-downloader/trusted/admission.js':'9ff692570de52587d910adb3e8c526188f01b276',
   'projects/video-downloader/trusted/remux.js':'5fd2096bff70f909cd3be0406d214ff736c708a6',
   'projects/video-downloader/trusted/vendor/mux-transmuxer.js':'4c49d31aa7936c774f3c2d73e1bd2aa283dce7ae'

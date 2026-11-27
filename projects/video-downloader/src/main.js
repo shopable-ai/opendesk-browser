@@ -8,19 +8,30 @@ const format=$('vd-output'),formatRetry=$('vd-format-retry'),formatFeedback=$('v
 const initialInfo=$('vd-info').textContent;
 const finished=new Set(['complete','complete_unverified','cancelled','interrupted']);
 let phase='idle',taskId=null,candidateRef=null,jobEpoch=0,scanEpoch=0,readEpoch=0,closed=false,timer=null,scanning=false,checking=false,stopWanted=false,detached=false,controls=[];
-let output=null,formatBusy=false;
+let output=null,formatBusy=false,detection=null;
 const active=()=>phase!=='idle'&&!finished.has(phase);
 function message(value,error=false){const node=$('vd-message');if(node.textContent!==value)node.textContent=value;node.dataset.error=String(error);}
 function refreshControls(){
  const busy=scanning||active();
  detect.disabled=busy;
+ let downloadable=0;
  for(const control of controls){
-  const {button,select,used,ready,detail,item}=control;
-  const method=downloadMethod(item,select?.value);
-  detail.textContent=method.text;
-  button.disabled=!method.allowed||used||busy||!output||formatBusy;
-  if(select)select.disabled=used||busy;
-  if(ready)button.setAttribute('aria-label','下载第 '+control.number+' 个视频');
+  const {button,select,used,detail,choices}=control;
+  const options=choices.map(choice=>downloadMethod(choice.item,choice.variant?.id));
+  if(options.some(method=>method.allowed))downloadable++;
+  const preferred=options.findIndex(method=>method.allowed);
+  const index=control.selected??(preferred<0?0:preferred);
+  const choice=choices[index],method=options[index];
+  control.choice=choice;
+  if(select){select.value=String(index);select.disabled=busy;}
+  const spent=used.has(choice.item.id);
+  detail.textContent=spent?'此来源已提交。重新检测后可再次下载。':method.text;
+  if(button)button.disabled=!method.allowed||spent||busy||!output||formatBusy;
+ }
+ if(detection&&phase==='idle'&&!scanning){
+  const total=controls.length;
+  const summary=total?'已识别 '+total+' 个视频'+(output?' · '+(downloadable?downloadable+' 个可下载':'没有可下载的视频'):''):'当前网页没有可识别媒体';
+  message(summary+(detection.partial?'（部分嵌入页面未检测）':''));
  }
  format.disabled=formatBusy||!output;
  formatRetry.hidden=formatBusy||Boolean(output);
@@ -122,10 +133,10 @@ function describe(item){
  if(item.hls){
   const p=item.hls,protection=protectionReason(p.encryption);
   if(protection)return 'HLS · '+(p.kind==='media'?p.segments+' 段 · ':'')+protection+'，无法下载';
-  if(p.kind==='master')return 'HLS · '+(item.mode==='ready'?'选择清晰度':'没有支持下载的清晰度');
+  if(p.kind==='master')return item.mode==='ready'?'可选清晰度':'没有支持下载的清晰度';
   return ['HLS',p.segments+' 段',item.mode==='ready'?'完整点播':!p.vod?'直播或点播未结束，无法下载':'清单结构暂不支持下载'].join(' · ');
  }
- if(item.mode==='ready')return '保留原格式，直接交给 Chrome 下载';
+ if(item.mode==='ready')return '原文件直存';
  if(item.format==='dash')return '暂不支持合并 DASH 分段';
  if(item.note==='E_MEDIA_ORIGIN')return 'HLS 来源不受支持，无法下载';
  if(item.note==='E_MEDIA_PERMISSION')return '缺少 HLS 来源访问权限，请检查网站权限后重新检测';
@@ -134,9 +145,9 @@ function describe(item){
  return 'HLS 结构不可确认（'+(item.note||'未知')+'）· 仅检测';
 }
 function downloadMethod(item,variantId){
- if(item.mode!=='ready')return {allowed:false,text:describe(item)};
  const variant=item.hls?.kind==='master'?item.hls.variants.find(row=>row.id===variantId):null;
- if(variantId&&!variant?.ready)return {allowed:false,text:'请选择支持下载的清晰度。'};
+ if(variantId&&!variant?.ready)return {allowed:false,text:protectionReason(item.hls?.encryption)||protectionReason(variant?.encryption)||'此清晰度无法下载，请换一个清晰度。'};
+ if(item.mode!=='ready'||item.hls?.kind==='master'&&!variant)return {allowed:false,text:describe(item)};
  const block=variant?variant.mp4Block:item.mp4Block;
  if(output==='mp4'&&(block==='webm'||item.format==='webm'))
   return {allowed:false,text:'WebM 暂不支持转为 MP4。请选择「原格式」下载。'};
@@ -147,60 +158,97 @@ function downloadMethod(item,variantId){
  return {allowed:true,text:container==='ts'?(output==='mp4'?'自动封装为 MP4，无需重新编码。':'自动合并为 TS，需支持 TS 的播放器。'):
   container==='fmp4'?'自动合并分段，保存为 MP4。':describe(item)};
 }
+function rowChoices(items){
+ const choices=[],direct=new Map();
+ for(const item of items){
+  const name=item.format.toUpperCase();
+  const variants=item.hls?.kind==='master'?[...item.hls.variants].sort((a,b)=>(a.bandwidth||Infinity)-(b.bandwidth||Infinity)):[];
+  if(variants.length){
+   for(const [index,variant] of variants.entries()){
+    const size=variant.resolution?.split('x').at(-1);
+    const bitrate=variant.bandwidth?Math.round(variant.bandwidth/1000)+' kbps':null;
+    const title=[size?size+'p':null,bitrate].filter(Boolean).join(' · ')||'清晰度 '+(index+1);
+    choices.push({item,variant,name:name+' '+title});
+   }
+  }else if(item.hls||!direct.has(item.format)){
+   if(!item.hls)direct.set(item.format,choices.length);
+   choices.push({item,name});
+  }else if(item.mode==='ready'&&choices[direct.get(item.format)].item.mode!=='ready'){
+   choices[direct.get(item.format)]={item,name};
+  }
+ }
+ return choices;
+}
+function downloadIcon(){
+ const ns='http://www.w3.org/2000/svg';
+ const icon=document.createElementNS(ns,'svg'),path=document.createElementNS(ns,'path');
+ icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');
+ path.setAttribute('d','M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4');
+ icon.append(path);return icon;
+}
 function showCandidates(items){
  list.replaceChildren();controls=[];
  if(!items.length){list.textContent='未检测到可识别的视频源。请先播放视频，再点「检测」。部分临时地址或加密视频暂不支持。';return;}
- items.forEach((item,index)=>{
-  const ready=item.mode==='ready';
+ const groups=new Map();
+ for(const item of items){
+  const key=item.videoKey??item.id;
+  if(!groups.has(key))groups.set(key,[]);
+  groups.get(key).push(item);
+ }
+ Array.from(groups.values()).forEach((sources,index)=>{
+  const choices=rowChoices(sources),number=index+1;
+  const ready=choices.some(({item,variant})=>item.mode==='ready'&&(!variant||variant.ready));
   const row=document.createElement('div');row.className='vd-item';
   const info=document.createElement('div');info.className='vd-item-info';
-  const name=document.createElement('strong');name.textContent=(index+1)+'. '+item.format.toUpperCase();
-  const detail=document.createElement('span');info.append(name,detail);
+  const heading=document.createElement('div');heading.className='vd-item-heading';
+  const name=document.createElement('strong');name.textContent='视频 '+number;
+  const detail=document.createElement('span');detail.id='vd-method-'+index;
+  heading.append(name);info.append(heading,detail);
   let select=null;
-  if(item.hls?.kind==='master'&&item.hls.variants.length){
-   select=document.createElement('select');select.setAttribute('aria-label','第 '+(index+1)+' 个视频的清晰度');
-   const variants=[...item.hls.variants].sort((a,b)=>(a.bandwidth||Infinity)-(b.bandwidth||Infinity));
-   for(const variant of variants){
-    const option=document.createElement('option');option.value=variant.id;option.disabled=!variant.ready;
-    option.textContent=[variant.resolution?.replace('x','×')||'未知分辨率',
-     variant.bandwidth?Math.round(variant.bandwidth/1000)+' kbps':'未知码率',
-     variant.segments===null?'分段未确认':variant.segments+' 段',
-     variant.ready?'':protectionReason(variant.encryption)||'不可下载'].filter(Boolean).join(' · ');
+  const control={choices,choice:null,selected:null,detail,button:null,select:null,used:new Set()};
+  if(choices.length>1){
+   select=document.createElement('select');select.setAttribute('aria-label','视频 '+number+' 的来源或清晰度');
+   select.setAttribute('aria-describedby',detail.id);
+   for(const [i,choice] of choices.entries()){
+    const option=document.createElement('option');option.value=String(i);
+    option.textContent=choice.name;
     select.append(option);
    }
-   select.value=variants.find(x=>x.ready)?.id||'';
-   select.addEventListener('change',refreshControls);info.append(select);
+   select.addEventListener('change',()=>{control.selected=Number(select.value);refreshControls();});
+   control.select=select;heading.append(select);
+  }else{
+   const type=document.createElement('small');type.textContent=choices[0].name;heading.append(type);
   }
-  const actions=document.createElement('div');actions.className='vd-actions';
-  const button=document.createElement('button');button.type='button';actions.append(button);
-  if(ready)button.addEventListener('click',()=>void start(item.id,select?.value));
-  button.textContent=ready?'下载':'不可下载';
-  button.setAttribute('aria-describedby',detail.id='vd-method-'+index);
-  row.append(info,actions);
-  controls.push({id:item.id,item,detail,button,select,ready,number:index+1,used:false});list.append(row);
+  row.append(info);
+  if(ready){
+   const button=document.createElement('button');button.type='button';button.className='vd-download';
+   button.append(downloadIcon());button.title='下载视频 '+number;
+   button.setAttribute('aria-label',button.title);button.setAttribute('aria-describedby',detail.id);
+   button.addEventListener('click',()=>void start(control));
+   control.button=button;row.append(button);
+  }
+  controls.push(control);list.append(row);
  });
  refreshControls();
 }
 async function scan(){
  if(closed||scanning||active())return;
- resetJob();
+ resetJob();detection=null;
  const current=++scanEpoch;scanning=true;refreshControls();list.replaceChildren();controls=[];message('正在检测网页媒体…');
  try{
   const result=await request('media.detect',{});
   if(closed||current!==scanEpoch)return;
   if(!Array.isArray(result?.candidates))throw Error('媒体检测回执无效');
   showCandidates(result.candidates);
-  const total=result.candidates.length,ready=result.candidates.filter(item=>item.mode==='ready').length;
-  const summary=total?'已识别 '+total+' 个视频源 · '+(ready?ready+' 个可下载':'没有可下载的视频源'):'当前网页没有可识别媒体';
-  message(summary+(result.partial?'（部分嵌入页面未检测）':''));
+  detection={partial:result.partial};
  }catch(error){if(!closed&&current===scanEpoch)message('检测失败：'+String(error?.message||error).slice(0,120),true);}
  finally{if(!closed&&current===scanEpoch){scanning=false;refreshControls();}}
 }
-async function start(candidateId,variantId){
- const control=controls.find(row=>row.id===candidateId);
- if(closed||scanning||active()||!output||formatBusy||!control||control.button.disabled)return;
+async function start(control){
+ if(closed||scanning||active()||!output||formatBusy||!controls.includes(control)||control.button.disabled)return;
+ const {item,variant}=control.choice,candidateId=item.id,variantId=variant?.id;
  const jobOutput=output;
- control.used=true;
+ control.used.add(candidateId);
  const current=++jobEpoch;taskId=null;candidateRef=candidateId;stopWanted=false;detached=false;
  status({state:'starting'});message('正在启动下载…');
  try{
@@ -221,7 +269,7 @@ async function start(candidateId,variantId){
 }
 async function stopDownload(){
  if(closed||stop.disabled)return;
- for(const control of controls)control.used=true;
+ for(const control of controls)for(const {item} of control.choices)control.used.add(item.id);
  const current=jobEpoch;stopWanted=true;++readEpoch;checking=false;clearPoll();status({state:'cancel_requested'});
  try{
   const result=await request('media.stop',taskId?{taskId}:{});
@@ -236,7 +284,7 @@ check.addEventListener('click',()=>void readStatus());
 format.addEventListener('change',()=>void changeFormat());
 formatRetry.addEventListener('click',()=>void loadFormat());
 root.addEventListener('opendesk-page-changed',()=>{
- ++scanEpoch;scanning=false;controls=[];list.replaceChildren();detached=phase!=='idle';
+ ++scanEpoch;scanning=false;controls=[];detection=null;list.replaceChildren();detached=phase!=='idle';
  if(phase==='idle')message('网页已切换，请重新检测当前网页的媒体。');
  else if(active()&&phase!=='unknown')poll();
  refreshControls();

@@ -13,7 +13,7 @@ const doc=(pageUrl='https://fixture.example/page')=>({status:'available',windowI
   url:pageUrl,origin:new URL(pageUrl).origin,title:'Fixture'});
 function rig({urls=['https://fixture.example/tiny.mp4'],sourceMime='',allowed=true,fetcher,
   actionState='in_progress',exists=true,bytesReceived=100,totalBytes=200,
-  pageUrl='https://fixture.example/page',preferences=new Map()}={}){
+  pageUrl='https://fixture.example/page',preferences=new Map(),sources}={}){
   let target=doc(pageUrl),failDoc=false,admit=true,downloadId=100,downloadCalls=0,cancelled=[],permissionsSeen=[],submitted=[];
   let resultsState={state:actionState,exists,bytesReceived,totalBytes,error:null};
   let exportReady=null;
@@ -26,7 +26,7 @@ function rig({urls=['https://fixture.example/tiny.mp4'],sourceMime='',allowed=tr
     webNavigation:{getAllFrames:async()=>[{frameId:0,documentId:target.documentId,
       url:target.url,documentLifecycle:'active'}]},
     scripting:{executeScript:async()=>[{frameId:0,documentId:target.documentId,
-      result:urls.map(url=>({url,mime:sourceMime,playing:true}))}]},
+      result:sources??urls.map(url=>({url,mime:sourceMime,playing:true}))}]},
     downloads:{
       download:async options=>{downloadCalls++;submitted.push(options);return downloadId;},
       search:async({id})=>[{id,...resultsState}],
@@ -302,9 +302,34 @@ test('a failed HLS segment interrupts without calling Chrome or retaining URL me
 });
 test('a master session key cannot be bypassed by clear child playlists',async()=>{
   const master='#EXTM3U\n#EXT-X-SESSION-KEY:METHOD=SAMPLE-AES,KEYFORMAT="com.example",URI="key"\n#EXT-X-STREAM-INF:BANDWIDTH=100000,RESOLUTION=320x180\nmedia.m3u8\n';
-  const r=rig({urls:['https://fixture.example/master.m3u8'],fetcher:async url=>new Response(url.endsWith('master.m3u8')?master:clearVod)});
-  const d=await r.request('media.detect');assert.equal(d.candidates[0].mode,'detected_only');
+  const r=rig({urls:['https://fixture.example/media.m3u8','https://fixture.example/master.m3u8'],
+    fetcher:async url=>new Response(url.endsWith('master.m3u8')?master:clearVod)});
+  const d=await r.request('media.detect');assert.equal(d.candidates.length,1);
+  assert.equal(d.candidates[0].mode,'detected_only');
   await assert.rejects(r.request('media.start',{candidateId:d.candidates[0].id,variantId:d.candidates[0].hls.variants[0].id}),error=>error.code==='E_MEDIA_UNSUPPORTED');
+});
+
+test('only the exact declared HLS child disappears from resource results',async()=>{
+  const origin='https://fixture.example';
+  const master='#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=100000\nmedia.m3u8?quality=1\n';
+  const r=rig({urls:['media.m3u8?quality=1','media.m3u8?quality=2','master.m3u8'].map(x=>origin+'/'+x),
+    fetcher:async url=>new Response(url.endsWith('master.m3u8')?master:clearVod)});
+  const {candidates}=await r.request('media.detect');
+  assert.deepEqual(candidates.map(x=>[x.hls.kind,x.mode]),[['media','ready'],['master','ready']]);
+  assert.equal(JSON.stringify(candidates).includes(origin),false);
+});
+
+test('fixed discovery keys do not merge players or leak source URLs to the UI',async()=>{
+  const origin='https://fixture.example';
+  const element=(path,video)=>({url:origin+'/'+path,source:'element',video});
+  const r=rig({sources:[element('primary.mp4',0),element('alternative.webm',0),element('independent.mp4',1),
+    {url:origin+'/primary.mp4',source:'resource'}]});
+  const {candidates}=await r.request('media.detect');
+  assert.equal(candidates.length,3);
+  assert.ok(candidates[0].videoKey);
+  assert.equal(candidates[0].videoKey,candidates[1].videoKey);
+  assert.notEqual(candidates[0].videoKey,candidates[2].videoKey);
+  assert.equal(JSON.stringify(candidates).includes(origin),false);
 });
 test('unknown native HLS save remains unknown after Stop and blocks replay across invalidation',async()=>{
   const r=streamRig(),d=await r.request('media.detect');
