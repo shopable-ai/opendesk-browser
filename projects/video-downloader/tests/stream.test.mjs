@@ -98,12 +98,24 @@ test('fMP4 init and media are validated as boxes and retain true mp4 extension',
   assert.equal(result.playbackVerified,false,'box structure is not decode evidence');
 });
 
-test('the real TS transport automatically packages MP4 and refuses Stop during packaging before save',async()=>{
+test('default TS output preserves media bytes in order without entering the MP4 step',async()=>{
+  const segments=[ts(1),ts(2),ts(3)],phases=[];
+  const result=await downloadHlsVod(source,parsed(),{authorize,fetcher:async url=>{
+    const i=Number(new URL(url).pathname.match(/(\d+)\.ts$/)[1]);
+    await new Promise(resolve=>setTimeout(resolve,(3-i)*3));
+    return new Response(segments[i]);
+  },onProgress:value=>phases.push(value.phase)});
+  assert.equal(result.format,'ts');
+  assert.deepEqual(result.bytes,new Uint8Array(segments.flatMap(bytes=>[...bytes])));
+  assert.equal(phases.at(-1),'assembling');assert.ok(!phases.includes('remuxing'));
+});
+
+test('explicit MP4 packaging preserves the real TS source and respects Stop before save',async()=>{
  const bytes=new Uint8Array(await readFile(new URL('./fixtures/h264-he-aac.ts',import.meta.url)));
  const p={...parsed(1),codecs:'avc1.42c00d,mp4a.40.5'};
- const phases=[];const result=await downloadHlsVod(source,p,{authorize,fetcher:async()=>new Response(bytes),onProgress:v=>phases.push(v.phase)});
+ const phases=[];const result=await downloadHlsVod(source,p,{authorize,output:'mp4',fetcher:async()=>new Response(bytes),onProgress:v=>phases.push(v.phase)});
  assert.equal(result.format,'mp4');assert.equal(result.mime,'video/mp4');assert.equal(new TextDecoder().decode(result.bytes.subarray(4,8)),'ftyp');assert.ok(phases.includes('remuxing'));
  const controller=new AbortController();
- await assert.rejects(downloadHlsVod(source,p,{authorize,signal:controller.signal,fetcher:async()=>new Response(bytes),
+ await assert.rejects(downloadHlsVod(source,p,{authorize,output:'mp4',signal:controller.signal,fetcher:async()=>new Response(bytes),
  onProgress:v=>{if(v.phase==='remuxing')controller.abort();}}),coded('E_MEDIA_STOPPED'));
 });

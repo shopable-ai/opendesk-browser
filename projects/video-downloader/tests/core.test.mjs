@@ -229,19 +229,36 @@ const clearVod='#EXTM3U\n#EXTINF:2,\nsegment.ts\n#EXT-X-ENDLIST\n';
 const streamRig=options=>rig({urls:['https://fixture.example/media.m3u8'],fetcher:async url=>
   new Response(url.endsWith('.m3u8')?clearVod:ts()),...options});
 const until=async predicate=>{for(let i=0;i<200;i++){if(await predicate())return;await new Promise(resolve=>setTimeout(resolve,1));}assert.fail('expected task state was not reached');};
-test('HLS automatically saves a genuine MP4 Blob and only Chrome confirms completion',async()=>{
+test('HLS defaults to an original TS Blob and only Chrome confirms completion',async()=>{
   const r=streamRig(),d=await r.request('media.detect');
   const receipt=await r.request('media.start',{candidateId:d.candidates[0].id});
   assert.equal(receipt.state,'segments');assert.equal(receipt.downloadId,undefined);
   await until(()=>r.calls===1);
-  const options=r.submitted[0];assert.match(options.filename,/\.mp4$/);assert.match(options.url,/^blob:/);
-  const file=new Uint8Array(await (await fetch(options.url)).arrayBuffer());assert.equal(new TextDecoder().decode(file.subarray(4,8)),'ftyp');assert.notDeepEqual(file,ts());
+  const options=r.submitted[0];assert.match(options.filename,/\.ts$/);assert.match(options.url,/^blob:/);
+  const response=await fetch(options.url);assert.equal(response.headers.get('content-type'),'video/mp2t');
+  assert.deepEqual(new Uint8Array(await response.arrayBuffer()),ts());
   let status=await r.request('media.status',{taskId:receipt.taskId});
   assert.equal(status.state,'in_progress');assert.equal(status.playbackVerified,false);
   r.state({state:'complete',bytesReceived:ts().length,totalBytes:ts().length});
   status=await r.request('media.status',{taskId:receipt.taskId});
   assert.equal(status.state,'complete');assert.equal(status.stream.segments,1);
   await assert.rejects(fetch(options.url),'terminal status releases the object URL');
+});
+test('a TS candidate can explicitly request a genuine MP4 while direct files stay original',async()=>{
+  const r=streamRig(),d=await r.request('media.detect');
+  assert.equal(d.candidates[0].hls.originalTs,true);
+  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id,output:'mp4'});
+  await until(()=>r.calls===1);
+  const {filename,url}=r.submitted[0];assert.match(filename,/\.mp4$/);
+  const bytes=new Uint8Array(await (await fetch(url)).arrayBuffer());
+  assert.equal(new TextDecoder().decode(bytes.subarray(4,8)),'ftyp');
+  r.state({state:'complete',bytesReceived:bytes.length,totalBytes:bytes.length});
+  assert.equal((await r.request('media.status',{taskId:receipt.taskId})).stream.format,'mp4');
+  const direct=rig({urls:['https://fixture.example/video.webm'],fetcher:()=>assert.fail('direct video must use the native download URL')});
+  const {id:candidateId}=(await direct.request('media.detect')).candidates[0];
+  await assert.rejects(direct.request('media.start',{candidateId,output:'mp4'}),{code:'E_MEDIA_UNSUPPORTED'});
+  await direct.request('media.start',{candidateId});
+  assert.deepEqual(direct.submitted,[{url:'https://fixture.example/video.webm',filename:'opendesk-video-1234.webm',saveAs:false,conflictAction:'uniquify'}]);
 });
 test('a failed HLS segment interrupts without calling Chrome or retaining URL metadata in the UI receipt',async()=>{
   const r=streamRig({fetcher:async url=>new Response(url.endsWith('.m3u8')?clearVod:'expired',
@@ -346,7 +363,7 @@ test('only opaque candidate ID is accepted; requests cannot supply arbitrary sou
 test('Stop, navigation, installation revocation and source permission withdrawal during packaging prevent every native save',async()=>{
  for(const action of ['stop','navigate','revoke','permission']){
   const r=streamRig(),d=await r.request('media.detect');
-  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id});
+  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id,output:'mp4'});
   await until(async()=>(await r.request('media.status',{taskId:receipt.taskId})).state==='remuxing');
   if(action==='stop')await r.request('media.stop',{taskId:receipt.taskId});
   else if(action==='navigate'){r.navigate();r.host.invalidate();}

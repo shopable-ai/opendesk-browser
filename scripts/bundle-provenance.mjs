@@ -337,12 +337,13 @@ function reviewedCompiledVideoSVIP(target,path,root){
 // Existing document/source/installation checks fence every native save. R0.3.1
 // keeps old manifest records only for a blob video in the same bounded snapshot;
 // no observers, persistent URL collection, or new executable target is admitted.
+// R0.4 defaults to original segment assembly; MP4 packaging needs explicit intent.
 const compiledVideoDownloaderInputs=Object.freeze({
-  'projects/video-downloader/trusted/policy.js':'b52342b2d129e760d8db524714aa72ba1baa2017',
+  'projects/video-downloader/trusted/policy.js':'40692bddb48e1f0629644af04189b53bf82f051d',
   'projects/video-downloader/trusted/hls.js':'e3eaebc20fc3dffb0884ef14d2f61164e7099ea0',
-  'projects/video-downloader/trusted/stream.js':'3707eff88789e6a93f9603400937e4dcaee78719',
+  'projects/video-downloader/trusted/stream.js':'5bf116cf389bc31e55b544823aee437ad246f178',
   'projects/video-downloader/trusted/discovery.js':'43c79f8d502fd3d2697f4486ba9cc328653b82d6',
-  'projects/video-downloader/trusted/host.js':'5b2326173debc43435aad1f41966b5f19c805c05',
+  'projects/video-downloader/trusted/host.js':'ebb7c3714b7f7c1e613585602ad9a7a3586465a8',
   'projects/video-downloader/trusted/admission.js':'9ff692570de52587d910adb3e8c526188f01b276',
   'projects/video-downloader/trusted/remux.js':'bf099118512fc86923c94bea222f155ebe4a7a63',
   'projects/video-downloader/trusted/vendor/mux-transmuxer.js':'4c49d31aa7936c774f3c2d73e1bd2aa283dce7ae'

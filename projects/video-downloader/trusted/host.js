@@ -171,7 +171,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       fresh.set(id,entry);
       candidates.push({id,format:row.format,mode:downloadable?'ready':'detected_only',
         reason,note,hls:hls?{kind:hls.kind,encryption:hls.encryption,
-          segments:hls.segments,container:hls.container,vod:hls.vod,
+          segments:hls.segments,container:hls.container,vod:hls.vod,originalTs:true,
           audio:hls.audio.map(({group,language,name,external})=>({group,language,name,external})),
           variants:hls.variants,truncated:hls.truncated}:null});
     }
@@ -179,8 +179,9 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     return {state:candidates.length?'available':'no-video',partial,candidates};
   }
   async function start(payload,assertCurrent,assertInstalled){
-    if(!isPlain(payload)||Object.keys(payload).some(x=>!['candidateId','variantId'].includes(x))||
-       typeof payload.candidateId!=='string'||payload.variantId!==undefined&&typeof payload.variantId!=='string')
+    if(!isPlain(payload)||Object.keys(payload).some(x=>!['candidateId','variantId','output'].includes(x))||
+       typeof payload.candidateId!=='string'||payload.variantId!==undefined&&typeof payload.variantId!=='string'||
+       payload.output!==undefined&&payload.output!=='mp4')
       throw fail('E_SCHEMA','必须选择检测到的媒体');
     // A Stop during an asynchronous admission must prevent any future download call.
     const preflightTicket=generation;
@@ -193,6 +194,8 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     const rendition=selected.renditions?.find(x=>x.id===(payload.variantId??null));
     if(!selected.allowed||!['mp4','webm'].includes(selected.format)&&!rendition)
       throw fail('E_MEDIA_UNSUPPORTED','请选择已获来源权限的完整非加密 VOD');
+    if(payload.output==='mp4'&&rendition?.playlist.container!=='ts')
+      throw fail('E_MEDIA_UNSUPPORTED','只有 TS 分段需要另存为 MP4');
     if(task&&!['complete','complete_unverified','interrupted','cancelled'].includes(task.state))
       throw fail('E_MEDIA_BUSY','已有下载任务，请先停止或完成');
     if(!api?.downloads?.download||!api?.downloads?.search||!api?.downloads?.cancel)
@@ -223,7 +226,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       row.work=(async()=>{
         try{
           const result=await downloadHlsVod(rendition.url,rendition.playlist,{
-            authorize:alive,fetcher,signal:row.abort.signal,onProgress:value=>{
+            authorize:alive,fetcher,signal:row.abort.signal,output:payload.output,onProgress:value=>{
               if(task===row&&!row.stopRequested){row.progress=value;row.state=value.phase;}
             }
           });

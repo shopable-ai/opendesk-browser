@@ -15,7 +15,7 @@ if(!selected||master.audio.some(x=>x.external&&x.group===selected.audioGroup))th
 const url=publicMediaUrl(selected.uri,masterUrl),playlist=await readHls(url,options);
 console.log(JSON.stringify({variant:{resolution:selected.resolution,bandwidth:selected.bandwidth},segments:playlist.segments,duration:playlist.duration,encryption:playlist.encryption}));
 let reported=-1;
-const result=await downloadHlsVod(url,playlist,{...options,onProgress:p=>{
+const result=await downloadHlsVod(url,playlist,{...options,output:playlist.container==='ts'?'mp4':'original',onProgress:p=>{
   if(p.segmentsCompleted!==reported){reported=p.segmentsCompleted;console.log(JSON.stringify(p));}
 }});
 const filename=resolve(out,'big-buck-bunny-320x184.'+result.format);

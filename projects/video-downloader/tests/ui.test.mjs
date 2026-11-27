@@ -10,8 +10,10 @@ class Element {
   append(...children){this.children.push(...children);}
   replaceChildren(...children){this.children=children;this.textContent='';}
   setAttribute(name,value){this.attributes[name]=value;}
+  removeAttribute(name){delete this.attributes[name];}
+  focus(){}
   addEventListener(name,fn){(this.listeners[name]??=[]).push(fn);}
-  async fire(name){if(name==='click'&&this.disabled)return;for(const fn of this.listeners[name]||[])fn({target:this});await settle();}
+  async fire(name){if(name==='click'&&(this.disabled||this.hidden))return;for(const fn of this.listeners[name]||[])fn({target:this});await settle();}
 }
 function ui(handler){
   const ids=Object.fromEntries(['list','detect','stop','check','message','state','progress','info'].map(id=>['vd-'+id,new Element()]));
@@ -31,6 +33,33 @@ const candidate={id:'candidate',format:'hls',mode:'ready',hls:{kind:'master',aud
   {id:'high',ready:true,resolution:'1280x720',bandwidth:2149280,segments:64,encryption:'clear'},
   {id:'low',ready:true,resolution:'320x184',bandwidth:246440,segments:64,encryption:'clear'}
 ]}};
+const tsCandidate={id:'ts',format:'hls',mode:'ready',hls:{kind:'media',container:'ts',segments:2,vod:true,originalTs:true}};
+test('direct WebM offers one click in its original format',async()=>{
+  const app=ui(operation=>operation==='media.detect'?{candidates:[{id:'webm',format:'webm',mode:'ready'}]}:{taskId:'job',state:'started'});
+  await settle();const buttons=app.find('button');assert.equal(buttons.length,1);
+  assert.match(buttons[0].textContent,/下载原文件.*WEBM/);
+  await buttons[0].fire('click');assert.deepEqual(JSON.parse(JSON.stringify(app.calls.at(-1).payload)),{candidateId:'webm'});
+});
+test('TS defaults to original and the separate MP4 choice only starts after confirmation',async()=>{
+  const handler=operation=>operation==='media.detect'?{candidates:[tsCandidate]}:{taskId:'job',state:'segments'};
+  const app=ui(handler);await settle();
+  const [original,mp4,confirm,cancel]=app.find('button');
+  assert.match(original.textContent,/合并并下载 TS/);
+  await mp4.fire('click');assert.equal(mp4.attributes['aria-expanded'],'true');
+  await cancel.fire('click');assert.equal(mp4.attributes['aria-expanded'],'false');
+  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect']);
+  await original.fire('click');assert.deepEqual(JSON.parse(JSON.stringify(app.calls.at(-1).payload)),{candidateId:'ts'});
+  const explicit=ui(handler);await settle();await explicit.find('button')[1].fire('click');await explicit.find('button')[2].fire('click');
+  assert.deepEqual(JSON.parse(JSON.stringify(explicit.calls.at(-1).payload)),{candidateId:'ts',output:'mp4'});
+});
+test('MP4 packaging failure explains the reason and offers recovery through a fresh scan',async()=>{
+  const app=ui(operation=>operation==='media.detect'?{candidates:[tsCandidate]}:
+    operation==='media.start'?{taskId:'job',state:'segments'}:{state:'interrupted',error:'E_MEDIA_CODEC_UNSUPPORTED'});
+  await settle();await app.find('button')[1].fire('click');await app.find('button')[2].fire('click');await app.tick();
+  assert.match(app.ids['vd-info'].textContent,/编码无法封装.*重新检测后可下载原分段/);
+  assert.equal(app.find('button')[0].disabled,true);
+  await app.click('detect');assert.equal(app.find('button')[0].disabled,false);
+});
 test('opening the tool detects media and shows a download button without starting a download',async()=>{
   const app=ui(operation=>operation==='media.detect'?{candidates:[candidate]}:{});
   await settle();

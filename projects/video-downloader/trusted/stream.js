@@ -107,8 +107,10 @@ export function mp4Boxes(bytes){
 }
 const sha=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
 export async function downloadHlsVod(url,playlist,{signal,authorize,fetcher=globalThis.fetch,
-  onProgress=()=>{},limits={}}={}){
+  output='original',onProgress=()=>{},limits={}}={}){
   validateVod(playlist);url=publicMediaUrl(url);
+  if(output!=='original'&&(output!=='mp4'||playlist.container!=='ts'))
+    throw mediaError('E_MEDIA_UNSUPPORTED');
   // Callers may lower budgets in tests; they cannot raise the shipped bounds.
   const budget={...STREAM_LIMITS};
   for(const key of ['segmentBytes','totalBytes','concurrency','timeoutMs']){
@@ -161,21 +163,25 @@ export async function downloadHlsVod(url,playlist,{signal,authorize,fetcher=glob
     if(firstError)throw firstError;
     controller.signal.throwIfAborted();
     if(parts.some(row=>!row)||completed!==playlist.segments)throw mediaError('E_MEDIA_INCOMPLETE');
-    let output;
-    if(playlist.container==='ts'){
-      output=await remuxTsToMp4(parts,{signal:controller.signal,codecs:playlist.codecs,
+    const format=playlist.container==='ts'&&output==='original'?'ts':'mp4';
+    let bytes;
+    if(output==='mp4'){
+      bytes=await remuxTsToMp4(parts,{signal:controller.signal,codecs:playlist.codecs,
         assertAuthorized:authorizeSources,onProgress:value=>onProgress({phase:'remuxing',
           segmentsCompleted:completed,segmentsTotal:completed,bytesReceived:total,
           remuxBytes:value.processedBytes,remuxTotalBytes:value.totalBytes})});
     }else{
       onProgress({phase:'assembling',segmentsCompleted:completed,segmentsTotal:completed,bytesReceived:total,totalBytes:total});
-      output=new Uint8Array(total);let offset=0;
-      if(init){output.set(init,offset);offset+=init.length;}
-      for(const part of parts){output.set(part,offset);offset+=part.length;}
+      if(!init&&parts.length===1)bytes=parts[0];
+      else{
+        bytes=new Uint8Array(total);let offset=0;
+        if(init){bytes.set(init,offset);offset+=init.length;}
+        for(const part of parts){bytes.set(part,offset);offset+=part.length;}
+      }
     }
     controller.signal.throwIfAborted();await authorizeSources();controller.signal.throwIfAborted();
-    return {bytes:output,format:'mp4',mime:'video/mp4',
-      segments:completed,duration:playlist.duration,integrity,sha256:await sha(output),playbackVerified:false};
+    return {bytes,format,mime:format==='ts'?'video/mp2t':'video/mp4',
+      segments:completed,duration:playlist.duration,integrity,sha256:await sha(bytes),playbackVerified:false};
   }catch(error){throw mediaError(/^E_[A-Z_]+$/.test(error?.code||'')?error.code:'E_MEDIA_STOPPED');}
   finally{controller.abort();signal?.removeEventListener('abort',abort);parts.fill(null);}
 }

@@ -8,10 +8,16 @@ const initialInfo=$('vd-info').textContent;
 const finished=new Set(['complete','complete_unverified','cancelled','interrupted']);
 let phase='idle',taskId=null,candidateRef=null,jobEpoch=0,scanEpoch=0,readEpoch=0,closed=false,timer=null,scanning=false,checking=false,stopWanted=false,detached=false,controls=[];
 const active=()=>phase!=='idle'&&!finished.has(phase);
-function message(value,error=false){$('vd-message').textContent=value;$('vd-message').dataset.error=String(error);}
+function message(value,error=false){const node=$('vd-message');if(node.textContent!==value)node.textContent=value;node.dataset.error=String(error);}
 function refreshControls(){
- detect.disabled=scanning||active();
- for(const {button,select,ready} of controls){button.disabled=!ready||scanning||active();if(select)select.disabled=scanning||active();}
+ const busy=scanning||active();
+ detect.disabled=busy;
+ for(const control of controls){
+  const {button,select,ready,used,mp4,setChoice}=control;
+  button.disabled=!ready||used||busy;
+  if(select)select.disabled=used||busy;
+  if(mp4){mp4.disabled=button.disabled;if(button.disabled)setChoice(false);}
+ }
  stop.disabled=!active()||phase==='unknown'||phase==='cancel_requested'||stopWanted||detached;
  check.hidden=phase!=='unknown';check.disabled=checking||!(taskId||candidateRef);
 }
@@ -26,12 +32,12 @@ function status(data){
  const progress=$('vd-progress');
  if(phase==='segments')progress.value=segments>0?Math.min(100,Math.floor(completed*100/segments)):0;
  else if(phase==='remuxing')progress.value=data.remuxTotalBytes?Math.min(100,Math.floor((data.remuxBytes||0)*100/data.remuxTotalBytes)):0;
- else if(phase==='assembling'||phase==='saving')progress.value=100;
+ else if(phase==='assembling'||phase==='saving')progress.removeAttribute('value');
  else progress.value=total>0?Math.min(100,Math.floor(received*100/total)):0;
  $('vd-info').textContent=phase==='complete'
   ?'已从 Chrome 下载记录核对：文件存在、收到数据；格式及独立播放仍需本机验证。'
   :phase==='complete_unverified'?'Chrome 认为下载完成，但文件存在性/大小未得到确认。'
-  :phase==='interrupted'?({E_MEDIA_CODEC_UNSUPPORTED:'当前音视频编码不支持直接封装为 MP4，未保存文件。',E_MEDIA_AUDIO_CONFIG:'缺少低采样率 AAC 配置，请从含编码信息的 HLS 主清单检测。',E_MEDIA_REMUX:'MP4 封装失败，未保存文件。'}[data.error]||'下载中断：'+String(data.error||'未知原因'))
+  :phase==='interrupted'?({E_MEDIA_CODEC_UNSUPPORTED:'当前音视频编码无法封装为 MP4。重新检测后可下载原分段。',E_MEDIA_AUDIO_CONFIG:'缺少 AAC 配置。请检测带编码信息的主清单，或下载原分段。',E_MEDIA_REMUX:'MP4 封装失败，未保存。重新检测后可下载原分段。',E_MEDIA_HTTP:'分段无法读取，可能已过期。请刷新播放器后重新检测。',E_MEDIA_TS:'有分段不是有效的 TS，未保存。请重新检测或换一个清晰度。',E_MEDIA_MP4:'有分段不是有效的 MP4，未保存。请重新检测或换一个清晰度。',E_MEDIA_PERMISSION:'网站访问权限已撤销。请检查权限后重新检测。'}[data.error]||'下载中断：'+String(data.error||'未知原因')+'。重新检测后可再试。')
   :phase==='unknown'?'下载结果未知，检查 Chrome 下载记录；不要直接重试。'
   :phase==='cancel_requested'?'正在停止分段请求或 Chrome 下载，等待状态回读。'
   :phase==='cancelled'?'下载已取消。重新检测后可选择媒体。'
@@ -40,7 +46,7 @@ function status(data){
   :phase==='assembling'?'全部分段已收到，正在按原顺序合并。'
   :phase==='saving'?'正在将完整文件交给 Chrome 保存。'
   :total>0?received+' / '+total+' 字节':'进度以 Chrome 下载记录为准。';
- if(finished.has(phase)||phase==='unknown'||phase==='cancel_requested'||phase==='remuxing'||phase==='saving')
+ if(finished.has(phase)||['unknown','cancel_requested','segments','remuxing','assembling','saving','started','in_progress'].includes(phase))
   message(label(phase),['interrupted','unknown','complete_unverified'].includes(phase));
  refreshControls();
  if(finished.has(phase)||phase==='unknown')clearPoll();
@@ -75,14 +81,16 @@ function protectionReason(encryption){
 function describe(item){
  if(item.hls){
   const p=item.hls,protection=protectionReason(p.encryption);
-  if(p.kind==='master')return item.mode==='ready'?'HLS · 选择清晰度后下载完整视频':
-   'HLS · '+(protection?protection+'，无法下载':'未发现可下载的清晰度');
-  return ['HLS',p.vod?'完整点播':'非完整点播',p.segments+' 段',p.container,
-   item.mode==='ready'?'可下载':protection?protection+'，无法下载':'暂不支持下载'].join(' · ');
+  if(protection)return 'HLS · '+(p.kind==='media'?p.segments+' 段 · ':'')+protection+'，无法下载';
+  if(p.kind==='master')return 'HLS · '+(item.mode==='ready'?'选择清晰度':'没有支持下载的清晰度');
+  return ['HLS',p.segments+' 段',item.mode==='ready'?'完整点播':!p.vod?'直播或点播未结束，无法下载':'清单结构暂不支持下载'].join(' · ');
  }
- if(item.mode==='ready')return '同源直接文件 · 可下载';
- if(item.reason==='cross-origin')return '跨源直接媒体 · 暂不下载';
- if(item.format==='dash')return 'DASH · 后续版本';
+ if(item.mode==='ready')return '保留原格式，直接交给 Chrome 下载';
+ if(item.format==='dash')return '暂不支持合并 DASH 分段';
+ if(item.note==='E_MEDIA_ORIGIN')return 'HLS 来源不受支持，无法下载';
+ if(item.note==='E_MEDIA_PERMISSION')return '缺少 HLS 来源访问权限，请检查网站权限后重新检测';
+ if(item.note==='E_HLS_HTTP'||item.note==='E_MEDIA_TIMEOUT')return 'HLS 清单无法读取，请刷新播放器后重新检测';
+ if(item.reason==='cross-origin'&&item.format!=='hls')return '原文件与当前网页不同源，无法下载';
  return 'HLS 结构不可确认（'+(item.note||'未知')+'）· 仅检测';
 }
 function showCandidates(items){
@@ -108,10 +116,40 @@ function showCandidates(items){
    }
    select.value=variants.find(x=>x.ready)?.id||'';info.append(select);
   }
-  const button=document.createElement('button');button.type='button';button.textContent=ready?'下载':'不可下载';
-  button.setAttribute('aria-label',ready?'下载第 '+(index+1)+' 个 '+item.format+' 文件':'第 '+(index+1)+' 个视频不可下载');
+  const actions=document.createElement('div');actions.className='vd-actions';
+  const button=document.createElement('button');button.type='button';actions.append(button);
   if(ready)button.addEventListener('click',()=>void start(item.id,select?.value));
-  controls.push({button,select,ready});row.append(info,button);list.append(row);
+  const control={id:item.id,button,select,ready,used:false};
+  row.append(info,actions);
+  if(ready&&item.hls){
+   const method=document.createElement('span');info.append(method);
+   let mp4,choice,confirm,cancel;
+   if(item.hls.originalTs){
+    mp4=document.createElement('button');mp4.type='button';mp4.textContent='另存为 MP4…';actions.append(mp4);
+    choice=document.createElement('div');choice.className='vd-choice';choice.hidden=true;choice.id='vd-format-'+index;
+    mp4.setAttribute('aria-controls',choice.id);
+    const hint=document.createElement('span');hint.textContent='将支持的 H.264/AAC 分段封装为 MP4。无需重新编码，但需要额外处理。';
+    confirm=document.createElement('button');confirm.type='button';confirm.textContent='封装并下载 MP4';
+    cancel=document.createElement('button');cancel.type='button';cancel.textContent='取消';
+    choice.append(hint,confirm,cancel);row.append(choice);
+    control.mp4=mp4;
+    control.setChoice=open=>{choice.hidden=!open;mp4.setAttribute('aria-expanded',String(open));};
+    mp4.addEventListener('click',()=>{control.setChoice(true);confirm.focus();});
+    const dismiss=()=>{control.setChoice(false);mp4.focus();};
+    cancel.addEventListener('click',dismiss);
+    choice.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();dismiss();}});
+    confirm.addEventListener('click',()=>{if(!choice.hidden)void start(item.id,select?.value,'mp4');});
+   }
+   const updateMethod=()=>{
+    const container=select?item.hls.variants.find(variant=>variant.id===select.value)?.container:item.hls.container;
+    const originalTs=container==='ts'&&item.hls.originalTs;
+    if(mp4){mp4.hidden=!originalTs;control.setChoice(false);}
+    button.textContent=originalTs?'合并并下载 TS':container==='fmp4'?'合并并下载 MP4':container==='ts'?'封装并下载 MP4':'下载分段';
+    method.textContent=originalTs?'默认保留原封装 · 需支持 TS 的播放器':container==='fmp4'?'原分段已是 MP4，只合并分段':container==='ts'?'封装分段，无需重新编码':'';
+   };
+   select?.addEventListener('change',updateMethod);updateMethod();
+  }else button.textContent=ready?'下载原文件 · '+item.format.toUpperCase():'不可下载';
+  controls.push(control);list.append(row);
  });
  refreshControls();
 }
@@ -130,12 +168,14 @@ async function scan(){
  }catch(error){if(!closed&&current===scanEpoch)message('检测失败：'+String(error?.message||error).slice(0,120),true);}
  finally{if(!closed&&current===scanEpoch){scanning=false;refreshControls();}}
 }
-async function start(candidateId,variantId){
- if(closed||scanning||active())return;
+async function start(candidateId,variantId,output){
+ const control=controls.find(row=>row.id===candidateId);
+ if(closed||scanning||active()||!control?.ready||control.used)return;
+ control.used=true;
  const current=++jobEpoch;taskId=null;candidateRef=candidateId;stopWanted=false;detached=false;
  status({state:'starting'});message('正在启动下载…');
  try{
-  const receipt=await request('media.start',{candidateId,...(variantId?{variantId}:{})});
+  const receipt=await request('media.start',{candidateId,...(variantId?{variantId}:{}),...(output?{output}:{})});
   if(closed||current!==jobEpoch)return;
   if(typeof receipt?.taskId!=='string'||!receipt.taskId)throw Error('未返回可核对的下载任务');
   taskId=receipt.taskId;
@@ -152,6 +192,7 @@ async function start(candidateId,variantId){
 }
 async function stopDownload(){
  if(closed||stop.disabled)return;
+ for(const control of controls)control.used=true;
  const current=jobEpoch;stopWanted=true;++readEpoch;checking=false;clearPoll();status({state:'cancel_requested'});
  try{
   const result=await request('media.stop',taskId?{taskId}:{});
