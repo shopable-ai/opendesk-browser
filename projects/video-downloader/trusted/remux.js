@@ -153,10 +153,14 @@ function finalizeInit(init,data,audioType,trackCount){
  return join(top.map(r=>rewrite(r)));
 }
 
+const declaredCodecs=codecs=>typeof codecs==='string'?codecs.split(',').map(c=>c.trim()).filter(Boolean):[];
+export const supportsDeclaredMp4Codecs=codecs=>declaredCodecs(codecs).every(c=>
+ /^avc[13]\.[\da-f]{6}$/i.test(c)||/^mp4a\.40\.(?:2|5|29)$/.test(c));
+
 export async function remuxTsToMp4(parts,{signal,codecs=null,assertAuthorized=async()=>{},onProgress=()=>{}}={}){
  const guard=()=>{if(signal?.aborted)throw error('E_MEDIA_STOPPED');};
- const declared=typeof codecs==='string'?codecs.split(',').map(c=>c.trim()).filter(Boolean):[];
- if(declared.some(c=>!/^avc[13]\.[\da-f]{6}$/i.test(c)&&!/^mp4a\.40\.(?:2|5|29)$/.test(c)))fail();
+ const declared=declaredCodecs(codecs);
+ if(!supportsDeclaredMp4Codecs(codecs))fail();
  const audioType=Number(declared.find(c=>c.startsWith('mp4a.40.'))?.split('.').at(-1))||null;
  const total=parts.reduce((sum,p)=>sum+p.length,0);if(!total||total>134217728)throw error('E_MEDIA_TOTAL_SIZE');
  const state={},mux=new Transmuxer({keepOriginalTimestamps:false,remux:true}),events=[];

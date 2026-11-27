@@ -15,18 +15,27 @@ class Element {
   addEventListener(name,fn){(this.listeners[name]??=[]).push(fn);}
   async fire(name){if(name==='click'&&(this.disabled||this.hidden))return;for(const fn of this.listeners[name]||[])fn({target:this});await settle();}
 }
-function ui(handler){
-  const ids=Object.fromEntries(['list','detect','stop','check','message','state','progress','info'].map(id=>['vd-'+id,new Element()]));
+function ui(handler,settings={output:'original'}){
+  const ids=Object.fromEntries(['list','detect','stop','check','message','state','progress','info','output','format-feedback','format-retry'].map(id=>['vd-'+id,new Element()]));
   const root=new Element();root.querySelector=selector=>ids[selector.slice(1)];
   let counter=0;const timers=new Map(),calls=[];
   runInNewContext(source,{
-    OpenDeskTool:{root,request:async(operation,payload)=>{calls.push({operation,payload});return handler(operation,payload);}},
+    OpenDeskTool:{root,request:async(operation,payload)=>{
+      calls.push({operation,payload});
+      if(operation==='media.format.get')return settings.read?settings.read():{output:settings.output};
+      if(operation==='media.format.set'){
+        if(settings.write)return settings.write(payload.output);
+        settings.output=payload.output;return {output:settings.output};
+      }
+      return handler(operation,payload);
+    }},
     document:{createElement:tag=>new Element(tag)},window:new Element(),
     setTimeout:fn=>{timers.set(++counter,fn);return counter;},clearTimeout:id=>timers.delete(id)
   });
   const descendants=(element,tag)=>element.children.flatMap(child=>[...(child.tagName===tag?[child]:[]),...descendants(child,tag)]);
   return {ids,calls,root,find:tag=>descendants(ids['vd-list'],tag),
     click:id=>ids['vd-'+id].fire('click'),
+    choose:async value=>{ids['vd-output'].value=value;await ids['vd-output'].fire('change');},
     tick:async()=>{const entries=[...timers];timers.clear();for(const [,fn] of entries)await fn();await settle();}};
 }
 const candidate={id:'candidate',format:'hls',mode:'ready',hls:{kind:'master',audio:[],variants:[
@@ -34,31 +43,49 @@ const candidate={id:'candidate',format:'hls',mode:'ready',hls:{kind:'master',aud
   {id:'low',ready:true,resolution:'320x184',bandwidth:246440,segments:64,encryption:'clear'}
 ]}};
 const tsCandidate={id:'ts',format:'hls',mode:'ready',hls:{kind:'media',container:'ts',segments:2,vod:true,originalTs:true}};
-test('direct WebM offers one click in its original format',async()=>{
-  const app=ui(operation=>operation==='media.detect'?{candidates:[{id:'webm',format:'webm',mode:'ready'}]}:{taskId:'job',state:'started'});
-  await settle();const buttons=app.find('button');assert.equal(buttons.length,1);
-  assert.match(buttons[0].textContent,/下载原文件.*WEBM/);
-  await buttons[0].fire('click');assert.deepEqual(JSON.parse(JSON.stringify(app.calls.at(-1).payload)),{candidateId:'webm'});
-});
-test('TS defaults to original and the separate MP4 choice only starts after confirmation',async()=>{
-  const handler=operation=>operation==='media.detect'?{candidates:[tsCandidate]}:{taskId:'job',state:'segments'};
-  const app=ui(handler);await settle();
-  const [original,mp4,confirm,cancel]=app.find('button');
-  assert.match(original.textContent,/合并并下载 TS/);
-  await mp4.fire('click');assert.equal(mp4.attributes['aria-expanded'],'true');
-  await cancel.fire('click');assert.equal(mp4.attributes['aria-expanded'],'false');
-  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect']);
-  await original.fire('click');assert.deepEqual(JSON.parse(JSON.stringify(app.calls.at(-1).payload)),{candidateId:'ts'});
-  const explicit=ui(handler);await settle();await explicit.find('button')[1].fire('click');await explicit.find('button')[2].fire('click');
-  assert.deepEqual(JSON.parse(JSON.stringify(explicit.calls.at(-1).payload)),{candidateId:'ts',output:'mp4'});
+test('one persistent format setting controls each one-click download',async()=>{
+  const settings={output:'original'},webm={id:'webm',format:'webm',mode:'ready'};
+  const handler=operation=>operation==='media.detect'?{candidates:[webm,tsCandidate]}:{taskId:'job',state:'segments'};
+  const app=ui(handler,settings);await settle();
+  assert.equal(app.ids['vd-output'].value,'original');
+  assert.deepEqual(app.find('button').map(button=>button.textContent),['下载','下载']);
+  await app.choose('mp4');
+  assert.equal(app.find('button')[0].disabled,true);
+  assert.match(app.find('span')[0].textContent,/WebM.*请选择「原格式」/);
+  assert.match(app.find('span')[1].textContent,/自动封装为 MP4/);
+  await app.find('button')[0].fire('click');
+  assert.equal(app.calls.filter(row=>row.operation==='media.start').length,0);
+  await app.root.fire('opendesk-page-changed');await app.click('detect');
+  assert.equal(app.ids['vd-output'].value,'mp4');
+  const reopened=ui(handler,settings);await settle();
+  assert.equal(reopened.ids['vd-output'].value,'mp4');
+  await reopened.find('button')[1].fire('click');await reopened.choose('original');
+  const starts=reopened.calls.filter(row=>row.operation==='media.start');
+  assert.equal(starts.length,1);
+  assert.deepEqual({...starts[0].payload},{candidateId:'ts',output:'mp4'});
+  const later=ui(handler,settings);await settle();await later.find('button')[0].fire('click');
+  assert.deepEqual({...later.calls.at(-1).payload},{candidateId:'webm',output:'original'});
 });
 test('MP4 packaging failure explains the reason and offers recovery through a fresh scan',async()=>{
   const app=ui(operation=>operation==='media.detect'?{candidates:[tsCandidate]}:
     operation==='media.start'?{taskId:'job',state:'segments'}:{state:'interrupted',error:'E_MEDIA_CODEC_UNSUPPORTED'});
-  await settle();await app.find('button')[1].fire('click');await app.find('button')[2].fire('click');await app.tick();
+  await settle();await app.choose('mp4');await app.find('button')[0].fire('click');
+  assert.match(app.ids['vd-info'].textContent,/正在读取分段/);
+  await app.tick();
   assert.match(app.ids['vd-info'].textContent,/编码无法封装.*重新检测后可下载原分段/);
+  await app.choose('original');assert.match(app.ids['vd-info'].textContent,/编码无法封装/);
   assert.equal(app.find('button')[0].disabled,true);
   await app.click('detect');assert.equal(app.find('button')[0].disabled,false);
+});
+test('a lost settings receipt is read back without replay or download',async()=>{
+  let saved='original';
+  const app=ui(operation=>operation==='media.detect'?{candidates:[tsCandidate]}:{},{
+    read:()=>({output:saved}),write:value=>{saved=value;throw Error('transport disconnected');}
+  });
+  await settle();await app.choose('mp4');
+  assert.equal(app.ids['vd-output'].value,'mp4');
+  assert.equal(app.find('button')[0].disabled,false);
+  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect','media.format.get','media.format.set','media.format.get']);
 });
 test('opening the tool detects media and shows a download button without starting a download',async()=>{
   const app=ui(operation=>operation==='media.detect'?{candidates:[candidate]}:{});
@@ -66,9 +93,9 @@ test('opening the tool detects media and shows a download button without startin
   assert.equal(app.find('button').length,1,'opening should reveal the available download');
   assert.equal(app.find('button')[0].disabled,false);
   assert.equal(app.find('select')[0].value,'low');
-  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect']);
+  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect','media.format.get']);
   await app.tick();
-  assert.equal(app.calls.length,1,'discovery is a single snapshot, not background polling');
+  assert.equal(app.calls.length,2,'discovery is a single snapshot, not background polling');
 });
 test('recognized encrypted HLS and DRM are explained without offering a download',async()=>{
   const candidates=['encrypted','drm'].map(encryption=>({id:encryption,format:'hls',mode:'detected_only',
@@ -81,7 +108,7 @@ test('recognized encrypted HLS and DRM are explained without offering a download
   for(const button of app.find('button')){
     assert.equal(button.textContent,'不可下载');assert.equal(button.disabled,true);await button.fire('click');
   }
-  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect']);
+  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect','media.format.get']);
 });
 test('choose a rendition and follow a segmented task through saving without a native download ID at start',async()=>{
   const states=[{state:'segments',segmentsCompleted:3,segmentsTotal:64,bytesReceived:1000},
@@ -95,7 +122,7 @@ test('choose a rendition and follow a segmented task through saving without a na
   assert.equal(select.value,'low','default to the smallest known bitrate');
   select.value='high';await select.fire('change');
   await app.find('button')[0].fire('click');
-  assert.deepEqual(JSON.parse(JSON.stringify(app.calls.find(x=>x.operation==='media.start').payload)),{candidateId:'candidate',variantId:'high'});
+  assert.deepEqual({...app.calls.find(x=>x.operation==='media.start').payload},{candidateId:'candidate',variantId:'high',output:'original'});
   assert.equal(app.ids['vd-state'].textContent,'下载分段');assert.equal(app.ids['vd-stop'].disabled,false);
   assert.equal(app.ids['vd-detect'].disabled,true);
   await app.tick();assert.match(app.ids['vd-info'].textContent,/3\s*\/\s*64/);
@@ -132,7 +159,7 @@ test('navigation discards a late scan and restores detection without replay',asy
   await app.root.fire('opendesk-page-changed');
   resolveScan({candidates:[candidate]});await settle();
   assert.equal(app.find('button').length,0);assert.equal(app.ids['vd-detect'].disabled,false);
-  assert.equal(app.calls.length,1);
+  assert.equal(app.calls.length,2);
 });
 test('unknown start outcome blocks repeat downloads and offers read-only reconciliation',async()=>{
   const app=ui(operation=>{if(operation==='media.detect')return {candidates:[candidate]};throw Error('transport disconnected');});

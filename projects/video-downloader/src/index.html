@@ -3,12 +3,21 @@
     <span>当前网页媒体</span>
     <button type="button" id="vd-detect" aria-label="检测当前网页" title="检测当前网页">↻ 检测</button>
   </div>
+  <div class="vd-format">
+    <label for="vd-output">下载格式</label>
+    <select id="vd-output" aria-describedby="vd-format-feedback" disabled>
+      <option value="original">原格式（默认）</option>
+      <option value="mp4">MP4</option>
+    </select>
+    <p id="vd-format-feedback" role="status"></p>
+    <button id="vd-format-retry" type="button" hidden>重新读取格式</button>
+  </div>
   <p id="vd-message" role="status" aria-live="polite">正在检测当前网页的视频…</p>
   <div id="vd-list" class="vd-list" aria-label="检测到的媒体"></div>
   <section class="vd-job" aria-label="下载任务">
     <div class="vd-job-top"><strong>下载状态</strong><span id="vd-state">未开始</span></div>
     <progress id="vd-progress" max="100" value="0" aria-label="下载进度"></progress>
-    <p id="vd-info">单文件按原格式直接下载。可下载的 HLS 需先合并分段，请查看列表中的保存方式。</p>
+    <p id="vd-info">单文件直接下载；需要合并或封装的分段会自动处理。</p>
     <button id="vd-stop" type="button" disabled>停止下载</button>
     <button id="vd-check" type="button" hidden>核对下载状态</button>
   </section>

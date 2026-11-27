@@ -13,11 +13,15 @@ const doc=(pageUrl='https://fixture.example/page')=>({status:'available',windowI
   url:pageUrl,origin:new URL(pageUrl).origin,title:'Fixture'});
 function rig({urls=['https://fixture.example/tiny.mp4'],sourceMime='',allowed=true,fetcher,
   actionState='in_progress',exists=true,bytesReceived=100,totalBytes=200,
-  pageUrl='https://fixture.example/page'}={}){
+  pageUrl='https://fixture.example/page',preferences=new Map()}={}){
   let target=doc(pageUrl),failDoc=false,admit=true,downloadId=100,downloadCalls=0,cancelled=[],permissionsSeen=[],submitted=[];
   let resultsState={state:actionState,exists,bytesReceived,totalBytes,error:null};
   let exportReady=null;
   const api={
+    storage:{local:{
+      get:async key=>preferences.has(key)?{[key]:structuredClone(preferences.get(key))}:{},
+      set:async values=>{for(const [key,value] of Object.entries(values))preferences.set(key,structuredClone(value));}
+    }},
     permissions:{contains:async value=>{permissionsSeen.push(value.origins);return allowed;}},
     webNavigation:{getAllFrames:async()=>[{frameId:0,documentId:target.documentId,
       url:target.url,documentLifecycle:'active'}]},
@@ -115,12 +119,14 @@ test('no video and duplicate URL results',async()=>{
   assert.equal(result.candidates[0].mode,'ready');
   assert.equal(JSON.stringify(result).includes('https://'),false,'media URL must not escape trusted host');
 });
-test('direct MP4 returns real downloadId, progress and independently confirmed Chrome completion',async()=>{
+test('MP4 output for direct MP4 preserves the original URL and confirms Chrome completion',async()=>{
   const r=rig();
   const d=await r.request('media.detect');
-  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id});
+  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id,output:'mp4'});
   assert.equal(receipt.downloadId,100);
   assert.equal(receipt.state,'started');assert.equal(r.calls,1);
+  assert.equal(r.submitted[0].url,'https://fixture.example/tiny.mp4');
+  assert.match(r.submitted[0].filename,/\.mp4$/);
   assert.equal((await r.request('media.status',{taskId:receipt.taskId})).state,'in_progress');
   r.state({state:'complete',exists:false,bytesReceived:200,totalBytes:200});
   assert.equal((await r.request('media.status',{taskId:receipt.taskId})).state,'complete_unverified');
@@ -130,6 +136,18 @@ test('direct MP4 returns real downloadId, progress and independently confirmed C
   const completed=await r.request('media.status',{taskId:receipt.taskId});
   assert.equal(completed.state,'complete');
   assert.equal(completed.playbackVerified,false,'file decode was not proven');
+});
+test('format defaults to original and persists across new Hosts without touching downloads',async()=>{
+  const preferences=new Map(),first=rig({preferences});
+  assert.deepEqual(await first.request('media.format.get'),{output:'original'});
+  await assert.rejects(first.request('media.format.set',{output:'mkv'}),{code:'E_SCHEMA'});
+  assert.deepEqual(await first.request('media.format.set',{output:'mp4'}),{output:'mp4'});
+  const next=rig({preferences,pageUrl:'https://another.example/'});
+  assert.deepEqual(await next.request('media.format.get'),{output:'mp4'});
+  next.refuse();
+  await assert.rejects(next.request('media.format.set',{output:'original'}),{code:'E_MEDIA_TRUST'});
+  assert.deepEqual(await first.request('media.format.get'),{output:'mp4'});
+  assert.equal(first.calls+next.calls,0);
 });
 test('explicit stop requests Chrome cancel and can never auto-restart',async()=>{
   const r=rig();const result=await r.request('media.detect');
@@ -255,10 +273,24 @@ test('a TS candidate can explicitly request a genuine MP4 while direct files sta
   r.state({state:'complete',bytesReceived:bytes.length,totalBytes:bytes.length});
   assert.equal((await r.request('media.status',{taskId:receipt.taskId})).stream.format,'mp4');
   const direct=rig({urls:['https://fixture.example/video.webm'],fetcher:()=>assert.fail('direct video must use the native download URL')});
-  const {id:candidateId}=(await direct.request('media.detect')).candidates[0];
+  const {id:candidateId,mp4Block}=(await direct.request('media.detect')).candidates[0];
+  assert.equal(mp4Block,'webm');
   await assert.rejects(direct.request('media.start',{candidateId,output:'mp4'}),{code:'E_MEDIA_UNSUPPORTED'});
+  assert.equal(direct.calls,0);
   await direct.request('media.start',{candidateId});
   assert.deepEqual(direct.submitted,[{url:'https://fixture.example/video.webm',filename:'opendesk-video-1234.webm',saveAs:false,conflictAction:'uniquify'}]);
+});
+test('an incompatible declared TS audio codec blocks MP4 before any segments are read',async()=>{
+  const master='#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=100000,CODECS="avc1.42001e,ac-3"\nmedia.m3u8\n#EXT-X-ENDLIST\n';
+  const r=rig({urls:['https://fixture.example/master.m3u8'],fetcher:async url=>{
+    assert.ok(url.endsWith('.m3u8'),'incompatible output must not read segments');
+    return new Response(url.endsWith('master.m3u8')?master:clearVod);
+  }});
+  const {id:candidateId,hls}=(await r.request('media.detect')).candidates[0];
+  const [{id:variantId,ready,mp4Block}]=hls.variants;
+  assert.equal(ready,true);assert.equal(mp4Block,'codecs');
+  await assert.rejects(r.request('media.start',{candidateId,variantId,output:'mp4'}),{code:'E_MEDIA_UNSUPPORTED'});
+  assert.equal(r.calls,0);
 });
 test('a failed HLS segment interrupts without calling Chrome or retaining URL metadata in the UI receipt',async()=>{
   const r=streamRig({fetcher:async url=>new Response(url.endsWith('.m3u8')?clearVod:'expired',

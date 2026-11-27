@@ -1,8 +1,18 @@
-# 视频下载 · Video Downloader R0.4.0（默认保留原格式）
+# 视频下载 · Video Downloader
 
 唯一业务目录：`projects/video-downloader/`。UI 源为 `src/index.html`、`src/style.css`、`src/main.js`，通过原 `OpenDeskTool.request` 调用固定可信 Host。`trusted/` 由已有 Side Panel Host 静态编译，八个来源文件按精确 Git blob 审查（包含固定转封装库子集）；普通导入包不能携带或替换这些特权代码。
 
-## 0.4.0 的目标与关键 UI 验收条件
+## 0.4.3：在侧栏设置一次下载格式（2026-11-27）
+
+列表上方的「下载格式」默认为「原格式（默认）」，可改为「MP4」。设置保存在同一 Chrome Profile 的工具数据中，切换网页或重开工具仍沿用。每条可下载视频只有一个「下载」按钮；更改设置不会创建任务，已开始的下载继续使用点击时的格式。
+
+单文件 MP4 或 WebM 在原格式下直存；支持的 HLS 分段按实际容器合并为 TS 或 MP4。选择 MP4 后，现有 MP4 直存，支持的 TS 自动转封装。WebM 等已知不兼容的来源会说明原因，并提示切回原格式、换清晰度或重新检测。加密、分段失败、撤权与下载回执未知的原保护继续生效。
+
+开发验收：本机 Chrome 155.0.8059.39 的真实 360 CSS px 侧栏，从现有审阅入口安装 0.4.3，并读回开发 revision `ff7dd3e14a3b`。鼠标选 MP4 无新增下载，切页、重开侧栏仍保留；HLS 下载中用键盘切回原格式，该任务仍保存 MP4，下一次保存为 MPEG-TS，WebM 恢复可下载。Chrome 原生保存的五个文件均通过容器探测和完整解码，三个直存文件与源文件逐字节一致。
+
+本机证据目录：`artifacts/video-downloader/0.4.1/v043-native-2/`，包含截图、`events.jsonl`、`file-verification.json` 和实际保存文件。加密、分段失败及回执未知防重放由定向 Node 回归覆盖。未进行 production 或 CWS 验收。
+
+## 0.4.0 历史：验证默认保留原格式
 
 单文件一步下载并保留原封装；分段流只做所选输出所需的处理。新的 TS 默认方式与可选 MP4 均需要同版固定 Host；新界面连到只支持 MP4 的旧 Host 时，将旧 TS 动作明确标成「封装并下载 MP4」。
 

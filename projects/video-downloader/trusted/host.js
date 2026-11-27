@@ -1,11 +1,18 @@
 import {MEDIA_ID,MEDIA_CAPABILITY,MEDIA_OPERATIONS,classifyMedia} from './policy.js';
 import {readHls,publicMediaUrl,downloadHlsVod,validateVod,mediaError} from './stream.js';
 import {inspectMediaSources} from './discovery.js';
+import {supportsDeclaredMp4Codecs} from './remux.js';
+import {sidebarToolStorageKey} from '../../../src/ui/sidebar-tools/package.js';
+import {writeVerifiedLocalValue} from '../../../src/ui/sidebar-tools/storage-state.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sameDocument=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&
   a?.url===b?.url&&a?.windowId===b?.windowId;
 const isPlain=x=>x&&typeof x==='object'&&!Array.isArray(x)&&Object.getPrototypeOf(x)===Object.prototype;
 const terminal=new Set(['complete','complete_unverified','interrupted','cancelled']);
+const formatValue=value=>value==='original'||value==='mp4';
+const formatStore=sidebarToolStorageKey(MEDIA_ID);
+const mp4Block=(format,playlist)=>format==='webm'?'webm':
+  playlist?.container==='ts'&&!supportsDeclaredMp4Codecs(playlist.codecs)?'codecs':null;
 
 const safeFilename=(format,clock)=>'opendesk-video-'+String(clock())+'.'+format;
 export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalThis.fetch,
@@ -33,6 +40,33 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
   const ensure=async(assertCurrent,assertInstalled)=>{
     assertCurrent();await assertInstalled();assertCurrent();
   };
+  async function formatPreference(operation,payload,assertCurrent,assertInstalled){
+    const set=operation==='media.format.set';
+    const keys=Object.keys(payload);
+    if(set?keys.length!==1||keys[0]!=='output'||!formatValue(payload.output):keys.length!==0)
+      throw fail('E_SCHEMA','下载格式无效');
+    await ensure(assertCurrent,assertInstalled);
+    if(!api?.storage?.local?.get||set&&!api.storage.local.set)
+      throw fail('E_MEDIA_UNAVAILABLE','当前无法保存下载格式');
+    const read=async()=>{
+      const stored=(await api.storage.local.get(formatStore))[formatStore];
+      if(stored!==undefined&&!isPlain(stored))throw fail('E_MEDIA_FORMAT_STORE','下载格式设置无法读取');
+      return stored;
+    };
+    if(!set){
+      const value=(await read())?.downloadFormat;
+      await ensure(assertCurrent,assertInstalled);
+      return {output:formatValue(value)?value:'original'};
+    }
+    // The Side Panel dispatcher already holds the installation lock for media
+    // requests; Web Locks are not reentrant. Keep the write in that same scope.
+    const previous=await read();
+    await ensure(assertCurrent,assertInstalled);
+    if(previous?.downloadFormat!==payload.output)
+      await writeVerifiedLocalValue(api,formatStore,{...previous,downloadFormat:payload.output},previous,'下载格式');
+    await ensure(assertCurrent,assertInstalled);
+    return {output:payload.output};
+  }
   const recheck=(target,assertCurrent,assertInstalled)=>{
     // currentPageTarget intentionally supersedes concurrent observations. Keep
     // this Host's parallel segment/status checks from superseding one another.
@@ -156,7 +190,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
               if(ready)renditions.push({id:variantId,url:variantUrl,playlist:{...info,codecs:rendition.codecs}});
               variants.push({id:variantId,ready,resolution:/^\d{1,5}x\d{1,5}$/.test(rendition.resolution||'')?rendition.resolution:null,bandwidth:rendition.bandwidth,
                 segments:info?.segments??null,encryption:info?.encryption||'unknown',
-                container:info?.container||'unknown'});
+                container:info?.container||'unknown',mp4Block:ready?mp4Block('hls',{...info,codecs:rendition.codecs}):null});
             }
             hls={...hls,variants};
           }else try{validateVod(hls);renditions=[{id:null,url:row.url,playlist:hls}];}catch{}
@@ -170,7 +204,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       if(!reason&&!downloadable)reason=row.format==='hls'?'hls-detected-only':'unsupported';
       fresh.set(id,entry);
       candidates.push({id,format:row.format,mode:downloadable?'ready':'detected_only',
-        reason,note,hls:hls?{kind:hls.kind,encryption:hls.encryption,
+        reason,note,mp4Block:mp4Block(row.format,hls),hls:hls?{kind:hls.kind,encryption:hls.encryption,
           segments:hls.segments,container:hls.container,vod:hls.vod,originalTs:true,
           audio:hls.audio.map(({group,language,name,external})=>({group,language,name,external})),
           variants:hls.variants,truncated:hls.truncated}:null});
@@ -181,7 +215,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
   async function start(payload,assertCurrent,assertInstalled){
     if(!isPlain(payload)||Object.keys(payload).some(x=>!['candidateId','variantId','output'].includes(x))||
        typeof payload.candidateId!=='string'||payload.variantId!==undefined&&typeof payload.variantId!=='string'||
-       payload.output!==undefined&&payload.output!=='mp4')
+       payload.output!==undefined&&!formatValue(payload.output))
       throw fail('E_SCHEMA','必须选择检测到的媒体');
     // A Stop during an asynchronous admission must prevent any future download call.
     const preflightTicket=generation;
@@ -194,8 +228,10 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     const rendition=selected.renditions?.find(x=>x.id===(payload.variantId??null));
     if(!selected.allowed||!['mp4','webm'].includes(selected.format)&&!rendition)
       throw fail('E_MEDIA_UNSUPPORTED','请选择已获来源权限的完整非加密 VOD');
-    if(payload.output==='mp4'&&rendition?.playlist.container!=='ts')
-      throw fail('E_MEDIA_UNSUPPORTED','只有 TS 分段需要另存为 MP4');
+    const output=payload.output??'original';
+    const block=output==='mp4'&&mp4Block(selected.format,rendition?.playlist);
+    if(block)throw fail('E_MEDIA_UNSUPPORTED',block==='webm'?'WebM 暂不支持转为 MP4，请选择原格式':'此清单声明的编码无法封装为 MP4，请选择原格式');
+    const streamOutput=output==='mp4'&&rendition?.playlist.container==='ts'?'mp4':'original';
     if(task&&!['complete','complete_unverified','interrupted','cancelled'].includes(task.state))
       throw fail('E_MEDIA_BUSY','已有下载任务，请先停止或完成');
     if(!api?.downloads?.download||!api?.downloads?.search||!api?.downloads?.cancel)
@@ -223,10 +259,11 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
         if(ticket!==generation||task!==row||row.stopRequested)throw mediaError('E_MEDIA_STOPPED');
       };
       row.state='segments';
+      row.progress={segmentsTotal:rendition.playlist.segments};
       row.work=(async()=>{
         try{
           const result=await downloadHlsVod(rendition.url,rendition.playlist,{
-            authorize:alive,fetcher,signal:row.abort.signal,output:payload.output,onProgress:value=>{
+            authorize:alive,fetcher,signal:row.abort.signal,output:streamOutput,onProgress:value=>{
               if(task===row&&!row.stopRequested){row.progress=value;row.state=value.phase;}
             }
           });
@@ -340,6 +377,8 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     if(tool?.id!==MEDIA_ID||!tool.capabilities?.includes(MEDIA_CAPABILITY)||
        !MEDIA_OPERATIONS.includes(operation))throw fail('E_MEDIA_CAPABILITY','未获视频下载可信权限');
     if(!isPlain(payload))throw fail('E_SCHEMA','媒体操作参数无效');
+    if(operation==='media.format.get'||operation==='media.format.set')
+      return formatPreference(operation,payload,assertCurrent,assertInstalled);
     if(operation==='media.detect'){
       if(Object.keys(payload).length)throw fail('E_SCHEMA','检测不接受自定义 URL 或脚本');
       return inspect(assertCurrent,assertInstalled);

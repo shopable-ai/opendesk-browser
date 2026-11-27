@@ -4,22 +4,60 @@ const sdk=globalThis.OpenDeskTool;
 if(!sdk?.root||typeof sdk.request!=='function')return;
 const {root,request}=sdk,$=id=>root.querySelector('#'+id);
 const list=$('vd-list'),detect=$('vd-detect'),stop=$('vd-stop'),check=$('vd-check');
+const format=$('vd-output'),formatRetry=$('vd-format-retry'),formatFeedback=$('vd-format-feedback');
 const initialInfo=$('vd-info').textContent;
 const finished=new Set(['complete','complete_unverified','cancelled','interrupted']);
 let phase='idle',taskId=null,candidateRef=null,jobEpoch=0,scanEpoch=0,readEpoch=0,closed=false,timer=null,scanning=false,checking=false,stopWanted=false,detached=false,controls=[];
+let output=null,formatBusy=false;
 const active=()=>phase!=='idle'&&!finished.has(phase);
 function message(value,error=false){const node=$('vd-message');if(node.textContent!==value)node.textContent=value;node.dataset.error=String(error);}
 function refreshControls(){
  const busy=scanning||active();
  detect.disabled=busy;
  for(const control of controls){
-  const {button,select,ready,used,mp4,setChoice}=control;
-  button.disabled=!ready||used||busy;
+  const {button,select,used,ready,detail,item}=control;
+  const method=downloadMethod(item,select?.value);
+  detail.textContent=method.text;
+  button.disabled=!method.allowed||used||busy||!output||formatBusy;
   if(select)select.disabled=used||busy;
-  if(mp4){mp4.disabled=button.disabled;if(button.disabled)setChoice(false);}
+  if(ready)button.setAttribute('aria-label','下载第 '+control.number+' 个视频');
  }
+ format.disabled=formatBusy||!output;
+ formatRetry.hidden=formatBusy||Boolean(output);
  stop.disabled=!active()||phase==='unknown'||phase==='cancel_requested'||stopWanted||detached;
  check.hidden=phase!=='unknown';check.disabled=checking||!(taskId||candidateRef);
+}
+function formatNotice(text,error=false){formatFeedback.textContent=text;formatFeedback.dataset.error=String(error);}
+function parseOutput(receipt){
+ if(receipt?.output!=='original'&&receipt?.output!=='mp4')throw Error('格式回执无效');
+ return receipt.output;
+}
+async function loadFormat(){
+ if(closed||formatBusy)return;
+ formatBusy=true;refreshControls();formatNotice('正在读取下载格式…');
+ try{
+  const saved=parseOutput(await request('media.format.get',{}));
+  if(!closed){output=saved;format.value=saved;formatNotice('');}
+ }catch{if(!closed)formatNotice('无法读取下载格式。请重试；若刚更新扩展，请关闭并重新打开侧栏。',true);}
+ finally{if(!closed){formatBusy=false;refreshControls();}}
+}
+async function changeFormat(){
+ const next=format.value;
+ if(closed||formatBusy||!output||next===output||!['original','mp4'].includes(next))return;
+ formatBusy=true;refreshControls();formatNotice('正在保存下载格式…');
+ try{
+  const saved=parseOutput(await request('media.format.set',{output:next}));
+  if(saved!==next)throw Error('保存值不匹配');
+  if(!closed){output=saved;formatNotice('');}
+ }catch{
+  if(closed)return;
+  // Read back a lost write receipt; never resend the write automatically.
+  output=null;
+  try{
+   const saved=parseOutput(await request('media.format.get',{}));
+   if(!closed){output=saved;formatNotice(saved===next?'':'格式未保存，已恢复原设置。请重新选择。',saved!==next);}
+  }catch{if(!closed)formatNotice('格式保存结果无法确认，请重新读取格式。',true);}
+ }finally{if(!closed){if(output)format.value=output;formatBusy=false;refreshControls();}}
 }
 function label(state){
  return {starting:'正在启动',segments:'下载分段',assembling:'正在合并',remuxing:'正在封装 MP4',saving:'正在保存',started:'已启动',in_progress:'下载中',cancel_requested:'停止中',
@@ -30,10 +68,12 @@ function status(data){
  phase=data.state||'unknown';$('vd-state').textContent=label(phase);
  const total=data.totalBytes||0,received=data.bytesReceived||0,segments=data.segmentsTotal||0,completed=data.segmentsCompleted||0;
  const progress=$('vd-progress');
- if(phase==='segments')progress.value=segments>0?Math.min(100,Math.floor(completed*100/segments)):0;
- else if(phase==='remuxing')progress.value=data.remuxTotalBytes?Math.min(100,Math.floor((data.remuxBytes||0)*100/data.remuxTotalBytes)):0;
- else if(phase==='assembling'||phase==='saving')progress.removeAttribute('value');
- else progress.value=total>0?Math.min(100,Math.floor(received*100/total)):0;
+ if(phase==='complete')progress.value=100;
+ else if(phase==='segments'&&segments>0)progress.value=Math.min(100,Math.floor(completed*100/segments));
+ else if(phase==='remuxing'&&data.remuxTotalBytes)progress.value=Math.min(100,Math.floor((data.remuxBytes||0)*100/data.remuxTotalBytes));
+ else if(['started','in_progress'].includes(phase)&&total>0)progress.value=Math.min(100,Math.floor(received*100/total));
+ else if(active()&&phase!=='unknown')progress.removeAttribute('value');
+ else progress.value=0;
  $('vd-info').textContent=phase==='complete'
   ?'已从 Chrome 下载记录核对：文件存在、收到数据；格式及独立播放仍需本机验证。'
   :phase==='complete_unverified'?'Chrome 认为下载完成，但文件存在性/大小未得到确认。'
@@ -41,11 +81,11 @@ function status(data){
   :phase==='unknown'?'下载结果未知，检查 Chrome 下载记录；不要直接重试。'
   :phase==='cancel_requested'?'正在停止分段请求或 Chrome 下载，等待状态回读。'
   :phase==='cancelled'?'下载已取消。重新检测后可选择媒体。'
-  :phase==='segments'?'已下载 '+completed+' / '+segments+' 段 · '+received+' 字节'
+  :phase==='segments'?(segments>0?'已下载 '+completed+' / '+segments+' 段':completed>0?'已下载 '+completed+' 段':'正在读取分段')+' · '+received+' 字节'
   :phase==='remuxing'?'正在封装 MP4，保留原音视频质量，不重新编码。'
   :phase==='assembling'?'全部分段已收到，正在按原顺序合并。'
   :phase==='saving'?'正在将完整文件交给 Chrome 保存。'
-  :total>0?received+' / '+total+' 字节':'进度以 Chrome 下载记录为准。';
+  :total>0?received+' / '+total+' 字节':received>0?'已接收 '+received+' 字节，文件总大小未知。':'进度以 Chrome 下载记录为准。';
  if(finished.has(phase)||['unknown','cancel_requested','segments','remuxing','assembling','saving','started','in_progress'].includes(phase))
   message(label(phase),['interrupted','unknown','complete_unverified'].includes(phase));
  refreshControls();
@@ -93,6 +133,20 @@ function describe(item){
  if(item.reason==='cross-origin'&&item.format!=='hls')return '原文件与当前网页不同源，无法下载';
  return 'HLS 结构不可确认（'+(item.note||'未知')+'）· 仅检测';
 }
+function downloadMethod(item,variantId){
+ if(item.mode!=='ready')return {allowed:false,text:describe(item)};
+ const variant=item.hls?.kind==='master'?item.hls.variants.find(row=>row.id===variantId):null;
+ if(variantId&&!variant?.ready)return {allowed:false,text:'请选择支持下载的清晰度。'};
+ const block=variant?variant.mp4Block:item.mp4Block;
+ if(output==='mp4'&&(block==='webm'||item.format==='webm'))
+  return {allowed:false,text:'WebM 暂不支持转为 MP4。请选择「原格式」下载。'};
+ if(output==='mp4'&&block==='codecs')
+  return {allowed:false,text:'此清晰度的编码无法封装为 MP4。请换一个清晰度，或选择「原格式」。'};
+ if(!item.hls)return {allowed:true,text:describe(item)};
+ const container=variant?variant.container:item.hls.container;
+ return {allowed:true,text:container==='ts'?(output==='mp4'?'自动封装为 MP4，无需重新编码。':'自动合并为 TS，需支持 TS 的播放器。'):
+  container==='fmp4'?'自动合并分段，保存为 MP4。':describe(item)};
+}
 function showCandidates(items){
  list.replaceChildren();controls=[];
  if(!items.length){list.textContent='未检测到可识别的视频源。请先播放视频，再点「检测」。部分临时地址或加密视频暂不支持。';return;}
@@ -101,7 +155,7 @@ function showCandidates(items){
   const row=document.createElement('div');row.className='vd-item';
   const info=document.createElement('div');info.className='vd-item-info';
   const name=document.createElement('strong');name.textContent=(index+1)+'. '+item.format.toUpperCase();
-  const detail=document.createElement('span');detail.textContent=describe(item);info.append(name,detail);
+  const detail=document.createElement('span');info.append(name,detail);
   let select=null;
   if(item.hls?.kind==='master'&&item.hls.variants.length){
    select=document.createElement('select');select.setAttribute('aria-label','第 '+(index+1)+' 个视频的清晰度');
@@ -114,42 +168,16 @@ function showCandidates(items){
      variant.ready?'':protectionReason(variant.encryption)||'不可下载'].filter(Boolean).join(' · ');
     select.append(option);
    }
-   select.value=variants.find(x=>x.ready)?.id||'';info.append(select);
+   select.value=variants.find(x=>x.ready)?.id||'';
+   select.addEventListener('change',refreshControls);info.append(select);
   }
   const actions=document.createElement('div');actions.className='vd-actions';
   const button=document.createElement('button');button.type='button';actions.append(button);
   if(ready)button.addEventListener('click',()=>void start(item.id,select?.value));
-  const control={id:item.id,button,select,ready,used:false};
+  button.textContent=ready?'下载':'不可下载';
+  button.setAttribute('aria-describedby',detail.id='vd-method-'+index);
   row.append(info,actions);
-  if(ready&&item.hls){
-   const method=document.createElement('span');info.append(method);
-   let mp4,choice,confirm,cancel;
-   if(item.hls.originalTs){
-    mp4=document.createElement('button');mp4.type='button';mp4.textContent='另存为 MP4…';actions.append(mp4);
-    choice=document.createElement('div');choice.className='vd-choice';choice.hidden=true;choice.id='vd-format-'+index;
-    mp4.setAttribute('aria-controls',choice.id);
-    const hint=document.createElement('span');hint.textContent='将支持的 H.264/AAC 分段封装为 MP4。无需重新编码，但需要额外处理。';
-    confirm=document.createElement('button');confirm.type='button';confirm.textContent='封装并下载 MP4';
-    cancel=document.createElement('button');cancel.type='button';cancel.textContent='取消';
-    choice.append(hint,confirm,cancel);row.append(choice);
-    control.mp4=mp4;
-    control.setChoice=open=>{choice.hidden=!open;mp4.setAttribute('aria-expanded',String(open));};
-    mp4.addEventListener('click',()=>{control.setChoice(true);confirm.focus();});
-    const dismiss=()=>{control.setChoice(false);mp4.focus();};
-    cancel.addEventListener('click',dismiss);
-    choice.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();dismiss();}});
-    confirm.addEventListener('click',()=>{if(!choice.hidden)void start(item.id,select?.value,'mp4');});
-   }
-   const updateMethod=()=>{
-    const container=select?item.hls.variants.find(variant=>variant.id===select.value)?.container:item.hls.container;
-    const originalTs=container==='ts'&&item.hls.originalTs;
-    if(mp4){mp4.hidden=!originalTs;control.setChoice(false);}
-    button.textContent=originalTs?'合并并下载 TS':container==='fmp4'?'合并并下载 MP4':container==='ts'?'封装并下载 MP4':'下载分段';
-    method.textContent=originalTs?'默认保留原封装 · 需支持 TS 的播放器':container==='fmp4'?'原分段已是 MP4，只合并分段':container==='ts'?'封装分段，无需重新编码':'';
-   };
-   select?.addEventListener('change',updateMethod);updateMethod();
-  }else button.textContent=ready?'下载原文件 · '+item.format.toUpperCase():'不可下载';
-  controls.push(control);list.append(row);
+  controls.push({id:item.id,item,detail,button,select,ready,number:index+1,used:false});list.append(row);
  });
  refreshControls();
 }
@@ -168,14 +196,15 @@ async function scan(){
  }catch(error){if(!closed&&current===scanEpoch)message('检测失败：'+String(error?.message||error).slice(0,120),true);}
  finally{if(!closed&&current===scanEpoch){scanning=false;refreshControls();}}
 }
-async function start(candidateId,variantId,output){
+async function start(candidateId,variantId){
  const control=controls.find(row=>row.id===candidateId);
- if(closed||scanning||active()||!control?.ready||control.used)return;
+ if(closed||scanning||active()||!output||formatBusy||!control||control.button.disabled)return;
+ const jobOutput=output;
  control.used=true;
  const current=++jobEpoch;taskId=null;candidateRef=candidateId;stopWanted=false;detached=false;
  status({state:'starting'});message('正在启动下载…');
  try{
-  const receipt=await request('media.start',{candidateId,...(variantId?{variantId}:{}),...(output?{output}:{})});
+  const receipt=await request('media.start',{candidateId,...(variantId?{variantId}:{}),output:jobOutput});
   if(closed||current!==jobEpoch)return;
   if(typeof receipt?.taskId!=='string'||!receipt.taskId)throw Error('未返回可核对的下载任务');
   taskId=receipt.taskId;
@@ -204,6 +233,8 @@ async function stopDownload(){
 detect.addEventListener('click',()=>void scan());
 stop.addEventListener('click',()=>void stopDownload());
 check.addEventListener('click',()=>void readStatus());
+format.addEventListener('change',()=>void changeFormat());
+formatRetry.addEventListener('click',()=>void loadFormat());
 root.addEventListener('opendesk-page-changed',()=>{
  ++scanEpoch;scanning=false;controls=[];list.replaceChildren();detached=phase!=='idle';
  if(phase==='idle')message('网页已切换，请重新检测当前网页的媒体。');
@@ -213,4 +244,5 @@ root.addEventListener('opendesk-page-changed',()=>{
 window.addEventListener('pagehide',()=>{closed=true;++scanEpoch;++jobEpoch;clearPoll();},{once:true});
 // Opening the installed UI is enough to reveal candidates; saving still needs a click.
 void scan();
+void loadFormat();
 })();

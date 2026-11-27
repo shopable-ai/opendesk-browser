@@ -1,8 +1,9 @@
 // Official media download: opaque candidate/rendition IDs, never arbitrary URL access.
 export const MEDIA_ID='video-downloader';
-export const MEDIA_VERSION='0.4.0';
+export const MEDIA_VERSION='0.4.3';
 export const MEDIA_CAPABILITY='page.mediaDownload';
-export const MEDIA_OPERATIONS=Object.freeze(['media.detect','media.start','media.status','media.stop']);
+export const MEDIA_OPERATIONS=Object.freeze(['media.detect','media.start','media.status','media.stop',
+  'media.format.get','media.format.set']);
 export function classifyMedia(url,mime='',pageOrigin=''){
   if(typeof url!=='string'||url.length>4096||typeof mime!=='string'||mime.length>128)return null;
   let u;try{u=new URL(url);}catch{return null;}
