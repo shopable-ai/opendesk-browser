@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI权益中心</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="eyebrow">AI BENEFITS · OFFICIAL FLOW</div>
+      <h1>AI权益中心</h1>
+      <p>只打开官方流程；不代付、不代发、不代领。</p>
+    </header>
+
+    <nav class="steps" aria-label="操作步骤">
+      <span class="active">01 选择</span><span>02 官方确认</span><span>03 核对结果</span>
+    </nav>
+
+    <section class="panel">
+      <label for="accountSelect">目标账号标签</label>
+      <select id="accountSelect"></select>
+      <div class="alias-row">
+        <input id="newAlias" type="text" maxlength="36" placeholder="添加本地别名，例如：家庭成员 A" autocomplete="off">
+        <button id="addAlias" class="button subtle" type="button">添加</button>
+      </div>
+      <p class="hint">这是本地备注，不是已验证的账号身份。请勿输入邮箱或敏感信息。</p>
+
+      <label for="channelSelect">商品 / 组织类型</label>
+      <select id="channelSelect"></select>
+
+      <label for="actionSelect">官方操作路径</label>
+      <select id="actionSelect"></select>
+
+      <div class="identity-box">
+        <strong>当前官方身份：无法读取</strong>
+        <p>扩展不读取 ChatGPT / Google 页面、Cookie 或账号信息。付款前请在官方页面核对账号、Organization、Project 或 Workspace。</p>
+      </div>
+
+      <div class="notice" id="actionNotice"></div>
+      <label class="ack-row"><input id="acknowledge" type="checkbox"> 我理解主按钮只打开官方入口；最终付款、赠送、领取或席位分配必须由官方页面中的授权人员确认。</label>
+      <button id="startHandoff" class="button primary" type="button">打开官方入口（不会付款）</button>
+      <p id="actionMessage" class="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel status-panel">
+      <div class="status-head"><h2>事务状态</h2><span class="local-tag">仅本地记录</span></div>
+      <div id="statusTitle" class="status-title">尚未发起</div>
+      <p id="statusDescription" class="hint">页面打开不代表交易完成。</p>
+      <dl id="handoffDetails" class="details" hidden></dl>
+      <div id="pendingActions" class="pending-actions" hidden>
+        <button id="reportCancelled" class="button subtle" type="button">记录：我已在官网取消/退出</button>
+        <button id="reportCompleted" class="button subtle" type="button">记录：我自述已完成（未核验）</button>
+        <button id="reviewed" class="button warning" type="button">我已在官网独立核对，关闭本地待确认记录</button>
+        <p class="hint">关闭只解除扩展本地防重复，不会取消官网订单，也不会把交易变成已验证成功。</p>
+      </div>
+    </section>
+
+    <footer>R1 · No backend · No payment automation · No provider status API</footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

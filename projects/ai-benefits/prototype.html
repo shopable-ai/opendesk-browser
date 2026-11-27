@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI权益中心 · Prototype</title>
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#18212f;background:#f3f5f8;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;padding:28px 18px 48px}.wrap{max-width:1080px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:22px}h1{font-size:25px;letter-spacing:-.03em;margin:0 0 7px}p{line-height:1.55;color:#657184;margin:0}.tag{white-space:nowrap;border:1px solid #e5a64b;background:#fff8e8;color:#8a5a12;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700}
+.layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.85fr);gap:18px}.card{background:white;border:1px solid #e4e8ef;border-radius:16px;padding:20px;box-shadow:0 5px 22px #1b2a3a0a}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px}.step{padding:10px 9px;border-radius:9px;background:#f1f3f6;color:#7b8593;font-size:12px;font-weight:700;text-align:center}.step.active{background:#e9f1ff;color:#235aa6}.step.done{background:#eef7f1;color:#2f7148}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}label{font-size:12px;color:#687487;font-weight:700}select,input{width:100%;border:1px solid #d8dee8;border-radius:9px;padding:11px 12px;font:inherit;color:#202b3a;background:white;min-height:42px}select:focus,input:focus{outline:2px solid #b9d4ff;border-color:#6c9ee8}.identity,.notice{border-radius:10px;padding:12px 13px;font-size:13px;line-height:1.5;margin-top:14px}.identity{background:#f5f7fa;border:1px solid #e7ebf0;color:#556174}.notice{background:#fff8e9;border:1px solid #f3dfb6;color:#765319}.notice strong{color:#60410e}.action-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}button{border:0;border-radius:9px;padding:11px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}button:disabled{opacity:.42;cursor:not-allowed}.primary{background:#245eb4;color:white}.secondary{background:#eef1f5;color:#3f4a5b}.danger{background:#fff0ee;color:#9b4137}.mini{padding:8px 10px;font-size:12px}
+.status-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}h2{font-size:16px;margin:0}.status{border:1px solid #e3e8ef;background:#f8fafc;border-radius:12px;padding:14px;margin:10px 0}.status strong{display:block;font-size:14px;margin-bottom:5px}.status p{font-size:12px}.pill{display:inline-block;font-size:10px;letter-spacing:.05em;font-weight:800;color:#6c7786;background:#e9edf2;border-radius:999px;padding:5px 8px;margin-bottom:8px}.timeline{list-style:none;padding:0;margin:14px 0 0}.timeline li{padding:9px 0 9px 18px;border-left:2px solid #dbe2eb;margin-left:5px;position:relative;font-size:12px;color:#5d697b}.timeline li:before{content:"";width:8px;height:8px;border-radius:50%;background:#9ba8b9;position:absolute;left:-5px;top:14px}.timeline li.active{color:#24354c;font-weight:700}.timeline li.active:before{background:#3975c8}.scenario{margin-top:16px}.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.scenario-grid button{text-align:left;line-height:1.3}.scenario-grid button.selected{outline:2px solid #8fb3e8;background:#eef5ff;color:#214e8e}.footnote{font-size:11px;color:#8791a0;margin-top:12px;line-height:1.5}.result-note{font-size:12px;line-height:1.55;color:#526075;margin-top:12px;padding:11px;border-left:3px solid #d1a24f;background:#fffaf0}.muted{color:#8b95a4}
+@media(max-width:780px){body{padding:18px 12px}.layout{grid-template-columns:1fr}header{flex-direction:column}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div><h1>AI权益中心</h1><p>先选定目标账号和商品，再进入官方流程。扩展不代付、不代发、不代领。</p></div><span class="tag">模拟模式 · 不联网 · 不付款</span></header>
+<div class="layout">
+<section class="card">
+<div class="steps"><div class="step active" id="step1">01 · 选择账号与商品</div><div class="step" id="step2">02 · 官方确认</div><div class="step" id="step3">03 · 查看结果</div></div>
+<div class="form-grid">
+<div class="field"><label for="target">目标账号标签（合成账号）</label><select id="target"><option value="self">本人账号（demo-owner@example.test）</option><option value="recipient">目标账号 A（demo-recipient@example.test）</option><option value="team">团队成员 B（demo-team@example.test）</option></select></div>
+<div class="field"><label for="product">商品</label><select id="product"><option value="chatgpt">ChatGPT 个人会员 Plus / Pro</option><option value="googleai">Google AI Pro 个人会员</option><option value="openaiapi">OpenAI API 预付余额</option><option value="geminiapi">Gemini API / AI Studio 计费</option><option value="business">ChatGPT Business 席位</option><option value="workspace">Google Workspace Gemini 席位</option></select></div>
+<div class="field full"><label for="path">操作路径</label><select id="path"></select></div>
+</div>
+<div class="identity"><strong>官方身份核对</strong><br>当前官方登录账号：<b id="currentIdentity">未核验（真实扩展无法读取）</b><br>目标标签只是本地备注，不代表 ChatGPT / Google / API Organization 身份已验证。</div>
+<div class="notice" id="routeNotice"><strong>下一步：</strong>按钮只模拟打开官方入口，不会付款、发礼品、兑换或开通。</div>
+<div class="action-row"><button class="primary" id="mainAction">模拟打开官方购买页（不付款）</button><button class="secondary" id="cancelAction">取消当前准备</button><button class="secondary mini" id="resetAction">重置模拟</button></div>
+<div class="result-note" id="resultNote">没有发起操作。请先选择目标账号和商品。</div>
+</section>
+<aside>
+<section class="card">
+<div class="status-head"><h2>事务状态</h2><span class="pill">MOCK DATA</span></div>
+<div class="status"><strong id="statusTitle">尚未发起</strong><p id="statusDesc">没有任何官方页面被打开。</p></div>
+<ul class="timeline"><li id="tl1" class="active">选择目标账号与商品</li><li id="tl2">打开官方入口（模拟）</li><li id="tl3">官方结果待核对</li></ul>
+<p class="footnote">打开页面、关闭标签、返回扩展，都不是付款或权益开通证据。</p>
+</section>
+<section class="card scenario">
+<h2>模拟场景</h2>
+<div class="scenario-grid"><button class="secondary" data-scenario="self">本人购买</button><button class="secondary" data-scenario="gift">官方赠送 / 家庭共享</button><button class="secondary" data-scenario="mismatch">目标账号不匹配</button><button class="secondary" data-scenario="pending">结果待确认</button></div>
+<p class="footnote">所有账号、当前身份和事务状态均为虚构演示数据；此页面不调用网络、不打开支付页。</p>
+</section>
+</aside>
+</div>
+</div>
+<script>
+const products={
+ chatgpt:{name:'ChatGPT 个人会员 Plus / Pro',paths:[
+  {id:'purchase',label:'购买 Plus / Pro（绑定当前登录账号）',button:'模拟打开 ChatGPT 官方购买页（不付款）',notice:'目标账号必须在 ChatGPT 官网登录并核对。订阅不能在账号间转移；此流程不支持赠送 Plus / Pro。'},
+  {id:'gift',label:'赠送 ChatGPT Credits（不是会员）',button:'模拟打开 ChatGPT 官方赠送流程（不发礼品）',notice:'这是 Credits，不是 Plus / Pro。购买者付款后需安全发送一次性 claim link；收件人必须登录目标个人账号并主动 Redeem。演示不会生成或保存链接。'}]},
+ googleai:{name:'Google AI Pro 个人会员',paths:[
+  {id:'purchase',label:'为当前目标账号购买',button:'模拟打开 Google One 官方购买页（不付款）',notice:'目标 Google Account 必须在官方页面核对。购买绑定当前账号。'},
+  {id:'family',label:'通过 Google 家庭组共享',button:'模拟打开 Google One 家庭共享（不发邀请）',notice:'家庭管理员付款；目标成员必须符合相同国家、个人 Google 账号及 12 个月家庭组规则。仅部分 AI 权益共享。'}]},
+ openaiapi:{name:'OpenAI API 预付余额',paths:[{id:'fund',label:'为 API Organization 充值',button:'模拟打开 OpenAI API 账单入口（不充值）',notice:'余额属于所选 API Organization。Owner / 账单管理者必须核对 Organization、金额和 Auto Recharge。'}]},
+ geminiapi:{name:'Gemini API / AI Studio 计费',paths:[{id:'fund',label:'为 Google Cloud Project 配置计费',button:'模拟打开 AI Studio 账单入口（不充值或绑定）',notice:'预付余额属于 Cloud Billing 账户，不是 Google AI Pro 会员余额。改变计费关联或启用 Prepay 可能影响其他项目。'}]},
+ business:{name:'ChatGPT Business 席位',paths:[{id:'invite',label:'邀请团队成员',button:'模拟打开 ChatGPT Business 成员管理（不邀请）',notice:'管理员邀请不代表已购买或预留席位；目标成员接受时检查席位，缺少席位由 Owner 购买。'}]},
+ workspace:{name:'Google Workspace Gemini 席位',paths:[{id:'assign',label:'为现有 Workspace 用户分配已购许可证',button:'模拟打开 Google Admin Console（不分配席位）',notice:'必须先购买准确产品 SKU，再由有 License Management 权限的管理员分配；个人 Google AI Pro 不等同于 Workspace 席位。'}]}
+};
+const $=id=>document.getElementById(id);let state={scenario:'idle',status:'idle',target:'self',product:'chatgpt',path:'purchase',currentIdentity:'未核验（真实扩展无法读取）'};
+function persist(){try{localStorage.setItem('aiBenefitsDemoV1',JSON.stringify(state))}catch{}}
+function load(){try{const x=JSON.parse(localStorage.getItem('aiBenefitsDemoV1'));if(x&&typeof x==='object')state={...state,...x}}catch{}}
+function renderPaths(){const list=products[state.product].paths;$('path').innerHTML='';for(const p of list){const o=document.createElement('option');o.value=p.id;o.textContent=p.label;$('path').append(o)}if(!list.some(x=>x.id===state.path))state.path=list[0].id;$('path').value=state.path;}
+function selectedPath(){return products[state.product].paths.find(x=>x.id===state.path)||products[state.product].paths[0]}
+function setScenario(name){state.scenario=name;state.status=name==='mismatch'?'mismatch':name==='pending'?'pending':name==='gift'?'gift-wait':'idle';if(name==='self'){state.product='chatgpt';state.path='purchase';state.target='self';state.currentIdentity='demo-owner@example.test（模拟已匹配）'}if(name==='gift'){state.product='chatgpt';state.path='gift';state.target='recipient';state.currentIdentity='demo-owner@example.test（模拟购买者）'}if(name==='mismatch'){state.product='chatgpt';state.path='purchase';state.target='recipient';state.currentIdentity='demo-owner@example.test（模拟当前账号，与目标账号不匹配）'}if(name==='pending'){state.product='googleai';state.path='purchase';state.target='recipient';state.currentIdentity='无法核验（模拟）'}render();}
+function render(){ $('target').value=state.target;$('product').value=state.product;renderPaths();$('path').value=state.path;$('currentIdentity').textContent=state.currentIdentity;$('routeNotice').innerHTML='<strong>路径说明：</strong>'+selectedPath().notice;$('mainAction').textContent=selectedPath().button;
+ const mismatch=state.status==='mismatch';$('mainAction').disabled=mismatch||state.status==='pending';$('cancelAction').disabled=state.status==='idle';
+ document.querySelectorAll('[data-scenario]').forEach(b=>b.classList.toggle('selected',b.dataset.scenario===state.scenario));
+ const map={idle:['尚未发起','还没有模拟打开官方页面。'],opened:['官方页面已打开（模拟）','只记录页面交接；没有付款、赠送、兑换或开通证据。'],gift:['等待收件人领取（模拟）','模拟购买者需在官网付款并发送链接；收件人必须自行登录并 Redeem。没有生成真实链接。'],mismatch:['目标账号不匹配','模拟当前官方身份与目标账号标签不同，已阻止继续。真实扩展无法读取当前身份，只能提示人工核对。'],pending:['官方结果待确认','页面已模拟打开，但付款、发礼品或权益开通状态未知。返回扩展不构成成功。'],cancelled:['本地准备已取消','本次没有模拟打开官方入口；不代表任何官网交易已取消。']};const v=map[state.status]||map.idle;$('statusTitle').textContent=v[0];$('statusDesc').textContent=v[1];
+ ['step1','step2','step3'].forEach((id,i)=>$(id).className='step'+(state.status==='idle'?(i===0?' active':''):state.status==='mismatch'?(i===0?'active':''):i===0?'done':i===1?'active':''));
+ ['tl1','tl2','tl3'].forEach((id,i)=>$(id).className=(state.status==='idle'?(i===0?'active':''):state.status==='opened'||state.status==='gift-wait'||state.status==='pending'?(i===2?'active':i<2?'active':''):state.status==='mismatch'?(i===0?'active':''):state.status==='cancelled'?(i===0?'active':''):''));
+ $('resultNote').textContent=state.status==='mismatch'?'阻止原因：目标账号标签与模拟当前身份不一致。请在真实官方页面检查账号，不要继续付款。':state.status==='pending'?'状态：结果待确认。不能因为打开、关闭或返回页面就显示已付款或已开通。':state.status==='gift-wait'?'状态：等待收件人领取。礼品购买、发送、领取是三个独立事件。':state.status==='opened'?'状态：官方页面已打开（模拟），交易尚未验证。':state.status==='cancelled'?'状态：已取消本地准备，没有发起模拟页面。':'没有发起操作。请先选择目标账号和商品。';persist();}
+$('target').addEventListener('change',e=>{state.target=e.target.value;state.scenario='custom';state.currentIdentity='未核验（真实扩展无法读取）';if(state.status==='mismatch')state.status='idle';render()});$('product').addEventListener('change',e=>{state.product=e.target.value;state.path=products[state.product].paths[0].id;state.scenario='custom';render()});$('path').addEventListener('change',e=>{state.path=e.target.value;state.scenario='custom';render()});
+$('mainAction').addEventListener('click',()=>{if(state.status==='mismatch'||state.status==='pending')return;state.status=state.path==='gift'?'gift-wait':'opened';state.scenario=state.path==='gift'?'gift':'self';if(state.currentIdentity.startsWith('未核验'))state.currentIdentity='未核验（请在官方页面手动检查）';render()});
+$('cancelAction').addEventListener('click',()=>{state.status='cancelled';state.scenario='cancelled';state.currentIdentity='未核验（真实扩展无法读取）';render()});$('resetAction').addEventListener('click',()=>{localStorage.removeItem('aiBenefitsDemoV1');state={scenario:'idle',status:'idle',target:'self',product:'chatgpt',path:'purchase',currentIdentity:'未核验（真实扩展无法读取）'};render()});
+document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>setScenario(b.dataset.scenario)));load();render();
+</script>
+</body>
+</html>
