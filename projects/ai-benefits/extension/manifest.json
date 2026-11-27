@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "AI权益中心",
+  "version": "0.1.0",
+  "description": "为指定账号发起官方 AI 会员购买、赠送、兑换及 API / 企业席位计费流程；不代付款或绕过官方确认。",
+  "minimum_chrome_version": "114",
+  "permissions": [
+    "sidePanel",
+    "storage"
+  ],
+  "action": {
+    "default_title": "AI权益中心"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/index.html"
+  }
+}
