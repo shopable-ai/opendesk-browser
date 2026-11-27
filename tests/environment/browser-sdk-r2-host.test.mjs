@@ -4,6 +4,9 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {validateSidebarToolPackage,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
+import {createChromePermissionConsent} from '../../src/platform/chrome/permission-gate.js';
+import {requireVideoTabCreateSite,resolveOwnedMediaTarget} from '../../src/ui/sidebar-tools.js';
+import {createVideoDownloaderHost} from '../../projects/video-downloader/trusted/host.js';
 
 const uid='01234567-89ab-4def-8123-456789abcdef';
 const pkg=validateSidebarToolPackage({
@@ -307,6 +310,30 @@ test('P1 screenshot revocation and wrong visible tab prevent a Chrome capture si
  assert.equal(f.downloads.length,0);
 });
 
+test('owned tab waits for its exact initial URL without binding an uncommitted Document',async()=>{
+ const f=fixture(),url='https://example.org/video';
+ const create=f.api.tabs.create;
+ f.api.tabs.create=async args=>{
+  const tab=await create(args);
+  Object.assign(tab,{url:'',pendingUrl:args.url,status:'loading'});
+  return tab;
+ };
+ const {tabRef}=await f.call('browser.tabs.create',{url});
+ const tab=f.created[0];
+ let frameReads=0;
+ const getFrame=f.api.webNavigation.getFrame;
+ f.api.webNavigation.getFrame=async args=>{frameReads++;return getFrame(args);};
+ await assert.rejects(f.call('browser.tabs.getOwned',{tabRef}),err('E_DOCUMENT_STALE'));
+ assert.equal(frameReads,0);
+ Object.assign(tab,{url,pendingUrl:undefined,status:'complete'});
+ assert.equal((await f.call('browser.tabs.getOwned',{tabRef})).url,url);
+ Object.assign(tab,{url:'',pendingUrl:url,status:'loading'});
+ await assert.rejects(f.call('browser.tabs.getOwned',{tabRef}),err('E_TAB_REF_INVALID'));
+ const other=await f.call('browser.tabs.create',{url});
+ f.created[1].pendingUrl='https://foreign.example/video';
+ await assert.rejects(f.call('browser.tabs.getOwned',{tabRef:other.tabRef}),err('E_TAB_REF_INVALID'));
+});
+
 test('R9 installed tool pinOwned directly returns Chrome pin state and respects revocation',async()=>{
   const f=fixture(),url={url:'https://example.org/pin'};
   const tabRef=(await f.call('browser.tabs.create',url)).tabRef;
@@ -464,4 +491,114 @@ test('R5 actual installed Host directly reads and closes an owned tab and reject
  assert.deepEqual(await f.call('browser.tabs.removeOwned',{tabRef}),{closed:true});
  await assert.rejects(f.call('browser.tabs.removeOwned',{tabRef}),err('E_TAB_REF_INVALID'));
  assert.deepEqual((await f.call('browser.tabs.listOwned')).tabs,[]);
+});
+
+test('Video Downloader only gets private proof for its current exact owned document',async()=>{
+ const f=fixture(),url='https://example.org/media';
+ const media=validateSidebarToolPackage({...pkg,id:'video-downloader',capabilities:['browser.tabs','page.mediaDownload']});
+ const mediaIdentity={...identity,toolId:media.id,packageHash:await sidebarToolPackageHash(media)};
+ await f.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg,media]});
+ const foreignRef=(await f.call('browser.tabs.create',{url})).tabRef;
+ const {tabRef}=await f.host.handleTool({operation:'browser.tabs.create',args:{url},...mediaIdentity},sender);
+ const document={tabId:101,windowId:9,frameId:0,documentId:'doc-101',url,origin:'https://example.org'};
+ const request={operation:'browser.tabs.getOwned',args:{tabRef},...mediaIdentity};
+ const prove=(target=document,overrides={},from=sender)=>
+   f.host.handleTool({...request,mediaDetectDocument:target,...overrides},from);
+ f.tabs.set(101,{...f.tabs.get(101),active:true,status:'complete'});
+ const publicResult=await f.host.handleTool(request,sender);
+ assert.deepEqual(publicResult,{tabRef,url,origin:document.origin,expiresAt:publicResult.expiresAt});
+ assert.deepEqual(await prove(),{tabRef,verified:true,expiresAt:publicResult.expiresAt});
+ const activePage={...document,status:'available',title:'Video'};
+ f.api.runtime.sendMessage=async message=>({ok:true,data:await f.host.handleTool(message,sender)});
+ f.api.webNavigation.getAllFrames=async()=>[document];
+ const reads=[];
+ f.api.scripting={executeScript:async ({target})=>{
+   reads.push(target);return [{frameId:0,documentId:document.documentId,result:[]}];
+ }};
+ const mediaHost=createVideoDownloaderHost({api:f.api,currentPageTarget:{
+   capture:()=>activePage,revalidate:async()=>activePage
+ }});
+ const assertCurrent=()=>{};
+ const {ownedTarget}=await resolveOwnedMediaTarget({api:f.api,tabRef,target:activePage,owner:mediaIdentity,assertCurrent});
+ assert.deepEqual(await mediaHost.request({tool:media,operation:'media.detect',payload:{tabRef},
+   ownedTarget,assertCurrent,assertInstalled:async()=>{}}),
+   {state:'no-video',partial:false,candidates:[],title:activePage.title,url});
+ assert.deepEqual(reads,[{tabId:101,documentIds:['doc-101']}]);
+ await assert.rejects(prove({...document,documentId:'same-url-other-document'}),err('E_DOCUMENT_STALE'));
+ await assert.rejects(prove({...document,frameId:1}),err('E_DOCUMENT_STALE'));
+ await assert.rejects(prove(document,{operation:'browser.tabs.removeOwned'}),err('E_OWNER'));
+ await assert.rejects(prove(document,identity),err('E_OWNER'));
+ await assert.rejects(f.host.handleTool({...request,args:{tabRef,mediaDetectDocument:document}},sender),err('E_SCHEMA'));
+ await assert.rejects(prove(document,{args:{tabRef:foreignRef}}),err('E_TAB_REF_INVALID'));
+ await assert.rejects(prove(document,{installEpoch:'revoked'}),err('E_TOOL_CHANGED'));
+ const appSender={...sender,tab:{id:55},url:'chrome-extension://ext-r2/app.html?hostInstanceId='+uid+'&toolId=video-downloader'};
+ await assert.rejects(prove(document,{},appSender),err('E_OWNER'));
+ await assert.rejects(prove(document,{},{...sender,frameId:1}),err('E_OWNER'));
+ f.tabs.get(101).active=false;
+ await assert.rejects(prove(),err('E_DOCUMENT_STALE'));
+ f.tabs.get(101).active=true;
+ f.setSite(false);
+ await assert.rejects(prove(),err('E_SITE_PERMISSION_REVOKED'));
+ f.setSite(true);
+ f.api.webNavigation.getFrame=async()=>({url,documentId:'new-document-at-same-url',documentLifecycle:'active'});
+ await assert.rejects(prove(),err('E_TAB_REF_INVALID'));
+});
+
+test('Video Downloader reviews only the destination site grant; a later request opens the tab',async()=>{
+ const url='https://example.org:8443/video?id=123#player';
+ const tool=validateSidebarToolPackage({...pkg,id:'video-downloader',capabilities:['browser.tabs','page.mediaDownload']});
+ const owner={...identity,toolId:tool.id,packageHash:await sidebarToolPackageHash(tool)};
+ const f=fixture({installed:tool});
+ f.setSite(false);
+ let allow=false,current=true,prompt;
+ const requested=[],reports=[];
+ f.api.permissions.request=async request=>{
+   requested.push(request);
+   if(allow)f.setSite(true);
+   return allow;
+ };
+ const consent=createChromePermissionConsent({api:f.api});
+ const call=(operation,args)=>f.host.handleTool({operation,args,...owner},sender);
+ const open=async()=>{
+   await requireVideoTabCreateSite({url,tool,consent,
+     assertCurrent(){if(!current)throw Object.assign(Error('Tool switched'),{code:'E_TOOL_CHANGED'});},
+     requestBrowserClick:options=>new Promise((resolve,reject)=>{prompt={...options,resolve,reject};}),
+     report:(...args)=>reports.push(args)});
+   return call('browser.tabs.create',{url});
+ };
+ const click=async event=>{
+   const review=prompt;prompt=null;
+   try{review.resolve(await review.run(event));}catch(error){review.reject(error);}
+ };
+ try{
+   await assert.rejects(call('browser.tabs.create',{url}),err('E_SITE_PERMISSION_REVOKED'));
+   await assert.rejects(open(),err('E_SITE_PERMISSION_REVOKED'));
+   assert.ok(prompt.message.includes(url));
+   assert.ok(prompt.message.includes('Origin：https://example.org:8443'));
+   assert.deepEqual(requested,[]);
+   await click({isTrusted:false});
+   assert.deepEqual(requested,[]);
+   await assert.rejects(open(),err('E_SITE_PERMISSION_REVOKED'));
+   current=false;
+   await click({isTrusted:true});
+   assert.deepEqual(requested,[]);
+   current=true;
+   await assert.rejects(open(),err('E_SITE_PERMISSION_REVOKED'));
+   await click({isTrusted:true});
+   assert.deepEqual(requested,[{origins:['https://example.org/*']}]);
+   assert.equal(reports.at(-1)[1],true);
+   allow=true;
+   await assert.rejects(open(),err('E_SITE_PERMISSION_REVOKED'));
+   await click({isTrusted:true});
+   assert.equal(f.created.length,0);
+   assert.match(reports.at(-1)[0],/再次点击打开网页/);
+   const receipt=await open();
+   assert.deepEqual(Object.keys(receipt),['tabRef']);
+   assert.equal(typeof receipt.tabRef,'string');
+   assert.equal(f.created.length,1);
+   assert.equal(f.created[0].url,url);
+   assert.deepEqual(await call('browser.tabs.activateOwned',receipt),{focused:true});
+   assert.deepEqual(await call('browser.tabs.removeOwned',receipt),{closed:true});
+   assert.deepEqual(requested,[{origins:['https://example.org/*']},{origins:['https://example.org/*']}]);
+ }finally{consent.dispose();}
 });

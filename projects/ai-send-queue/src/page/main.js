@@ -7,7 +7,7 @@ import {createQueueCache} from './cache.js';
 import {registerPageStatus} from './status.js';
 
 const ID='app.ai-send-queue';
-const POLL_MS=650, WATCHDOG_MS=5000, STALL_MS=30000, FIRST_ACK_MS=15000;
+const POLL_MS=650, WATCHDOG_MS=5000, STALL_MS=30000, DIRECT_ACK_MS=15000;
 const OWNED_UI='[data-opendesk-ui-owner]';
 const WAKE_ATTRIBUTES=['disabled','aria-disabled','aria-busy','data-is-streaming','data-talvt-turn-state',
   'data-testid','aria-label','aria-hidden','hidden','inert','class','id','d'];
@@ -46,9 +46,9 @@ export async function runQueue({assets,fixed,createRemote}={}) {
   owner.on(document,'compositionend',()=>{composing=false;compositionEndedAt=Date.now();},true);
   let view=null,engine,remote=null;
   let pending=null,provenance=null,backup=null,editing=null,writing=false;
-  let firstSend=null;
+  let directSend=null;
   let checking=false,checkFailed=false,needsRender=false,lastProgressKey=null;
-  let updateBackgroundWatch=()=>{};
+  let updateBackgroundWatch=()=>{},scheduleBackgroundWake=()=>{};
   const cache=createQueueCache();
   let cacheRoute=null,cacheReady=false,loadingCache=false,cachedDraft=null;
   const cacheStatus={status:'pending',restored:0};
@@ -72,7 +72,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
   }
   function hasWork(){
     const state=engine.view();
-    return !!(state.items.length||state.inFlight||state.answerGate||firstSend||pending||provenance||backup||cachedDraft||view?.hasRecovery());
+    return !!(state.items.length||state.inFlight||state.answerGate||directSend||pending||provenance||backup||cachedDraft||view?.hasRecovery());
   }
   function cacheFeedback(status){
     const previous=cacheStatus.status;
@@ -141,7 +141,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
   const remember=snap=>({...snap,users:[...snap.users],assistants:[...snap.assistants],
     history:snap.history?.slice()});
   function write(fn){editing=null;writing=true;try{return fn();}finally{writing=false;}}
-  owner.onDispose(()=>{pending=null;provenance=null;backup=null;editing=null;firstSend=null;});
+  owner.onDispose(()=>{pending=null;provenance=null;backup=null;editing=null;directSend=null;});
   try{
     engine=createQueueEngine({site,checkpoint,change:()=>{
       checkpoint();
@@ -153,17 +153,17 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     }});
     const notify=(message,options)=>attempt(()=>view?.toast(message,options),'toast');
     const reportError=message=>notify(message,{variant:'warning',copyable:true});
-    const unknownFirst='首条消息发送结果尚未确认，请核对网页；不会自动重发';
-    function reconcileFirst(snap){
-      if(!firstSend)return;
-      const before=site.firstAdmission(firstSend.before,snap);
-      if(before){
-        if(firstSend.unknown)view?.clearError?.(unknownFirst);
-        firstSend=null;
-        engine.observeNativeAdmission(before,before.draft,snap,{initial:true});
-      }else if(!firstSend.unknown&&Date.now()-firstSend.started>FIRST_ACK_MS){
-        firstSend.unknown=true;
-        reportError(unknownFirst);
+    const unknownDirect='消息发送结果尚未确认，请核对网页；不会自动重发';
+    function reconcileDirect(snap){
+      if(!directSend)return;
+      const before=site.draftAdmission(directSend.before,snap);
+      // Native may admit the message before clearing the old composer text.
+      if(before&&snap.draft!==before.draft&&engine.observeNativeAdmission(before,before.draft,snap,{initial:true})){
+        if(directSend.unknown)view?.clearError?.(unknownDirect);
+        directSend=null;
+      }else if(!directSend.unknown&&Date.now()-directSend.started>DIRECT_ACK_MS){
+        directSend.unknown=true;
+        reportError(unknownDirect);
       }
     }
     function blocked(){
@@ -258,17 +258,19 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         backup=null;
       }
     }
-    function pausedGeminiEnqueue(transfer){
-      if(chatgpt||deepseek||transfer?.kind!=='enqueue')return false;
+    function canAcknowledgeEnqueueOnEdit(transfer){
+      if(deepseek||transfer?.kind!=='enqueue')return false;
       const state=engine.view();
       return state.route===transfer.before.route&&!state.inFlight&&state.items.some(item=>
-        item.id===transfer.id&&item.text===transfer.text&&item.state==='paused');
+        item.id===transfer.id&&item.text===transfer.text&&item.state===(chatgpt?'queued':'paused'));
     }
     owner.on(document,'beforeinput',event=>{
       if(!owner.active()||writing)return;
       const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
       if(target!==snap.editor&&!snap.editor?.contains?.(target))return;
-      const handoff=event.isTrusted===true&&pending&&!pending.veto&&pausedGeminiEnqueue(pending)&&
+      // Trusted input into the verified empty composer can settle the prior enqueue
+      // before the next poll. Keep tracking the new draft and leave dispatch to poll.
+      const handoff=event.isTrusted===true&&!event.isComposing&&pending&&!pending.veto&&canAcknowledgeEnqueueOnEdit(pending)&&
         sameComposer(pending.before,snap)&&snap.draft===''&&!snap.rich&&!snap.composing&&
         site.sameHistory(pending.before,snap)?pending:null;
       if(pending)pending.veto=true;
@@ -286,8 +288,8 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         (target!==snap.editor&&!snap.editor.contains?.(target)))return;
       if(intent.backup&&intent.backup===backup)
         backup=backup.nativeAdmission&&snap.draft?{text:snap.draft,before:remember(snap),nativeAdmission:true}:null;
-      if(intent.handoff&&intent.handoff===pending&&pausedGeminiEnqueue(pending)&&
-        !snap.rich&&!snap.composing&&site.sameHistory(intent.before,snap)){
+      if(intent.handoff&&intent.handoff===pending&&canAcknowledgeEnqueueOnEdit(pending)&&
+        !event.isComposing&&!snap.rich&&!snap.composing&&site.sameHistory(intent.before,snap)){
         provenance={...pending,before:remember(snap),draft:snap.draft,edited:true};
         pending=null;
       }else if(intent.provenance&&intent.provenance===provenance){
@@ -304,10 +306,10 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       enqueue({paused=false,sendQueuedIfEmpty=false}={}){
         if(blocked())return false;
         const snap=site.inspect();
-        reconcileFirst(snap);
-        if(firstSend){
-          if(firstSend.unknown)reportError(unknownFirst);
-          else notify('正在等待首条消息创建对话');
+        reconcileDirect(snap);
+        if(directSend){
+          if(directSend.unknown)reportError(unknownDirect);
+          else notify('正在核对发送结果，草稿已保留');
           return false;
         }
         const sendQueued=sendQueuedIfEmpty&&!paused&&snap.ok&&snap.draft==='';
@@ -331,14 +333,21 @@ export async function runQueue({assets,fixed,createRemote}={}) {
           pollAuthorized('send-click');
           return true;
         }
-        if(chatgpt&&sendQueuedIfEmpty&&!paused&&snap.route===null&&window.location.pathname==='/'){
-          if(state.items.length||state.answerGate){reportError('请先返回原对话处理待发消息；草稿已保留');return false;}
-          if(!site.normal(snap.draft)){reportError('原生草稿为空');return false;}
+        const home=chatgpt&&snap.route===null&&window.location.pathname==='/';
+        if(sendQueuedIfEmpty&&!paused&&home&&(state.items.length||state.answerGate)){
+          reportError('请先返回原对话处理待发消息；草稿已保留');return false;
+        }
+        if(sendQueuedIfEmpty&&!paused&&!state.items.length&&!state.answerGate&&
+          (home||snap.route&&site.draftReady(snap))){
+          if(snap.route&&(!cacheReady||cacheRoute!==snap.route)){
+            reportError('暂时无法确认发送队列为空；草稿已保留');return false;
+          }
           if(Date.now()-compositionEndedAt<100){reportError('请先完成输入法编辑；草稿已保留');return false;}
-          firstSend={before:remember(snap),started:Date.now(),unknown:false};
-          const result=site.submitFirst(snap);
-          if(result.stage==='before-click'){firstSend=null;reportError(result.reason);return false;}
-          if(!result.ok){firstSend.unknown=true;reportError(unknownFirst);return false;}
+          const receipt=directSend={before:remember(snap),started:Date.now(),unknown:false};
+          const result=site.submitDraft(snap);
+          if(directSend!==receipt)return result.ok;
+          if(result.stage==='before-click'){directSend=null;reportError(result.reason);return false;}
+          if(!result.ok){directSend.unknown=true;reportError(unknownDirect);return false;}
           view?.clearError?.();
           return true;
         }
@@ -529,7 +538,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     });
     remote=createRemote?.({owner,site,engine,actions,retireForLegacy})??null;
     const bridge=fixed?.bridge??globalThis.OpenDeskAppPage;
-    if(bridge)registerPageStatus({bridge,owner,site,view,version:'1.0.4'});
+    if(bridge)registerPageStatus({bridge,owner,site,view,version:'1.0.5'});
     owner.on(document,'click',event=>{
       if(event.isTrusted!==true||!owner.active()||!engine.view().inFlight)return;
       const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
@@ -602,31 +611,56 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       });
     }
     if(fixed&&typeof window.MutationObserver==='function'){
-      let watching=false,lastWake=-Infinity;
+      let watching=false,lastWake=-Infinity,wake=null;
+      const wakeClock=()=>window.performance?.now()??Date.now();
+      const clearWake=()=>{
+        if(wake)window.clearTimeout(wake.timer);
+        wake=null;
+      };
+      scheduleBackgroundWake=delay=>{
+        if(!watching||!hiddenFixed())return;
+        const url=window.location.href,at=wakeClock()+delay;
+        if(wake?.url===url&&wake.at<=at)return;
+        clearWake();
+        const request={url,at};
+        wake=request;
+        // Keep one follow-up even if there are no more site mutations or interval ticks.
+        request.timer=window.setTimeout(()=>{
+          if(wake!==request)return;
+          wake=null;
+          if(!watching||!owner.active()||!hiddenFixed()||window.location.href!==url)return;
+          lastWake=wakeClock();
+          void poll('background-wake');
+        },delay);
+      };
       const observed=new window.MutationObserver(records=>{
-        if(!watching||authorizing||checking||!owner.active()||!hiddenFixed())return;
-        const now=window.performance?.now()??Date.now();
-        if(now-lastWake<POLL_MS)return;
+        if(!watching||checking||!owner.active()||!hiddenFixed())return;
         if(!records.some(record=>!(record.target.nodeType===1?record.target:record.target.parentElement)?.closest(OWNED_UI)&&
           (record.type!=='childList'||Array.from(record.addedNodes).some(node=>!node.matches?.(OWNED_UI))||
             Array.from(record.removedNodes).some(node=>!node.matches?.(OWNED_UI)))))return;
+        const now=wakeClock(),remaining=POLL_MS-(now-lastWake);
+        if(remaining>0||authorizing){
+          scheduleBackgroundWake(authorizing?POLL_MS:remaining);
+          return;
+        }
         lastWake=now;
         // Mutations wake the normal checks.
         void poll('mutation');
       });
       updateBackgroundWatch=()=>{
         const state=engine.view();
-        const shouldWatch=owner.active()&&hiddenFixed()&&!!(firstSend||state.inFlight||
+        const shouldWatch=owner.active()&&hiddenFixed()&&!!(directSend||state.inFlight||
           state.answerGate||state.items.some(item=>item.state==='queued'));
         if(shouldWatch===watching)return;
         if(shouldWatch){
           observed.observe(document.documentElement,{subtree:true,childList:true,characterData:true,
             attributes:true,attributeFilter:WAKE_ATTRIBUTES});
           lastWake=-Infinity;
-        }else observed.disconnect();
+        }else{observed.disconnect();clearWake();}
         watching=shouldWatch;
       };
-      owner.onDispose(()=>{watching=false;observed.disconnect();updateBackgroundWatch=()=>{};});
+      owner.onDispose(()=>{watching=false;observed.disconnect();clearWake();
+        updateBackgroundWatch=()=>{};scheduleBackgroundWake=()=>{};});
     }
     function pollAuthorized(source,dispatchAllowed=true){
       if(checking){diagnostics.coalesced++;return;}
@@ -636,7 +670,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       if(source==='poll')diagnostics.lastPollAt=Date.now();
       try{
         let snap,placed=false,recovery=true;
-        const reconciled=attempt(()=>{snap=site.inspect();ensureCache(snap);restoreDraft();reconcileFirst(snap);reconcile(snap);},'reconcile');
+        const reconciled=attempt(()=>{snap=site.inspect();ensureCache(snap);restoreDraft();reconcileDirect(snap);reconcile(snap);},'reconcile');
         if(reconciled)attempt(()=>{
           if(snap.ok){placed=view.place(snap);view.render(snap);}
           else view.hide();
@@ -644,17 +678,20 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         },'layout');
         if(!owner.active()||retireForLegacy())return;
         const flight=engine.view().inFlight;
+        let nextCheckIn;
         const ticked=attempt(()=>{
           const recoveryEditing=view.isRecoveryEditing?.()===true;
-          const canSubmit=dispatchAllowed&&!checkFailed&&placed&&(!deepseek||!!snap?.route)&&!pending&&!firstSend&&!recovery&&!recoveryEditing&&
+          const canSubmit=dispatchAllowed&&!checkFailed&&placed&&(!deepseek||!!snap?.route)&&!pending&&!directSend&&!recovery&&!recoveryEditing&&
             engine.view().phase!=='unknown'&&checkpoint();
           const submitBlockReason=!dispatchAllowed?'本轮没有发送授权':checkFailed?'本轮队列检查异常':!placed?'队列控件尚未安全显示':
             pending?'草稿交接尚未确认':recovery?'恢复草稿尚待核对':recoveryEditing?'正在编辑暂停草稿':'队列缓存未保存';
-          engine.tick({canSubmit,submitBlockReason});
+          nextCheckIn=engine.tick({canSubmit,submitBlockReason});
         },'queue-check');
-        const nextFlight=engine.view().inFlight;
+        const afterTick=engine.view(),nextFlight=afterTick.inFlight;
         if(ticked&&nextFlight?.phase==='await-native-ready'&&flight?.phase!=='await-native-ready')
           wakePrepared(nextFlight.id);
+        if(ticked&&nextCheckIn>0)scheduleBackgroundWake(nextCheckIn);
+        else if(ticked&&flight&&!nextFlight&&afterTick.answerGate)scheduleBackgroundWake(POLL_MS);
         if(ticked&&reconciled)attempt(()=>{
           const after=engine.view();
           if(provenance&&after.inFlight?.id===provenance.id)provenance=null;
@@ -693,6 +730,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     owner.on(document,'visibilitychange',()=>{
       updateBackgroundWatch();
       if(document.visibilityState==='visible')recoverPolling('visible');
+      else scheduleBackgroundWake(POLL_MS);
     });
     owner.on(window,'pageshow',()=>recoverPolling('pageshow'));
     let snap;

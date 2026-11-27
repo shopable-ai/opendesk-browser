@@ -1,7 +1,8 @@
 <main class="vd" aria-label="视频下载">
-  <div class="vd-head">
-    <span>当前网页媒体</span>
-    <button type="button" id="vd-detect" aria-label="检测当前网页" title="检测当前网页">↻ 检测</button>
+  <div class="vd-head"><strong>视频下载</strong></div>
+  <div class="vd-workspaces" role="group" aria-label="下载工作区">
+    <button type="button" id="vd-single-mode" aria-controls="vd-single" aria-pressed="true">当前页面</button>
+    <button type="button" id="vd-batch-mode" aria-controls="vd-batch" aria-pressed="false">批量下载</button>
   </div>
   <div class="vd-format">
     <label for="vd-output">下载格式</label>
@@ -12,13 +13,45 @@
     <p id="vd-format-feedback" role="status"></p>
     <button id="vd-format-retry" type="button" hidden>重新读取格式</button>
   </div>
-  <p id="vd-message" role="status" aria-live="polite">正在检测当前网页的视频…</p>
-  <div id="vd-list" class="vd-list" aria-label="检测到的媒体"></div>
-  <section class="vd-job" aria-label="下载任务">
+  <section id="vd-single" aria-label="当前页面">
+    <div class="vd-head">
+      <span>当前网页媒体</span>
+      <button type="button" id="vd-detect" aria-label="检测当前网页" title="检测当前网页">↻ 检测</button>
+    </div>
+    <p id="vd-message" role="status">正在检测当前网页的视频…</p>
+    <div id="vd-list" class="vd-list" aria-label="检测到的媒体"></div>
+  </section>
+  <section id="vd-batch" aria-label="批量下载" hidden>
+    <label for="vd-addresses">视频网页地址，一行一个，最多 8 条</label>
+    <textarea id="vd-addresses" rows="4" spellcheck="false" aria-describedby="vd-address-summary" placeholder="https://example.com/video"></textarea>
+    <p id="vd-address-summary" role="status"></p>
+    <button id="vd-import" type="button">导入链接</button>
+    <div class="vd-batch-options">
+      <label><input id="vd-auto-open" type="checkbox"> 完成后自动打开下一条</label>
+      <div class="vd-actions">
+        <button id="vd-open-next" type="button" disabled>打开下一条网页</button>
+        <button id="vd-redetect" type="button" hidden>激活并检测</button>
+        <button id="vd-skip" type="button" hidden>跳过当前网页</button>
+      </div>
+    </div>
+    <p id="vd-batch-message" role="status"></p>
+    <ol id="vd-pages" class="vd-rows" aria-label="网页任务"></ol>
+    <div id="vd-batch-list" class="vd-list" aria-label="当前批量网页的视频候选"></div>
+    <section id="vd-queue" aria-label="下载队列" hidden>
+      <div class="vd-head"><strong>下载队列</strong></div>
+      <ol id="vd-jobs" class="vd-rows" aria-label="排队和已处理的下载"></ol>
+      <div class="vd-actions">
+        <button id="vd-run" type="button" disabled>开始 / 继续队列</button>
+        <button id="vd-pause" type="button" disabled>暂停队列</button>
+      </div>
+    </section>
+  </section>
+  <section id="vd-job" class="vd-job" aria-label="下载任务" hidden>
     <div class="vd-job-top"><strong>下载状态</strong><span id="vd-state">未开始</span></div>
+    <p id="vd-playing-name" hidden></p>
     <progress id="vd-progress" max="100" value="0" aria-label="下载进度"></progress>
     <p id="vd-info">单文件直接下载；需要合并或封装的分段会自动处理。</p>
-    <button id="vd-stop" type="button" disabled>停止下载</button>
+    <button id="vd-stop" type="button" disabled>停止当前下载</button>
     <button id="vd-check" type="button" hidden>核对下载状态</button>
   </section>
   <p class="vd-foot">仅保存有权下载的非 DRM 视频。Chrome 下载完成不等于已验证可播放。</p>

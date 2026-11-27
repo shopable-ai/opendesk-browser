@@ -228,7 +228,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       blue=element(doc,'button','sq-send');
       blue.type='button';labelElement(blue,'加入队列或发送待发消息');
       blue.setAttribute('aria-keyshortcuts','Control+Enter');
-      blue.title='有草稿时加入发送队列 · Ctrl + Enter；空输入框时继续发送队列；Shift 点击可暂停入队';
+      blue.title='空队列且网站就绪时直接发送，否则加入发送队列 · Ctrl + Enter 可直接入队；空输入框时继续发送队列；Shift 点击可暂停入队';
       crown=element(doc,'span','sq-crown');
       crown.setAttribute('aria-hidden','true');
       arrow=svg(doc,ICON.send);

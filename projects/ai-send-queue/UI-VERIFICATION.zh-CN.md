@@ -1,5 +1,34 @@
 # AI 消息发送队列 UI 验证
 
+## 2026-11-27 · 切换到其他标签后的连续发送
+
+后台回复结束后，即使站点不再更新 DOM，队列也会在确认输入框稳定后再检查一次；原生发送按钮在限频窗口内变为可用时，也保留一次补查。每次都走原授权、原对话和原生发送回执；离开原对话或销毁队列时，已安排的补查不能触发发送。
+
+在 Chrome for Testing 156 的独立 Profile 中，用项目的网页入口、站点适配器与引擎连接本地对话夹具。B、C 在回复 A 期间入队；选中另一标签后，原页收到浏览器的 `visibilitychange → hidden`。夹具停用 650 ms 和 5 s 两个常规轮询，实际记录到 B、C 分别在上一答完成后点击一次原生发送，两个点击均发生在 `hidden` 状态。切回前最后一答完成，队列与草稿均为空，无待确认发送。[浏览器事件](../../artifacts/sidebar-tools/ai-send-queue/background-20261127/hidden-chromium.json)
+
+真实 ChatGPT 中，首条回复生成时加入两条测试消息，再选中另一标签。原页持续隐藏 55 秒；两条消息各发送一次，顺序与入队一致，原生点击前分别已观察到上一答完成。原页重新可见前，三条回复均完成，队列和草稿已空。诊断读回使原页重新可见，触发探针最后的选中标签检查；用读回前记录的页面可见性、原生点击和站点历史独立核对上述结果。[判定](../../artifacts/sidebar-tools/ai-send-queue/background-20261127/live-verdict.json) · [原始时间线](../../artifacts/sidebar-tools/ai-send-queue/background-20261127/live-chatgpt.json)
+
+495 项定向 Node 检查通过，包含后台补查、导航／销毁围栏、未知结果不重发及固定入口来源校验。原开发 watcher 已将修复编译至 `dist/development`，开发 revision 为 `b11c44b711156766d035f150a294bba4c0cb2189383340ef4ec5ab46c4d17473`；真实测试页的固定桥 SHA-256 与磁盘构建一致。休眠、页面冻结或标签丢弃、Gemini／DeepSeek 实站后台、正式安装和 production 验收未验证。
+
+## 2026-11-27 · Ego 任务空间 53 快速连续入队（1.0.5/r65）
+
+**旧版复现：** 原问题页 p1 实际执行 **1.0.4/r64**，调试器读回固定桥 SHA-256 为 `826ea0b94faa8ec8dd04c435a51ee0dd5ae26e92b4b4daa7e53f76e2d243beb0`，与当时的磁盘产物一致。[旧版实站记录](../../artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/live-fifo-j6p.json)显示：A 已可见，B 进入输入框且收到可信皇冠点击，但 B 没入队；站点当时只收到 FIRST。定向回归在旧源码复现：B 的输入早于上一条草稿交接轮询，原交接否决了 B。修复允许同一对话、同一输入框里的可信输入，在前一条已入队、原草稿已清空、没有在途发送且历史相符时及时完成交接；发送本身仍由原派发检查决定。
+
+| 真实 ChatGPT · 同空间专用标签 p4 | 回执 |
+| --- | --- |
+| 忙时快速加入 A、B | A 出现在队列后 158 ms 输入 B、202 ms 点击皇冠，均早于旧 650 ms 交接轮询。忙时两条按 A、B 可见；站点仍只有 FIRST，没有 Stop 点击或未知提示。[忙时截图](../../artifacts/sidebar-tools/ai-send-queue/task53-r65/busy-two-queued.png) |
+| 按顺序各发一次 | 原生发送点击与站点精确入站各三次，均为 FIRST → A → B。A、B 每次都在上一条回复完成后续发。真实生成跨过初始 50 秒观测窗口；保留同一文档且未重发，继续读到 B 正常完成。 |
+| 最终状态 | 三条站点回复均完成，最后回复和空队列可见，草稿为空、没有错误提示。[最终截图](../../artifacts/sidebar-tools/ai-send-queue/task53-r65/completed-empty.png) · [判定](../../artifacts/sidebar-tools/ai-send-queue/task53-r65/live-result.json) · [连续事件](../../artifacts/sidebar-tools/ai-send-queue/task53-r65/live-continuation.json) |
+
+**失败与重试保护：** 同一 Ego 的 loopback [真实组件夹具](tests/fixtures/failed-edit.html)通过[交互测试](tests/failed-edit-ego.js)：编辑取消不改原项，缓存写入失败保留编辑正文和错误，成功仅增加一条原样暂停副本；原未知条目及锁保留，刷新恢复，无原生发送点击。错误复制和权限拒绝时的手动复制也通过。[夹具回执](../../artifacts/sidebar-tools/ai-send-queue/task53-r65/failed-edit-ego.log)。456 项相关 Node 检查通过，包括旧版快速输入失败的回归与派发防重。未向真实站点注入丢回执故障。
+
+| 层 | 核对结果 |
+| --- | --- |
+| 源码 | 网页行为由 [项目 Page](src/page/main.js) 持有，[可信入口](trusted/fixed-page.js)复用；[Browser 固定桥](../../src/entrypoints/chatgpt-fixed-bridge.js)编译该入口。项目、Page 状态与待打包配置为 **1.0.5/r65**。 |
+| 持续开发产物 | 原 watcher 产出 revision `7139f10131cfc299e70a6c7e94529e696de8d0d56af772de506f0996ccde1940`；`dist/development/agents/chatgpt-fixed-bridge.js` SHA-256 为 `e48268a502a24be2353ea9c849de183e2adec73b5198efdfe8ad52e41022afd0`。 |
+| 实际运行 | p1 和 p4 的调试器都读回同一份 **1.0.5** 固定桥字节。p1 重载后 ChatGPT 报原会话暂时无法加载；只点过一次站点的加载「再试一次」，未重发未清理。缓存里同一路由的 A 仍为 `unknown`、匹配原在途 ID，没有独立缓存草稿。受站点限制，收尾时 p1 无输入框，无法最终核验原历史及未知行的 UI。[固定桥与缓存](../../artifacts/sidebar-tools/ai-send-queue/task53-r65/original-after.json) · [加载回执](../../artifacts/sidebar-tools/ai-send-queue/task53-r65/original-load-retry.json) |
+| 正式包与安装 | 仓库内唯一 Sidebar JSON 仍是 **1.0.4/r64**（SHA-256 `557c8200804ec7618d67b91fa701129ec74d379f37fa791a607c9e9b37b01301`）。r65 React 预编译通过，Page 可达源码 136,864 B 超过现行 131,072 B 门槛，未生成或晋升 r65 安装包。本轮未核验实际 Sidebar 安装版本，也未安装、升级或发布。 |
+
 ## 2026-11-27 · ChatGPT 空队列皇冠直发 · 本轮实站回归
 
 **实站通过，本候选未复现反馈中的故障。** 复用已连接开发服务的 Ego Lite TaskSpace 58，仅使用本任务的 ChatGPT 专用标签。两次发送前均读回了合成正文，确认皇冠和原生发送均可点击、队列 0 项、没有应等待的回复；发送后均观察到回复开始并完成、队列 0 项、草稿为空、未出现 Info。以下时间为 UTC+8，计数依次为皇冠可信点击 / 原生发送点击 / 精确用户入站 / 原生停止点击。

@@ -28,7 +28,9 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     for(;;){
       const next=timers.filter(timer=>timer.enabled).sort((a,b)=>a.next-b.next)[0];
       if(!next||next.next>end)break;
-      now=next.next;next.next+=next.ms;next.callback();
+      now=next.next;
+      if(next.once)next.enabled=false;else next.next+=next.ms;
+      next.callback();
     }
     now=end;
   }
@@ -72,7 +74,9 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     hasRecovery(){return hasRecovery;},recovery:()=>calls.recovery};
   if(deepSeekHome){snap.route=null;state.route=null;}
   const win={location:deepseek?new URL('https://chat.deepseek.com/'+(snap.route??'')):gemini?new URL('https://gemini.google.com/'+snap.route):new URL('https://chatgpt.com/'+snap.route),
-    navigation:gemini||deepseek?{}:undefined,confirm(){calls.confirms++;return true;}};win.top=win;
+    navigation:gemini||deepseek?{}:undefined,confirm(){calls.confirms++;return true;},
+    setTimeout(callback,ms){const timer={callback,ms,next:now+ms,enabled:true,once:true};timers.push(timer);return timer;},
+    clearTimeout(timer){timer.enabled=false;}};win.top=win;
   const observers=[];
   win.MutationObserver=class {
     constructor(callback){this.callback=callback;observers.push(this);}
@@ -662,6 +666,40 @@ test('pending enqueue vetoes independent engine submission and protects removed 
   assert.equal(h.calls.recovery.text,'private draft');assert.equal(h.calls.canSubmit,false);
 });
 
+for(const outcome of ['trusted edit','canceled','untrusted input','replaced composer','changed history','unverified clear','IME composition','missing row']){
+  test('ChatGPT busy FIFO handoff during rapid input: '+outcome,async()=>{
+    const clear={ok:true,text:'private draft'};
+    const h=fixture({clear});await h.runFixed(async()=>true);
+    assert.equal(await h.enqueue(),true);
+    const original=h.state.items[0];
+    if(outcome==='unverified clear')h.snap.draft=original.text;
+    const event=h.beforeinput();
+    if(outcome==='canceled')event.defaultPrevented=true;
+    if(outcome==='replaced composer')h.snap.editor={contains:()=>false};
+    if(outcome==='changed history')h.snap.users=[{}];
+    if(outcome==='IME composition')h.snap.composing=true;
+    if(outcome==='missing row')h.state.items=[];
+    h.snap.draft='next intended draft';
+    h.input({isTrusted:outcome!=='untrusted input'});
+    assert.equal(h.calls.ticks,0,'typing cannot advance the sender');
+    if(outcome==='trusted edit'){
+      clear.text=h.snap.draft;
+      assert.equal(await h.enqueue(),true,'B can join A before the scheduled poll');
+      await h.poll();
+      assert.deepEqual(h.state.items.map(({state,text})=>[state,text]),
+        [['queued','private draft'],['queued','next intended draft']]);
+      assert.equal(h.calls.uncertain,null);
+    }else{
+      assert.equal(await h.enqueue(),false,'an unverified handoff cannot consume B');
+      await h.poll();
+      assert.equal(h.snap.draft,'next intended draft');
+      assert.equal(h.calls.clear,1);
+      if(outcome==='missing row')assert.equal(h.calls.recovery.text,'private draft');
+      else assert.equal(h.state.items[0].state,'unknown');
+    }
+  });
+}
+
 for(const outcome of ['trusted edit','canceled','untrusted input','replaced composer','changed history','not paused']){
   test('Gemini pending handoff during rapid input: '+outcome,async()=>{
     const clear={ok:true,text:'private draft'};
@@ -873,6 +911,38 @@ test('stall startup render error leaves managed schedules available for recovery
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 const nativeMutation={type:'attributes',attributeName:'disabled',target:{nodeType:1,closest:()=>null}};
 
+async function hiddenWaiting(){
+  const h=fixture({realEngine:true,clear:{ok:true,text:'private draft'}});
+  await h.runFixed(async()=>true);
+  h.visibility('hidden');
+  assert.equal(await h.enqueue(),true);
+  // The reply's last DOM change arrives while recurring background timers are delayed.
+  h.stopTimer(650);h.stopTimer(5000);
+  Object.assign(h.snap,{busy:false,idle:true});
+  h.calls.ready=true;
+  h.mutations([nativeMutation]);await settle();
+  return h;
+}
+
+test('a background reply completion schedules the stable-idle check without another DOM change or interval',async()=>{
+  const h=await hiddenWaiting();
+  h.advance(1099);await settle();
+  assert.equal(h.calls.prepares??0,0,'must still wait for a stable composer');
+  h.advance(1);await settle();
+  assert.equal(h.calls.prepares,1);
+  assert.equal(h.calls.clicks,1);
+});
+
+test('a scheduled background wake is fenced by the document URL and queue lifetime',async()=>{
+  for(const retire of [h=>h.go('/c/other-conversation'),h=>h.destroy()]){
+    const h=await hiddenWaiting();
+    const inspections=h.calls.inspects;
+    retire(h);h.advance(1200);await settle();
+    assert.equal(h.calls.inspects,inspections);
+    assert.equal(h.calls.clicks??0,0);
+  }
+});
+
 async function hiddenPrepared({ready=false}={}){
   const h=fixture({realEngine:true,clear:{ok:true,text:'private draft'}});
   let grant=()=>true,grants=0;
@@ -918,6 +988,21 @@ test('hidden native button mutation wakes readiness within deadline, with a fres
   const visibleGrants=h.grants();
   h.mutations([nativeMutation]);await settle();
   assert.equal(h.grants(),visibleGrants,'observer stops on returning to foreground');
+});
+
+test('the final native readiness mutation inside a background burst is rechecked before its deadline',async()=>{
+  const h=await hiddenPrepared();
+  h.stopTimer(650);h.stopTimer(5000);
+  const before=h.grants();
+  h.setNow(62000);h.mutations([nativeMutation]);await settle();
+  assert.equal(h.calls.clicks??0,0);
+  h.setNow(62050);h.calls.ready=true;
+  for(let i=0;i<20;i++)h.mutations([nativeMutation]);
+  await settle();
+  assert.equal(h.grants(),before+1,'the burst must not start concurrent grants');
+  h.advance(600);await settle();
+  assert.equal(h.grants(),before+2,'the final update gets a single trailing check');
+  assert.equal(h.calls.clicks,1);
 });
 
 test('an overdue hidden readiness mutation cannot authorize a first click',async()=>{

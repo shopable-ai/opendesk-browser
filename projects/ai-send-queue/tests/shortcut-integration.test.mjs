@@ -852,3 +852,48 @@ test('a blocked first send keeps the native draft and permits a fresh click when
   h.step(101);assert.equal(h.actions.enqueue(opts),true);
   assert.deepEqual(h.sent,['first']);
 });
+
+test('idle conversation crown sends the original draft without a queue row or composer rewrite',async()=>{
+  const h=await fixture(),opts={sendQueuedIfEmpty:true};
+  h.admit('previous');h.finishReply();h.edit('send this draft');
+  assert.equal(h.actions.enqueue(opts),true);
+  assert.deepEqual(h.sent,['send this draft']);
+  assert.equal(h.editor.value,'send this draft');assert.equal(h.clears,0);
+  assert.deepEqual(h.engine.view().items,[]);assert.equal(h.storage.entries.size,0);
+  h.admit('send this draft');
+  h.editor.value='send this draft'; // The website accepted it but has not cleared the editor yet.
+  assert.equal(h.actions.enqueue(opts),false);
+  assert.deepEqual(h.engine.view().items,[]);
+  h.editor.value='';h.poll();
+  assert.ok(h.engine.view().answerGate);
+  h.edit('next');assert.equal(h.actions.enqueue(opts),true);h.poll();
+  h.step(3500);
+  assert.deepEqual(h.sent,['send this draft']);
+  assert.deepEqual(h.engine.view().items.map(item=>item.text),['next']);
+});
+
+test('a direct send with no receipt cannot be replayed or added to the queue',async()=>{
+  const h=await fixture(),opts={sendQueuedIfEmpty:true};
+  h.edit('possibly sent');assert.equal(h.actions.enqueue(opts),true);
+  h.step(16000);assert.match(h.toasts.at(-1),/不会自动重发/);
+  assert.equal(h.actions.enqueue(opts),false);
+  assert.deepEqual(h.sent,['possibly sent']);assert.equal(h.clears,0);
+  assert.equal(h.editor.value,'possibly sent');assert.deepEqual(h.engine.view().items,[]);
+});
+
+test('existing paused messages keep the crown on the queue path even when the site is idle',async()=>{
+  const h=await fixture();
+  h.edit('paused');assert.equal(h.actions.enqueue({paused:true}),true);h.poll();
+  h.edit('after paused');assert.equal(h.actions.enqueue({sendQueuedIfEmpty:true}),true);
+  assert.deepEqual(h.sent,[]);
+  assert.deepEqual(h.engine.view().items.map(({text,state})=>[text,state]),
+    [['paused','paused'],['after paused','queued']]);
+});
+
+test('the crown preserves the draft when the cached queue could not be checked',async()=>{
+  const storage=memoryStorage();storage.getItem=()=>{throw Error('storage unavailable');};
+  const h=await fixture({storage});h.edit('keep this draft');
+  assert.equal(h.actions.enqueue({sendQueuedIfEmpty:true}),false);
+  assert.match(h.toasts.at(-1),/无法确认发送队列为空/);
+  assert.deepEqual(h.sent,[]);assert.equal(h.clears,0);assert.equal(h.editor.value,'keep this draft');
+});

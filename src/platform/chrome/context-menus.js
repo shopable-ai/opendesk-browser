@@ -1012,6 +1012,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(actualHost!==hostInstanceId||!validId(toolId)||
        typeof toolInstance!=='string'||!/^[0-9a-f-]{36}$/i.test(toolInstance))
       throw failure('E_OWNER','Browser operation is not bound to active tool document');
+    const proveMediaDocument=Object.hasOwn(request,'mediaDetectDocument');
+    // This adapter checks installed identity only. Keep trusted project code
+    // in the fixed Side Panel output, never in the service worker.
+    if(proveMediaDocument&&(operation!=='browser.tabs.getOwned'||toolId!=='video-downloader'||sender.tab||
+       !toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender.url)))
+      throw failure('E_OWNER','Owned media detection requires the trusted Side Panel');
     checkAdmission();
     return serial(()=>{
       checkAdmission();
@@ -1237,6 +1243,25 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const context={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null,
           hostInstanceId,toolInstance};
+        if(proveMediaDocument){
+          if(!tool.capabilities.includes('page.mediaDownload'))throw failure('E_TOOL_CAPABILITY_REQUIRED');
+          // Keep the normal getOwned authorization and lifetime checks. Its
+          // public URL/Origin output cannot prove which Chrome document is active.
+          const result=await dispatchScoped(operation,args,context);
+          await verifyBrowserOwner(context,operation,result.origin,owned);
+          const target=await tabHost.resolve(result.tabRef,context);
+          const document=request.mediaDetectDocument;
+          const changed=()=>failure('E_DOCUMENT_STALE','The owned media document is no longer current');
+          if(document?.frameId!==0||
+             !['tabId','windowId','documentId','url','origin'].every(key=>document[key]===target[key]))
+            throw changed();
+          const tabs=await api.tabs.query({active:true,windowId:target.windowId});
+          const tab=tabs?.length===1?tabs[0]:null;
+          if(tab?.active!==true||tab.id!==target.tabId||tab.windowId!==target.windowId||
+             tab.incognito||tab.pendingUrl||tab.discarded||tab.url!==target.url||
+             ['loading','unloaded'].includes(tab.status)||Date.now()>=result.expiresAt)throw changed();
+          return {tabRef:result.tabRef,verified:true,expiresAt:result.expiresAt};
+        }
         return dispatchScoped(operation,args,context);
       }
       if(operation==='browser.scheduler.listOwn'||operation==='browser.scheduler.cancelOwn'){

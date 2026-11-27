@@ -1,15 +1,12 @@
 {
+  "format": "opendesk.sidebar-tool.v2",
   "id": "video-downloader",
-  "version": "0.4.4",
+  "version": "0.5.2",
   "title": "视频下载",
-  "description": "同一视频集中在一行。选用原格式或 MP4，一次点击直存已授权视频，或合并、封装支持的非加密 HLS。",
-  "capabilities": [
-    "page.mediaDownload"
-  ],
-  "files": {
-    "html": "src/index.html",
-    "css": "src/style.css",
-    "js": "src/main.js"
-  },
+  "description": "保存当前网页的视频，或按顺序处理至多 8 个网页。支持选择清晰度和编辑文件名。",
+  "capabilities": ["page.mediaDownload", "browser.tabs"],
+  "requires": {"browserSdk":"1.0.0"},
+  "contributes": {"contextMenus":[]},
+  "files": {"html":"src/index.html","css":"src/style.css","js":"src/main.js","dependencies":["src/batch.js"]},
   "assets": []
 }

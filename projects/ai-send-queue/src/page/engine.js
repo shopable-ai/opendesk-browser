@@ -8,6 +8,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
   const state={items,route:null,reason:'',phase:'waiting',
     expanded:false,inFlight:null,answerGate:null,lastConfirmed:null,forceId:null};
   let sequence=0, idleSince=null,nativeAttemptChanged=false;
+  const idleRemaining=t=>IDLE_MS-(t-(idleSince??=t));
   const emit=()=>change(view());
   const saved=()=>{try{return checkpoint()!==false;}catch{return false;}};
   const current=()=>items.find(item=>item.state!=='paused')||null;
@@ -260,6 +261,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     state.inFlight={item,phase:'await-native-ready',started:clock(),token:prepared.token};
     emit();
   }
+  // A positive return value requests another check after the stable idle window.
   function tick({canSubmit=true,submitBlockReason='队列安全检查尚未就绪'}={}) {
     if(nativeAttemptChanged){nativeAttemptChanged=false;emit();}
     if(!items.length && !state.answerGate)return;
@@ -296,8 +298,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       if(!canSubmit){idleSince=null;return;}
       if(snap.busy||!snap.idle||replyPending(snap)){idleSince=null;return;}
       if(snap.rich || snap.composing || snap.draft!==''){idleSince=null;return;}
-      if(idleSince===null)idleSince=t;
-      if(t-idleSince<IDLE_MS)return;
+      const remaining=idleRemaining(t);
+      if(remaining>0)return remaining;
       const item=state.inFlight.item;state.inFlight=null;state.forceId=null;
       state.answerGate=null;state.reason='';
       startSubmit(snap,item);return;
@@ -334,8 +336,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       if(!answerReady(snap)){
         wait(state.answerGate.historyInvalid?REPLY_HISTORY_CHANGED:'');return;
       }
-      if(idleSince===null)idleSince=t;
-      if(t-idleSince<IDLE_MS)return;
+      const remaining=idleRemaining(t);
+      if(remaining>0)return remaining;
       state.answerGate=null;idleSince=null;state.reason='';
       if(!items.length)state.route=null;
       emit();
@@ -352,8 +354,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       wait(reason);
       return;
     }
-    if(idleSince===null)idleSince=t;
-    if(t-idleSince<IDLE_MS)return;
+    const remaining=idleRemaining(t);
+    if(remaining>0)return remaining;
     state.reason='';startSubmit(snap,eligible);
   }
   return Object.freeze({view,restoreCache,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,saveRecoveryEdit,canReclaimPrepared,reclaimPrepared,reclaimEditedPrepared,move,observeNativeAttempt,observeNativeAdmission,

@@ -117,6 +117,12 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   const tab=await api.tabs.get(row.tabId).catch(()=>null);
   let currentUrl;
   try{currentUrl=browserTabUrl(tab?.url)}catch{}
+  // Chrome can expose only pendingUrl before the first navigation commits.
+  // Let callers wait for that exact URL without resolving a Document or granting access.
+  if(tab?.id===row.tabId&&!tab.incognito&&tab.status==='loading'&&
+     (tab.url===''||tab.url===undefined||tab.url==='about:blank')&&tab.pendingUrl===row.url&&
+     row.documentId===undefined&&row.initialNavigation&&clock.now()<row.initialUntil&&refs.get(tabRef)===row)
+   throw fail('E_DOCUMENT_STALE','Owned tab is still committing its initial URL');
   // Same-Origin path changes are not safe if Chrome's onUpdated event was missed.
   if(!tab||tab.id!==row.tabId||currentUrl?.href!==row.url||tab.incognito){
    purge(tabRef);throw fail('E_TAB_REF_INVALID','Tab closed or navigated');

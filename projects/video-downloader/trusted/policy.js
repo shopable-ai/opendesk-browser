@@ -1,6 +1,6 @@
 // Official media download: opaque candidate/rendition IDs, never arbitrary URL access.
 export const MEDIA_ID='video-downloader';
-export const MEDIA_VERSION='0.4.4';
+export const MEDIA_VERSION='0.5.2';
 export const MEDIA_CAPABILITY='page.mediaDownload';
 export const MEDIA_OPERATIONS=Object.freeze(['media.detect','media.start','media.status','media.stop',
   'media.format.get','media.format.set']);

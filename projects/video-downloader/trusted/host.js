@@ -8,13 +8,38 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sameDocument=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&
   a?.url===b?.url&&a?.windowId===b?.windowId;
 const isPlain=x=>x&&typeof x==='object'&&!Array.isArray(x)&&Object.getPrototypeOf(x)===Object.prototype;
+const ownedTabRef=/^[A-Za-z0-9_-]{16,160}$/;
 const terminal=new Set(['complete','complete_unverified','interrupted','cancelled']);
 const formatValue=value=>value==='original'||value==='mp4';
 const formatStore=sidebarToolStorageKey(MEDIA_ID);
 const mp4Block=(format,playlist)=>format==='webm'?'webm':
   playlist?.container==='ts'&&!supportsDeclaredMp4Codecs(playlist.codecs)?'codecs':null;
 
-const safeFilename=(format,clock)=>'opendesk-video-'+String(clock())+'.'+format;
+const trimFilename=value=>value.replace(/^[.\s]+|[.\s]+$/gu,'');
+const filenameEncoder=new TextEncoder();
+function cleanFilename(value){
+  if(value===undefined)return '';
+  if(typeof value!=='string')throw fail('E_SCHEMA','下载文件名必须为文本');
+  const raw=value.trim();
+  if(/[\\/]|^[a-z]:|%(?:25)*(?:2f|5c)/iu.test(raw)||/^(?:\.|%(?:25)*2e){1,2}$/iu.test(raw))
+    throw fail('E_SCHEMA','下载文件名不能包含路径');
+  let stem=raw.normalize('NFC').replace(/[\p{Cc}\p{Cs}<>:"|?*\u202a-\u202e\u2066-\u2069]+/gu,' ')
+    .replace(/\s+/gu,' ').replace(/[.\s]+$/gu,'');
+  // The name is a stem. Only the actual media output supplies the extension.
+  stem=trimFilename(stem.replace(/\.(?:mp4|webm|ts|m3u8|mpd|m4v|mov|mkv)$/iu,''));
+  if(/^(?:con|prn|aux|nul|clock\$|conin\$|conout\$|com[1-9¹²³]|lpt[1-9¹²³])(?:\s*\.|$)/iu.test(stem))
+    stem='_'+stem;
+  // Leave room within common filesystem limits for the extension and Chrome's suffix.
+  let result='',bytes=0;
+  for(const character of stem){
+    bytes+=filenameEncoder.encode(character).length;
+    if(bytes>180)break;
+    result+=character;
+  }
+  return trimFilename(result);
+}
+const safeFilename=(stem,format,clock)=>(stem||'opendesk-video-'+String(clock()))+'.'+format;
+const downloadBasename=value=>typeof value==='string'?value.split(/[\\/]/u).at(-1)||null:null;
 export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalThis.fetch,
   uuid=()=>globalThis.crypto.randomUUID(),clock=()=>Date.now()}={}){
   let cache=new Map(),context=null,task=null,generation=0,scanAbort=null,checking=Promise.resolve();
@@ -71,7 +96,9 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     // currentPageTarget intentionally supersedes concurrent observations. Keep
     // this Host's parallel segment/status checks from superseding one another.
     const result=checking.then(async()=>{
+      assertCurrent();
       await currentPageTarget.revalidate(target);
+      assertCurrent();
       const origin=new URL(target.origin);
       if(!await api.permissions.contains({origins:[origin.protocol+'//'+origin.hostname+'/*']}))
         throw fail('E_MEDIA_PERMISSION','Chrome 网站访问权限已撤销');
@@ -104,31 +131,49 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       void cancel(old);
     }
   }
-  async function inspect(assertCurrent,assertInstalled){
+  async function inspect(owned,assertCurrent,assertInstalled){
+    if(!api?.scripting?.executeScript||!api?.webNavigation?.getAllFrames||
+       !api?.permissions?.contains||!currentPageTarget?.capture)
+      throw fail('E_MEDIA_UNAVAILABLE','Chrome 媒体读取能力不可用');
+    const admissionTicket=generation;
+    const assertGeneration=ticket=>{
+      assertCurrent();
+      if(ticket!==generation)throw fail('E_MEDIA_STALE','检测已被新操作取代');
+    };
+    assertGeneration(admissionTicket);
+    const target=currentPageTarget.capture();
+    if(!target.origin)throw fail('E_MEDIA_TARGET','请选择普通 HTTP(S) 网页');
+    // The owned resolver supplies the top document. Its proof stays outside the
+    // sandbox payload and cannot select a different tab from the current page.
+    if(owned&&(target.frameId!==0||owned.incognito!==false||
+       owned.frameId!==undefined&&owned.frameId!==0||
+       !sameDocument(target,owned)||target.origin!==owned.origin))
+      throw fail('E_DOCUMENT_STALE','工具标签页的当前文档已变化');
     // Older installed UIs do not poll after navigation. Reconcile the one
     // detached job before deciding whether their explicit detection may proceed.
     if(task?.detached&&!terminal.has(task.state))
-      await status({taskId:task.taskId},assertCurrent,assertInstalled);
+      await status({taskId:task.taskId},()=>assertGeneration(admissionTicket),assertInstalled);
+    assertGeneration(admissionTicket);
     refuseUnresolved();
     if(task&&!['complete','complete_unverified','interrupted','cancelled'].includes(task.state))
       throw fail('E_MEDIA_BUSY','请先完成或停止当前下载');
     scanAbort?.abort();scanAbort=new AbortController();
     const scan=scanAbort;
     const ticket=++generation;cache.clear();context=null;
-    await ensure(assertCurrent,assertInstalled);
-    if(!api?.scripting?.executeScript||!api?.webNavigation?.getAllFrames||
-       !api?.permissions?.contains||!currentPageTarget?.capture)
-      throw fail('E_MEDIA_UNAVAILABLE','Chrome 媒体读取能力不可用');
-    const target=currentPageTarget.capture();
-    if(!target.origin)throw fail('E_MEDIA_TARGET','请选择普通 HTTP(S) 网页');
+    const assertScan=()=>assertGeneration(ticket);
+    const checkTarget=()=>recheck(target,assertScan,assertInstalled);
+    await ensure(assertScan,assertInstalled);
+    assertScan();
     // Chrome match patterns do not support ports. Document/candidate identity
     // remains exact-origin (including port), even though native site grants do not.
     const permissionOrigin=new URL(target.origin);
     const chromePattern=permissionOrigin.protocol+'//'+permissionOrigin.hostname+'/*';
     if(!await api.permissions.contains({origins:[chromePattern]}))
       throw fail('E_MEDIA_PERMISSION','Chrome 未授权当前网站');
-    await recheck(target,assertCurrent,assertInstalled);
+    await checkTarget();
+    assertScan();
     const frames=await api.webNavigation.getAllFrames({tabId:target.tabId});
+    assertScan();
     const top=frames?.find(x=>x?.frameId===0);
     if(!top||top.documentId!==target.documentId||top.url!==target.url||
        top.errorOccurred||top.documentLifecycle&&top.documentLifecycle!=='active')
@@ -141,12 +186,14 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     }).slice(0,8);
     partial=frames.length>eligible.length;
     for(const frame of eligible){
-      await recheck(target,assertCurrent,assertInstalled);
+      await checkTarget();
+      assertScan();
       let rows;
       try{rows=await api.scripting.executeScript({
         target:{tabId:target.tabId,documentIds:[frame.documentId]},
         world:'ISOLATED',func:inspectMediaSources,args:[]
-      });}catch{partial=true;continue;}
+      });}catch{assertScan();partial=true;continue;}
+      assertScan();
       const raw=rows?.find(x=>x.documentId===frame.documentId&&x.frameId===frame.frameId)?.result;
       const result=Array.isArray(raw)?raw:raw?.sources;
       if(!Array.isArray(result)||result.length>48){partial=true;continue;}
@@ -167,20 +214,22 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       if(unique.size>=48)break;
       if(!elementUrls.has(url))unique.set(url,row);
     }
-    await recheck(target,assertCurrent,assertInstalled);
+    await checkTarget();
+    assertScan();
     const candidates=[],masters=[];const fresh=new Map();
     for(const row of unique.values()){
-      if(ticket!==generation)throw fail('E_MEDIA_STALE','检测已被新操作取代');
       const id=uuid(),entry={...row,id,target};
       let note='',hls=null,reason=row.reason;
       let renditions=[];
       if(row.format==='hls'){
         const authorize=async url=>{
           scan.signal.throwIfAborted();
-          await recheck(target,assertCurrent,assertInstalled);
+          await checkTarget();
+          assertScan();
           const origin=new URL(publicMediaUrl(url));
           if(!await api.permissions.contains({origins:[origin.protocol+'//'+origin.hostname+'/*']}))
             throw mediaError('E_MEDIA_PERMISSION');
+          assertScan();
           scan.signal.throwIfAborted();
         };
         const timer=setTimeout(()=>scan.abort(),15000);
@@ -214,8 +263,8 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
         }catch(error){note=String(error?.code||'E_HLS_METADATA_UNAVAILABLE');}
         finally{clearTimeout(timer);}
       }
-      await recheck(target,assertCurrent,assertInstalled);
-      if(ticket!==generation)throw fail('E_MEDIA_STALE','检测已被新操作取代');
+      await checkTarget();
+      assertScan();
       const downloadable=row.allowed&&['mp4','webm'].includes(row.format)||renditions.length>0;
       entry.renditions=renditions;
       if(!reason&&!downloadable)reason=row.format==='hls'?'hls-detected-only':'unsupported';
@@ -236,14 +285,16 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       if(child)fresh.delete(candidate.id);
       return !child;
     });
+    assertScan();
     context=target;cache=fresh;
-    return {state:visible.length?'available':'no-video',partial,candidates:visible};
+    return {state:visible.length?'available':'no-video',partial,candidates:visible,title:target.title,url:target.url};
   }
   async function start(payload,assertCurrent,assertInstalled){
-    if(!isPlain(payload)||Object.keys(payload).some(x=>!['candidateId','variantId','output'].includes(x))||
+    if(!isPlain(payload)||Object.keys(payload).some(x=>!['candidateId','variantId','output','filename'].includes(x))||
        typeof payload.candidateId!=='string'||payload.variantId!==undefined&&typeof payload.variantId!=='string'||
        payload.output!==undefined&&!formatValue(payload.output))
       throw fail('E_SCHEMA','必须选择检测到的媒体');
+    const filename=cleanFilename(payload.filename);
     // A Stop during an asynchronous admission must prevent any future download call.
     const preflightTicket=generation;
     await ensure(assertCurrent,assertInstalled);
@@ -302,7 +353,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
           let id;
           nativeSaves.add(row);
           try{id=await api.downloads.download({url:row.blobUrl,
-            filename:safeFilename(result.format,clock),saveAs:false,conflictAction:'uniquify'});}
+            filename:safeFilename(filename,result.format,clock),saveAs:false,conflictAction:'uniquify'});}
           catch{row.nativeUnknown=true;row.state='unknown';row.error='E_OUTCOME_UNKNOWN';return;}
           if(!Number.isInteger(id)||id<0){row.nativeUnknown=true;row.state='unknown';row.error='E_OUTCOME_UNKNOWN';return;}
           row.downloadId=id;watchNative(row);
@@ -321,7 +372,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     nativeSaves.add(row);
     try{
       downloadId=await api.downloads.download({
-        url:selected.url,filename:safeFilename(selected.format,clock),
+        url:selected.url,filename:safeFilename(filename,selected.format,clock),
         saveAs:false,conflictAction:'uniquify'
       });
     }catch{
@@ -375,6 +426,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     else row.state='unknown';
     if(terminal.has(row.state))settledNative(row);
     return {taskId:row.taskId,downloadId:row.downloadId,state:row.state,
+      filename:downloadBasename(data.filename),
       bytesReceived:bytes,totalBytes:total,
       filePresent:data.exists===true,playbackVerified:false,stream:row.detached?null:row.integrity||null,
       error:row.state==='interrupted'?String(data.error||'E_DOWNLOAD_INTERRUPTED').slice(0,80):null};
@@ -400,15 +452,22 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     return {taskId:row.taskId,state:row.state,cancelUnknown:row.cancelUnknown};
   }
   return Object.freeze({invalidate,request:async({tool,operation,payload={},
-    assertCurrent,assertInstalled})=>{
+    ownedTarget=null,assertCurrent,assertInstalled})=>{
     if(tool?.id!==MEDIA_ID||!tool.capabilities?.includes(MEDIA_CAPABILITY)||
        !MEDIA_OPERATIONS.includes(operation))throw fail('E_MEDIA_CAPABILITY','未获视频下载可信权限');
     if(!isPlain(payload))throw fail('E_SCHEMA','媒体操作参数无效');
     if(operation==='media.format.get'||operation==='media.format.set')
       return formatPreference(operation,payload,assertCurrent,assertInstalled);
     if(operation==='media.detect'){
-      if(Object.keys(payload).length)throw fail('E_SCHEMA','检测不接受自定义 URL 或脚本');
-      return inspect(assertCurrent,assertInstalled);
+      const keys=Object.keys(payload);
+      if(!keys.length)return inspect(null,assertCurrent,assertInstalled);
+      if(keys.length!==1||keys[0]!=='tabRef'||typeof payload.tabRef!=='string'||!ownedTabRef.test(payload.tabRef))
+        throw fail('E_SCHEMA','检测仅接受有效的工具标签页引用');
+      if(!tool.capabilities.includes('browser.tabs'))
+        throw fail('E_MEDIA_CAPABILITY','未获浏览器标签页权限');
+      if(!isPlain(ownedTarget)||ownedTarget.tabRef!==payload.tabRef||!isPlain(ownedTarget.target))
+        throw fail('E_TAB_REF_INVALID','无法核对工具标签页引用');
+      return inspect(ownedTarget.target,assertCurrent,assertInstalled);
     }
     if(operation==='media.start')return start(payload,assertCurrent,assertInstalled);
     if(operation==='media.status')return status(payload,assertCurrent,assertInstalled);

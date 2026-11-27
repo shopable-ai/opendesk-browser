@@ -11,6 +11,13 @@ const dir=join(dirname(fileURLToPath(import.meta.url)),'fixtures');
 const fixture=async name=>readFile(join(dir,name),'utf8');
 const doc=(pageUrl='https://fixture.example/page')=>({status:'available',windowId:3,tabId:8,frameId:0,documentId:'doc-1',
   url:pageUrl,origin:new URL(pageUrl).origin,title:'Fixture'});
+const mediaTool={id:'video-downloader',capabilities:['page.mediaDownload']};
+const batchTool={...mediaTool,capabilities:[...mediaTool.capabilities,'browser.tabs']};
+const tabRef='owned_fixture_1234';
+const ownedTarget=(target=doc())=>({tabRef,target:{windowId:target.windowId,tabId:target.tabId,
+  documentId:target.documentId,url:target.url,origin:target.origin,incognito:false}});
+const batchOptions=(proof=ownedTarget())=>({tool:batchTool,ownedTarget:proof});
+const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 function rig({urls=['https://fixture.example/tiny.mp4'],sourceMime='',allowed=true,fetcher,
   actionState='in_progress',exists=true,bytesReceived=100,totalBytes=200,
   pageUrl='https://fixture.example/page',preferences=new Map(),sources}={}){
@@ -36,7 +43,7 @@ function rig({urls=['https://fixture.example/tiny.mp4'],sourceMime='',allowed=tr
   const currentPageTarget={
     capture:()=>({...target}),
     revalidate:async old=>{
-      if(failDoc||!old||old.documentId!==target.documentId||old.tabId!==target.tabId)
+      if(failDoc||!old||['windowId','tabId','frameId','documentId','url','origin'].some(key=>old[key]!==target[key]))
         throw Object.assign(new Error('changed'),{code:'E_DOCUMENT_STALE'});
     }
   };
@@ -47,12 +54,13 @@ function rig({urls=['https://fixture.example/tiny.mp4'],sourceMime='',allowed=tr
     clock:()=>1234
   });
   const request=(operation,payload={},options={})=>host.request({
-    tool:{id:'video-downloader',capabilities:['page.mediaDownload']},
+    tool:mediaTool,
     operation,payload,assertCurrent:()=>{},
     assertInstalled:async()=>{if(!admit)throw Object.assign(new Error('revoked'),{code:'E_MEDIA_TRUST'});},
     ...options
   });
   return {request,host,api,currentPageTarget,refuse:()=>{admit=false;},
+    setTarget:next=>{target=next;},
     navigate:()=>{target={...target,documentId:'doc-2'};failDoc=true;},
     state:v=>{resultsState={...resultsState,...v};},
     setDownload:fn=>{api.downloads.download=fn;},
@@ -117,7 +125,85 @@ test('no video and duplicate URL results',async()=>{
   const result=await same.request('media.detect');
   assert.equal(result.candidates.length,1);
   assert.equal(result.candidates[0].mode,'ready');
-  assert.equal(JSON.stringify(result).includes('https://'),false,'media URL must not escape trusted host');
+  assert.deepEqual({title:result.title,url:result.url},{title:'Fixture',url:doc().url});
+  assert.equal(JSON.stringify(result.candidates).includes('https://'),false,'media URL must not escape trusted host');
+});
+test('owned detection requires a scoped capability and trusted proof, and returns only page metadata',async()=>{
+  const r=rig({urls:[]});
+  const proof=ownedTarget();proof.target.title='Not the captured title';
+  for(const payload of [{tabRef:'short'},{tabRef:17},{tabRef:'A'.repeat(161)},{tabRef:tabRef+'\n'},
+    {tabRef,url:doc().url},{tabRef,ownedTarget:proof}])
+    await assert.rejects(r.request('media.detect',payload,batchOptions(proof)),{code:'E_SCHEMA'});
+  await assert.rejects(r.request('media.detect',{tabRef},{ownedTarget:proof}),{code:'E_MEDIA_CAPABILITY'});
+  for(const wrong of [null,{...proof,tabRef:'another_fixture_1234'}])
+    await assert.rejects(r.request('media.detect',{tabRef},batchOptions(wrong)),{code:'E_TAB_REF_INVALID'});
+  assert.equal(r.permissionsSeen.length,0);
+  assert.deepEqual(await r.request('media.detect',{tabRef},batchOptions(proof)),{
+    state:'no-video',partial:false,candidates:[],title:'Fixture',url:doc().url
+  });
+});
+test('a same-URL page must match the full verified owned top document',async()=>{
+  const r=rig(),proof=ownedTarget();
+  for(const mismatch of [{tabId:9},{windowId:4},{documentId:'doc-reload'},{url:doc().url+'#changed'},
+    {origin:'https://another.example'},{frameId:1},{incognito:true}]){
+    const wrong={...proof,target:{...proof.target,...mismatch}};
+    await assert.rejects(r.request('media.detect',{tabRef},batchOptions(wrong)),{code:'E_DOCUMENT_STALE'});
+  }
+  assert.equal(r.permissionsSeen.length,0);
+});
+test('legacy and owned scans keep the captured page across asynchronous installation admission',async()=>{
+  for(const owned of [false,true]){
+    const r=rig(),waiting=deferred(),resume=deferred();
+    let scripts=0;
+    r.api.scripting.executeScript=async()=>{scripts++;return [];};
+    const detecting=r.request('media.detect',owned?{tabRef}:{},{
+      ...(owned?batchOptions():{}),assertInstalled:async()=>{waiting.resolve();await resume.promise;}
+    });
+    await waiting.promise;
+    r.setTarget({...doc(),documentId:'doc-reload'});
+    const rejected=assert.rejects(detecting,{code:'E_DOCUMENT_STALE'});
+    resume.resolve();await rejected;
+    assert.equal(scripts,0,'replacement document must not be inspected');
+  }
+});
+test('invalidation during admission stops an owned scan before any Chrome read',async()=>{
+  const r=rig(),waiting=deferred(),resume=deferred();
+  const detecting=r.request('media.detect',{tabRef},{...batchOptions(),assertInstalled:async()=>{
+    waiting.resolve();await resume.promise;
+  }});
+  await waiting.promise;
+  r.host.invalidate({pageChanged:true});
+  const rejected=assert.rejects(detecting,{code:'E_MEDIA_STALE'});
+  resume.resolve();await rejected;
+  assert.equal(r.permissionsSeen.length,0);
+});
+test('an empty scan still revalidates the document before returning its metadata',async()=>{
+  const r=rig({urls:[]}),waiting=deferred(),resume=deferred();
+  r.api.scripting.executeScript=async()=>{
+    waiting.resolve();await resume.promise;
+    return [{frameId:0,documentId:'doc-1',result:[]}];
+  };
+  const detecting=r.request('media.detect',{tabRef},batchOptions());
+  await waiting.promise;
+  r.setTarget({...doc(),documentId:'doc-reload'});
+  const rejected=assert.rejects(detecting,{code:'E_DOCUMENT_STALE'});
+  resume.resolve();await rejected;
+});
+test('a switch away and back cannot publish an empty stale scan or overwrite a newer candidate',async()=>{
+  const r=rig(),waiting=deferred(),resume=deferred(),execute=r.api.scripting.executeScript;
+  r.api.scripting.executeScript=async()=>{
+    waiting.resolve();await resume.promise;
+    return [{frameId:0,documentId:'doc-1',result:[]}];
+  };
+  const detecting=r.request('media.detect',{tabRef},batchOptions());
+  await waiting.promise;
+  r.setTarget({...doc(),tabId:9,documentId:'doc-other'});r.host.invalidate({pageChanged:true});
+  r.setTarget(doc());r.host.invalidate({pageChanged:true});
+  r.api.scripting.executeScript=execute;
+  const newer=await r.request('media.detect',{tabRef},batchOptions());
+  const rejected=assert.rejects(detecting,{code:'E_MEDIA_STALE'});
+  resume.resolve();await rejected;
+  assert.equal((await r.request('media.start',{candidateId:newer.candidates[0].id})).state,'started');
 });
 test('MP4 output for direct MP4 preserves the original URL and confirms Chrome completion',async()=>{
   const r=rig();
@@ -136,6 +222,46 @@ test('MP4 output for direct MP4 preserves the original URL and confirms Chrome c
   const completed=await r.request('media.status',{taskId:receipt.taskId});
   assert.equal(completed.state,'complete');
   assert.equal(completed.playbackVerified,false,'file decode was not proven');
+});
+test('optional filename is a safe bounded stem with an extension from the native media format',async()=>{
+  for(const [input,expected] of [
+    ['  第 1 集: Sample?*.MP4  ','第 1 集 Sample.webm'],
+    ['NUL.txt','_NUL.txt.webm'],['COM¹','_COM¹.webm'],
+    ['🎞'.repeat(150),'🎞'.repeat(45)+'.webm'],
+    ['<>*? | ','opendesk-video-1234.webm'],['.webm','opendesk-video-1234.webm'],
+    [undefined,'opendesk-video-1234.webm']
+  ]){
+    const r=rig({urls:['https://fixture.example/clip.webm']});
+    const {id:candidateId}=(await r.request('media.detect')).candidates[0];
+    await r.request('media.start',{candidateId,...(input===undefined?{}:{filename:input})});
+    assert.deepEqual(r.submitted,[{url:'https://fixture.example/clip.webm',filename:expected,
+      saveAs:false,conflictAction:'uniquify'}]);
+  }
+});
+test('path or traversal input fails before Chrome without consuming the candidate',async()=>{
+  const r=rig(),{id:candidateId}=(await r.request('media.detect')).candidates[0];
+  for(const filename of ['..',' .  ','../outside','..\\outside','folder/name','/absolute',
+    'C:drive-relative','C:\\absolute','%2e%2e','..%252foutside',null,1])
+    await assert.rejects(r.request('media.start',{candidateId,filename}),{code:'E_SCHEMA'});
+  assert.equal(r.calls,0);
+  await r.request('media.start',{candidateId,filename:'Episode 1.2'});
+  assert.equal(r.submitted[0].filename,'Episode 1.2.mp4');
+});
+test('status reports only the matching Chrome download basename, never the proposed name or a directory',async()=>{
+  const r=rig(),{id:candidateId}=(await r.request('media.detect')).candidates[0];
+  const {taskId}=await r.request('media.start',{candidateId,filename:'Lesson'});
+  const status=()=>r.request('media.status',{taskId});
+  assert.equal((await status()).filename,null);
+  r.api.downloads.search=async()=>[{id:999,filename:'/wrong/other.mp4'}];
+  const unknown=await status();
+  assert.equal(unknown.state,'unknown');assert.equal(unknown.filename,undefined);
+  for(const filename of ['/private/downloads/Lesson (1).mp4','C:\\Downloads\\Lesson (1).mp4']){
+    r.api.downloads.search=async({id})=>[{id:999,filename:'/wrong/other.mp4'},
+      {id,filename,state:'complete',exists:true,bytesReceived:200,totalBytes:200}];
+    const receipt=await status();
+    assert.equal(receipt.filename,'Lesson (1).mp4');
+    assert.equal(receipt.state,'complete');
+  }
 });
 test('format defaults to original and persists across new Hosts without touching downloads',async()=>{
   const preferences=new Map(),first=rig({preferences});
@@ -249,10 +375,11 @@ const streamRig=options=>rig({urls:['https://fixture.example/media.m3u8'],fetche
 const until=async predicate=>{for(let i=0;i<200;i++){if(await predicate())return;await new Promise(resolve=>setTimeout(resolve,1));}assert.fail('expected task state was not reached');};
 test('HLS defaults to an original TS Blob and only Chrome confirms completion',async()=>{
   const r=streamRig(),d=await r.request('media.detect');
-  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id});
+  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id,filename:'Lesson.mp4'});
   assert.equal(receipt.state,'segments');assert.equal(receipt.downloadId,undefined);
   await until(()=>r.calls===1);
-  const options=r.submitted[0];assert.match(options.filename,/\.ts$/);assert.match(options.url,/^blob:/);
+  const options=r.submitted[0];assert.equal(options.filename,'Lesson.ts');assert.match(options.url,/^blob:/);
+  assert.equal(options.conflictAction,'uniquify');
   const response=await fetch(options.url);assert.equal(response.headers.get('content-type'),'video/mp2t');
   assert.deepEqual(new Uint8Array(await response.arrayBuffer()),ts());
   let status=await r.request('media.status',{taskId:receipt.taskId});
@@ -265,9 +392,9 @@ test('HLS defaults to an original TS Blob and only Chrome confirms completion',a
 test('a TS candidate can explicitly request a genuine MP4 while direct files stay original',async()=>{
   const r=streamRig(),d=await r.request('media.detect');
   assert.equal(d.candidates[0].hls.originalTs,true);
-  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id,output:'mp4'});
+  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id,output:'mp4',filename:'Lesson.ts'});
   await until(()=>r.calls===1);
-  const {filename,url}=r.submitted[0];assert.match(filename,/\.mp4$/);
+  const {filename,url}=r.submitted[0];assert.equal(filename,'Lesson.mp4');
   const bytes=new Uint8Array(await (await fetch(url)).arrayBuffer());
   assert.equal(new TextDecoder().decode(bytes.subarray(4,8)),'ftyp');
   r.state({state:'complete',bytesReceived:bytes.length,totalBytes:bytes.length});
@@ -295,10 +422,13 @@ test('an incompatible declared TS audio codec blocks MP4 before any segments are
 test('a failed HLS segment interrupts without calling Chrome or retaining URL metadata in the UI receipt',async()=>{
   const r=streamRig({fetcher:async url=>new Response(url.endsWith('.m3u8')?clearVod:'expired',
     {status:url.endsWith('.m3u8')?200:403})});
-  const d=await r.request('media.detect');assert.ok(!JSON.stringify(d).includes('https://fixture.example'));
+  const d=await r.request('media.detect');
+  assert.equal(d.url,doc().url);
+  assert.equal(JSON.stringify(d.candidates).includes('https://fixture.example'),false);
   const receipt=await r.request('media.start',{candidateId:d.candidates[0].id});
   let status;await until(async()=>{status=await r.request('media.status',{taskId:receipt.taskId});return status.state==='interrupted';});
   assert.equal(status.error,'E_MEDIA_HTTP');assert.equal(r.calls,0);
+  assert.equal(JSON.stringify(status).includes('https://fixture.example'),false);
 });
 test('a master session key cannot be bypassed by clear child playlists',async()=>{
   const master='#EXTM3U\n#EXT-X-SESSION-KEY:METHOD=SAMPLE-AES,KEYFORMAT="com.example",URI="key"\n#EXT-X-STREAM-INF:BANDWIDTH=100000,RESOLUTION=320x180\nmedia.m3u8\n';
@@ -334,7 +464,7 @@ test('fixed discovery keys do not merge players or leak source URLs to the UI',a
 test('unknown native HLS save remains unknown after Stop and blocks replay across invalidation',async()=>{
   const r=streamRig(),d=await r.request('media.detect');
   r.setDownload(async()=>{throw Error('native disconnected');});
-  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id});
+  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id,filename:'Lesson'});
   await until(async()=>(await r.request('media.status',{taskId:receipt.taskId})).state==='unknown');
   assert.equal((await r.request('media.stop',{taskId:receipt.taskId})).state,'unknown');
   r.host.invalidate();

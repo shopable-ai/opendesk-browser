@@ -74,14 +74,26 @@ test('ChatGPT New Chat ignores the dormant transcript and binds first send to th
   const unexpected=turn('current history',active,true);
   win.location.pathname='/';editor.current='first message';
   state.users=[oldUser,unexpected];state.assistants=[oldReply];
-  assert.equal(site.submitFirst(site.inspect()).reason,'新聊天仍显示会话消息；草稿已保留');
+  assert.equal(site.submitDraft(site.inspect()).reason,'新聊天仍显示会话消息；草稿已保留');
   assert.equal(editor.value,'first message');assert.equal(state.clicks,0);
   state.users=[oldUser];
   const before=site.inspect();
-  assert.equal(site.submitFirst(before).ok,true);assert.equal(state.clicks,1);
+  assert.equal(site.submitDraft(before).ok,true);assert.equal(state.clicks,1);
   win.location.pathname='/c/87654321';
   state.users.push(turn('first message',active,true));
-  assert.equal(site.firstAdmission(before,site.inspect()).route,'c/87654321');
+  assert.equal(site.draftAdmission(before,site.inspect()).route,'c/87654321');
+});
+
+test('direct submission rechecks the native composer and button before clicking',()=>{
+  const {site,state,editor,replaceEditor,send}=fixture();
+  editor.current='existing conversation draft';
+  const before=site.inspect();
+  send.disabled=true;
+  assert.match(site.submitDraft(before).reason,/发送按钮不可用/);
+  send.disabled=false;
+  const next=replaceEditor(editor.value);
+  assert.match(site.submitDraft(before).reason,/输入框已变化/);
+  assert.equal(next.value,'existing conversation draft');assert.equal(state.clicks,0);
 });
 
 test('contenteditable writes one exact plaintext paste without touching the clipboard or native blocks',()=>{

@@ -104,6 +104,58 @@ import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUST
 import {admitsTrustedKnowledge,TRUSTED_KNOWLEDGE_ID,TRUSTED_KNOWLEDGE_VERSION} from './trusted-knowledge-admission.js';
 import {normalizeToolUiConfirmOptions,TOOL_UI_CONFIRM_TIMEOUT_MS} from '../sidebar-tools/ui-confirm.js';
 
+const TAB_REVIEW_ACTIONS=new Map([
+  ['browser.tabs.create','打开网页'],['browser.tabs.activateOwned','切换至本工具打开的标签页'],
+  ['browser.tabs.removeOwned','关闭本工具打开的标签页'],['browser.tabs.reloadOwned','重新加载本工具打开的标签页'],
+  ['browser.tabs.navigateOwned','将本工具打开的标签页转到']
+]);
+function browserTabReviewTarget(operation,args,owned){
+  const url=new URL(args.url??owned.url);
+  const action=operation==='browser.tabs.pinOwned'?(args.pinned?'固定':'取消固定')+'本工具打开的标签页':
+    TAB_REVIEW_ACTIONS.get(operation);
+  return action+' '+url.href+'（Origin：'+url.origin+'）';
+}
+
+// The ordinary tabs RPC has an 8-second receipt deadline. A Chrome prompt can
+// outlive it, so review only the Chrome grant here. Only a new call may open a tab.
+export async function requireVideoTabCreateSite({url,tool,consent,requestBrowserClick,assertCurrent,report}){
+  if(!consent)throw Object.assign(new Error('Chrome 网站权限服务不可用'),{code:'E_CHROME_UNSUPPORTED'});
+  const request={origins:[permissionPattern(url)]};
+  const site=await consent.prepare(request);
+  assertCurrent();
+  if(site?.granted)return;
+  if(site){
+    const target=browserTabReviewTarget('browser.tabs.create',{url});
+    void requestBrowserClick({toolId:tool.id,title:'Chrome 网站访问',button:'允许访问此网站',
+      message:'「'+tool.title+'」请求'+target+'。Chrome 权限仅请求该协议和主机。授权后请再次点击打开网页。',
+      run:event=>{
+        assertCurrent();
+        return consent.confirm(event,request);
+      }}).then(()=>report('网站访问已授权，请再次点击打开网页。'),error=>{
+        if(error?.code!=='E_CANCELLED')report('Chrome 网站访问未获授权：'+(error.message||error),true);
+      });
+  }
+  throw Object.assign(new Error('尚未获得目标网站访问权限；没有打开标签页'),{code:'E_SITE_PERMISSION_REVOKED'});
+}
+
+const mediaDocumentChanged=()=>Object.assign(new Error('网页已切换，请重新检测'),{code:'E_DOCUMENT_STALE'});
+export async function resolveOwnedMediaTarget({api,tabRef,target,owner,assertCurrent}){
+  assertCurrent();
+  const {tabId,windowId,frameId,documentId,url,origin}=target;
+  const reply=await api.runtime.sendMessage({...owner,protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
+    operation:'browser.tabs.getOwned',args:{tabRef},
+    mediaDetectDocument:{tabId,windowId,frameId,documentId,url,origin}});
+  assertCurrent();
+  if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'无法确认所属标签页'),{
+    code:reply?.error?.code||'E_BROWSER'});
+  const {verified,tabRef:verifiedRef,expiresAt}=reply.data??{};
+  if(verified!==true||verifiedRef!==tabRef||!Number.isFinite(expiresAt)||Date.now()>=expiresAt)
+    throw mediaDocumentChanged();
+  // Chrome's active-page capture does not carry this property. The private
+  // background proof confirms that the exact owned target is not incognito.
+  return {expiresAt,ownedTarget:{tabRef,target:{...target,incognito:false}}};
+}
+
 // Browser SDK maxRequestBytes is a UTF-8 JSON ARGUMENT budget, not the
 // whole sandbox postMessage. The host adds a bounded envelope separately.
 // Never silently drop a request: the sandbox must receive a definitive error.
@@ -1231,7 +1283,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Page key listeners never receive direct media/Chrome mutation authority.
   let videoShortcutSession=null,videoShortcutBusy=false,videoShortcutEpoch=0,videoShortcutPreferenceOff=false;
   let videoSVIPWatchSession=null;
+  let mediaPageRevision=0;
   const videoDownloader=createVideoDownloaderHost({api,currentPageTarget,fetcher});
+  function assertMediaDocument({target,revision}){
+    const current=currentPageTarget?.snapshot;
+    if(revision!==mediaPageRevision||current?.status!=='available'||
+       !['tabId','windowId','frameId','documentId','url','origin'].every(key=>current[key]===target[key]))
+      throw mediaDocumentChanged();
+  }
   function stopVideoSVIPWatch(){
     const previous=videoSVIPWatchSession;videoSVIPWatchSession=null;
     try{previous?.port?.disconnect();}catch{}
@@ -2546,7 +2605,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       :{status:'unavailable',reasonCode:String(target?.reason||'E_NO_ACTIVE_TAB').slice(0,64),
         message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
   }
-  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportClick=null,directExportPort=null,assertWrite=null,proxyAction=null,observeClick=null,regionRequest=null,importAdmission=null) {
+  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportClick=null,directExportPort=null,assertWrite=null,proxyAction=null,observeClick=null,regionRequest=null,importAdmission=null,ownedMediaCapture=null) {
     importAdmission?.check();
     proxyAction??=proxyActionGate.begin(tool.id,operation);
     proxyAction.assertCurrent();
@@ -2939,7 +2998,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // check, but cross the trusted Chrome host without acquiring a UI lock
     // that would deadlock the host's existing per-tool Web Lock.
     if(operation.startsWith('browser.')){
-      normalizeBrowserOperation(operation,payload);
+      const checked=normalizeBrowserOperation(operation,payload);
       const browserExport=isBrowserTextExport(operation);
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
       if(!isDiscovery&&(!browserOperation(operation)||!browserOperation(operation).requiredCapabilities.every(cap=>tool.capabilities.includes(cap))))
@@ -2959,6 +3018,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(operation==='browser.tabs.create'&&tool.id===MEDIA_ID&&tool.capabilities.includes(MEDIA_CAPABILITY)&&
+         getDisplaySurface()==='sidebar'){
+        const current=()=>sameInstance(source,token)&&active===tool&&visible&&!readOnlyPreview&&
+          frameRevocationEpoch===revocationEpoch&&sidebarToolEnabled(enableRecords,tool.id);
+        await requireVideoTabCreateSite({url:checked.url,tool,consent:pageConsent,requestBrowserClick,
+          assertCurrent:()=>{
+            if(!current())throw Object.assign(new Error('工具界面或安装已变化'),{code:'E_TOOL_CHANGED'});
+          },report:(message,problem)=>{
+            if(!current())return;
+            if(problem)view.showToast(message,{type:'error',position:'bottom-center'});
+            else successNotice(message);
+          }});
+      }
       const exactCookieClear=operation==='browser.cookies.clearSite'&&payload?.scope==='site-exact-host';
       // Exact clear previews and partition reads follow this panel's window.
       // Build this proof here; sandbox arguments cannot select a window or tab.
@@ -3360,8 +3432,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         }else if(needsReview){
           const needsWebRequest=operation==='browser.network.observe.start'&&
             !await api.permissions.contains({permissions:['webRequest']});
+          let reviewedTab;
+          if(operation.startsWith('browser.tabs.')&&checked.tabRef){
+            const owned=await api.runtime.sendMessage({...envelope,operation:'browser.tabs.getOwned',args:{tabRef:checked.tabRef}});
+            if(!owned?.ok)throw Object.assign(new Error(owned?.error?.message||'无法确认本工具打开的标签页'),
+              {code:owned?.error?.code||'E_BROWSER'});
+            reviewedTab=owned.data;
+          }
           assertSession(source,token);
-          const target=operation==='browser.network.observe.start'?'观察已打开标签页内 '+payload.origins[0]+' 的 HTTP 元数据':
+          const target=operation.startsWith('browser.tabs.')?browserTabReviewTarget(operation,checked,reviewedTab):
+            operation==='browser.network.observe.start'?'观察已打开标签页内 '+payload.origins[0]+' 的 HTTP 元数据':
             operation==='browser.network.observe.export'?'导出本工具已停止的网络观察为 JSON 文件':
             operation==='browser.screenshot.captureVisible'?'截取当前可见且已授权的网页，并打开 PNG 保存对话框':
             operation==='browser.bookmarks.remove'?'删除 Chrome 书签或空文件夹 '+payload.id:
@@ -3877,6 +3957,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(regionGeneration!==clipRegionGeneration)throw clipRegionError();
       return requestClipRegion(operation,payload,tool,source,token,revocationEpoch,regionRequest);
     }
+    let ownedMediaProof=null;
+    if(ownedMediaCapture){
+      // The background takes the same per-tool Web Lock as media. Request its
+      // proof before taking that lock here, using only the ingress capture.
+      const {tabRef,target}=ownedMediaCapture;
+      const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
+      const packageHash=await sidebarToolPackageHash(tool);
+      ownedMediaProof=await resolveOwnedMediaTarget({api,tabRef,target,owner:{toolId:tool.id,toolVersion:tool.version,
+        installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId},assertCurrent:()=>{
+          assertSession(source,token);
+          assertMediaDocument(ownedMediaCapture);
+        }});
+    }
     return locked('tool:'+tool.id,async()=>{
       assertSession(source,token);
       await assertSidebarToolEnabled(api,tool.id);
@@ -4089,8 +4182,24 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return runVideoSVIP(operation);
       }
       if(MEDIA_OPERATIONS.includes(operation)){
+        const assertCurrent=()=>{
+          assertSession(source,token);
+          if(ownedMediaCapture){
+            assertMediaDocument(ownedMediaCapture);
+            if(Date.now()>=ownedMediaProof.expiresAt)throw mediaDocumentChanged();
+          }
+        };
+        if(ownedMediaCapture){
+          assertCurrent();
+          const {target}=ownedMediaCapture;
+          if(!await api.permissions?.contains?.({origins:[permissionPattern(target.url)]}))
+            throw Object.assign(new Error('Chrome 网站访问权限已撤销'),{code:'E_SITE_PERMISSION_REVOKED'});
+          await currentPageTarget.revalidate(target);
+          assertCurrent();
+        }
         return videoDownloader.request({tool,operation,payload,
-          assertCurrent:()=>assertSession(source,token),
+          ...(ownedMediaProof?{ownedTarget:ownedMediaProof.ownedTarget}:{}),
+          assertCurrent,
           assertInstalled:async()=>{
             if(!await admittedOfficialVideoDownloader(tool,revocationEpoch))
               throw Object.assign(new Error('视频下载需要有效安装与授权'),{code:'E_MEDIA_TRUST'});
@@ -4540,6 +4649,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(rateExceeded){reply(false,null,new Error(knowledgeOperation(message.operation)?'工具请求过于频繁，请稍后重试':'工具请求过于频繁，请一分钟后重试'));return;}
+    let ownedMediaCapture=null;
+    if(!readOnlyPreview&&message.operation==='media.detect'&&message.payload&&Object.hasOwn(message.payload,'tabRef')){
+      try{
+        if(tool.id!==MEDIA_ID||!tool.capabilities.includes(MEDIA_CAPABILITY)||getDisplaySurface()!=='sidebar')
+          throw Object.assign(new Error('所属标签页的媒体检测需要可信侧栏'),{code:'E_OWNER'});
+        const {tabRef}=normalizeBrowserOperation('browser.tabs.getOwned',message.payload);
+        if(!currentPageTarget?.capture||!currentPageTarget?.revalidate)throw mediaDocumentChanged();
+        ownedMediaCapture={tabRef,target:currentPageTarget.capture(),revision:mediaPageRevision};
+      }catch(error){reply(false,null,error);return;}
+    }
     let regionRequest=null;
     if(message.operation==='clip.region'||message.operation==='clip.region.cancel'){
       try{
@@ -4565,7 +4684,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       checkVideoEnable();
       proxyAction.assertCurrent();
       if(cookieReadCapability)assertCookieReadPage();
-      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportClick,exportPort,null,proxyAction,observeClick,regionRequest,importAdmission);
+      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportClick,exportPort,null,proxyAction,observeClick,regionRequest,importAdmission,ownedMediaCapture);
     });
     const work=importAdmission?Promise.race([pendingWork,importAdmission.expiry]):pendingWork;
     if(message.operation==='storage.set'||message.operation==='clipNotes.setPreference')queued.set(tool.id,work);
@@ -6542,7 +6661,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   if(currentPageTarget?.subscribe){
     // revalidate() intentionally observes the same document before and after a
-    // privileged read. Clipper treats titles as display metadata, but
+    // privileged read. Clipper and Video Downloader treat titles as display metadata, but
     // resolving/unavailable and same-URL reloads still revoke pending work.
     const pageKey=()=>JSON.stringify(['status','windowId','tabId','frameId','documentId','url','origin','reason','navigationStarted']
       .map(key=>currentPageTarget.snapshot?.[key]??null));
@@ -6555,6 +6674,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const priorCookiePage=previousCookiePage;
       const targetChanged=nextPage!==previousPage,title=nextCookiePage.title??null;
       if(!targetChanged&&title===previousTitle)return;
+      if(targetChanged){
+        mediaPageRevision++;
+        videoDownloader.invalidate({pageChanged:true});
+      }
       previousPage=nextPage;previousTitle=title;
       if(!targetChanged&&active?.id==='web-markdown-clipper')return;
       if(nextCookiePage.status==='available')lastConfirmedCookieOrigin=websiteOrigin(nextCookiePage.url);
@@ -6574,7 +6697,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(nativeUI?.kind==='ai-proxy')
         frameRoot.dispatchEvent(new Event('opendesk-page-changed'));
       // A navigated document must never reuse a previous key capability.
-      videoShortcutSession=null;stopVideoSVIPWatch();videoDownloader.invalidate({pageChanged:true});
+      videoShortcutSession=null;stopVideoSVIPWatch();
        cookieImportGate.revoke();
        cookieWriteGate.revoke();
        cookieClearGate.revoke();
@@ -6582,8 +6705,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        // export click; the Host still checks Origin, grant epoch and receipt.
        if(cookieTransition!=='sync')cookieExportGate.revoke();
        // Cookie Editor reconciles the same-document path without clearing UI.
-       // Every other tool continues receiving its original page-changed.
-      if(frame&&active&&instance)frame.contentWindow?.postMessage({
+       // A title change alone must not clear Video Downloader's candidates.
+      if(frame&&active&&instance&&(targetChanged||active.id!==MEDIA_ID))frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,
         kind:cookieTransition==='pending'?'cookie-page-pending':
           cookieTransition==='sync'?'cookie-path-changed':'page-changed',

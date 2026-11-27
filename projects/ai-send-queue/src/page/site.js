@@ -469,16 +469,24 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     catch {return {ok:false,stage:'after-click',reason:'原生发送点击结果未知'};}
     return {ok:true,before:token.before};
   }
-  function submitFirst(initial) {
+  function draftReady(snapshot) {
+    return snapshot.ok && snapshot.idle && !snapshot.busy &&
+      (!snapshot.users.length || snapshot.history.at(-1)!==snapshot.users.at(-1));
+  }
+  function submitDraft(initial) {
     const fresh=inspect();
     const reject=reason=>({ok:false,stage:'before-click',reason:reason+'；草稿已保留'});
-    if(profile!==chatgpt||win.location.pathname!=='/'||!initial?.ok||initial.route!==null||
-      !fresh.ok||fresh.route!==null||fresh.form!==initial.form||fresh.editor!==initial.editor||
-      fresh.draft!==initial.draft||!normal(fresh.draft))return reject('新聊天或输入框已变化');
-    if(initial.history.length||fresh.history.length)return reject('新聊天仍显示会话消息');
+    if(!initial?.ok||!fresh.ok||fresh.route!==initial.route||
+      fresh.form!==initial.form||fresh.editor!==initial.editor||fresh.draft!==initial.draft)
+      return reject('对话或输入框已变化');
+    if(!normal(fresh.draft))return reject('原生草稿为空');
+    if(fresh.route===null){
+      if(profile!==chatgpt||win.location.pathname!=='/')return reject('请先建立对话');
+      if(initial.history.length||fresh.history.length)return reject('新聊天仍显示会话消息');
+    }else if(!sameHistory(initial,fresh))return reject('对话记录已变化');
     if(fresh.rich)return reject('当前草稿包含附件或富内容');
     if(fresh.composing)return reject('请先完成输入法编辑');
-    if(fresh.busy||!fresh.idle)return reject('ChatGPT 正在处理请求');
+    if(!draftReady(fresh))return reject('网站正在处理请求或上一条回复尚未确认完成');
     if(!fresh.sendButton||
       fresh.sendButton!==initial.sendButton||disabled(fresh.sendButton))
       return reject('当前输入框的发送按钮不可用');
@@ -486,7 +494,8 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     catch{return {ok:false,stage:'after-click'};}
     return {ok:true};
   }
-  function firstAdmission(before,snapshot) {
+  function draftAdmission(before,snapshot) {
+    if(before.route)return confirm(before,before.draft,snapshot)?before:null;
     if(profile!==chatgpt||before.route!==null||!snapshot.ok||!snapshot.route||
       !/^\/c\/[a-z0-9-]{8,}\/?$/i.test(win.location.pathname)||
       snapshot.history[0]!==snapshot.users[0]||
@@ -566,5 +575,5 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
       disabled(fresh.stopButton)) return false;
     try { fresh.stopButton.click(); interrupted=fresh; return true; } catch { return false; }
   }
-  return Object.freeze({inspect,currentRoute:()=>profile.routeFor(win,allowHome),clearForQueue,restore,reclaimToComposer,prepare,commit,submitFirst,firstAdmission,canReclaimPrepared,confirm,confirmationIssue,sameHistory,replyComplete,stop,normal});
+  return Object.freeze({inspect,currentRoute:()=>profile.routeFor(win,allowHome),clearForQueue,restore,reclaimToComposer,prepare,commit,draftReady,submitDraft,draftAdmission,canReclaimPrepared,confirm,confirmationIssue,sameHistory,replyComplete,stop,normal});
 }

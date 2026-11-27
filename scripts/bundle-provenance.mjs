@@ -41,15 +41,18 @@ const packagedTaskInputs=Object.freeze({
 // 2026-11-25 review: the fixed Page status reports the existing 1.0.0 package version.
 // 2026-11-26 review: an empty composer crown click checks the existing queue.
 // 2026-11-26 review: ChatGPT home submits the native first draft once; receipts gate the queue.
+// 2026-11-27 review: preserve the checked-in recovery editor and accept verified ChatGPT draft handoffs.
+// Idle crowns submit the native draft in place and keep the admission gate for later queue items.
+// Background wakeups reuse the current document grant and stable composer checks.
 const compiledSendQueueInputs=Object.freeze({
   'projects/ai-send-queue/assets/crown-premium.webp':'46ea350497498f7854fcecc9c31b0593081c7e68',
-  'projects/ai-send-queue/assets/queue.css':'1fa86786d10ad0af341eda9509bcb2cba8d5c8b3',
+  'projects/ai-send-queue/assets/queue.css':'93eabb05e7ef5dc9a3f02101770822031d0cfded',
   'projects/ai-send-queue/src/page/cache.js':'6b3845894d3de10a31d525236ae6d060613cc035',
-  'projects/ai-send-queue/src/page/engine.js':'22708032ce5d4f65add426d6ccb46944002b15ab',
-  'projects/ai-send-queue/src/page/main.js':'16b71e6c62514e22d38f53e458270157461196b1',
-  'projects/ai-send-queue/src/page/site.js':'29f691bda4a30c8d9dbd0c952c1f284a8adea8a8',
+  'projects/ai-send-queue/src/page/engine.js':'b13bd4638af81f4156b0e42166a662e18b461cac',
+  'projects/ai-send-queue/src/page/main.js':'8dfd8193c355cfd5ece90bf6d5bc08e56520ef86',
+  'projects/ai-send-queue/src/page/site.js':'e4d7f85afcf38aba4c68a8f58002a67273408ba7',
   'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
-  'projects/ai-send-queue/src/page/view.js':'607f44e6b11d26fcd5b948aae22bc890d6b600d4',
+  'projects/ai-send-queue/src/page/view.js':'9052b22444bd19fe00f254988971b43eccff52f1',
   'projects/ai-send-queue/trusted/fixed-page.js':'f777652963c87a78c50d8032c272a64e78c63497'
 });
 function reviewedCompiledSendQueue(target,path,root){
@@ -339,12 +342,14 @@ function reviewedCompiledVideoSVIP(target,path,root){
 // no observers, persistent URL collection, or new executable target is admitted.
 // R0.4.1 persists the two-value output preference and routes each user click;
 // packaging still runs only on a supported, unencrypted and authorized stream.
+// R1 binds batch detection to a verified owned Document and sanitizes the
+// optional filename before the existing single native save.
 const compiledVideoDownloaderInputs=Object.freeze({
-  'projects/video-downloader/trusted/policy.js':'03f0f0ce3cec6d325a7c00e58f91e78d74670790',
+  'projects/video-downloader/trusted/policy.js':'13ac2cab000a16c4da042df3a331319dfea21654',
   'projects/video-downloader/trusted/hls.js':'e3eaebc20fc3dffb0884ef14d2f61164e7099ea0',
   'projects/video-downloader/trusted/stream.js':'5bf116cf389bc31e55b544823aee437ad246f178',
   'projects/video-downloader/trusted/discovery.js':'0bcda0001050402d9775485321835a4023cfede1',
-  'projects/video-downloader/trusted/host.js':'03a95005e5d80d045e0080a3b96eafa24e60415c',
+  'projects/video-downloader/trusted/host.js':'52042691bb6a2ad90f287069db7af954109d7611',
   'projects/video-downloader/trusted/admission.js':'9ff692570de52587d910adb3e8c526188f01b276',
   'projects/video-downloader/trusted/remux.js':'5fd2096bff70f909cd3be0406d214ff736c708a6',
   'projects/video-downloader/trusted/vendor/mux-transmuxer.js':'4c49d31aa7936c774f3c2d73e1bd2aa283dce7ae'
