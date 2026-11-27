@@ -1,59 +1,46 @@
-import {readTocPlacement,tocViewport as rawTocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';
+import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';
 import readingTocCatalog from './locales.generated.js';
 import {uiMessage,resolveUiLocale} from '../src/page/localization.js';
 
 // Fixed vertical anchor on the header row, independent of variable outline height.
 const EDGE_TOP=5;
-// Preserve the compact edge layout. This small guard avoids flush-edge hit
-// targets; it is not a claim that every overlay scrollbar is 8px wide.
-// Keep classic scrollbar width outside the geometry rather than adding it twice.
-const EDGE_SCROLL_GUARD=8;
-export function readingTocSafeViewport(win){
-  const viewport=rawTocViewport(win);
-  // Classic scrollbars may be excluded from visualViewport already. Clamp to
-  // the layout client width rather than subtracting their width a second time.
-  const clientWidth=win.document?.documentElement?.clientWidth;
-  const width=Number.isFinite(clientWidth)&&clientWidth>0
-    ?Math.min(viewport.width,Math.max(0,clientWidth-viewport.left)):viewport.width;
-  const inset=Math.min(EDGE_SCROLL_GUARD,width/10);
-  return {...viewport,left:viewport.left+inset,width:Math.max(0,width-2*inset)};
-}
-const tocViewport=readingTocSafeViewport;
+// Keep the original card width and right gutter. Only the edge tab may
+// protrude into that gutter; its clickable area must clear the toolbar.
 // Shared compact view delivered by the application's USER_SCRIPT module.
 // No untrusted website text is parsed as markup.
 const CSS=[
-`:host{all:initial;position:fixed;--toc-scroll-guard:min(${EDGE_SCROLL_GUARD}px,10vw);--toc-edge-gap:12px;right:calc(var(--toc-edge-gap) + var(--toc-scroll-guard));top:clamp(90px,15vh,190px);width:254px;max-width:calc(100% - 24px - var(--toc-scroll-guard) - var(--toc-scroll-guard));z-index:2147483000;pointer-events:none;`,
+':host{all:initial;position:fixed;right:12px;top:clamp(90px,15vh,190px);width:254px;max-width:calc(100vw - 24px);z-index:2147483000;--toc-edge-gap:12px;',
 'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20222b;font-size:13px;line-height:1.45}',
 '*{box-sizing:border-box}button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid #426cff;outline-offset:2px}',
-'.panel{pointer-events:auto;background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
+'.panel{background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
 ":host([data-toc-collapsed]){width:38px!important;max-width:38px!important;height:46px!important;transition:none!important}",
 ":host([data-toc-collapsed]) .panel{display:none!important}",
 // Paint the expanding edge tab above every panel control, including .modes.
-`.edge-toggle{position:absolute;right:calc(-1 * var(--toc-edge-gap));top:${EDGE_TOP}px;transform:none;z-index:3;display:grid;place-items:center;width:20px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation;pointer-events:auto}`,
+`.edge-toggle{position:absolute;right:calc(-1 * var(--toc-edge-gap));top:${EDGE_TOP}px;transform:none;z-index:3;display:grid;place-items:center;width:20px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
 ".edge-skin{position:absolute;right:0;left:auto;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:calc(-1 * var(--toc-edge-gap));right:auto}",
 ":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
 // Keep the four toolbar buttons in their original right-aligned position.
 // Expanded mode uses a narrow 20px click target outside the card; the visible
 // tab alone grows to 38px on hover/focus, with pointer-events:none, so it never
-// steals a mode click. Collapsed mode expands its actual target with its skin.
+// steals a mode click. Collapsed mode keeps the easy 38x46px target.
 ":host([data-toc-collapsed][data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ".edge-toggle svg{width:14px;height:14px;opacity:1;pointer-events:none}",
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
-":host([data-toc-collapsed]) .edge-toggle .edge-skin{width:100%;transition:background .14s ease}",
-":host([data-toc-collapsed]) .edge-toggle:hover,:host([data-toc-collapsed]) .edge-toggle:focus-visible{width:38px}",
+":host([data-toc-collapsed]) .edge-toggle:hover .edge-skin,:host([data-toc-collapsed]) .edge-toggle:focus-visible .edge-skin{width:38px}",
 ".edge-toggle:hover,.edge-toggle:focus-visible{color:#404854}",
 ".edge-toggle:focus-visible{outline-width:3px;border-radius:9px}",
-":host([data-toc-collapsed]) .edge-toggle{top:0;right:0;left:auto;width:20px;transform:none}",
-// Touch devices have no hover affordance, so show the full target.
-"@media(hover:none){:host([data-toc-collapsed]) .edge-toggle{width:38px}}", 
+":host([data-toc-collapsed]) .edge-toggle{top:0;right:0;left:auto;width:38px;transform:none}",
+// Collapsed mode retains the larger click target, and touch has no hover
+// affordance, so show the entire target on touch devices.
+"@media(hover:none){:host([data-toc-collapsed]) .edge-toggle .edge-skin{width:38px}}", 
 "@media(prefers-color-scheme:dark){.edge-toggle{color:#c4c9d4}.edge-skin{background:#2f323a;border-color:#4b505b}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#393e47}.edge-toggle:hover,.edge-toggle:focus-visible{color:#e5e7eb}:host([data-toc-edge=left]) .edge-skin,:host([data-toc-collapsed]) .edge-skin{border-color:#4b505b}}",
 ':host([hidden]){display:none!important}',
 '.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
 'background:transparent;color:inherit;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;flex:0 1 auto;overflow:hidden}',
 '.grab:active{cursor:grabbing}.grab svg{width:13px;height:13px;flex:none;color:#8b90a1}',
-':host([data-toc-custom]){--toc-edge-gap:8px;transition:left .16s ease,top .16s ease}',
+':host([data-toc-custom]){transition:left .16s ease,top .16s ease}',
 ':host([data-toc-dragging]){transition:none!important}',
 ':host([data-toc-dragging]) .panel{box-shadow:0 9px 25px #1018272b}',
 '.heading{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:650;letter-spacing:.045em;color:#727685}',
@@ -94,15 +81,15 @@ const CSS=[
 '.ai-member-copy,.ai-member-status{color:#abb8d0}',
 '.ai-member-tag,.ai-member-disclaimer,.ai-promo-brand,.ai-promo-kind,.ai-promo-copy{color:#9aa8be}',
 '.ai-promo{background:#1b1c24;border-color:#383a48}}',
-'@media(max-width:1100px){:host{top:clamp(90px,15vh,190px);width:220px;max-width:calc(100% - 16px - var(--toc-scroll-guard) - var(--toc-scroll-guard));opacity:.95;--toc-edge-gap:8px}.heading{font-size:11px}}',
-'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;width:254px;opacity:.94}.mode{width:24px}}',
+'@media(max-width:1100px){:host{right:8px;top:clamp(90px,15vh,190px);width:220px;opacity:.95;--toc-edge-gap:8px}.heading{font-size:11px}}',
+'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}.mode{width:24px}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');
 const EDGE_SIZE=Object.freeze({width:38,height:46});
 // Keep the deliberately free-floating placement intact. Edge docking applies
 // only to default or user-snapped left/right positions, not an arbitrary drag.
 const edgeDocked=placement=>!placement||placement.dock==='left'||placement.dock==='right';
-export function foldPoint(left,top,side,placement,viewport){
+function foldPoint(left,top,side,placement,viewport){
   const point=tocClampPoint(left,top,EDGE_SIZE,viewport);
   if(edgeDocked(placement))point.left=side==='right'
     ?viewport.left+Math.max(0,viewport.width-EDGE_SIZE.width):viewport.left;
@@ -310,8 +297,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
         leftGap:rect.left-viewport.left,
         rightGap:viewport.left+viewport.width-rect.right};
       // Preserve the ACTUAL visible trigger location through the transition,
-      // including custom placement and responsive gutter changes. The viewport
-      // includes the compact edge guard in the folded state.
+      // including custom placement and responsive gutter changes.
       const toggleRect=edgeToggle.getBoundingClientRect();
       const point=foldPoint(
         edgeSide==='right'?toggleRect.right-EDGE_SIZE.width:toggleRect.left,
