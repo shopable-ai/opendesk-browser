@@ -88,8 +88,11 @@
   let time=0;
   let view;
   const engine=createQueueEngine({site,clock:()=>time,change:()=>view?.render(site.inspect())});
-  if(!fifoMode)for(let i=0;i<4;i++){engine.enqueue('完整队列正文🙂 '+i,site.inspect().route);engine.pause('q'+(i+1));}
-  view=createQueueView({owner,createPageUI,assets:[],engine,trustedActions:true,actions:{
+  const infoMode=params.has('info');
+  const noticeRoute=site.inspect().route,backup='  第一行🙂\n\n最后一行  \n';
+  if(!fifoMode&&!infoMode)for(let i=0;i<4;i++){engine.enqueue('完整队列正文🙂 '+i,site.inspect().route);engine.pause('q'+(i+1));}
+  view=createQueueView({owner,createPageUI,assets:[],engine,trustedActions:true,
+    ...(infoMode?{currentRoute:()=>({route:site.inspect().route}),getNoticeRoute:()=>noticeRoute}:{}),actions:{
     enqueue({paused}){
       const snap=site.inspect(),taken=site.clearForQueue(snap);
       if(taken.ok)engine.enqueue(taken.text,snap.route,{paused});
@@ -190,6 +193,18 @@
     fit:()=>view.place(site.inspect()),
     clear:()=>view.hide(),
     state:()=>({queue:engine.view().items.map(({text,state})=>({text,state})),draft:site.inspect().draft,sendClicks:clicks})
+  };
+  if(infoMode)window.infoFixture={
+    backup,
+    addRow(){engine.enqueue('待发示例',noticeRoute,{paused:true});view.render(site.inspect());},
+    recover(){view.offerRecovery(backup,'草稿尚待核对。');view.render(site.inspect());},
+    acceptClipboard(){Object.defineProperty(navigator.clipboard,'writeText',{
+      configurable:true,value:async text=>{this.copied=text;}});},
+    rejectClipboard(){Object.defineProperty(navigator.clipboard,'writeText',{
+      configurable:true,value:()=>Promise.reject(new DOMException('Denied','NotAllowedError'))});},
+    changeRoute(){win.location.pathname='/c/fixture-other';view.render(site.inspect());},
+    restoreRoute(){win.location.pathname='/'+noticeRoute;view.render(site.inspect());},
+    recovering:()=>view.hasRecovery()
   };
   window.fixtureReady=true;
 </script>

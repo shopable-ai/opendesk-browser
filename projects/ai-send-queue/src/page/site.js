@@ -50,7 +50,6 @@ function matchesReplyHistory(before,snapshot,requireRoleAnchor) {
 function editorText(editor) {
   if(typeof editor?.value==='string')return editor.value;
   if(editor?.isContentEditable && editor.childNodes){
-    // Serialize logical line breaks, ignoring only empty-block/caret placeholders.
     const read=node=>{
       if(node.nodeType===3)return node.nodeValue??node.textContent??'';
       if(node.nodeName==='BR')return node.classList?.contains('ProseMirror-trailingBreak')?'':'\n';
@@ -96,16 +95,15 @@ function streaming(root) {
   const turn = root.closest('[data-talvt-turn-state]') || root;
   return (turn.hasAttribute('data-talvt-turn-state') && turn.getAttribute('data-talvt-turn-state') !== 'complete') || explicitStreaming(root);
 }
+const streamingSignals='[data-is-streaming="true"],[aria-busy="true"],.result-streaming';
 function explicitStreaming(root) {
-  return Boolean(root?.matches('[data-is-streaming="true"],[aria-busy="true"],.result-streaming') ||
-    root?.querySelector('[data-is-streaming="true"],[aria-busy="true"],.result-streaming'));
+  return Boolean(root?.matches(streamingSignals) || root?.querySelector(streamingSignals));
 }
 const chatgpt = Object.freeze({
   routeFor, editors:EDITOR, users:USER, assistants:ASSISTANT, attachments:ATTACHMENTS,
   composer:editor=>editor.closest('form'), controlRole:role, messageText, assistantCompleted, streaming,
   ownsHistoryNode(node,win){
-    // New Chat can leave the previous transcript mounted with no layout box.
-    // A message outside that known transcript surface still counts as history.
+    // Scope out only the known hidden transcript left by New Chat.
     const transcript=node.closest?.('[data-rail-chat-transcript]');
     return !transcript||visible(transcript,win)||visible(node,win);
   },
@@ -138,12 +136,15 @@ const geminiCopy='button.copy-button,button[aria-label="Copy"],button[aria-label
 const geminiAttachments='file-preview,file-carousel,attachment-preview,attachments-preview,'+
   '[data-test-id="file-preview"],[data-test-id="attachment-preview"],'+
   '[data-attachment-id],[data-file-id],img[src^="blob:"],img[src^="data:"]';
-function geminiStoppedBody(reply,win,user,historyRoot,body) {
+function geminiOwnReply(reply,win,user,historyRoot) {
   const turn=user?.parentElement;
-  if(!body?.textContent.trim()||!visible(body,win)||!turn?.matches('div.conversation-container')||
-    !/^[a-f0-9]{16}$/i.test(turn.id)||reply.parentElement!==turn||user.nextElementSibling!==reply||
-    !visible(user,win)||reply.closest(geminiHidden)||reply.querySelector('model-response,user-query')||
-    historyRoot.querySelectorAll('div.conversation-container[id="'+turn.id+'"]').length!==1)return null;
+  return turn?.matches('div.conversation-container')&&/^[a-f0-9]{16}$/i.test(turn.id)&&
+    reply.parentElement===turn&&user.nextElementSibling===reply&&visible(user,win)&&
+    historyRoot.querySelectorAll('div.conversation-container[id="'+turn.id+'"]').length===1;
+}
+function geminiStoppedBody(reply,win,user,historyRoot,body) {
+  if(!body?.textContent.trim()||!visible(body,win)||!geminiOwnReply(reply,win,user,historyRoot)||
+    reply.closest(geminiHidden)||reply.querySelector('model-response,user-query'))return null;
   const status=one([...reply.querySelectorAll(
     '.response-content > div.response-footer.gap.complete > response-info-line[role="status"]')]);
   return status&&!status.closest('message-content,'+geminiHidden)&&visible(status,win)&&
@@ -184,7 +185,6 @@ const gemini=Object.freeze({
       .filter(el=>el.closest('user-query')===root&&!el.closest(geminiHidden)));
     if(!text)return null;
     const children=[...text.children];
-    // Strip Gemini's screen reader heading and one template space per side.
     const padded=children[0]?.matches('h5.cdk-visually-hidden.screen-reader-user-query-label')===true;
     const lines=padded?children.slice(1):children;
     if(padded&&!lines.length)return null;
@@ -196,8 +196,7 @@ const gemini=Object.freeze({
     return values.map(value=>padded?value.slice(1,-1):value).join('\n');
   },
   admissionIssue(user,snapshot){
-    // Gemini replaces the optimistic turn and user node when the service
-    // assigns a response ID. Never anchor the reply gate to the temporary node.
+    // Gemini replaces optimistic turns; pin only the service response ID.
     const turn=user.parentElement;
     if(!turn?.matches('div.conversation-container')||!/^[a-f0-9]{16}$/i.test(turn.id)||
       snapshot.users.some(other=>other!==user&&other.parentElement?.id===turn.id))
@@ -205,7 +204,8 @@ const gemini=Object.freeze({
     return null;
   },
   assistantCompleted(root,win,user,historyRoot){
-    if(!root||root.closest(geminiHidden)||root.querySelector('model-response,user-query'))return false;
+    if(!root||root.closest(geminiHidden)||root.querySelector('model-response,user-query')||
+      !geminiOwnReply(root,win,user,historyRoot))return false;
     const body=geminiBody(root);
     if(geminiStoppedBody(root,win,user,historyRoot,body))return true;
     const actions=one([...root.querySelectorAll('message-actions')].filter(el=>!el.closest(geminiHidden)));
@@ -217,9 +217,8 @@ const gemini=Object.freeze({
     if(!explicitStreaming(root))return false;
     const body=geminiStoppedBody(root,win,user,historyRoot,geminiBody(root));
     if(!body)return true;
-    // Gemini can leave stale aria-busy after Stop; other streaming signals still veto.
-    const signals='[data-is-streaming="true"],[aria-busy="true"],.result-streaming';
-    return root.matches(signals)||[...root.querySelectorAll(signals)].some(el=>
+    // After Stop only the stale aria-busy may be ignored.
+    return root.matches(streamingSignals)||[...root.querySelectorAll(streamingSignals)].some(el=>
       el!==body||el.matches('[data-is-streaming="true"],.result-streaming'));
   },
   requiresTrailingReply:true,
@@ -252,7 +251,6 @@ const deepSeek=Object.freeze({
     .filter(el=>visible(el,win))),
   ownsComposer:(list,form)=>!list.contains(form)&&list.closest('#root')===form.closest('#root'),
   controlSelector:deepSeekControl,requiresKnownControl:true,requiresTrailingReply:true,requiresSendForIdle:true,
-  // The virtual list can detach the only old user while its reply stays mounted.
   allowDetachedRolePrefixes:true,
   placement(button){
     return {toolbar:button?.closest('.bf38813a'),controls:'button,[role="button"]'};
@@ -282,7 +280,10 @@ const deepSeek=Object.freeze({
       .filter(el=>visible(el,win)&&deepSeekPath(el,'0 0 16 16','M6.14929 4.02032')));
     return !!copy&&!copy.classList.contains('ds-button--disabled')&&copy.getAttribute('aria-disabled')!=='true';
   },
-  streaming:explicitStreaming,
+  streaming(body){
+    return explicitStreaming(body)||body?.parentElement?.matches(streamingSignals)||
+      body?.parentElement?.parentElement?.matches(streamingSignals);
+  },
   unsupported:'只支持 DeepSeek 新对话或已有对话'
 });
 export const createDeepSeekSite=options=>createConversationSite(deepSeek,options);
@@ -330,7 +331,7 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     const history = findHistory(historySelector)
       .filter(el=>!el.parentElement?.closest(historySelector));
     const last = assistants.at(-1) || null;
-    // Override ChatGPT's stale turn marker only with a local stop receipt and unchanged history.
+    // Require the local Stop receipt and unchanged history.
     const nativeIdle=!!sendButton || !!profile.stoppedIdleControls &&
       nearby.some(el=>el.matches(profile.stoppedIdleControls));
     const stopped=profile.allowLocalStopReceipt && !!interrupted && interrupted.route===route && !stopButton && nativeIdle &&
@@ -375,11 +376,10 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
       if(text&&profile.insertText){
         if(!profile.insertText(doc,text))return false;
       }else if(text){
-        // Use site-local paste: long multiline insertText can stall ChatGPT.
+        // Long insertText can stall ChatGPT.
         if(typeof win.DataTransfer!=='function'||typeof win.ClipboardEvent!=='function')return false;
         const clipboardData=new win.DataTransfer();clipboardData.setData('text/plain',text);
         editor.dispatchEvent(new win.ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData}));
-        // Ambiguous paste stops the caller with the full source preserved.
       }else if(!doc.execCommand('delete',false,null))return false;
     } else return false;
     return editorText(editor) === text;
@@ -482,7 +482,6 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
     if(!fresh.sendButton||
       fresh.sendButton!==initial.sendButton||disabled(fresh.sendButton))
       return reject('当前输入框的发送按钮不可用');
-    // Send the native draft in place.
     try{fresh.sendButton.click();}
     catch{return {ok:false,stage:'after-click'};}
     return {ok:true};
@@ -567,5 +566,5 @@ export function createConversationSite(profile,{doc=document,win=window,isCompos
       disabled(fresh.stopButton)) return false;
     try { fresh.stopButton.click(); interrupted=fresh; return true; } catch { return false; }
   }
-  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,submitFirst,firstAdmission,canReclaimPrepared,confirm,confirmationIssue,sameHistory,replyComplete,stop,normal});
+  return Object.freeze({inspect,currentRoute:()=>profile.routeFor(win,allowHome),clearForQueue,restore,reclaimToComposer,prepare,commit,submitFirst,firstAdmission,canReclaimPrepared,confirm,confirmationIssue,sameHistory,replyComplete,stop,normal});
 }

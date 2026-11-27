@@ -47,12 +47,16 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       observed:{users:[...snap.users],assistants:[...snap.assistants],history:snap.history?.slice()}};
   }
   function answerReady(snap) {
-    // Pin observed history through reply completion.
     const previous=state.answerGate.observed?.history?.at(-1);
     const verified=typeof site.replyComplete==='function' &&
       site.replyComplete(state.answerGate.before,state.answerGate.confirmedUser,snap,state.answerGate)===true;
     if(previous && previous!==state.answerGate.observed?.history?.at(-1))idleSince=null;
     return !snap.busy && snap.idle && snap.answerComplete && verified;
+  }
+  function replyPending(snap) {
+    // An earlier answer cannot release the latest user turn.
+    const user=snap.users.at(-1);
+    return !!user&&snap.history?.at(-1)===user;
   }
   function uncertain(id,reason,before) {
     const item=items.find(v=>v.id===id);
@@ -111,7 +115,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(i<0||toIndex<0||toIndex>=items.length||state.inFlight?.item===items[i])return false;
     const [item]=items.splice(i,1);items.splice(toIndex,0,item);idleSince=null;emit();return true;
   }
-  // Reclaim returns a draft without sending.
   function reclaim(id) {
     const item=items.find(v=>v.id===id);
     if(!item || state.inFlight ||
@@ -119,7 +122,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       item.state==='confirmed')return false;
     return remove(id);
   }
-  // Reclaim in place only before any possible click.
   function reclaimPrepared(id) {
     const flight=state.inFlight;
     if(!flight || flight.item.id!==id || flight.phase!=='unknown' ||
@@ -131,8 +133,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(!items.length&&!state.answerGate)state.route=null;
     emit();return true;
   }
-  // A trusted native button/key attempt owns the send from now on. It need
-  // not have a visible receipt yet, and cannot authorize a second click.
+  // A trusted native send attempt vetoes the queue click, even without a receipt.
   function observeNativeAttempt(snap) {
     const flight=state.inFlight,token=flight?.token;
     if(!token||flight.clickAttempted||!['await-native-ready','unknown'].includes(flight.phase)||
@@ -140,12 +141,9 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     flight.clickAttempted=true;
     if(flight.phase==='await-native-ready')
       state.inFlight={item:flight.item,phase:'await-confirm',started:clock(),before:token.before,clickAttempted:true};
-    // Render on the next poll, after the native handler.
     nativeAttemptChanged=true;return true;
   }
-  // Called only after main observes a paired trusted beforeinput/input change.
-  // Editing the draft we placed takes it back; a clicked/foreign draft cannot
-  // cancel an uncertain send. No changed text is authorized for automatic send.
+  // A trusted edit reclaims only a prepared draft; it cannot cancel an uncertain send.
   function reclaimEditedPrepared(id,before,after) {
     const flight=state.inFlight;
     if(!flight||flight.item.id!==id||!['await-native-ready','unknown'].includes(flight.phase)||
@@ -168,7 +166,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     flight.item.state='confirmed';state.lastConfirmed=flight.item.id;
     items.splice(items.indexOf(flight.item),1);state.inFlight=null;
     state.phase='waiting';state.reason='';state.forceId=null;
-    // A delayed acknowledgement proves admission, not reply completion.
     state.answerGate=newAnswerGate(before,snap);
     idleSince=null;emit();return true;
   }
@@ -214,7 +211,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     let stopped=false;
     try{stopped=site.stop(snap);}catch{/* A throwing click may already have taken effect. */}
     if(stopped!==true){markUnknown('停止动作结果未知，请核对原对话后删除该条');return false;}
-    // Keep the flight installed while reordering, including during change callbacks.
     items.splice(items.indexOf(item),1);items.unshift(item);
     item.state='waiting';
     state.phase='waiting';state.forceId=item.id;state.reason='';idleSince=null;emit();return true;
@@ -249,7 +245,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(nativeAttemptChanged){nativeAttemptChanged=false;emit();}
     if(!items.length && !state.answerGate)return;
     const snap=site.inspect();
-    // Accept late receipts, including after a timeout.
     if(['await-native-ready','await-confirm','unknown'].includes(state.inFlight?.phase) &&
       confirmFlight(snap))return;
     if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
@@ -259,9 +254,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
         snap.route!==state.route?'等待返回原对话':!canSubmit?submitBlockReason:null;
       if(blocked)state.inFlight.readinessReason='原生就绪检查被阻止：'+blocked;
     }
-    // Deadlines survive navigation or a lost composer.
     if(state.inFlight?.phase==='await-stop' && t-state.inFlight.started>STOP_MS){
-      // Stop timeout pauses the untouched row; the reply gate still applies.
       state.inFlight.item.state='paused';state.inFlight=null;state.forceId=null;
       state.phase='waiting';state.reason='停止后网页尚未就绪，此条已暂停，可取回编辑或恢复';
       idleSince=null;emit();return;
@@ -270,7 +263,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       const detail=state.inFlight.readinessReason||'未取得下一轮原生就绪检查';
       markUnknown(detail+'；填入后的发送状态未知，请核对原对话和草稿后删除该条');return;
     }
-    // Lost page access cannot turn an already-clicked send into an unsent item.
+    // Loss of page access never permits replay.
     if(state.inFlight?.phase==='await-confirm' &&
       (!snap.ok || snap.route!==state.route) && t-state.inFlight.started>ACK_MS){
       markUnknown('未能确认用户消息入站，禁止重复点击');return;
@@ -278,12 +271,11 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(!snap.ok){wait(snap.reason||'原生控件暂不可用');return;}
     if(state.route && snap.route!==state.route){wait('等待返回原对话，队列不会跨会话发送');return;}
     if(state.inFlight?.phase==='await-stop') {
-      // Stop does not waive the exact history/latest-user proof for our prior send.
       if(state.answerGate && !answerReady(snap)){
         wait(state.answerGate.historyInvalid?REPLY_HISTORY_CHANGED:'');return;
       }
       if(!canSubmit){idleSince=null;return;}
-      if(snap.busy||!snap.idle){idleSince=null;return;}
+      if(snap.busy||!snap.idle||replyPending(snap)){idleSince=null;return;}
       if(snap.rich || snap.composing || snap.draft!==''){idleSince=null;return;}
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
@@ -333,7 +325,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     const eligible=current();
     if(!eligible){idleSince=null;return;}
     if(!canSubmit){wait(submitBlockReason);return;}
-    if(snap.busy || !snap.idle || (snap.assistants.length>0&&!snap.answerComplete) || snap.rich || snap.composing || snap.draft!=='') {
+    if(snap.busy || !snap.idle || replyPending(snap) || (snap.assistants.length>0&&!snap.answerComplete) ||
+      snap.rich || snap.composing || snap.draft!=='') {
       const draftReason=site.normal(snap.draft)?'':
         '输入框有空白字符，清空后队列会自动继续';
       const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?draftReason:'';

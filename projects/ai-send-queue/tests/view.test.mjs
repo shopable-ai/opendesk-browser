@@ -31,8 +31,9 @@ class Node {
   setAttribute(key,value){this.attributes[key]=value;}
   getAttribute(key){return this.attributes[key];}
   closest(){return null;}
+  querySelector(selector){return this.querySelectorAll(selector)[0]??null;}
   querySelectorAll(selector){return this.children.flatMap(child=>[
-    ...(selector==='button'||selector==='textarea'?child.tagName===selector:selector==='[data-id-row]'?
+    ...(selector==='button'||selector==='textarea'?child.tagName===selector:selector==='.sq-rows'?child.className==='sq-rows':selector==='[data-id-row]'?
       !!child.dataset.idRow:selector==='[data-action]'?!!child.dataset.action:false)?[child]:[],
     ...child.querySelectorAll(selector)]);}
   getBoundingClientRect(){return this.measure?.()||rect(0,0,0,0);}
@@ -40,7 +41,7 @@ class Node {
   get offsetHeight(){return Math.round(this.getBoundingClientRect().height);}
 }
 function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false,assetRecords,scrollOffset=null,
-  sharedToast=false,backupText='  queued original\n🙂  ',currentRoute=null,nativeWidth=34,nativeHeight=34}={}){
+  sharedToast=false,getNoticeRoute,backupText='  queued original\n🙂  ',currentRoute=null,nativeWidth=34,nativeHeight=34}={}){
   const doc={defaultView:{getComputedStyle:node=>node.computed,matchMedia:()=>({matches:coarse})},
     createElement:tag=>new Node(doc,tag),createElementNS:(_ns,tag)=>new Node(doc,tag)};
   doc.body=new Node(doc,'body');
@@ -103,7 +104,7 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
     onDispose:fn=>disposals.push(fn),setTimeout(){}};
   if(sharedToast)owner.toast=options=>{notices.push(options);return {shown:true};};
   const engine={view:()=>state,wait:reason=>waits.push(reason)};
-  const view=createQueueView({owner,createPageUI,assets:[],engine,getBackup:()=>backupText,currentRoute,
+  const view=createQueueView({owner,createPageUI,assets:[],engine,getBackup:()=>backupText,currentRoute,getNoticeRoute,
     actions:{sendNow:id=>calls.push(id),enqueue:options=>calls.push(options)}});
   return {view,doc,form,surface,wrapper,editor,native,toolbar,parent,managed,waits,calls,notices,
     snap:{ok:true,form,editor,sendButton:native},ui:getUI,
@@ -111,11 +112,14 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
     dispose:()=>disposals.forEach(fn=>fn())};
 }
 const panel=h=>h.ui('list').content.children[0];
-const cacheNotice=h=>panel(h).children.find(node=>node.tagName==='details');
-const openCacheNotice=(h,notice)=>{
-  notice.open=true;
-  h.ui('list').listeners.find(item=>item.event==='toggle').callback({target:notice});
-};
+const infoButton=h=>panel(h).children.find(node=>node.dataset.action==='info');
+const stack=h=>h.ui('button').content.children[1];
+const infoBody=h=>stack(h).children.find(node=>node.getAttribute('role')==='dialog');
+const infoAction=(h,action)=>infoBody(h)?.querySelectorAll('button').find(node=>node.dataset.action===action);
+const click=(ui,node,button)=>ui.listeners.find(item=>item.node===node&&item.event==='click')
+  .callback({target:{closest:()=>button},stopPropagation(){}});
+const openInfo=h=>click(h.ui('list'),panel(h),infoButton(h));
+const clickInfo=(h,button)=>click(h.ui('button'),stack(h),button);
 
 test('Gemini masks another conversation as soon as its URL changes, before composer inspection',()=>{
   let current={route:'app/first'};
@@ -129,7 +133,7 @@ test('Gemini masks another conversation as soon as its URL changes, before compo
   for(const route of ['app/other',null]){
     current={route};h.view.render();
     assert.deepEqual(rows(),[]);
-    assert.equal(cacheNotice(h).hidden,true);
+    assert.equal(infoButton(h).hidden,true);
     assert.equal(panel(h).getAttribute('aria-label'),'发送队列，暂无待发送消息');
     assert.equal(h.ui('list').host.style.getPropertyValue('display'),'block');
   }
@@ -143,7 +147,8 @@ test('Gemini masks another conversation as soon as its URL changes, before compo
 test('ordinary feedback uses the shared Page toast without replacing a recovery copy',()=>{
   const h=fixture({sharedToast:true});h.view.place(h.snap);
   h.view.offerRecovery('original recovery','still needs checking');
-  const recovery=h.ui('button').content.children[1],children=[...recovery.children];
+  openInfo(h);
+  const recovery=infoBody(h),children=[...recovery.children];
   h.view.toast('草稿已加入发送队列');
   assert.equal(h.notices.at(-1).message,'草稿已加入发送队列');
   assert.equal(h.notices.at(-1).position,'top');
@@ -152,13 +157,12 @@ test('ordinary feedback uses the shared Page toast without replacing a recovery 
 
 test('copyable feedback writes only the current error and shows a clipboard receipt',async()=>{
   const h=fixture({sharedToast:true});h.view.place(h.snap);
-  const ui=h.ui('button'),notice=ui.content.children[1],writes=[];
+  const notice=stack(h).children[0],writes=[];
   let denied=false;
   h.doc.defaultView.navigator={clipboard:{async writeText(text){
     if(denied)throw Error('clipboard denied');writes.push(text);
   }}};
-  const listener=ui.listeners.find(item=>item.node===notice&&item.event==='click');
-  const select=copy=>listener.callback({target:{closest:()=>copy},stopPropagation(){}});
+  const select=copy=>clickInfo(h,copy);
   const show=error=>{
     h.view.toast(error,{variant:'warning',copyable:true});
     const [row,receipt]=notice.children,[text,copy]=row.children;
@@ -178,55 +182,85 @@ test('copyable feedback writes only the current error and shows a clipboard rece
   h.view.clearError();assert.equal(notice.hidden,true);
 });
 
-for(const action of ['copy','done']){
-  test(`completed recovery ${action} removes its old controls when feedback uses the shared toast`,async()=>{
+for(const clipboard of ['allowed','denied']){
+  test('draft recovery stays closed and requires explicit acknowledgement after '+clipboard+' copy',async()=>{
     const h=fixture({sharedToast:true});h.view.place(h.snap);
-    h.view.offerRecovery('original recovery','still needs checking');
-    h.doc.defaultView.navigator={clipboard:{async writeText(text){assert.equal(text,'original recovery');}}};
-    const ui=h.ui('button'),recovery=ui.content.children[1];
-    const listener=ui.listeners.find(item=>item.node===recovery&&item.event==='click');
-    await listener.callback({target:{closest:()=>({dataset:{recovery:action}})},stopPropagation(){}});
-    assert.equal(h.view.hasRecovery(),false);assert.equal(h.view.recovery(),null);
-    assert.equal(recovery.hidden,true);assert.equal(recovery.children.length,0);
-    assert.match(h.notices.at(-1).message,/请核对原生草稿|原草稿已复制/);
+    const text='  草稿原文🙂\n\n尾部空白  ';
+    h.view.offerRecovery(text,'仍需核对');
+    let copied=null;
+    h.doc.defaultView.navigator={clipboard:{async writeText(value){
+      if(clipboard==='denied')throw Error('clipboard denied');copied=value;
+    }}};
+    const trigger=infoButton(h),children=[...panel(h).children];
+    assert.equal(trigger.hidden,false);assert.equal(infoBody(h),undefined);
+    assert.equal(trigger.getAttribute('aria-haspopup'),'dialog');
+    openInfo(h);const body=infoBody(h);
+    assert.deepEqual(panel(h).children,children,'opening the notification leaves the queue alone');
+    assert.equal(infoAction(h,'draft-done').hidden,true);
+    await clickInfo(h,infoAction(h,'draft-copy'));
+    assert.equal(h.view.recovery().text,text,'copying does not cancel the recovery gate');
+    assert.deepEqual(h.calls,[]);
+    if(clipboard==='allowed')assert.equal(copied,text);
+    else{
+      const [manual]=body.querySelectorAll('textarea');
+      assert.equal(manual.value,text);assert.equal(manual.readOnly,true);
+    }
+    await clickInfo(h,infoAction(h,'draft-done'));
+    assert.equal(h.view.hasRecovery(),false);assert.equal(trigger.hidden,true);
+    assert.equal(infoBody(h),undefined);
+    assert.ok(body.querySelectorAll('textarea').every(field=>!field.value));
+    assert.match(h.notices.at(-1).message,/已核对/);
   });
 }
 
-test('cache failure starts collapsed, and unrelated updates preserve the open details and draft recovery',()=>{
+test('one collapsed Info control covers both warnings and remains open during row updates',()=>{
   const h=fixture({sharedToast:true});h.view.place(h.snap);h.view.render();
-  assert.equal(cacheNotice(h),undefined);
+  assert.equal(infoButton(h),undefined);
   const reason='队列未保存。刷新或关闭页面可能丢失待发消息。';
   h.view.setCacheWarning(reason);
-  const notice=cacheNotice(h),[summary,details]=notice.children;
-  assert.equal(summary.tagName,'summary');
-  assert.equal(summary.children[0].textContent,'自动发送已暂停');
-  assert.equal(summary.children[0].getAttribute('role'),'status');
-  assert.ok(!notice.open);
-  assert.equal(details.children[0].textContent,reason);
-  assert.equal(notice.querySelectorAll('button')[0].hidden,true);
+  const trigger=infoButton(h);
+  assert.equal(trigger.getAttribute('aria-label'),'队列信息：自动发送已暂停');
+  assert.equal(infoBody(h),undefined);
   assert.equal(h.notices.length,0);
-  openCacheNotice(h,notice);
-  assert.equal(notice.querySelectorAll('button')[0].hidden,false);
-  h.view.setCacheWarning(reason);
+  openInfo(h);
+  assert.equal(infoAction(h,'backup').hidden,false);
   h.view.toast('其他操作完成');h.state({expanded:true,reason:'队列缓存未保存'});h.view.render();
-  assert.equal(cacheNotice(h),notice);assert.equal(notice.open,true);
+  assert.equal(infoButton(h),trigger);assert.ok(infoBody(h));
   assert.equal(panel(h).children.some(node=>node.className==='sq-waiting'),false);
   h.view.offerRecovery('unsaved recovery','needs checking');
   h.view.setCacheWarning('');
-  assert.equal(notice.isConnected,false);assert.equal(h.view.recovery().text,'unsaved recovery');
+  assert.equal(infoAction(h,'backup'),undefined);assert.equal(h.view.recovery().text,'unsaved recovery');
+  assert.equal(infoButton(h),trigger);assert.ok(infoBody(h));
 });
 
 test('opening pause details with nothing to back up offers no copy action',()=>{
   const h=fixture({backupText:''});h.state({items:[]});h.view.place(h.snap);
   h.view.setCacheWarning('暂时无法读取已保存的队列。');
-  const notice=cacheNotice(h);
-  openCacheNotice(h,notice);
-  const copy=notice.querySelectorAll('button')[0];
+  openInfo(h);
+  const copy=infoAction(h,'backup');
   assert.equal(copy.hidden,true);
   h.backupText('now there is a draft');h.view.render();
   assert.equal(copy.hidden,false);
   h.backupText('');h.view.render();
   assert.equal(copy.hidden,true);
+});
+
+test('route changes mask draft-only backups and a missing composer does not float the recovery UI',async()=>{
+  let current={route:'c/source'};
+  const h=fixture({currentRoute:()=>current,getNoticeRoute:()=> 'c/source'});
+  h.state({items:[],route:null});h.view.place(h.snap);
+  h.view.offerRecovery('only draft','needs checking');openInfo(h);
+  let copies=0;
+  h.doc.defaultView.navigator={clipboard:{async writeText(){copies++;}}};
+  const copy=infoAction(h,'draft-copy');
+  current={route:'c/other'};clickInfo(h,copy);
+  assert.equal(copies,0,'old copy is denied before the next render');
+  h.view.render();assert.equal(infoBody(h),undefined);assert.equal(infoButton(h).hidden,true);
+  current={route:'c/source'};h.view.render();assert.equal(infoButton(h).hidden,false);
+  openInfo(h);h.view.hide();assert.equal(infoBody(h),undefined);
+  assert.equal(h.ui('button').host.style.getPropertyValue('display'),'none');
+  assert.equal(h.ui('list').host.style.getPropertyValue('display'),'none');
+  assert.equal(h.view.recovery().text,'only draft');
 });
 
 for(const clipboard of ['allowed','denied']){
@@ -237,20 +271,16 @@ for(const clipboard of ['allowed','denied']){
       if(clipboard==='denied')throw Error('clipboard denied');copied=value;
     }}};
     const before=panel(h).children[0];
-    const notice=cacheNotice(h);openCacheNotice(h,notice);
-    const button=notice.querySelectorAll('button')[0];
-    const listener=h.ui('list').listeners.find(item=>item.event==='click');
-    listener.callback({target:{closest:()=>button},stopPropagation(){}});
-    await Promise.resolve();await Promise.resolve();
-    if(clipboard==='allowed'){
-      assert.equal(copied,text);assert.match(h.notices.at(-1).message,/已复制/);
-    }else{
+    openInfo(h);const notice=infoBody(h);
+    await clickInfo(h,infoAction(h,'backup'));
+    if(clipboard==='allowed')assert.equal(copied,text);
+    else{
       const manual=notice.querySelectorAll('textarea')[0];
       assert.equal(manual.value,text);assert.equal(manual.readOnly,true);
-      assert.match(h.notices.at(-1).message,/手动复制/);
     }
+    assert.match(infoAction(h,'backup').parentElement.children[2].textContent,clipboard==='allowed'?/已复制/:/手动复制/);
     assert.equal(panel(h).children[0],before);assert.deepEqual(h.calls,[]);
-    assert.ok(panel(h).children.includes(notice));
+    assert.ok(!panel(h).contains(notice));
   });
 }
 
@@ -261,11 +291,8 @@ test('a pending backup is not repeated and a late clipboard failure cannot reviv
   h.doc.defaultView.navigator={clipboard:{writeText(){copies++;
     return new Promise((_resolve,reject)=>{rejectCopy=reject;});
   }}};
-  const notice=cacheNotice(h);openCacheNotice(h,notice);
-  const button=notice.querySelectorAll('button')[0];
-  const listener=h.ui('list').listeners.find(item=>item.event==='click');
-  const event=()=>({target:{closest:()=>button},stopPropagation(){}});
-  listener.callback(event());listener.callback(event());assert.equal(copies,1);
+  openInfo(h);const notice=infoBody(h),button=infoAction(h,'backup');
+  void clickInfo(h,button);void clickInfo(h,button);assert.equal(copies,1);
   const notifications=h.notices.length;h.dispose();rejectCopy(Error('late denial'));
   await Promise.resolve();await Promise.resolve();
   assert.equal(h.notices.length,notifications);
@@ -378,7 +405,7 @@ test('blocked queue persistently exposes the reason and clears it when automatic
   assert.ok(notice);assert.equal(notice.getAttribute('role'),'status');
   assert.equal(notice.textContent,'输入框有空白字符，清空后队列会自动继续');
   assert.equal(panel(h).children.filter(node=>node.className==='sq-waiting').length,1);
-  assert.equal(h.ui('button').content.children[1].hidden,true,'the reason does not expire in a toast');
+  assert.equal(stack(h).children[0].hidden,true,'the reason does not expire in a toast');
   assert.equal(panel(h).querySelectorAll('[data-id-row]').length,1);
   h.state({items:[{id:'q1',text:'queued text',state:'paused'}]});h.view.render();
   assert.equal(panel(h).children.some(node=>node.className==='sq-waiting'),false,
@@ -413,7 +440,7 @@ test('unknown result stays on its message with an accessible warning and no retr
   assert.notEqual(buttons.find(node=>node.dataset.action==='edit').disabled,true,'read-only draft recovery stays reachable');
   const click=h.ui('list').listeners.find(x=>x.event==='click').callback;
   click({target:{closest:()=>warning},stopPropagation(){}});
-  const toast=h.ui('button').content.children[1];
+  const toast=stack(h).children[0];
   assert.equal(toast.hidden,false);assert.equal(toast.textContent,warning.title);
   h.state({reason:'未能确认用户消息入站'});h.view.render();
   assert.match(panel(h).querySelectorAll('button').find(node=>node.dataset.action==='status').title,

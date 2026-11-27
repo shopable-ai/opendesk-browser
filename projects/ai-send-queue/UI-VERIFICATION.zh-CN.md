@@ -1,5 +1,25 @@
 # AI 消息发送队列 UI 验证
 
+## 2026-11-27 · 1.0.4/r64 持续开发验收 · 100/100
+
+复用现有 `dist/development` 和已连接的开发服务。在 Ego Lite TaskSpace 53 的专用 ChatGPT 标签使用合成标记 `OD-Q64-27NOV-T7D-{FIRST,A,B,DRAFT}`。以下分别记录真实站点、源码夹具和 Node 回归；原始证据存于本机 `artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/`。
+
+| 验收项 | 得分 | 证据 |
+| --- | ---: | --- |
+| 默认界面与备份 | 25/25 | Chromium 源码夹具：正常空队列及有待发项时均无 Info；待人工恢复时原队列仅一枚带无障碍名称的 Info，鼠标实点打开队列外通知。复制成功仍锁定；剪贴板拒绝时在通知内逐字显示只读原文。关闭重开仍可取回同一备份，其他会话不显示该备份；明确确认后才解除草稿恢复锁，夹具零发送。 |
+| 键盘与窄屏 | 15/15 | Enter、Space 打开，Esc 关闭并恢复 Info 焦点。在 700、380、320 CSS px 下通知在队列外，队列和编辑器边界不变。320 CSS px 深色粗指针下 Info 实测 44×44 CSS px。 |
+| 真实发送与回复门控 | 30/30 | 真实 ChatGPT 首页实点皇冠，FIRST 在前台入站。回复仍在生成时实点皇冠加入 A、B，切换前队列读回 A → B、输入框为空。切到第二个标签后，页面真实 `document.visibilityState` 为 `hidden`；A、B 的原生发送点击及各自首次站点入站都记录于这一隐藏区间。每次发送前，站点已将上条回复标为 `complete`，且原生停止按钮未出现。B 的回复也在返回前完成。 |
+| 草稿及防重 | 25/25 | FIRST、A、B 的原生发送点击和站点用户消息均各一次；未点击停止，回到前台队列为空，历史无新增。独立合成草稿在再次切换前后逐字一致，未发送。定向回归覆盖暂停、错误会话、原草稿恢复及未知结果不自动重放。早期 J6P 合成试验也保留了未知 A，历史实读仅有 FIRST；未重发。 |
+| 候选身份 | 5/5 | 实站试验前后应用 revision 一致；从实际发送标签的调试器读回固定桥脚本，与开发目录同字节；唯一正式 JSON 同源校验通过，与开发目录副本同 SHA-256。 |
+
+**复查实站证据。** [事件日志](../../artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/live-fifo-t7d.json)由[探针](../../artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/live-chatgpt-r64-t7d.js)在网页中记录。第二个标签获选后未读回 ChatGPT 标签，切回后才读取事件，避免调试读取暂时改变可见性。核对 `before`、连续 `hidden` 区间内的点击和首次入站、`background`、`after` 与 `final`。日志只保留合成标记、时间、计数及状态。夹具结果见 [Chromium 回执](../../artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/recovery-info-chromium.json)和[正常关闭](../../artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/notify-closed.png)、[320 深色通知](../../artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/notify-open-320-dark.png)、[剪贴板拒绝](../../artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/notify-manual-320-dark.png)截图。
+
+- 扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；开发 revision `5d97d51f51500dce04837f339fde6dc3a3690d0be13368be5d561d090b3ef393`。
+- [实测固定桥](../../artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/live-t7d-identity.json) SHA-256 `826ea0b94faa8ec8dd04c435a51ee0dd5ae26e92b4b4daa7e53f76e2d243beb0`。
+- [正式 JSON](ai-send-queue.opendesk-tool.json) 164877 字节，SHA-256 `557c8200804ec7618d67b91fa701129ec74d379f37fa791a607c9e9b37b01301`；Page 来源 SHA-256 `0e184bcac5fd9a387585f503c4c7258fece490f8e01fc086182ad9b6c8dc4b00`。原打包器返回 `PROJECT_PACKAGE_MATCH`。
+
+**验证范围。** 队列项目 587 项定向 Node 检查通过。扩大测试时，共享 `send-queue-product-installation.test.mjs` 有 22 项失败，多数卡在扩展中心菜单夹具查找 `detail`；未做独立基线归因，本轮不据此判定正式安装。Gemini、DeepSeek 实站、冻结或丢弃的标签、正式安装升级和 production 均为 `NOT_TESTED`。
+
 ## 2026-11-26 · 从旧会话点「新聊天」后用皇冠首发（1.0.3/r63）
 
 在已登录的真实 `chatgpt.com` 上使用 Ego Lite TaskSpace 31 的专用标签和合成草稿。对照组实点原生发送，首条消息出现并从 `/` 进入 `/c/…`。旧版 1.0.2/r62 从旧会话点「新聊天」后，原生发送按钮可用，皇冠却提示「请先确认原生发送按钮可用，并处理附件或输入法；草稿已保留」；没有发送。ChatGPT 保留了无可见布局的旧消息区，队列误把它当作新聊天历史。

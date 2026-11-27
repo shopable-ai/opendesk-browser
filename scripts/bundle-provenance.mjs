@@ -43,13 +43,13 @@ const packagedTaskInputs=Object.freeze({
 // 2026-11-26 review: ChatGPT home submits the native first draft once; receipts gate the queue.
 const compiledSendQueueInputs=Object.freeze({
   'projects/ai-send-queue/assets/crown-premium.webp':'46ea350497498f7854fcecc9c31b0593081c7e68',
-  'projects/ai-send-queue/assets/queue.css':'3173b90d48b60f5a4a180ab6d38ca555338430a4',
+  'projects/ai-send-queue/assets/queue.css':'1fa86786d10ad0af341eda9509bcb2cba8d5c8b3',
   'projects/ai-send-queue/src/page/cache.js':'6b3845894d3de10a31d525236ae6d060613cc035',
-  'projects/ai-send-queue/src/page/engine.js':'93ba682f74eba3c655a71416a83a6e3bfee10aa3',
-  'projects/ai-send-queue/src/page/main.js':'1e45cb5b94f25f97c24f27d6202cbd77c594cc44',
-  'projects/ai-send-queue/src/page/site.js':'3a18dfb4cf2d4574f47915bcef29ba2cbfbba89c',
+  'projects/ai-send-queue/src/page/engine.js':'22708032ce5d4f65add426d6ccb46944002b15ab',
+  'projects/ai-send-queue/src/page/main.js':'16b71e6c62514e22d38f53e458270157461196b1',
+  'projects/ai-send-queue/src/page/site.js':'29f691bda4a30c8d9dbd0c952c1f284a8adea8a8',
   'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
-  'projects/ai-send-queue/src/page/view.js':'b0b6369095c4a55f3d0b58d4ac38de64ed15d5f4',
+  'projects/ai-send-queue/src/page/view.js':'607f44e6b11d26fcd5b948aae22bc890d6b600d4',
   'projects/ai-send-queue/trusted/fixed-page.js':'f777652963c87a78c50d8032c272a64e78c63497'
 });
 function reviewedCompiledSendQueue(target,path,root){

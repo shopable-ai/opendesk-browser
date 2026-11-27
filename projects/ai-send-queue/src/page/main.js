@@ -8,6 +8,9 @@ import {registerPageStatus} from './status.js';
 
 const ID='app.ai-send-queue';
 const POLL_MS=650, WATCHDOG_MS=5000, STALL_MS=30000, FIRST_ACK_MS=15000;
+const OWNED_UI='[data-opendesk-ui-owner]';
+const WAKE_ATTRIBUTES=['disabled','aria-disabled','aria-busy','data-is-streaming','data-talvt-turn-state',
+  'data-testid','aria-label','aria-hidden','hidden','inert','class','id','d'];
 // Never take over the legacy queue.
 const LEGACY_LIFECYCLES=['opendesk.chatgpt-send-queue','opendesk.ai-send-queue']
   .map(id=>'[data-opendesk-ui-owner][data-od-id="'+id+'.lifecycle"]');
@@ -45,6 +48,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
   let pending=null,provenance=null,backup=null,editing=null,writing=false;
   let firstSend=null;
   let checking=false,checkFailed=false,needsRender=false,lastProgressKey=null;
+  let updateBackgroundWatch=()=>{};
   const cache=createQueueCache();
   let cacheRoute=null,cacheReady=false,loadingCache=false,cachedDraft=null;
   const cacheStatus={status:'pending',restored:0};
@@ -68,7 +72,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
   }
   function hasWork(){
     const state=engine.view();
-    return !!(state.items.length||state.inFlight||state.answerGate||pending||provenance||backup||cachedDraft||view?.hasRecovery());
+    return !!(state.items.length||state.inFlight||state.answerGate||firstSend||pending||provenance||backup||cachedDraft||view?.hasRecovery());
   }
   function cacheFeedback(status){
     const previous=cacheStatus.status;
@@ -142,8 +146,8 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     engine=createQueueEngine({site,checkpoint,change:()=>{
       checkpoint();
       progress();
+      updateBackgroundWatch();
       attempt(()=>remote?.changed(),'remote-change');
-      // UI exceptions must not interrupt dispatch.
       if(checking)needsRender=true;
       else attempt(()=>view?.render(),'render-change');
     }});
@@ -267,7 +271,6 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       const handoff=event.isTrusted===true&&pending&&!pending.veto&&pausedGeminiEnqueue(pending)&&
         sameComposer(pending.before,snap)&&snap.draft===''&&!snap.rich&&!snap.composing&&
         site.sameHistory(pending.before,snap)?pending:null;
-      // Foreign events can only veto a handoff.
       if(pending)pending.veto=true;
       if(!handoff)observeProvenance(snap);
       observeBackup(snap);
@@ -490,11 +493,12 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     }
     const routeFor=chatgpt?null:deepseek?location=>deepSeekRoute(location,allowDeepSeekHome):geminiRoute;
     const currentRoute=routeFor?()=>routeFor(window.location):null;
-    view=createQueueView({owner,createPageUI,assets,engine,getBackup,onRecoveryChange:checkpoint,currentRoute,
+    view=createQueueView({owner,createPageUI,assets,engine,getBackup,onRecoveryChange:checkpoint,
+      currentRoute:site.currentRoute||currentRoute,getNoticeRoute:()=>cacheRoute,
       trustedActions:!!fixed,
       actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
         [name,(...args)=>{if(owner.active()&&!retireForLegacy()){
-          return withGrant(()=>{try{return action(...args);}finally{checkpoint();}},
+          return withGrant(()=>{try{return action(...args);}finally{checkpoint();updateBackgroundWatch();}},
             {checkComposer:name==='enqueue'||name==='edit'});
         }}] ))});
     if(currentRoute){
@@ -520,7 +524,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
     });
     remote=createRemote?.({owner,site,engine,actions,retireForLegacy})??null;
     const bridge=fixed?.bridge??globalThis.OpenDeskAppPage;
-    if(bridge)registerPageStatus({bridge,owner,site,view,version:'1.0.3'});
+    if(bridge)registerPageStatus({bridge,owner,site,view,version:'1.0.4'});
     owner.on(document,'click',event=>{
       if(event.isTrusted!==true||!owner.active()||!engine.view().inFlight)return;
       const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
@@ -543,7 +547,6 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         return;
       }
       if(queueShortcut){
-        // Prevent a duplicate native send.
         event.preventDefault();event.stopImmediatePropagation();
         if(!event.repeat)void withGrant(()=>{
           if(actions.enqueue())notify('草稿已加入发送队列');
@@ -569,14 +572,58 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       if(owner.active())checkpoint();
     });
     let authorizing=false;
-    function poll(source='poll'){
-      if(!fixed||!hasWork()||deepseek&&!currentRoute()?.route)return pollAuthorized(source);
+    async function poll(source='poll'){
+      if(!owner.active()||retireForLegacy())return;
+      if(!fixed)return pollAuthorized(source);
+      if(!hasWork()||deepseek&&!currentRoute()?.route)return pollAuthorized(source,false);
       if(authorizing)return;
+      const url=window.location.href;
       authorizing=true;
-      return fixed.authorize().then(allowed=>{if(allowed)pollAuthorized(source);})
-        .finally(()=>{authorizing=false;});
+      try{
+        if(await fixed.authorize()&&window.location.href===url)pollAuthorized(source);
+      }catch{
+        diagnostics.lastError={stage:'authorization',type:'Error'};
+      }finally{authorizing=false;}
     }
-    function pollAuthorized(source){
+    const hiddenFixed=()=>!!fixed&&document.visibilityState==='hidden';
+    function wakePrepared(id){
+      if(!hiddenFixed())return;
+      const url=window.location.href;
+      // Preparing a textarea may produce no mutation; recheck immediately.
+      queueMicrotask(()=>{
+        if(!owner.active()||!hiddenFixed()||window.location.href!==url)return;
+        const flight=engine.view().inFlight;
+        if(flight?.id===id&&flight.phase==='await-native-ready')void poll('prepared');
+      });
+    }
+    if(fixed&&typeof window.MutationObserver==='function'){
+      let watching=false,lastWake=-Infinity;
+      const observed=new window.MutationObserver(records=>{
+        if(!watching||authorizing||checking||!owner.active()||!hiddenFixed())return;
+        const now=window.performance?.now()??Date.now();
+        if(now-lastWake<POLL_MS)return;
+        if(!records.some(record=>!(record.target.nodeType===1?record.target:record.target.parentElement)?.closest(OWNED_UI)&&
+          (record.type!=='childList'||Array.from(record.addedNodes).some(node=>!node.matches?.(OWNED_UI))||
+            Array.from(record.removedNodes).some(node=>!node.matches?.(OWNED_UI)))))return;
+        lastWake=now;
+        // Mutations wake the normal checks.
+        void poll('mutation');
+      });
+      updateBackgroundWatch=()=>{
+        const state=engine.view();
+        const shouldWatch=owner.active()&&hiddenFixed()&&!!(firstSend||state.inFlight||
+          state.answerGate||state.items.some(item=>item.state==='queued'));
+        if(shouldWatch===watching)return;
+        if(shouldWatch){
+          observed.observe(document.documentElement,{subtree:true,childList:true,characterData:true,
+            attributes:true,attributeFilter:WAKE_ATTRIBUTES});
+          lastWake=-Infinity;
+        }else observed.disconnect();
+        watching=shouldWatch;
+      };
+      owner.onDispose(()=>{watching=false;observed.disconnect();updateBackgroundWatch=()=>{};});
+    }
+    function pollAuthorized(source,dispatchAllowed=true){
       if(checking){diagnostics.coalesced++;return;}
       if(!owner.active()||retireForLegacy())return;
       checking=true;checkFailed=false;needsRender=false;
@@ -592,14 +639,16 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         },'layout');
         if(!owner.active()||retireForLegacy())return;
         const flight=engine.view().inFlight;
-        // Reconcile receipts and deadlines even if rendering fails.
         const ticked=attempt(()=>{
-          const canSubmit=!checkFailed&&placed&&(!deepseek||!!snap?.route)&&!pending&&!firstSend&&!recovery&&
+          const canSubmit=dispatchAllowed&&!checkFailed&&placed&&(!deepseek||!!snap?.route)&&!pending&&!firstSend&&!recovery&&
             engine.view().phase!=='unknown'&&checkpoint();
-          const submitBlockReason=checkFailed?'本轮队列检查异常':!placed?'队列控件尚未安全显示':
+          const submitBlockReason=!dispatchAllowed?'本轮没有发送授权':checkFailed?'本轮队列检查异常':!placed?'队列控件尚未安全显示':
             pending?'草稿交接尚未确认':recovery?'恢复草稿尚待核对':'队列缓存未保存';
           engine.tick({canSubmit,submitBlockReason});
         },'queue-check');
+        const nextFlight=engine.view().inFlight;
+        if(ticked&&nextFlight?.phase==='await-native-ready'&&flight?.phase!=='await-native-ready')
+          wakePrepared(nextFlight.id);
         if(ticked&&reconciled)attempt(()=>{
           const after=engine.view();
           if(provenance&&after.inFlight?.id===provenance.id)provenance=null;
@@ -615,7 +664,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         checkpoint();
         progress();
         if(!checkFailed)diagnostics.lastCheckCompletedAt=Date.now();
-      }finally{checking=false;}
+      }finally{checking=false;updateBackgroundWatch();}
     }
     function recoverPolling(source){
       if(checking){diagnostics.coalesced++;return;}
@@ -630,12 +679,13 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         if(source==='watchdog'&&!missed&&!failed&&!stalled)return;
         diagnostics.lastRecoveryAt=now;diagnostics.recoveries++;
         diagnostics.recoveryReason=source==='watchdog'?(missed||failed?'check-stalled':'progress-stalled'):source;
-        poll(source);
+        void poll(source);
       },'recovery-check');
     }
     owner.setInterval(poll,POLL_MS);
     owner.setInterval(()=>recoverPolling('watchdog'),WATCHDOG_MS);
     owner.on(document,'visibilitychange',()=>{
+      updateBackgroundWatch();
       if(document.visibilityState==='visible')recoverPolling('visible');
     });
     owner.on(window,'pageshow',()=>recoverPolling('pageshow'));
@@ -646,6 +696,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
       if(snap.ok){view.place(snap);view.render(snap);}
     },'initial-layout');
     progress();
+    updateBackgroundWatch();
     return {programId:ID,status:'active',runtime:fixed?'ISOLATED':'USER_SCRIPT',
       persistence:'session-storage',cache:cacheStatus,composer:snap?.ok?'detected':'not-detected',diagnostics};
   }catch(error){owner.destroy();throw error;}

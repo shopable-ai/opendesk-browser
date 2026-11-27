@@ -85,7 +85,9 @@ const reviewedThreeSiteAndHomeSources=new Set([
   // 1.0.2 / revision 62: native first send and exact ChatGPT conversation receipt.
   '1c3906a7b6d4259cc9cc63c16696cdfab77c15feda3cf09eecd48b5f1240730f',
   // 1.0.3 / revision 63: scope ChatGPT history and copy the current first-send error.
-  '233219ec74f3bed29e4230bd3b80098866036fa3224b37e899348b6d5bec809d'
+  '233219ec74f3bed29e4230bd3b80098866036fa3224b37e899348b6d5bec809d',
+  // 1.0.4 / revision 64: notification-based recovery and bounded background wakeups.
+  '0e184bcac5fd9a387585f503c4c7258fece490f8e01fc086182ad9b6c8dc4b00'
 ]);
 
 export function fixedSendQueueOrigin(href){

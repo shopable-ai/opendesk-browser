@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createQueueEngine} from '../src/page/engine.js';
-import {createChatGPTSite} from '../src/page/site.js';
+import {JSDOM} from 'jsdom';
+import {createChatGPTSite,createDeepSeekSite,createGeminiSite} from '../src/page/site.js';
 
 function fixture({change=()=>{}}={}) {
   const state={now:0,route:'c/12345678-1234-1234-1234-123456789abc',
@@ -1136,6 +1137,84 @@ test('manual admission is checked before a late preparation deadline or another 
   assert.equal(f.engine.view().lastConfirmed,'q1');
   assert.equal(f.engine.view().phase,'waiting');
   assert.equal(f.state.commitCount,0);assert.equal(f.state.prepareCount,1);
+});
+
+for(const existing of [false,true]){
+  test('ChatGPT queue waits for an unanswered '+(existing?'later':'first')+' user message without a queue reply gate',()=>{
+    const reply='<div data-message-author-role="assistant" data-talvt-turn-state="complete">Reply</div>';
+    const previous=existing?'<div data-message-author-role="user">Previous</div>'+reply:'';
+    const {window:win}=new JSDOM('<main>'+previous+'<div data-message-author-role="user">Latest</div></main>'+
+      '<form><textarea id="prompt-textarea"></textarea><button data-testid="send-button"></button></form>',
+    {url:'https://chatgpt.com/c/12345678'});
+    win.HTMLElement.prototype.getClientRects=()=>[{}];
+    const site=createChatGPTSite({doc:win.document,win});
+    let now=0;
+    const engine=createQueueEngine({site,clock:()=>now});
+    assert.equal(engine.enqueue('wait for latest',site.inspect().route),true);
+    engine.tick();now=60000;engine.tick();
+    assert.equal(engine.view().inFlight,null);
+    assert.equal(site.inspect().draft,'');
+    win.document.querySelector('main').insertAdjacentHTML('beforeend',reply);
+    now=61000;engine.tick();now=62200;engine.tick();
+    assert.equal(engine.view().inFlight?.phase,'await-native-ready');
+    assert.equal(site.inspect().draft,'wait for latest');
+    win.close();
+  });
+}
+
+test('Gemini cannot release a queue reply gate on a completion footer from a different turn',()=>{
+  const user=text=>'<user-query><div class="query-text">'+text+'</div></user-query>';
+  const assistant='<model-response><message-content><div class="markdown">Answer</div></message-content>'+
+    '<message-actions><button aria-label="Copy"></button></message-actions></model-response>';
+  const turn=(id,body)=>'<div class="conversation-container" id="'+id+'">'+body+'</div>';
+  const {window:win}=new JSDOM('<chat-window><section>'+turn('a123456789abcdef',user('seed')+assistant)+'</section>'+
+    '<input-area><rich-textarea><div class="ql-editor" role="textbox" contenteditable="true"></div></rich-textarea>'+
+    '<button aria-label="Send message"></button></input-area></chat-window>',{url:'https://gemini.google.com/app/test-chat'});
+  const doc=win.document,history=doc.querySelector('section');
+  win.HTMLElement.prototype.getClientRects=()=>[{}];
+  Object.defineProperty(doc.querySelector('.ql-editor'),'isContentEditable',{value:true});
+  const site=createGeminiSite({doc,win}),before=site.inspect();
+  let now=0;
+  const engine=createQueueEngine({site,clock:()=>now});
+  history.insertAdjacentHTML('beforeend',turn('b123456789abcdef',user('submitted')));
+  assert.equal(engine.observeNativeAdmission(before,'submitted',site.inspect(),{initial:true}),true);
+  history.insertAdjacentHTML('beforeend',turn('c123456789abcdef',assistant));
+  engine.tick();now=1200;engine.tick();
+  assert.ok(engine.view().answerGate,'a copy footer does not prove the latest persisted user was answered');
+  const wrongTurn=history.lastElementChild;
+  history.children[1].append(wrongTurn.firstElementChild);
+  wrongTurn.remove();
+  now=1300;engine.tick();now=2500;engine.tick();
+  assert.equal(engine.view().answerGate,null);
+  win.close();
+});
+
+test('DeepSeek native send icon and copy actions do not override a busy reply wrapper',()=>{
+  const user=text=>'<div class="ds-message d29f3d7d"><div class="fbb737a4"><div class="ds-collapsible-text"><div>'+text+'</div></div></div></div>';
+  const action='<div class="ds-flex _0a3d93b"><div class="ds-button" role="button">'+
+    '<svg viewBox="0 0 16 16"><path d="M6.14929 4.02032"/></svg></div></div>';
+  const reply='<div class="ds-message"><div class="ds-assistant-message-main-content">Answer</div></div>'+action;
+  const {window:win}=new JSDOM('<div id="root"><div class="ds-virtual-list ds-virtual-list--printable">'+
+    '<div class="ds-virtual-list-items">'+user('seed')+'<section>'+reply+'</section></div></div>'+
+    '<div class="_77cefa5"><textarea name="search"></textarea><div class="bf38813a"><div role="button" '+
+    'class="ds-button ds-button--primary ds-button--circle"><svg viewBox="0 0 16 16">'+
+    '<path d="M8.3125 0.980206C8.66767"/></svg></div></div></div></div>',
+  {url:'https://chat.deepseek.com/a/chat/s/0405c8f7-638e-476b-8beb-d196812c6cee'});
+  const doc=win.document,list=doc.querySelector('.ds-virtual-list-items');
+  win.HTMLElement.prototype.getClientRects=()=>[{}];
+  const site=createDeepSeekSite({doc,win}),before=site.inspect();
+  let now=0;
+  const engine=createQueueEngine({site,clock:()=>now});
+  list.firstElementChild.remove(); // Supported detached virtual prefix; old assistant remains the anchor.
+  list.insertAdjacentHTML('beforeend',user('submitted'));
+  assert.equal(engine.observeNativeAdmission(before,'submitted',site.inspect(),{initial:true}),true);
+  list.insertAdjacentHTML('beforeend','<section aria-busy="true">'+reply+'</section>');
+  engine.tick();now=1200;engine.tick();
+  assert.ok(engine.view().answerGate,'the same reply still reports busy');
+  list.lastElementChild.removeAttribute('aria-busy');
+  now=1300;engine.tick();now=2500;engine.tick();
+  assert.equal(engine.view().answerGate,null);
+  win.close();
 });
 
 test('late acknowledgement on a different route never unlocks the queue',()=>{

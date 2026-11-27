@@ -5,8 +5,13 @@ const ICON={send:[path('M12 19V5m-6 6 6-6 6 6')],
   resume:[path('M8 5v14l11-7Z')],
   edit:[path('M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z')],
   copy:[['rect',{x:8,y:8,width:12,height:12,rx:2}],path('M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2')],
+  info:[['circle',{cx:12,cy:12,r:9}],path('M12 11v5m0-8h.01')],
   status:[['circle',{cx:12,cy:12,r:9}],path('M12 7v6m0 4h.01')],
   remove:[path('M18 6 6 18M6 6l12 12')]};
+const labelElement=(node,text)=>node.setAttribute('aria-label',text);
+const role=(node,name)=>node.setAttribute('role',name);
+const bounds=node=>node.getBoundingClientRect();
+const important=(node,key,value)=>node.style.setProperty(key,value,'important');
 function element(doc,tag,cls,text){
   const node=doc.createElement(tag);if(cls)node.className=cls;
   if(text!==undefined)node.textContent=text;return node;
@@ -24,7 +29,7 @@ function svg(doc,shapes){
 }
 function action(doc,what,label,id){
   const b=element(doc,'button','sq-action');b.type='button';b.dataset.action=what;
-  if(id)b.dataset.id=id;b.setAttribute('aria-label',label);b.title=label;
+  if(id)b.dataset.id=id;labelElement(b,label);b.title=label;
   b.append(svg(doc,ICON[what]));return b;
 }
 function unknownMessage(state){
@@ -32,14 +37,14 @@ function unknownMessage(state){
 }
 function inline(host,width){
   const props={position:'relative',display:'block',top:'auto',right:'auto',
-    bottom:'auto',left:'auto',width:typeof width==='number'?width+'px':width,maxWidth:'none',
-    minWidth:'0',padding:'0',transform:'none',zIndex:'1'};
+    bottom:'auto',left:'auto',width:typeof width==='number'?width+'px':width,'max-width':'none',
+    'min-width':'0',padding:'0',transform:'none','z-index':'1'};
   for(const [p,v] of Object.entries(props))
-    host.style.setProperty(p.replace(/[A-Z]/g,c=>'-'+c.toLowerCase()),v,'important');
+    important(host,p,v);
 }
 function visibleRect(node,win){
   if(!node?.isConnected)return null;
-  const style=win.getComputedStyle(node),rect=node.getBoundingClientRect();
+  const style=win.getComputedStyle(node),rect=bounds(node);
   if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||
     Number(style.opacity)===0||![rect.left,rect.top,rect.width,rect.height].every(Number.isFinite)||
     rect.width<=0||rect.height<=0)return null;
@@ -49,8 +54,7 @@ const clipsOverflow=value=>/^(auto|scroll|hidden|clip)$/.test(value);
 function editorViewport(editor,form,win){
   const rect=visibleRect(editor,win);if(!rect)return null;
   let {left,right,top,bottom}=rect;
-  // A contenteditable can be thousands of pixels tall inside a small native
-  // scrollport. Measure its visible portion, without resizing or scrolling it.
+  // Measure the editable area visible through the native scrollport.
   for(let node=editor.parentElement;node;node=node.parentElement){
     const style=win.getComputedStyle(node);
     if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||
@@ -58,9 +62,8 @@ function editorViewport(editor,form,win){
     if(style.display!=='contents'){
       const clipX=clipsOverflow(style.overflowX);
       const clipY=clipsOverflow(style.overflowY);
-      // Overflow-visible wrappers may legitimately have no layout height.
       if(clipX||clipY){
-        const box=node.getBoundingClientRect();
+        const box=bounds(node);
         const x=box.left+(node.clientLeft||0),y=box.top+(node.clientTop||0);
         if(clipX){left=Math.max(left,x);right=Math.min(right,x+(node.clientWidth??box.width));}
         if(clipY){top=Math.max(top,y);bottom=Math.min(bottom,y+(node.clientHeight??box.height));}
@@ -74,15 +77,14 @@ function fitCrown(button,arrow,crown,toolbar,win){
   let clipTop=-Infinity;
   for(let node=toolbar;node;node=node.parentElement){
     if(clipsOverflow(win.getComputedStyle(node).overflowY)){
-      clipTop=Math.max(clipTop,node.getBoundingClientRect().top+(node.clientTop||0));
+      clipTop=Math.max(clipTop,bounds(node).top+(node.clientTop||0));
     }
     if(node===toolbar.ownerDocument.body)break;
   }
-  // If headroom is tight, contain the artwork above the arrow instead of moving the button.
   if(Number.isFinite(clipTop)){
     const top=clipTop+1;
-    button.style.setProperty('--sq-crown-min-top',top-button.getBoundingClientRect().top+'px');
-    crown.style.setProperty('--sq-crown-max-height',Math.max(0,arrow.getBoundingClientRect().top-top-1)+'px');
+    button.style.setProperty('--sq-crown-min-top',top-bounds(button).top+'px');
+    crown.style.setProperty('--sq-crown-max-height',Math.max(0,bounds(arrow).top-top-1)+'px');
   }else{
     button.style.removeProperty('--sq-crown-min-top');
     crown.style.removeProperty('--sq-crown-max-height');
@@ -95,7 +97,6 @@ function topSpan(rect,style,requireRounded=false){
     return [length(parts[0],rect.width),length(parts[1]||parts[0],rect.height)];
   });
   if(requireRounded&&(!tl.every(n=>n>0)||!tr.every(n=>n>0)))return null;
-  // CSS scales all radii together when adjacent corners exceed an edge.
   const scale=Math.min(1,rect.width/(tl[0]+tr[0]||1),rect.width/(bl[0]+br[0]||1),
     rect.height/(tl[1]+bl[1]||1),rect.height/(tr[1]+br[1]||1));
   const left=tl[0]*scale,right=tr[0]*scale,width=rect.width-left-right;
@@ -107,7 +108,6 @@ function geminiSurface(form,win){
   return rect&&topSpan(rect,win.getComputedStyle(form));
 }
 function composerSurface(editor,nativeButton,form,win){
-  // Skip transparent wrappers and editor-only shells when finding the input surface.
   const input=editorViewport(editor,form,win),button=visibleRect(nativeButton,win);
   if(!input||!button||!form.contains(editor))return null;
   const encloses=(outer,inner)=>inner.left>=outer.left-1&&inner.right<=outer.right+1&&
@@ -132,10 +132,9 @@ function composerSurface(editor,nativeButton,form,win){
   return null;
 }
 export function createQueueView({owner,createPageUI,assets,engine,actions,getBackup=()=>'',onRecoveryChange=()=>{},
-  trustedActions=false,currentRoute=null}){
+  trustedActions=false,currentRoute=null,getNoticeRoute=()=>null}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
-  // Reference the declared image at runtime so the frozen source contains its
-  // data URL once, rather than duplicating it inside both CSS and image assets.
+  // Keep one copy of the image in the package.
   const crownImage=owner.getAsset('assets/crown-premium.webp');
   const imageRef='var(--sq-crown-image)';
   const packagedImageRef=`url("${crownImage}")`;
@@ -143,11 +142,11 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     typeof css!=='string'||!css.includes(imageRef))
     throw new Error('Packaged Send Queue crown image is missing or invalid');
   const buttonCss=css.replace(imageRef,packagedImageRef);
-  let list=null,button=null,root=null,blue=null,arrow=null,crown=null,toastNode=null,toastToken=0;
+  let list=null,button=null,root=null,blue=null,arrow=null,crown=null,toastNode=null,statusNode=null,toastToken=0;
   let errorNotice=null;
   let awaitingConversation=false;
-  let lastSignature='',recoveryText=null,recoveryReason='';
-  let cacheWarning='',cacheNotice=null,copyingBackup=false;
+  let lastSignature='',recovery=null,cacheWarning='';
+  let info=null,notice=null;
   let expandedScrollTop=0;
   const nativeStyles=new Map();
   let geminiLayout=false;
@@ -161,14 +160,13 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     root?.style.removeProperty('--sq-surface-radius');
   }
   function ensure(){
-    if(list && !list.active()){list.destroy();list=null;cacheNotice=null;lastSignature='';}
-    if(button && !button.active()){button.destroy();button=null;}
+    if(list && !list.active()){closeInfo();list.destroy();list=null;info=null;lastSignature='';}
+    if(button && !button.active()){closeInfo();button.destroy();button=null;}
     if(!list?.active()){
       list=createPageUI({id:'opendesk.chatgpt-send-queue.list',assets,baseStyles:false});
       list.addStyle(css);root=element(doc,'section','sq-panel');lastSignature='';
-      root.setAttribute('aria-label','发送队列');list.content.append(root);
-      list.host.style.setProperty('display','none','important');
-      list.on(root,'toggle',e=>{if(e.target===cacheNotice?.node)syncBackup();},true);
+      labelElement(root,'发送队列');list.content.append(root);
+      important(list.host,'display','none');
       list.on(root,'click',e=>{
         if(trustedActions&&e.isTrusted!==true)return;
         const b=e.target.closest?.('button[data-action]');if(!b)return;
@@ -178,7 +176,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
           case 'resume':actions.resume(b.dataset.id);break;
           case 'edit':actions.edit(b.dataset.id);break;
           case 'remove':actions.remove(b.dataset.id);break;
-          case 'backup':copyBackup(b);break;
+          case 'info':if(b===info&&infoAvailable())notice?closeInfo(true):showInfo();break;
           case 'more':engine.toggleExpanded();break;
           case 'preview':{
             const preview=b.closest('[data-id-row]')?.querySelector('.sq-preview');
@@ -222,7 +220,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       button=createPageUI({id:'opendesk.chatgpt-send-queue.button',assets,baseStyles:false});
       button.addStyle(buttonCss);
       blue=element(doc,'button','sq-send');
-      blue.type='button';blue.setAttribute('aria-label','加入队列或发送待发消息');
+      blue.type='button';labelElement(blue,'加入队列或发送待发消息');
       blue.setAttribute('aria-keyshortcuts','Control+Enter');
       blue.title='有草稿时加入发送队列 · Ctrl + Enter；空输入框时继续发送队列；Shift 点击可暂停入队';
       crown=element(doc,'span','sq-crown');
@@ -231,9 +229,10 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       blue.append(arrow,crown);
       button.content.append(blue);
       toastNode=element(doc,'div','sq-toast');
-      toastNode.setAttribute('role','status');toastNode.hidden=true;
+      statusNode=element(doc,'div','sq-toast-card');statusNode.hidden=true;
+      role(statusNode,'status');toastNode.append(statusNode);
       button.content.append(toastNode);
-      button.host.style.setProperty('display','none','important');
+      important(button.host,'display','none');
       button.on(blue,'click',event=>{
         if(!trustedActions||event.isTrusted===true){
           if(event.shiftKey)actions.enqueue({paused:true});
@@ -242,171 +241,156 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       });
       button.on(toastNode,'click',async event=>{
         if(trustedActions&&event.isTrusted!==true)return;
-        const copy=event.target.closest?.('button[data-action="copy"]');
-        if(copy?.dataset.action==='copy'){
-          if(copy!==errorNotice?.copy||copy.disabled||toastNode.hidden)return;
-          event.stopPropagation();
-          const notice=errorNotice;
-          copy.disabled=true;
-          try{
-            await writeClipboard(notice.message);
-            if(notice===errorNotice&&button?.active())notice.receipt.textContent='已复制错误信息';
-          }catch{
-            if(notice===errorNotice&&button?.active())notice.receipt.textContent='无法访问剪贴板，可选中文字手动复制';
-          }finally{copy.disabled=false;}
-          return;
-        }
-        const target=event.target.closest?.('button[data-recovery]');
-        if(!target||recoveryText===null||currentRoute&&maskRows())return;
+        const b=event.target.closest?.('button[data-action]');if(!b||b.disabled||b.hidden)return;
         event.stopPropagation();
-        if(target.dataset.recovery==='done'){
-          completeRecovery();
-          toast('请核对原生草稿；输入框清空且回复结束后队列自动继续');return;
+        if(notice?.node.contains(b)&&infoAvailable()){
+          if(b.dataset.action==='remove'){closeInfo(true);return;}
+          if(b===notice.draft?.done){
+            recovery=null;closeInfo(true);syncInfo();onRecoveryChange();
+            if(info.hidden)blue.focus?.({preventScroll:true});
+            toast('已核对。清空输入框、回复结束后继续发送');return;
+          }
+          await copyInfo(b);return;
         }
-        if(target.dataset.recovery!=='copy')return;
-        const original=recoveryText;
+        if(b!==errorNotice?.copy||statusNode.hidden)return;
+        const error=errorNotice;b.disabled=true;
         try{
-          await writeClipboard(original);
-          if(recoveryText!==original)return;
-          completeRecovery();
-          toast('原草稿已复制；输入框清空且回复结束后队列自动继续');
+          await writeClipboard(error.message);
+          if(error===errorNotice)error.receipt.textContent='已复制错误信息';
         }catch{
-          if(recoveryText!==original)return;
-          const manual=element(doc,'textarea','sq-recovery-text');
-          manual.readOnly=true;manual.value=original;
-          manual.setAttribute('aria-label','未入列原草稿，请手动复制');
-          manual.style.width='100%';manual.style.minHeight='76px';
-          manual.style.boxSizing='border-box';manual.style.resize='vertical';
-          const done=element(doc,'button','sq-more','我已复制');
-          done.type='button';done.dataset.recovery='done';
-          toastNode.replaceChildren(
-            element(doc,'div','sq-recovery-label','浏览器拒绝复制，请手动选中并复制原文'),manual,done);
-          if(!currentRoute||!maskRows()){manual.focus();manual.select();}
+          if(error===errorNotice)error.receipt.textContent='无法访问剪贴板，可选中文字手动复制';
+        }finally{b.disabled=false;}
+      });
+      button.on(toastNode,'keydown',event=>{
+        if(event.key==='Escape'&&notice?.node.contains(event.target)){
+          event.preventDefault();event.stopPropagation();closeInfo(true);
         }
       });
-      if(recoveryText!==null)showRecovery();
     }
   }
-  function showRecovery(){
-    if(recoveryText===null||!toastNode)return;
-    errorNotice=null;
-    const copy=element(doc,'button','sq-more','复制备份原文');
-    copy.type='button';copy.dataset.recovery='copy';
-    copy.setAttribute('aria-label','复制需要人工核对的原始草稿备份');
-    toastToken++;
-    toastNode.replaceChildren(element(doc,'div','sq-recovery-label',
-      recoveryReason||'原生草稿交接未能确认，已保留原文，请核对输入框与队列'),copy);
-    toastNode.hidden=!!currentRoute&&maskRows();
-  }
-  function hasRecovery(){return recoveryText!==null;}
-  function completeRecovery(){
-    recoveryText=null;recoveryReason='';toastToken++;
-    toastNode.replaceChildren();toastNode.hidden=true;
-    onRecoveryChange();
-  }
+  function hasRecovery(){return recovery!==null;}
   function offerRecovery(text,reason){
-    if(recoveryText!==null||typeof text!=='string'||!text)return false;
-    ensure();recoveryText=text;recoveryReason=reason;
-    onRecoveryChange();showRecovery();return true;
+    if(recovery!==null||typeof text!=='string'||!text)return false;
+    ensure();recovery={text,reason,route:getNoticeRoute()};
+    onRecoveryChange();refreshInfo();return true;
   }
   function clearError(message){
     if(!errorNotice||(message!==undefined&&message!==errorNotice.message))return;
     errorNotice=null;
-    toastNode.replaceChildren();toastNode.hidden=true;
+    statusNode.replaceChildren();statusNode.hidden=true;
   }
   function toast(message,{variant='info',duration=3000,copyable=false}={}){
     if(typeof owner.active==='function'&&!owner.active())return;
-    if(copyable&&button?.active()&&recoveryText===null){
+    if(copyable&&button?.active()){
       const copy=action(doc,'copy','复制错误信息');
       copy.className='sq-action sq-error-copy';
-      const receipt=element(doc,'div','sq-error-receipt');receipt.setAttribute('role','status');
+      const receipt=element(doc,'div','sq-error-receipt');role(receipt,'status');
       const row=element(doc,'div','sq-error-row');
       row.append(element(doc,'span','sq-error-text',message),copy);
       toastToken++;
       errorNotice={message,copy,receipt};
-      toastNode.replaceChildren(row,receipt);toastNode.hidden=false;
+      statusNode.replaceChildren(row,receipt);statusNode.hidden=false;
       return;
     }
-    // Page USER_SCRIPT uses its public Page UI, independently of the sidebar.
-    // Keep the local status as a compatibility fallback, never a native dialog.
     if(typeof owner.toast==='function'){
       try{owner.toast({message,variant,duration,position:'top'});return;}catch{}
     }
-    if(!toastNode||recoveryText!==null||errorNotice)return;
-    toastNode.textContent=message;toastNode.hidden=false;
+    if(!statusNode||errorNotice)return;
+    statusNode.textContent=message;statusNode.hidden=false;
     const id=++toastToken;
-    owner.setTimeout(()=>{if(id===toastToken&&toastNode)toastNode.hidden=true;},3000);
-  }
-  function appendCacheWarning(){
-    if(!cacheWarning||!list?.active()||cacheNotice)return;
-    const node=element(doc,'details','sq-cache-warning');
-    const summary=element(doc,'summary','sq-cache-summary');
-    const status=element(doc,'span','','自动发送已暂停');
-    status.setAttribute('role','status');summary.append(status);
-    const body=element(doc,'div','sq-cache-details');
-    const copy=element(doc,'button','sq-cache-copy','复制备份');
-    copy.type='button';copy.dataset.action='backup';copy.hidden=true;
-    body.append(element(doc,'p','',cacheWarning),copy);
-    node.append(summary,body);root.append(node);
-    cacheNotice={node,body,copy};
+    owner.setTimeout(()=>{if(id===toastToken&&statusNode)statusNode.hidden=true;},3000);
   }
   function maskRows(state=engine.view()){
     if(!currentRoute)return awaitingConversation;
     const current=currentRoute();
     return !current?.route||!!state.route&&current.route!==state.route;
   }
-  function syncBackup(snapshot){
-    if(!cacheNotice)return;
-    const {node,copy}=cacheNotice;
-    const masked=maskRows();
-    node.hidden=masked;
-    let available=false;
-    if(node.open&&!masked){
-      try{available=!!getBackup({availabilityOnly:true,snapshot});}catch{}
+  function maskNotices(){
+    const route=recovery?.route||getNoticeRoute();
+    return maskRows()||!!(currentRoute&&route&&currentRoute()?.route!==route);
+  }
+  function infoAvailable(){
+    return !!info&&!info.hidden&&list?.active()&&button?.active()&&
+      list.host.style.getPropertyValue('display')!=='none'&&!maskNotices();
+  }
+  function closeInfo(focus){
+    if(!notice)return;
+    for(const field of notice.node.querySelectorAll('textarea'))field.value='';
+    notice.node.remove();notice=null;
+    if(focus)info?.focus?.({preventScroll:true});
+  }
+  function syncInfo(snapshot){
+    if(!list?.active())return;
+    const available=!!(recovery||cacheWarning)&&!maskNotices();
+    if(available&&!info){
+      info=action(doc,'info','队列信息：自动发送已暂停');
+      info.className='sq-action sq-info-trigger';info.setAttribute('aria-haspopup','dialog');root.append(info);
     }
-    copy.hidden=!available;
+    if(!info)return;
+    info.hidden=!available;
+    if(available)root.dataset.info='';else{delete root.dataset.info;closeInfo();}
+    if(notice?.cache){
+      let hasBackup=false;
+      try{hasBackup=!!getBackup({availabilityOnly:true,snapshot});}catch{}
+      notice.cache.copy.hidden=!hasBackup;
+    }
+  }
+  function infoAction(what,label){
+    const b=element(doc,'button','sq-notice-action',label);b.type='button';b.dataset.action=what;return b;
+  }
+  function showInfo(){
+    const node=element(doc,'section','sq-toast-card sq-notice');
+    role(node,'dialog');labelElement(node,'发送队列：自动发送已暂停');
+    const close=action(doc,'remove','关闭通知'),header=element(doc,'div','sq-error-row');
+    header.append(element(doc,'strong','','自动发送已暂停'),close);node.append(header);
+    const add=(reason,what,label)=>{
+      const block=element(doc,'div','sq-notice-section'),copy=infoAction(what,label);
+      const receipt=element(doc,'div','');role(receipt,'status');
+      block.append(element(doc,'div','',reason),copy,receipt);node.append(block);return {block,copy,receipt};
+    };
+    const draft=recovery&&add(recovery.reason||'请核对原草稿','draft-copy','复制草稿备份');
+    if(draft){draft.done=infoAction('draft-done','已备份并核对');draft.done.hidden=true;draft.block.insertBefore(draft.done,draft.receipt);}
+    const cache=cacheWarning&&add(cacheWarning,'backup','复制队列备份');
+    notice={node,draft,cache};toastNode.append(node);syncInfo();close.focus?.({preventScroll:true});
+  }
+  function refreshInfo(){
+    const reopen=!!notice;closeInfo();syncInfo();if(reopen&&infoAvailable())showInfo();
   }
   function setCacheWarning(message){
-    if(cacheWarning===message)return;
-    cacheWarning=message;cacheNotice?.node.remove();cacheNotice=null;
-    appendCacheWarning();
+    if(cacheWarning!==message){cacheWarning=message;refreshInfo();}
   }
-  async function copyBackup(trigger){
-    const notice=cacheNotice;
-    if(copyingBackup||!notice?.node.open||notice.copy!==trigger||trigger.hidden||
-      maskRows()||!list?.active())return;
+  async function copyInfo(trigger){
+    const current=notice,isDraft=trigger===current.draft?.copy;
+    const part=isDraft?current.draft:current.cache;
+    if(trigger!==part?.copy)return;
+    const {block,receipt,done}=part;
     let text;
-    try{text=getBackup();}catch{toast('暂时无法生成备份，请保留网页后重试',{variant:'warning'});return;}
-    if(!list?.active()||notice!==cacheNotice)return;
-    if(!text){syncBackup();return;}
-    copyingBackup=true;trigger.disabled=true;
-    try{
-      await writeClipboard(text);
-      if(list?.active()&&notice===cacheNotice)toast('已复制备份',{variant:'success'});
-    }catch{
-      if(!list?.active()||notice!==cacheNotice)return;
-      let manual=notice.body.querySelectorAll('textarea')[0];
-      if(!manual){
-        manual=element(doc,'textarea','sq-cache-backup');manual.readOnly=true;
-        manual.setAttribute('aria-label','队列与草稿备份，请手动复制');notice.body.append(manual);
-      }
-      manual.value=text;
-      if(notice.node.open&&!maskRows()){manual.focus?.();manual.select?.();}
-      toast('浏览器未允许复制，可在暂停详情中手动复制备份',{variant:'warning'});
-    }finally{copyingBackup=false;trigger.disabled=false;}
+    try{text=isDraft?recovery.text:getBackup();}catch{receipt.textContent='备份失败，请重试';return;}
+    if(!text){syncInfo();return;}
+    trigger.disabled=true;
+    let copied=false;
+    try{await writeClipboard(text);copied=true;}catch{}finally{trigger.disabled=false;}
+    if(current!==notice||!infoAvailable())return;
+    let manual=block.querySelectorAll('textarea')[0];
+    if(copied){
+      manual?.remove();receipt.textContent=isDraft?'已复制，请核对输入框和队列':'已复制队列备份';
+    }else{
+      if(!manual){manual=element(doc,'textarea','sq-notice-backup');manual.readOnly=true;
+        labelElement(manual,'备份原文，请手动复制');block.append(manual);}
+      manual.value=text;manual.focus?.();manual.select?.();receipt.textContent='剪贴板不可用，请手动复制';
+    }
+    if(done)done.hidden=false;
   }
   function replaceRows(rows){
-    // Keep the disclosure and its focus anchored while queue rows change.
-    for(const child of [...root.children])if(child!==cacheNotice?.node)child.remove();
-    root.insertBefore(rows,cacheNotice?.node??null);
+    for(const child of [...root.children])if(child!==info)child.remove();
+    root.insertBefore(rows,info);
   }
   function render(snapshot){
     if(!list?.active()||!button?.active())return;
     if(currentRoute&&!currentRoute()){hide();return;}
-    appendCacheWarning();syncBackup(snapshot);
+    syncInfo(snapshot);
     const state=engine.view(),masked=maskRows(state),items=masked?[]:state.items;
-    if(currentRoute&&recoveryText!==null)toastNode.hidden=masked;
-    const previousRows=[...root.children].find(node=>node.className==='sq-rows');
+    const previousRows=root.querySelector('.sq-rows');
     if(geminiLayout||root.className==='sq-panel sq-expanded')
       expandedScrollTop=Math.max(0,Number(previousRows?.scrollTop)||0);
     if(!items.length){
@@ -415,16 +399,16 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       if(lastSignature===signature)return;
       lastSignature=signature;
       root.className='sq-panel sq-empty';
-      root.setAttribute('aria-label','发送队列，暂无待发送消息');
+      labelElement(root,'发送队列，暂无待发送消息');
       const rows=element(doc,'div','sq-rows');
-      rows.setAttribute('role','list');
+      role(rows,'list');
       const cue=element(doc,'span','sq-empty-mark','···');
       cue.setAttribute('aria-hidden','true');
       rows.append(cue);
       replaceRows(rows);
       return;
     }
-    const signature=JSON.stringify([geminiLayout,state.expanded,state.reason,state.phase,!!cacheWarning,
+    const signature=JSON.stringify([geminiLayout,state.expanded,state.reason,state.phase,!!cacheWarning,!!recovery,
       state.inFlight?.phase,!!state.answerGate,items.map(item=>[item.id,item.text,item.state])]);
     if(signature===lastSignature)return;
     lastSignature=signature;
@@ -434,15 +418,15 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     const openPreviews=new Set([...root.querySelectorAll('.sq-preview:not([hidden])')]
       .map(node=>node.closest('[data-id-row]').dataset.idRow));
     root.className='sq-panel'+(state.expanded?' sq-expanded':'');
-    root.setAttribute('aria-label','发送队列');
-    const rows=element(doc,'div','sq-rows');rows.setAttribute('role','list');
+    labelElement(root,'发送队列');
+    const rows=element(doc,'div','sq-rows');role(rows,'list');
     const shown=state.expanded?items:items.slice(0,3);
     for(const [i,item] of shown.entries()){
       const uncertain=item.state==='unknown'||
         (state.inFlight?.id===item.id&&state.inFlight.phase==='unknown');
       const row=element(doc,'div','sq-row'+(uncertain?' sq-unknown':'')+
         (item.state==='paused'?' sq-paused':''));
-      row.setAttribute('role','listitem');row.dataset.idRow=item.id;row.tabIndex=0;
+      role(row,'listitem');row.dataset.idRow=item.id;row.tabIndex=0;
       row.draggable=item.state!=='sending'&&!uncertain;
       row.title='Alt + 上下方向键调整顺序';
       const line=geminiLayout?element(doc,'div','sq-row-line'):row;
@@ -455,7 +439,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
         const open=openPreviews.has(item.id);
         const text=element(doc,'button','sq-text sq-preview-trigger',item.text);
         text.type='button';text.dataset.action='preview';
-        text.setAttribute('aria-label','第 '+(i+1)+' 条：查看消息全文');
+        labelElement(text,'第 '+(i+1)+' 条：查看消息全文');
         text.setAttribute('aria-expanded',String(open));
         text.setAttribute('aria-controls','sq-preview-'+i);
         line.append(text);
@@ -463,7 +447,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
           const status=uncertain?'结果未知':item.state==='sending'?'发送中':'待发送';
           const badge=uncertain?element(doc,'button','sq-item-state sq-warning',status):element(doc,'span','sq-item-state',status);
           if(uncertain){badge.type='button';badge.dataset.action='status';badge.dataset.id=item.id;
-            badge.setAttribute('aria-label',unknownMessage(state));}
+            labelElement(badge,unknownMessage(state));}
           line.append(badge);
         }
         const preview=element(doc,'div','sq-preview',item.text);
@@ -484,19 +468,20 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     }
     replaceRows(rows);
     if(state.reason&&!(cacheWarning&&state.reason==='队列缓存未保存')&&
+      !(recovery&&state.reason==='恢复草稿尚待核对')&&
       state.phase!=='unknown'&&!state.inFlight&&items.some(item=>item.state!=='paused')){
       const waiting=element(doc,'div','sq-waiting',state.reason);
-      waiting.setAttribute('role','status');root.insertBefore(waiting,cacheNotice?.node??null);
+      role(waiting,'status');root.append(waiting);
     }
     if(items.length>3){
       const more=element(doc,'button','sq-more',state.expanded?'收起队列':'展开其余 '+(items.length-3)+' 条');
       if(!state.expanded&&items.slice(3).some(item=>item.state==='unknown'||
         (state.inFlight?.id===item.id&&state.inFlight.phase==='unknown'))){
-        more.setAttribute('aria-label',more.textContent+' · '+unknownMessage(state));
+        labelElement(more,more.textContent+' · '+unknownMessage(state));
         more.title=unknownMessage(state);more.textContent='⚠ '+more.textContent;
       }
       more.type='button';more.dataset.action='more';
-      more.setAttribute('aria-expanded',String(state.expanded));root.insertBefore(more,cacheNotice?.node??null);
+      more.setAttribute('aria-expanded',String(state.expanded));root.append(more);
     }
     if(geminiLayout||state.expanded)rows.scrollTop=expandedScrollTop;
     if(activeRow){
@@ -517,26 +502,24 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
   function applyNativeLayout(placement,win){
     const {toolbar,grid,field,leading,trailing,gemini}=placement||{};
     const next=new Map();
-    const set=(node,props)=>next.set(node,props);
     if(toolbar&&win.getComputedStyle(toolbar).display.includes('flex'))
-      set(toolbar,{'flex-wrap':'wrap','min-width':'0','max-width':'100%'});
+      next.set(toolbar,{'flex-wrap':'wrap','min-width':'0','max-width':'100%'});
     if(grid&&win.getComputedStyle(grid).display==='grid'){
       if(gemini){
-        // Keep the native attachment area; move the whole action row below the editor.
-        const narrow=grid.getBoundingClientRect().width<400;
-        set(grid,{'grid-template-areas':narrow?'"file-preview" "text-input" "leading-actions" "trailing-actions"':
+        const narrow=bounds(grid).width<400;
+        next.set(grid,{'grid-template-areas':narrow?'"file-preview" "text-input" "leading-actions" "trailing-actions"':
           '"file-preview file-preview" "text-input text-input" "leading-actions trailing-actions"',
           'grid-template-columns':narrow?'minmax(0,1fr)':'minmax(0,1fr) minmax(0,max-content)',
           'grid-template-rows':narrow?'auto auto auto auto':'auto auto auto'});
-        set(trailing,{'min-width':'0','max-width':'100%','flex-wrap':'wrap','justify-content':'flex-end',
+        next.set(trailing,{'min-width':'0','max-width':'100%','flex-wrap':'wrap','justify-content':'flex-end',
           'justify-self':'end'});
       }else{
-        const narrow=grid.getBoundingClientRect().width<300;
-        set(grid,{'grid-template-columns':'minmax(0,1fr) minmax(0,max-content)',
+        const narrow=bounds(grid).width<300;
+        next.set(grid,{'grid-template-columns':'minmax(0,1fr) minmax(0,max-content)',
           'grid-template-rows':narrow?'auto auto auto':'auto auto'});
-        set(field,{'grid-area':'1 / 1 / 2 / -1','min-width':'0'});
-        set(leading,{'grid-area':narrow?'2 / 1 / 3 / -1':'2 / 1 / 3 / 2'});
-        set(trailing,{'grid-area':narrow?'3 / 1 / 4 / -1':'2 / 2 / 3 / 3','max-width':'100%'});
+        next.set(field,{'grid-area':'1 / 1 / 2 / -1','min-width':'0'});
+        next.set(leading,{'grid-area':narrow?'2 / 1 / 3 / -1':'2 / 1 / 3 / 2'});
+        next.set(trailing,{'grid-area':narrow?'3 / 1 / 4 / -1':'2 / 2 / 3 / 3','max-width':'100%'});
       }
     }
     for(const [node,props] of nativeStyles){
@@ -553,7 +536,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
         const value=node.style.getPropertyValue(property),priority=node.style.getPropertyPriority(property);
         if(tracked.get(property)?.applied!==value||priority!=='important')tracked.set(property,{value,priority,applied});
         else tracked.get(property).applied=applied;
-        if(value!==applied||priority!=='important')node.style.setProperty(property,applied,'important');
+        if(value!==applied||priority!=='important')important(node,property,applied);
         tracked.get(property).applied=node.style.getPropertyValue(property);
       }
     }
@@ -568,20 +551,11 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     return {native,anchor,toolbar};
   }
   function hide(){
-    if(list)list.host.style.setProperty('display','none','important');
+    closeInfo();
+    if(list)important(list.host,'display','none');
     if(button){
-      button.host.style.setProperty('display','none','important');
+      important(button.host,'display','none');
       applyNativeLayout(null);
-      if(recoveryText!==null&&(!currentRoute||!maskRows())){
-        // Keep recovery accessible if React replaces or removes the composer.
-        if(doc.body&&button.host.parentElement!==doc.body)doc.body.append(button.host);
-        button.host.style.setProperty('position','fixed','important');
-        button.host.style.setProperty('right','18px','important');
-        button.host.style.setProperty('bottom','18px','important');
-        button.host.style.setProperty('z-index','2147483646','important');
-        button.host.style.setProperty('display','inline-flex','important');
-        blue.hidden=true;toastNode.style.setProperty('bottom','0','important');
-      }else button.host.style.setProperty('display','none','important');
     }
     reset();
   }
@@ -607,18 +581,17 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     if(geminiLayout)root.dataset.dock='gemini';else delete root.dataset.dock;
     applyNativeLayout(snap.placement,win);
     inline(button.host,width);
-    button.host.style.setProperty('overflow','visible','important');
-    button.host.style.setProperty('display','inline-flex','important');
-    button.host.style.setProperty('flex','0 0 '+width+'px','important');
-    button.host.style.setProperty('margin-block-start','0','important');
-    button.host.style.setProperty('margin-inline-start','0','important');
-    button.host.style.setProperty('margin-inline-end','6px','important');
-    button.host.style.setProperty('height',height+'px','important');
-    button.host.style.setProperty('align-self','center','important');
+    important(button.host,'overflow','visible');
+    important(button.host,'display','inline-flex');
+    important(button.host,'flex','0 0 '+width+'px');
+    important(button.host,'margin-block-start','0');
+    important(button.host,'margin-inline-start','0');
+    important(button.host,'margin-inline-end','6px');
+    important(button.host,'height',height+'px');
+    important(button.host,'align-self','center');
     blue.dataset.nativeSize='';
     blue.style.setProperty('--sq-native-width',width+'px');
     blue.style.setProperty('--sq-native-height',height+'px');
-    blue.hidden=false;toastNode.style.removeProperty('bottom');
     if(button.host.parentElement!==toolbar||button.host.nextSibling!==anchor)
       toolbar.insertBefore(button.host,anchor);
     reset();
@@ -629,10 +602,10 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     if(!surface||surface.node!==prior.node)return fail('等待安全显示队列，避免覆盖原生输入区');
     inline(list.host,surface.width);
     root.style.setProperty('--sq-surface-radius',surface.radius);
-    list.host.style.setProperty('margin-left',surface.left-list.host.getBoundingClientRect().left+'px','important');
-    list.host.style.setProperty('margin-bottom',list.host.getBoundingClientRect().bottom-surface.rect.top+'px','important');
-    const finalSurface=measureSurface(),band=list.host.getBoundingClientRect();
-    const own=blue.getBoundingClientRect(),current=editorViewport(editor,form,win);
+    important(list.host,'margin-left',surface.left-bounds(list.host).left+'px');
+    important(list.host,'margin-bottom',bounds(list.host).bottom-surface.rect.top+'px');
+    const finalSurface=measureSurface(),band=bounds(list.host);
+    const own=bounds(blue),current=editorViewport(editor,form,win);
     const reference=visibleRect(native,win);
     const sizeMatches=reference&&native.offsetWidth===width&&native.offsetHeight===height&&
       Math.abs(own.width-width)<=1&&Math.abs(own.height-height)<=1&&
@@ -648,21 +621,19 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       Math.abs(band.right-finalSurface.left-finalSurface.width)>1||Math.abs(band.bottom-finalSurface.rect.top)>1)
       return fail('等待安全显示队列，避免覆盖或缩窄原生输入区');
     fitCrown(blue,arrow,crown,toolbar,win);
-    toastNode.style.setProperty('--sq-toast-right',Math.max(8,win.innerWidth-own.right)+'px');
-    toastNode.style.setProperty('--sq-toast-bottom',Math.max(8,win.innerHeight-finalSurface.rect.top+8)+'px');
     if(restoreFocus&&button.content.getRootNode?.()?.activeElement!==blue)blue.focus?.({preventScroll:true});
     return true;
   }
-  function destroy(){reset();applyNativeLayout(null);recoveryText=null;
-    list?.destroy();button?.destroy();list=null;button=null;cacheNotice=null;}
+  function destroy(){reset();applyNativeLayout(null);recovery=null;
+    closeInfo();list?.destroy();button?.destroy();list=null;button=null;info=null;}
   function isPlaced(snap){
     if(!snap?.ok||!list?.active()||!button?.active())return false;
     const slot=bottomSlot(snap),win=doc.defaultView;
     return !!slot&&list.host.nextSibling===snap.form&&button.host.parentElement===slot.toolbar&&
-      button.host.nextSibling===slot.anchor&&!blue.hidden&&!!visibleRect(list.host,win)&&
+      button.host.nextSibling===slot.anchor&&!!visibleRect(list.host,win)&&
       !!visibleRect(button.host,win)&&!!editorViewport(snap.editor,snap.form,win);
   }
   owner.onDispose(destroy);
   return Object.freeze({place,render,hide,toast,clearError,setCacheWarning,offerRecovery,hasRecovery,isPlaced,
-    recovery:()=>recoveryText===null?null:{text:recoveryText},destroy});
+    recovery:()=>recovery===null?null:{text:recovery.text},destroy});
 }

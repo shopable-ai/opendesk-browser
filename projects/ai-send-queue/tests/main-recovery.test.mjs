@@ -3,14 +3,15 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createQueueCache} from '../src/page/cache.js';
-import {deepSeekRoute,geminiRoute} from '../src/page/site.js';
+import {createChatGPTSite,deepSeekRoute,geminiRoute} from '../src/page/site.js';
+import {createQueueEngine} from '../src/page/engine.js';
 import {memoryStorage} from './helpers/session-storage.mjs';
 
 // Exercise the real entry's action wiring without sending a website message.
 const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'private draft',
   reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false,removeResult=true,
-  gemini=false,deepseek=false,deepSeekHome=false}={}){
+  gemini=false,deepseek=false,deepSeekHome=false,realEngine=false}={}){
   const storage=memoryStorage();
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],
     recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[],inspects:0,tickOptions:[],resumes:0,cacheWarnings:[]};
@@ -19,8 +20,8 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
   const disposers=[],timers=[],events=[];
   function runTimer(ms){
     const selected=timers.filter(timer=>timer.ms===ms);
-    assert.ok(selected.length,`missing managed ${ms}ms timer`);
-    for(const timer of selected)timer.callback();
+    assert.equal(selected.length,1,`expected one managed ${ms}ms timer`);
+    return selected[0].callback();
   }
   function advance(elapsed){
     const end=now+elapsed;
@@ -70,19 +71,40 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
       calls.recovery={text,reason};return true;},
     hasRecovery(){return hasRecovery;},recovery:()=>calls.recovery};
   if(deepSeekHome){snap.route=null;state.route=null;}
-  const win={location:deepseek?new URL('https://chat.deepseek.com/'+(snap.route??'')):gemini?new URL('https://gemini.google.com/'+snap.route):{origin:'https://chatgpt.com'},
+  const win={location:deepseek?new URL('https://chat.deepseek.com/'+(snap.route??'')):gemini?new URL('https://gemini.google.com/'+snap.route):new URL('https://chatgpt.com/'+snap.route),
     navigation:gemini||deepseek?{}:undefined,confirm(){calls.confirms++;return true;}};win.top=win;
-  const doc={visibilityState:'visible',querySelector:()=>legacy?{}:null};
-  const ctx=vm.createContext({window:win,document:doc,URL,Date:class extends Date {static now(){return now;}},
-    createPageUI:()=>owner,createChatGPTSite:()=>site,createGeminiSite:()=>site,createDeepSeekSite:()=>site,deepSeekRoute,geminiRoute,
+  const observers=[];
+  win.MutationObserver=class {
+    constructor(callback){this.callback=callback;observers.push(this);}
+    observe(){this.active=true;}
+    disconnect(){this.active=false;}
+  };
+  const doc={documentElement:{},visibilityState:'visible',querySelector:()=>legacy?{}:null};
+  const ctx=vm.createContext({window:win,document:doc,URL,queueMicrotask,Date:class extends Date {static now(){return now;}},
+    createPageUI:()=>owner,createChatGPTSite:()=>Object.assign(site,{currentRoute:createChatGPTSite({doc,win}).currentRoute}),createGeminiSite:()=>site,createDeepSeekSite:()=>site,deepSeekRoute,geminiRoute,
     createQueueCache:()=>createQueueCache({storage:()=>storage}),
-    createQueueEngine:options=>{change=options.change;return engine;},
+    createQueueEngine:options=>{
+      change=options.change;
+      if(!realEngine)return engine;
+      Object.assign(site,{normal:text=>text.trim(),confirm:()=>false,
+        prepare(text,before){calls.prepares=(calls.prepares??0)+1;snap.draft=text;return {ok:true,token:{before}};},
+        commit(token){calls.commits=(calls.commits??0)+1;
+          if(!calls.ready)return {ok:false,retry:true};
+          calls.clicks=(calls.clicks??0)+1;
+          return {ok:true,before:token.before};}});
+      const real=createQueueEngine({...options,clock:()=>now});
+      calls.dispatchState=real.view;
+      return real;
+    },
     createQueueView:options=>{actions=options.actions;getBackup=options.getBackup;
+      calls.currentRoute=options.currentRoute;calls.getNoticeRoute=options.getNoticeRoute;
       calls.visibleRows=()=>{const route=options.currentRoute?.()?.route;return !options.currentRoute||route===state.route?state.items:[];};return view;},
      createSendQueueRemote:()=>({changed(){calls.onChanged?.();}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace(/^export (?:default )?/gm,''),ctx);
   return {calls,snap,state,listeners,storage,timers,advance,runTimer,change:()=>change(),
+    mutations(records){for(const observer of observers.filter(observer=>observer.active))observer.callback(records);},
+    go(path){win.location=new URL(path,win.location);},
     navigate(path,{commit=true}={}){
       const from=win.location,url=new URL(path,from);
       event(win.navigation,'navigate',{isTrusted:true,destination:{url:url.href,sameDocument:true},signal:{aborted:!commit}});
@@ -846,4 +868,92 @@ test('stall startup render error leaves managed schedules available for recovery
   assert.equal(result.diagnostics.lastError.stage,'initial-layout');
   h.calls.onRender=null;h.advance(650);
   assert.equal(h.calls.ticks,1);assert.equal(h.calls.canSubmit,true);
+});
+
+const settle=()=>new Promise(resolve=>setImmediate(resolve));
+const nativeMutation={type:'attributes',attributeName:'disabled',target:{nodeType:1,closest:()=>null}};
+
+async function hiddenPrepared({ready=false}={}){
+  const h=fixture({realEngine:true,clear:{ok:true,text:'private draft'}});
+  let grant=()=>true,grants=0;
+  await h.runFixed(async()=>{grants++;return grant();});
+  h.visibility('hidden');
+  h.calls.ready=ready;
+  assert.equal(await h.enqueue(),true);
+  // Model Chrome's timer batch: while queued only timer checks run at these
+  // two instants. Once filled, no timer callback runs for at least a minute.
+  Object.assign(h.snap,{busy:false,idle:true});
+  h.poll();await settle();
+  h.setNow(61000);h.poll();await settle();
+  assert.equal(h.calls.prepares,1);
+  return {...h,grants:()=>grants,setGrant:check=>{grant=check;}};
+}
+
+test('hidden prepared draft can make its first readiness check without a second timer batch',async()=>{
+  const h=await hiddenPrepared({ready:true});
+  assert.equal(h.calls.clicks,1);
+  h.setNow(121000);h.poll();await settle();
+  assert.equal(h.calls.dispatchState().phase,'unknown');
+  assert.equal(h.calls.clicks,1,'a late timer can reconcile but never replay a possible click');
+});
+
+test('hidden native button mutation wakes readiness within deadline, with a fresh grant and a bound',async()=>{
+  const h=await hiddenPrepared();
+  const before=h.grants();
+  h.setNow(62000);
+  h.mutations([{...nativeMutation,target:{...nativeMutation.target,closest:()=>({})}}]);
+  await settle();
+  assert.equal(h.grants(),before,'extension-owned mutations do not wake dispatch');
+  h.calls.ready=true;h.setGrant(()=>false);
+  for(let i=0;i<10;i++)h.mutations([nativeMutation]);
+  await settle();
+  h.mutations([nativeMutation]);await settle();
+  assert.equal(h.grants(),before+1,'a mutation burst is bounded even after a fast denial');
+  assert.equal(h.calls.clicks??0,0);
+  h.setNow(63000);h.setGrant(()=>true);
+  h.mutations([nativeMutation]);await settle();
+  assert.equal(h.calls.clicks,1);
+  h.visibility('visible');await settle();
+  h.setNow(64000);
+  const visibleGrants=h.grants();
+  h.mutations([nativeMutation]);await settle();
+  assert.equal(h.grants(),visibleGrants,'observer stops on returning to foreground');
+});
+
+test('an overdue hidden readiness mutation cannot authorize a first click',async()=>{
+  const h=await hiddenPrepared();
+  h.setNow(121000);h.calls.ready=true;
+  h.mutations([nativeMutation]);await settle();
+  assert.equal(h.calls.clicks??0,0);
+  assert.equal(h.calls.dispatchState().phase,'unknown');
+  const before=h.grants();h.destroy();
+  h.setNow(181000);h.mutations([nativeMutation]);await settle();
+  assert.equal(h.grants(),before);
+});
+
+test('a hidden readiness grant cannot carry the prepared send across a URL change',async()=>{
+  const h=await hiddenPrepared();
+  let resolveGrant;
+  h.setGrant(()=>new Promise(resolve=>{resolveGrant=resolve;}));
+  h.setNow(62000);h.calls.ready=true;h.mutations([nativeMutation]);
+  const commits=h.calls.commits,inspects=h.calls.inspects;
+  h.go('/c/87654321'); // The SPA still displays the previous composer.
+  resolveGrant(true);await settle();
+  assert.equal(h.calls.inspects,inspects);
+  assert.equal(h.calls.commits,commits);
+  assert.equal(h.calls.clicks??0,0);
+  h.go('/'+h.snap.route);h.setNow(121000);h.setGrant(()=>true);
+  await h.poll();
+  assert.equal(h.calls.dispatchState().phase,'unknown');
+  assert.equal(h.calls.clicks??0,0);
+});
+
+test('queue view can compare the current ChatGPT route immediately with its cached notice route',async()=>{
+  const h=fixture();await h.runFixed(async()=>true);
+  assert.equal(h.calls.currentRoute().route,h.snap.route);
+  assert.equal(h.calls.getNoticeRoute(),h.snap.route);
+  h.go('/c/87654321');
+  assert.equal(h.calls.currentRoute().route,'c/87654321');
+  assert.equal(h.calls.getNoticeRoute(),h.snap.route,'notice ownership does not follow an uninspected route');
+  h.go('/');assert.equal(h.calls.currentRoute().route,null);
 });
