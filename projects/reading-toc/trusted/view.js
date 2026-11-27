@@ -4,10 +4,10 @@ import {uiMessage,resolveUiLocale} from '../src/page/localization.js';
 
 // Fixed vertical anchor on the header row, independent of variable outline height.
 const EDGE_TOP=5;
-// Keep native and page-edge overlay scrollbars outside every TOC hit target.
-// 28px also covers the 4px by which the expanded tab can protrude past the
-// custom-placement 8px gap. Use the same horizontal bounds for all positions.
-const EDGE_SCROLL_GUARD=28;
+// Preserve the compact edge layout. This small guard avoids flush-edge hit
+// targets; it is not a claim that every overlay scrollbar is 8px wide.
+// Keep classic scrollbar width outside the geometry rather than adding it twice.
+const EDGE_SCROLL_GUARD=8;
 export function readingTocSafeViewport(win){
   const viewport=rawTocViewport(win);
   // Classic scrollbars may be excluded from visualViewport already. Clamp to
@@ -53,7 +53,7 @@ const CSS=[
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
 'background:transparent;color:inherit;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;flex:0 1 auto;overflow:hidden}',
 '.grab:active{cursor:grabbing}.grab svg{width:13px;height:13px;flex:none;color:#8b90a1}',
-':host([data-toc-custom]){transition:left .16s ease,top .16s ease}',
+':host([data-toc-custom]){--toc-edge-gap:8px;transition:left .16s ease,top .16s ease}',
 ':host([data-toc-dragging]){transition:none!important}',
 ':host([data-toc-dragging]) .panel{box-shadow:0 9px 25px #1018272b}',
 '.heading{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:650;letter-spacing:.045em;color:#727685}',
@@ -311,7 +311,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
         rightGap:viewport.left+viewport.width-rect.right};
       // Preserve the ACTUAL visible trigger location through the transition,
       // including custom placement and responsive gutter changes. The viewport
-      // has already reserved the scrollbar strip, including in the folded state.
+      // includes the compact edge guard in the folded state.
       const toggleRect=edgeToggle.getBoundingClientRect();
       const point=foldPoint(
         edgeSide==='right'?toggleRect.right-EDGE_SIZE.width:toggleRect.left,
