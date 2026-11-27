@@ -2,7 +2,8 @@
 
 **任务：** `OD-AI-BENEFITS-R1`  
 **项目：** `projects/ai-benefits/`  
-**扩展 ID：** `ai-benefits`  
+**项目标识（slug）：** `ai-benefits`  
+**Chrome / Edge 实际扩展 ID：** 由浏览器按扩展签名密钥生成；R1 不预设固定 ID。  
 
 **产品目标：** 用户先选定目标账号标签和商品，再从 Chrome / Edge Side Panel 一键打开正确的官方购买、赠送、家庭共享、API 计费或管理员席位入口。扩展减少寻找入口和重复核对成本，但不代替官方身份验证、最终付款或权益领取。
 

@@ -1,7 +1,8 @@
 # AI权益中心（AI Benefits）R1 · Chrome / Edge 扩展
 
 - **项目目录：** `projects/ai-benefits/`
-- **扩展 ID：** `ai-benefits`
+- **项目标识（slug）：** `ai-benefits`
+- **Chrome / Edge 实际扩展 ID：** 由浏览器按扩展签名密钥生成；R1 不预设固定 ID。
 - **内部包名：** `ai-benefits-mv3`
 - **任务 ID：** `OD-AI-BENEFITS-R1`
 
