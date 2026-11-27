@@ -287,11 +287,11 @@ v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放�
 
 能力目录有 **32 个操作**：IMPLEMENTED 10、HOST_ONLY 2、NOT_EXPOSED 2、PLANNED 18、UNSUPPORTED 0（未登记名称仍返回 UNSUPPORTED）。18 个功能域/74 个规划叶子不是 SDK 方法数量。每项的组件/原生测试状态在验收 JSON 独立记录。
 
-`OpenDeskSDK.browser.clipboard.writeText(text)` 与 `OpenDeskTool.request('browser.clipboard.writeText',{text})` 使用同一规范操作、同一 `user.export` 检查和旧安装锁；下载同理。旧 `clipboard.writeText` / `file.download` 保持可用。正文是 1–150000 UTF-8 字节；下载必须为不含路径/控制字符的 `.md` 文件名，最长 90 字符。Browser 规范操作拒绝额外字段；请求包预算为 170000 字节，其他规范请求 12000 字节。选区最大 16 KiB（JSON 编码后）、上下文最大 64 KiB，领取响应预算 65536 字节。
+`OpenDeskSDK.browser.clipboard.writeText(text)` 与 `OpenDeskTool.request('browser.clipboard.writeText',{text})` 使用同一规范操作、同一 `user.export` 检查和旧安装锁；下载同理。旧 `clipboard.writeText` / `file.download` 保持可用。正文须为有效 Unicode，解码后占 1–160,000 UTF-8 字节；下载必须为不含路径/控制字符的 `.md` 文件名，最长 90 字符。Browser 规范操作拒绝额外字段；导出 JSON 参数上限为 961,024 字节，消息信封另限 512 字节。选区最大 16 KiB（JSON 编码后）、上下文最大 64 KiB，领取响应预算 65536 字节。
 
 已安装 Sidebar Tool 在真实点击仍处于派发期间调用上述 Browser 导出方法时，每次点击可直接完成一次导出，不再追加 Host 确认。该证明由启动时封闭的 Bridge/Host 通道传递，不接受工具自报的手势字段；label 转发的同一次点击不能再导出。异步读取结束后、后台或合成事件发起的导出继续走现有 Host 确认；涉及 Cookie 能力的工具保留原站点授权与确认流程。安装身份、能力、精确参数、撤权及一次性 intent 校验仍适用。下载回执不证明文件已经保存；结果未知时先核对实际结果，不自动重放。
 
-需要先异步读取再下载时，可在点击处理函数中同步调用 `downloads.prepareText(async () => ({filename, text}))`。Bridge 先消费这次点击的唯一导出机会，再在沙箱运行 factory，最多等待 8 秒；最终仍调用同一 `browser.downloads.text`，不新增 RPC 或授权。factory 应在自身异步读取完成后返回 `{filename, text}`，helper 不替调用方保证鲜读。后台、合成事件、Cookie 能力工具、关闭后的实例或迟到完成不能使用此预留；回调错误、超时和未知结果不自动回退或重放。旧 Host 的 helper 不存在时，调用方可以继续使用原确认式 `downloads.text`；helper 一旦开始，失败后不得再自动执行旧路径。
+需要先异步读取再导出时，在点击处理函数中同步调用 `clipboard.prepareText(async () => text)` 或 `downloads.prepareText(async () => ({filename, text}))`。Bridge 先消费这次点击的唯一导出机会，再在沙箱运行 factory，最多等待 8 秒。factory 应在自身读取完成后返回正文字符串（复制）或 `{filename, text}`（下载）。Bridge 仍调用同一个剪贴板或下载操作，不新增 RPC 或授权。后台、合成事件、Cookie 能力工具、关闭后的实例或迟到完成不能使用此预留。旧 Host 没有复制 helper 时，可让用户打开全文后点击复制；回调错误、超时和未知结果不得自动回退或重放。
 
 `capabilities.getStatus/list` 在已安装工具的可信前台复核剪贴板/下载实际 API；SW 单独查询返回 `E_FRONTEND_CONTEXT_REQUIRED`。`page.getContext` 可成功返回 `status: unavailable`，其 `callableNow` 表示方法可调用，不能当作有可用网页。菜单状态读取与幂等注销无需网站批准；注册仍需要工具能力、Chrome `contextMenus` 与当前网站批准。领取状态需当前有效票据、同一 action、实例、安装代际、包摘要、获准 origin 和真实文档匹配。查询之后真正执行仍重查权限和身份。
 

@@ -39,7 +39,7 @@ type NotifyOptions = {
   type?: 'info' | 'success' | 'warning' | 'error' | 'positive' | 'negative';
   caption?: string; // 可选，去空白后 1–120 字符
   position?: 'top-left' | 'top-center' | 'top-right'
-    | 'bottom-left' | 'bottom-center' | 'bottom-right';
+    | 'bottom-left' | 'bottom-center' | 'bottom-right'; // 成功默认底部居中，其余默认顶部居中
   timeout?: number; // 默认 5000ms；0 为仅手动关闭，或 1000–15000 整数
   group?: boolean;  // 默认 true：同文案/说明/类型/位置合并，false 独立显示
 };
@@ -463,7 +463,7 @@ Host→app 复用 `navigation-action`，root 的 `opendesk-tool-navigation` 新 
 
 声明 `browser.proxy.managed` 的工具在确认释放线路后，可为带 `ifMatch` 的 `storage.set` 添加 `ifProxyReleased:true`。宿主在写入前持有与代理切换相同的工具锁，并核对 Chrome 当前控制级别。若另一窗口已重新启用线路，即使配置内容与 ETag 完全相同，也会拒绝写入并保留最新配置。
 
-`browser.clipboard.writeText`、`browser.downloads.text` 的文本须非空且 UTF-8 ≤150,000 bytes。`browser.downloads.text` 仅允许不含路径分隔符等危险字符、且不以点开头的 `.md`、`.txt`、`.json` 或 `.csv` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
+`browser.clipboard.writeText`、`browser.downloads.text` 的文本须为有效 Unicode，且解码后的 UTF-8 长度为 1–160,000 字节。JSON 参数上限为 961,024 字节（允许转义扩张），消息信封另限 512 字节。`browser.downloads.text` 仅允许不含路径分隔符等危险字符、且不以点开头的 `.md`、`.txt`、`.json` 或 `.csv` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
 
 ### 应用包内固定 Controller（v2）
 

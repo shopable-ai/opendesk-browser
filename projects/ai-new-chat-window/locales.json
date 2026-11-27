@@ -1,0 +1,169 @@
+{
+  "sourceLocale": "zh-CN",
+  "messages": {
+    "zh-CN": {
+      "intro": "从 AI 网站的 ↗ 按钮打开新对话，保留当前会话和草稿。",
+      "chatgptGuide": "点击「新聊天」旁的 ↗，或将鼠标移到项目名称上再点击 ↗，即可在新标签页创建普通或项目对话。",
+      "otherGuide": "点击 ↗ 在新窗口打开新对话；按住 Alt 点击则在新标签页打开。",
+      "accessGuide": "找不到 ↗？检查该网站的访问权限和 Chrome 的「允许用户脚本」设置，然后刷新网页。",
+      "chatTab": "在新标签页打开新对话",
+      "projectTab": "在新标签页打开此项目的新对话",
+      "chatWindow": "在新窗口打开新对话",
+      "projectWindow": "在新窗口打开此项目的新对话",
+      "altTab": "Alt + 点击：新标签页",
+      "staleEntry": "新对话入口已失效，请重新选择项目或新聊天入口。",
+      "invalidTarget": "无法打开新对话：目标地址或浏览器打开能力无效。",
+      "openFailed": "打开新对话失败，请检查浏览器设置后重新点击。"
+    },
+    "en": {
+      "intro": {
+        "source": "从 AI 网站的 ↗ 按钮打开新对话，保留当前会话和草稿。",
+        "text": "Use the ↗ button on a supported AI site to start a new chat while keeping the current conversation and draft."
+      },
+      "chatgptGuide": {
+        "source": "点击「新聊天」旁的 ↗，或将鼠标移到项目名称上再点击 ↗，即可在新标签页创建普通或项目对话。",
+        "text": "Click ↗ next to New chat, or hover over a project name and click ↗ to start a chat in that project. Both open in a new tab."
+      },
+      "otherGuide": {
+        "source": "点击 ↗ 在新窗口打开新对话；按住 Alt 点击则在新标签页打开。",
+        "text": "Click ↗ to start a chat in a new window. Hold Alt while clicking to open a new tab instead."
+      },
+      "accessGuide": {
+        "source": "找不到 ↗？检查该网站的访问权限和 Chrome 的「允许用户脚本」设置，然后刷新网页。",
+        "text": "Can’t find ↗? Check site access and Chrome’s Allow user scripts setting, then reload the page."
+      },
+      "chatTab": {
+        "source": "在新标签页打开新对话",
+        "text": "Start a new chat in a new tab"
+      },
+      "projectTab": {
+        "source": "在新标签页打开此项目的新对话",
+        "text": "Start a chat in this project in a new tab"
+      },
+      "chatWindow": {
+        "source": "在新窗口打开新对话",
+        "text": "Start a new chat in a new window"
+      },
+      "projectWindow": {
+        "source": "在新窗口打开此项目的新对话",
+        "text": "Start a chat in this project in a new window"
+      },
+      "altTab": {
+        "source": "Alt + 点击：新标签页",
+        "text": "Alt + click: new tab"
+      },
+      "staleEntry": {
+        "source": "新对话入口已失效，请重新选择项目或新聊天入口。",
+        "text": "This shortcut no longer points to a new chat. Select the project or New chat again."
+      },
+      "invalidTarget": {
+        "source": "无法打开新对话：目标地址或浏览器打开能力无效。",
+        "text": "Could not open a new chat. The destination is invalid or the browser cannot open it."
+      },
+      "openFailed": {
+        "source": "打开新对话失败，请检查浏览器设置后重新点击。",
+        "text": "Could not open a new chat. Check your browser settings and try again."
+      }
+    },
+    "zh-TW": {
+      "intro": {
+        "source": "从 AI 网站的 ↗ 按钮打开新对话，保留当前会话和草稿。",
+        "text": "從 AI 網站的 ↗ 按鈕開啟新對話，保留目前的對話和草稿。"
+      },
+      "chatgptGuide": {
+        "source": "点击「新聊天」旁的 ↗，或将鼠标移到项目名称上再点击 ↗，即可在新标签页创建普通或项目对话。",
+        "text": "點擊「新聊天」旁的 ↗，或將滑鼠移到專案名稱上再點擊 ↗，即可在新分頁建立一般對話或專案對話。"
+      },
+      "otherGuide": {
+        "source": "点击 ↗ 在新窗口打开新对话；按住 Alt 点击则在新标签页打开。",
+        "text": "點擊 ↗ 在新視窗開啟新對話；按住 Alt 點擊則在新分頁開啟。"
+      },
+      "accessGuide": {
+        "source": "找不到 ↗？检查该网站的访问权限和 Chrome 的「允许用户脚本」设置，然后刷新网页。",
+        "text": "找不到 ↗？請檢查該網站的存取權限和 Chrome 的「允許使用者指令碼」設定，然後重新載入網頁。"
+      },
+      "chatTab": {
+        "source": "在新标签页打开新对话",
+        "text": "在新分頁開啟新對話"
+      },
+      "projectTab": {
+        "source": "在新标签页打开此项目的新对话",
+        "text": "在新分頁開啟此專案的新對話"
+      },
+      "chatWindow": {
+        "source": "在新窗口打开新对话",
+        "text": "在新視窗開啟新對話"
+      },
+      "projectWindow": {
+        "source": "在新窗口打开此项目的新对话",
+        "text": "在新視窗開啟此專案的新對話"
+      },
+      "altTab": {
+        "source": "Alt + 点击：新标签页",
+        "text": "Alt + 點擊：新分頁"
+      },
+      "staleEntry": {
+        "source": "新对话入口已失效，请重新选择项目或新聊天入口。",
+        "text": "新對話入口已失效，請重新選取專案或新聊天入口。"
+      },
+      "invalidTarget": {
+        "source": "无法打开新对话：目标地址或浏览器打开能力无效。",
+        "text": "無法開啟新對話：網址無效，或瀏覽器無法開啟。"
+      },
+      "openFailed": {
+        "source": "打开新对话失败，请检查浏览器设置后重新点击。",
+        "text": "無法開啟新對話。請檢查瀏覽器設定後再試一次。"
+      }
+    },
+    "ja": {
+      "intro": {
+        "source": "从 AI 网站的 ↗ 按钮打开新对话，保留当前会话和草稿。",
+        "text": "AI サイトの ↗ ボタンから、現在の会話や下書きを残したまま新しいチャットを開けます。"
+      },
+      "chatgptGuide": {
+        "source": "点击「新聊天」旁的 ↗，或将鼠标移到项目名称上再点击 ↗，即可在新标签页创建普通或项目对话。",
+        "text": "「新しいチャット」の横の ↗ をクリックすると、新しいタブでチャットが開きます。プロジェクト名にカーソルを合わせて ↗ を押すと、そのプロジェクトでチャットを開始できます。"
+      },
+      "otherGuide": {
+        "source": "点击 ↗ 在新窗口打开新对话；按住 Alt 点击则在新标签页打开。",
+        "text": "↗ をクリックすると新しいウィンドウでチャットが開きます。Alt キーを押しながらクリックすると、新しいタブで開きます。"
+      },
+      "accessGuide": {
+        "source": "找不到 ↗？检查该网站的访问权限和 Chrome 的「允许用户脚本」设置，然后刷新网页。",
+        "text": "↗ が見つからない場合は、サイトへのアクセス権と Chrome の「ユーザー スクリプトを許可する」設定を確認し、ページを再読み込みしてください。"
+      },
+      "chatTab": {
+        "source": "在新标签页打开新对话",
+        "text": "新しいタブでチャットを開始"
+      },
+      "projectTab": {
+        "source": "在新标签页打开此项目的新对话",
+        "text": "このプロジェクトのチャットを新しいタブで開始"
+      },
+      "chatWindow": {
+        "source": "在新窗口打开新对话",
+        "text": "新しいウィンドウでチャットを開始"
+      },
+      "projectWindow": {
+        "source": "在新窗口打开此项目的新对话",
+        "text": "このプロジェクトのチャットを新しいウィンドウで開始"
+      },
+      "altTab": {
+        "source": "Alt + 点击：新标签页",
+        "text": "Alt キーを押しながらクリック：新しいタブ"
+      },
+      "staleEntry": {
+        "source": "新对话入口已失效，请重新选择项目或新聊天入口。",
+        "text": "新しいチャットへのショートカットが無効になりました。プロジェクトまたは「新しいチャット」を選び直してください。"
+      },
+      "invalidTarget": {
+        "source": "无法打开新对话：目标地址或浏览器打开能力无效。",
+        "text": "新しいチャットを開けません。リンクが無効か、ブラウザで開けない状態です。"
+      },
+      "openFailed": {
+        "source": "打开新对话失败，请检查浏览器设置后重新点击。",
+        "text": "新しいチャットを開けませんでした。ブラウザの設定を確認してから、もう一度お試しください。"
+      }
+    }
+  }
+}

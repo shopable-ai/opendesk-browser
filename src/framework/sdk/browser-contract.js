@@ -2,7 +2,7 @@
 // Actual admission remains in the trusted Side Panel / Chrome host.
 import {fields,fail,jsonValue,normalizeConfig} from './registry.js';
 import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments,
-  normalizeDirectBrowserArguments} from './browser-schemas.js';
+  normalizeDirectBrowserArguments,isBrowserTextExport,BROWSER_TEXT_EXPORT_MAX_REQUEST_BYTES} from './browser-schemas.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
 import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
 import {normalizeManagedSiteBudgetSettings} from '../../ui/sidebar-tools/background-policy.js';
@@ -37,7 +37,7 @@ const USER_GESTURE_OPERATIONS=new Set([
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
-    maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?170000:
+    maxRequestBytes:isBrowserTextExport(operation)?BROWSER_TEXT_EXPORT_MAX_REQUEST_BYTES:
       operation==='browser.siteBudget.setPolicy'?80000:shared.maxRequestBytes,
     maxResponseBytes:['browser.page.readEnvironment','browser.fingerprint.readback'].includes(operation)?8192:
      ['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:

@@ -132,10 +132,10 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   clip=next;
   const large=next&&bytes(next.body)>BODY_LIMIT;
   q('clip-save').disabled=!next||busy||Boolean(large);
-  q('clip-save').title=large?'超过 160,000 字节，请下载完整 Markdown':'完整保存到我的摘录';
+  q('clip-save').title=large?'请缩短 Markdown 后再保存':'完整保存到我的摘录';
   q('clip-save-explain').hidden=!large;
   q('clip-save-explain').textContent=large
-   ?'正文超过 160,000 字节，未截断；请下载完整 .md 文件。':'';
+   ?'正文超过 160,000 字节，草稿已保留。可直接从编辑框复制原文，或缩短后再保存、复制或下载。':'';
  }
  function viewState(){
   const list=!editing&&!reading;
@@ -331,15 +331,15 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  }
  async function saveEditor(){
   if(busy||!editing)return;
-  const body=q('clip-note-body').value;
+  const textarea=q('clip-note-body'),body=textarea.value;
   const original=editing,previous=editingSource,where=editorReturn;
-  busy=true;q('clip-note-unsaved').hidden=true;notify();
+  busy=true;textarea.readOnly=true;q('clip-note-unsaved').hidden=true;notify();
   try{
    const response=original.id?
     await store.edit(original.id,previous.etag,body):
     await store.save({kind:'note',body});
    editing=null;editingSource=null;baseline='';
-   q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
+   textarea.value='';q('clip-note-unsaved').hidden=true;
    if(where==='reader'&&original.id){
     reading={item:response.item,etag:response.etag};renderReader();
    }else if(where==='recent')showHome({allowBusy:true});
@@ -352,7 +352,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    const uncertain=store.uncertain;
    msg((uncertain?'写入结果未知，请先重新核对摘录：':'保存失败：')+String(error?.message||error),true);
    q('clip-recent-retry').hidden=!uncertain;
-  }finally{busy=false;notify();}
+  }finally{textarea.readOnly=false;busy=false;notify();}
  }
  function confirmRemove(id,etag,container,origin){
   if(busy||dirty())return msg('请先保存或取消当前编辑',true);
@@ -383,11 +383,13 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    q('clip-recent-retry').hidden=!store.uncertain;
   }finally{busy=false;notify();}
  }
- async function writeFullCopy(content){
+ function copyText(content){
   if(typeof content!=='string'||!content.trim())throw Error('摘录正文为空');
-  const result=await sdk.clipboard.writeText(content);
+  return content;
+ }
+ function copySucceeded(result){
   if(result?.copied!==true)throw Error('复制未确认');
-  msg('完整 Markdown 已复制');
+  g.OpenDeskTool?.ui?.notify?.({message:'完整 Markdown 已复制',type:'success',position:'bottom-center'});
  }
  function copyError(error){
   if(error?.code==='E_CANCELLED')msg('已取消复制');
@@ -396,18 +398,21 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  }
  async function copyCard(id){
   if(busy||copying)return;
+  if(typeof sdk.clipboard.prepareText!=='function')return msg('请打开摘录后点击复制。');
   copying=true;
   try{
-   const result=await store.get(id);
-   if(result?.item?.id!==id)throw Error('摘录读取不一致');
-   await writeFullCopy(result.item.body);
+   copySucceeded(await sdk.clipboard.prepareText(async()=>{
+    const result=await store.get(id);
+    if(result?.item?.id!==id)throw Error('摘录读取不一致');
+    return copyText(result.item.body);
+   }));
   }catch(error){copyError(error);}
   finally{copying=false;}
  }
  async function copyItem(){
   if(!reading||busy||copying)return;
   copying=true;
-  try{await writeFullCopy(reading.item.body);}
+  try{copySucceeded(await sdk.clipboard.writeText(copyText(reading.item.body)));}
   catch(error){copyError(error);}
   finally{copying=false;}
  }

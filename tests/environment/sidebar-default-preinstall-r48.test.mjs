@@ -15,7 +15,8 @@ import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {WEBFLOW_AUTO_GRANTS_KEY} from '../../projects/webflow/src/auto-grants.js';
 
 const sidebarOnly=['web-markdown-clipper','quick-notes','cookie-editor','prompt-shortcuts','webflow'];
-const preinstalled=['reading-toc',...sidebarOnly,'ai-send-queue'];
+const companions=['reading-toc','ai-send-queue','ai-new-chat-window'];
+const preinstalled=[companions[0],...sidebarOnly,...companions.slice(1)];
 function companionHost({preflight=()=>{},cleanupPending=null}={}){
   const prepared=new Map(),calls=[];
   return {calls,async request(type,payload){
@@ -82,13 +83,13 @@ test('first install commits exact Sidebar releases before the trusted host insta
   const pageClient=companionHost();
   assert.equal((await resumeDefaultPreinstall({...f.options,pageClient})).state,'complete');
   const installed=f.storage.get(SIDEBAR_TOOL_STORE);
-  assert.deepEqual(installed.map(a=>a.id),[...sidebarOnly,'reading-toc','ai-send-queue']);
+  assert.deepEqual(installed.map(a=>a.id),[...sidebarOnly,...companions]);
   assert.deepEqual(Object.keys(f.storage.get(MARKET_PROVENANCE_STORE)).sort(),[...preinstalled].sort());
   for(const tool of installed){
     const release=fixtures.catalog.apps.find(row=>row.toolId===tool.id);
     assert.equal(await matchesOfficialRelease(release,tool),true);
   }
-  assert.deepEqual(pageClient.calls.filter(([op])=>op==='importAppPage').map(([,id])=>id),['reading-toc','ai-send-queue']);
+  assert.deepEqual(pageClient.calls.filter(([op])=>op==='importAppPage').map(([,id])=>id),companions);
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,WEBFLOW_AUTO_GRANTS_KEY])
     assert.equal(f.storage.has(key),false,'preinstall never grants a website');
   assert.equal(globalThis.__officialToolMustNotRun,undefined);

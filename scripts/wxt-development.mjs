@@ -1,5 +1,5 @@
 import {cp,readFile,writeFile,rename,mkdir,mkdtemp,realpath,rm,lstat} from 'node:fs/promises';
-import {trustedToolShellStyle} from './bundle-provenance.mjs';
+import {trustedToolShellStyle,trustedAIProxyStyle,TRUSTED_AI_PROXY_STYLE,TRUSTED_AI_PROXY_STYLE_INPUTS} from './bundle-provenance.mjs';
 import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {watch} from 'node:fs';
@@ -290,6 +290,13 @@ export function configureDevelopment(wxt,server) {
       if(official){
         if(generation!==officialGeneration)return;
         const changes=[...officialChanges];officialChanges.clear();
+        if(changes.some(path=>TRUSTED_AI_PROXY_STYLE_INPUTS.includes(path))){
+          failureKey=TRUSTED_AI_PROXY_STYLE;
+          const target=resolve(wxt.config.publicDir,TRUSTED_AI_PROXY_STYLE);
+          await writeFile(target,trustedAIProxyStyle(wxt.config.root));
+          copyErrors.delete(failureKey);failureKey=errorKey;
+          server.watcher.emit('all','change',target);
+        }
         // This fixed CSS is not a declared tool-package input. Validate and
         // refresh it before the official branch can skip unrelated changes.
         if(changes.includes('examples/sidebar-tools/bookmark-manager/src/react/style.css')){

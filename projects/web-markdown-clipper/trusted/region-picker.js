@@ -3,7 +3,8 @@
 export const REGION_PICK_TIMEOUT_MS=90000;
 const BLOCKED='input,textarea,select,option,button,[role="button"],[role="textbox"],[contenteditable]:not([contenteditable="false"]),nav,aside,header,footer,form,dialog,[inert],[aria-hidden="true"],[role="navigation"],[role="banner"],[role="toolbar"]';
 const STREAMING='[aria-busy="true"],[data-streaming="true"],[data-state="streaming"]';
-const TURN='article,[role="article"],[data-message-id],[data-turn-id],[data-message-author-role]';
+// Virtualized ChatGPT turns may be divs with a turn key and no article or message ID.
+const TURN='article,[role="article"],[data-message-id],[data-turn-id],[data-turn-key],[data-message-author-role]';
 const semantic=el=>Boolean(el.matches?.(TURN));
 function topLevelTurns(container){
   const descendants=[...container.querySelectorAll?.(TURN)||[]];
@@ -59,7 +60,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
   if(!doc?.documentElement||!doc.body||typeof extract!=='function')
     throw new Error('当前网页不能进行区域点选');
   const startUrl=win.location?.href;
-  let finished=false,timer=null,monitor=null,candidates=[],index=0,lastTarget=null,lastMoveAt=0,appendMode=false;
+  let finished=false,timer=null,monitor=null,candidates=[],index=0,lastTarget=null,lastMoveAt=0,appendMode=false,point=null;
   let resolvePromise,rejectPromise;
   const promise=new Promise((resolve,reject)=>{resolvePromise=resolve;rejectPromise=reject;});
   const overlay=doc.createElement('div');
@@ -79,11 +80,16 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
   };
   const wantsAppend=event=>event.ctrlKey===true||event.metaKey===true;
   doc.documentElement.append(overlay);
+  let domDirty=false;
+  const observer=typeof win.MutationObserver==='function'?new win.MutationObserver(records=>{
+    if(point&&!domDirty)domDirty=records.some(record=>!overlay.contains(record.target));
+  }):null;
   const listeners=[];
   const listen=(target,name,fn)=>{target.addEventListener(name,fn,true);listeners.push([target,name,fn]);};
   const cleanup=()=>{
     if(timer!==null)win.clearTimeout(timer);
     if(monitor!==null)win.clearInterval(monitor);
+    observer?.disconnect();
     for(const [target,name,fn] of listeners)target.removeEventListener(name,fn,true);
     overlay.remove();candidates=[];lastTarget=null;
   };
@@ -116,7 +122,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
 
   };
   const update=(target)=>{
-    if(!target||target===overlay||overlay.contains(target))return;
+    if(target&&overlay.contains(target))return;
     if(target===lastTarget&&candidates[index]?.isConnected){highlight();return;}
     const next=regionCandidates(target,doc,win);
     lastTarget=target;
@@ -124,8 +130,18 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
     index=preferredRegionIndex(next);
     highlight();
   };
+  const refreshCandidates=target=>{
+    const previous=candidates[index];
+    lastTarget=target;
+    candidates=regionCandidates(target,doc,win);
+    const liveIndex=candidates.indexOf(previous);
+    index=liveIndex<0?preferredRegionIndex(candidates):liveIndex;
+    highlight();
+    return liveIndex>=0;
+  };
   const onMove=event=>{
     if(event.isTrusted===false||!currentDocument())return;
+    if(Number.isFinite(event.clientX)&&Number.isFinite(event.clientY))point=[event.clientX,event.clientY];
     setAppend(wantsAppend(event));
     const now=Date.now();
     if(event.target!==lastTarget||now-lastMoveAt>60){lastMoveAt=now;update(event.target);}
@@ -136,9 +152,12 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
   };
   const commit=(target,append=false,keepHighlighted=false)=>{
     if(!currentDocument())return;
-    if(!keepHighlighted&&(target!==lastTarget||!candidates[index]?.isConnected))update(target);
+    if(!keepHighlighted&&target!==lastTarget)update(target);
+    // A live page can change the candidate chain without dispatching another
+    // pointer event. Never extract a newly ineligible or different region.
+    if(!refreshCandidates(keepHighlighted&&point?doc.elementFromPoint(...point):lastTarget))return;
     const node=candidates[index];
-    if(!node||!node.isConnected)return;
+    if(!node.isConnected)return;
     // Conversion is synchronous at click time: the result is a DOM snapshot,
     // not a later re-read that could include new streamed tokens.
     const streaming=Boolean(node.closest?.(STREAMING)||node.querySelector?.(STREAMING));
@@ -166,7 +185,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
       // focus (for example the launch button or an editor) must not replace it.
       const focus=doc.activeElement;
       consume(event);
-      if(candidates[index]?.isConnected)commit(candidates[index],wantsAppend(event),true);
+      if(point||candidates[index])commit(lastTarget,wantsAppend(event),true);
       else if(focus&&focus!==doc.body&&focus!==doc.documentElement)commit(focus,wantsAppend(event));
       return;
     }
@@ -175,6 +194,10 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
       index=Math.max(0,Math.min(candidates.length-1,index+(event.key==='ArrowUp'?1:-1)));
       highlight();
     }
+  };
+  const onViewportChange=()=>{
+    if(!currentDocument())return;
+    if(point)update(doc.elementFromPoint(...point));else highlight();
   };
   const onHide=()=>cancel('网页已离开，区域点选取消');
   for(const name of ['pointerdown','mousedown','pointerup','mouseup','auxclick','contextmenu'])
@@ -185,15 +208,20 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
   listen(doc,'keydown',onKey);
   listen(doc,'keyup',event=>{if(event.isTrusted!==false&&currentDocument())setAppend(wantsAppend(event));});
   listen(win,'blur',()=>setAppend(false));
-  listen(win,'scroll',highlight);
-  listen(win,'resize',highlight);
+  listen(win,'scroll',onViewportChange);
+  listen(win,'resize',onViewportChange);
   listen(win,'pagehide',onHide);
   listen(win,'popstate',currentDocument);
   listen(win,'hashchange',currentDocument);
   listen(doc,'visibilitychange',currentDocument);
-  // pushState/replaceState emit no navigation event. Keep the one-shot
-  // session bounded without patching the website's History API.
-  monitor=win.setInterval(currentDocument,250);
+  // Reuse the route heartbeat to coalesce streamed DOM changes. The observer
+  // only marks dirty; candidate scans run at most once per tick while picking.
+  observer?.observe(doc,{subtree:true,childList:true,attributes:true,characterData:true});
+  monitor=win.setInterval(()=>{
+    if(!currentDocument()||!domDirty||!point)return;
+    domDirty=false;
+    refreshCandidates(doc.elementFromPoint(...point));
+  },250);
   timer=win.setTimeout(()=>cancel('区域点选超时，请重新开始'),timeoutMs);
   return Object.freeze({promise,cancel});
 }

@@ -15,12 +15,14 @@
 <main id="thread">
  <article id="reply-a" data-message-author-role="assistant">
   <h1>目标回答 A</h1>
+  <h2 id="short-title" style="width:max-content">短题</h2>
+  <div id="nest"><p id="nested-paragraph">短句 <span id="tiny">字</span> 结束</p></div>
   <p id="lead">这是目标回答的第一段，包含<strong>重要结论</strong>与<em>强调</em>。应保留整条回答，而非仅当前段落。</p>
   <a id="test-link" href="#unwanted-navigation">参考资料链接</a>
   <section id="format"><h2>格式保真</h2>
-   <ul><li>第一层<ul><li>第二层</li></ul></li></ul>
+   <ul><li>第一层<ul><li id="list-hit">第二层</li></ul></li></ul>
    <blockquote>需要保留的引用</blockquote>
-   <pre><code class="language-js">const answer = 42;
+   <pre id="fence"><code id="code-hit" class="language-js">const answer = 42;
 console.log(answer);</code></pre>
    <table><thead><tr><th>项目</th><th>结果</th></tr></thead><tbody><tr><td>点选</td><td>通过</td></tr></tbody></table>
    <p hidden>HIDDEN_SECRET</p><button id="website-action">网页原有按钮</button>

@@ -122,11 +122,30 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       item.state==='confirmed')return false;
     return remove(id);
   }
-  function reclaimPrepared(id) {
+  function saveRecoveryEdit({id,route,text}) {
     const flight=state.inFlight;
-    if(!flight || flight.item.id!==id || flight.phase!=='unknown' ||
-      !flight.token || flight.clickAttempted ||
-      site.canReclaimPrepared?.(flight.token)!==true)return false;
+    if(state.route!==route||flight?.item.id!==id||flight.phase!=='unknown')
+      return {ok:false,reason:'原发送记录已变化，未保存；请先备份编辑内容'};
+    const allowed=checkEnqueue(text,route);
+    if(!allowed.ok)return allowed;
+    // Keep the original receipt check; the edited copy needs an explicit resume.
+    const copy={id:'q'+(sequence+1),text,state:'paused'};
+    const index=items.indexOf(flight.item)+1;
+    const next=view();next.items.splice(index,0,copy);
+    try{
+      if(checkpoint(next)===false)return {ok:false,reason:STORAGE_ERROR};
+    }catch{return {ok:false,reason:STORAGE_ERROR};}
+    sequence++;items.splice(index,0,copy);emit();
+    return {ok:true};
+  }
+  function canReclaimPrepared(id) {
+    const flight=state.inFlight;
+    return !!(flight?.item.id===id && flight.phase==='unknown' && flight.token &&
+      !flight.clickAttempted && site.canReclaimPrepared?.(flight.token)===true);
+  }
+  function reclaimPrepared(id) {
+    if(!canReclaimPrepared(id))return false;
+    const flight=state.inFlight;
     state.inFlight=null;state.phase='waiting';state.reason='';
     state.forceId=null;idleSince=null;
     items.splice(items.indexOf(flight.item),1);
@@ -337,6 +356,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(t-idleSince<IDLE_MS)return;
     state.reason='';startSubmit(snap,eligible);
   }
-  return Object.freeze({view,restoreCache,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,reclaimPrepared,reclaimEditedPrepared,move,observeNativeAttempt,observeNativeAdmission,
+  return Object.freeze({view,restoreCache,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,saveRecoveryEdit,canReclaimPrepared,reclaimPrepared,reclaimEditedPrepared,move,observeNativeAttempt,observeNativeAdmission,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }

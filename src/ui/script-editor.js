@@ -566,7 +566,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     try {
       if (!globalThis.navigator?.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await globalThis.navigator.clipboard.writeText(output.textContent);
-      if (!disposed) {displayCopyResult('已复制');notify('已复制运行结果',{position:'top-center'});}
+      if (!disposed) {displayCopyResult('已复制');notify('已复制运行结果',{type:'success',position:'bottom-center'});}
     } catch {
       if (disposed) return;
       displayCopyResult('无法自动复制');

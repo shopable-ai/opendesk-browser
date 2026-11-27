@@ -13,6 +13,7 @@ class FakeNode{
   constructor(tag='div',id=''){
     this.tagName=tag.toUpperCase();this.id=id;this.className='';this.dataset={};
     this.hidden=false;this.disabled=false;this.checked=false;this.value='';
+    this.scrollHeight=0;this.clientHeight=0;
     this.children=[];this.textContent='';this.attributes={};this.handlers=new Map();
     // Keep dynamic class tokens consistent with the current production markup.
     this.classList={
@@ -37,16 +38,16 @@ class FakeNode{
   }
   querySelectorAll(selector){
     if(selector==='[data-scroll-nav]')return allDescendants(this).filter(node=>node.dataset.scrollNav);
-    if(selector!=='button')return [];
+    if(selector!=='button'&&selector!=='button:enabled')return [];
     const all=[];
     const visit=node=>{for(const child of node.children){if(child.tagName==='BUTTON')all.push(child);visit(child);}};
-    visit(this);return all;
+    visit(this);return selector==='button:enabled'?all.filter(node=>!node.disabled):all;
   }
   addEventListener(name,fn){const old=this.handlers.get(name)||[];this.handlers.set(name,[...old,fn]);}
   removeEventListener(name,fn){this.handlers.set(name,(this.handlers.get(name)||[]).filter(f=>f!==fn));}
   emit(name,event={}){for(const fn of this.handlers.get(name)||[])fn(event);}
   click(){if(!this.disabled)this.emit('click',{preventDefault(){}});}
-  focus(){this.focused=true;}
+  focus(){this.focused=true;if(this.ownerDocument)this.ownerDocument.activeElement=this;}
   select(){this.selected=true;}
   setAttribute(name,value){this.attributes[name]=value;}
 }
@@ -56,7 +57,7 @@ function allDescendants(node){
 }
 function buttonByAction(root,action){
   const found=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.dataset.action===action);
-  assert(found,'missing icon action '+action);return found;
+  assert(found,'missing action '+action);return found;
 }
 function buttonByText(root,text){
   const button=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.textContent===text);
@@ -84,9 +85,10 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   const page=new FakeNode('main');page.className='ps';
   const rootEvents=new Map(),navigation=[];
   const root={
-    ownerDocument:{createElement:tag=>new FakeNode(tag),createElementNS:(_ns,tag)=>new FakeNode(tag),
+    ownerDocument:{createElement:tag=>Object.assign(new FakeNode(tag),{ownerDocument:root.ownerDocument}),
+      createElementNS:(_ns,tag)=>new FakeNode(tag),
       execCommand:cmd=>{assert.equal(cmd,'copy');copies.push(nodes['ps-clipboard-buffer'].value);return true;},
-      activeElement:null,addEventListener(){}},
+      activeElement:null,addEventListener(){},defaultView:new EventTarget()},
     querySelector(selector){
       if(selector==='.ps')return page;
       if(selector.startsWith('#'))return nodes[selector.slice(1)]||null;
@@ -97,6 +99,7 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
     addEventListener(name,fn){rootEvents.set(name,[...(rootEvents.get(name)||[]),fn]);},
     emit(name,event={}){for(const fn of rootEvents.get(name)||[])fn(event);},
   };
+  for(const node of Object.values(nodes))node.ownerDocument=root.ownerDocument;
   let stored=structuredClone(initialStored),version='a'.repeat(64),writes=0,reads=0;
   let siteStored=structuredClone(initialSites),siteVersion='b'.repeat(64),siteWrites=0;
   const states=[],requests=[],pending=[],readbacks=[],sitePending=[],launches=[],downloads=[];
@@ -556,7 +559,6 @@ test('Prompt list click opens read-only detail; explicit quick copy keeps one ge
   assert.match(host,/promptNativeAction/);
   assert.match(host,/siteCapability\(active\)&&!promptSettings/);
   assert.match(css,/\.ps-card-actions\{\s*position:absolute/);
-  assert.match(css,/\.ps-more\{[^}]*\bposition:absolute/);
   assert.match(css,/\.ps-card-main\{grid-template-columns:30px minmax\(0,1fr\)\}/);
   assert.match(css,/\.ps-card:focus-within \.ps-card-actions/);
   const f=await fixture(),n=f.nodes;
@@ -670,31 +672,92 @@ test('R2 Sandbox website manager saves an independent verified two-selector rule
   assert.equal(f.writes(),0);
 });
 
-test('R1.17 per-item controls are SVG-only, keyboard-labelled and still use guarded Host storage',async()=>{
-  const f=await fixture({initialStored:initialLibrary}),n=f.nodes;
-  const actions=()=>allDescendants(n['ps-list']).filter(node=>node.tagName==='BUTTON'&&node.dataset.action);
-  assert.deepEqual(actions().map(node=>node.dataset.action),
+test('More opens six labelled SVG commands in order and focuses Edit',async()=>{
+  const {nodes,root}=await fixture({initialStored:initialLibrary}),list=nodes['ps-list'];
+  const actions=list.querySelectorAll('button').filter(node=>node.dataset.action);
+  const trigger=buttonByAction(list,'more');
+  assert.equal(trigger.attributes['aria-haspopup'],'menu');
+  assert.equal(trigger.attributes['aria-expanded'],'false');
+  assert.deepEqual(actions.map(node=>node.dataset.action),
     ['detail','quick-copy','more','detail','quick-copy','more']);
-  buttonByAction(n['ps-list'],'more').click();
-  const commandNames=actions().map(node=>node.dataset.action);
-  assert.deepEqual(commandNames,
-    ['detail','quick-copy','more','edit','toggle','up','down','copy','delete','detail','quick-copy','more']);
-  for(const node of actions().filter(node=>node.dataset.action!=='detail')){
-    assert.equal(node.textContent,'','icon-only controls must not render text');
+  for(const node of actions.filter(node=>node.dataset.action!=='detail')){
+    assert.equal(node.textContent,'','quick actions stay compact');
     assert.match(node.attributes['aria-label'],/\S/);
     assert.equal(node.children[0].tagName,'SVG');
   }
-  assert.equal(buttonByAction(n['ps-list'],'up').disabled,true);
-  buttonByAction(n['ps-list'],'down').click();await settle();
+  trigger.click();
+  const menu=root.querySelector('.ps-more'),openedTrigger=buttonByAction(list,'more');
+  assert.equal(menu.attributes.role,'menu');
+  assert.equal(openedTrigger.attributes['aria-controls'],menu.id);
+  assert.equal(openedTrigger.attributes['aria-expanded'],'true');
+  const commands=menu.querySelectorAll('button');
+  assert.deepEqual(commands.map(node=>[node.dataset.action,node.textContent]),[
+    ['edit','编辑'],['toggle','停用'],['up','上移'],['down','下移'],['copy','复制'],['delete','删除']]);
+  assert(commands.every(node=>node.attributes.role==='menuitem'&&node.children[0].tagName==='SVG'));
+  assert.equal(root.ownerDocument.activeElement,commands[0]);
+});
+
+test('ArrowUp opens More at Delete and navigation skips disabled commands',async()=>{
+  const {nodes,root}=await fixture({initialStored:initialLibrary});
+  buttonByAction(nodes['ps-list'],'more').focus();
+  for(const [key,action] of [['ArrowUp','delete'],['Home','edit'],['ArrowDown','toggle'],
+    ['ArrowDown','down'],['ArrowUp','toggle'],['End','delete']]){
+    let prevented=false;
+    root.emit('keydown',{key,target:root.ownerDocument.activeElement,preventDefault(){prevented=true;}});
+    assert.equal(prevented,true,key);
+    assert.equal(root.ownerDocument.activeElement.dataset.action,action,key);
+  }
+});
+
+test('Moving a prompt keeps its menu open and focuses its enabled move command',async()=>{
+  const f=await fixture({initialStored:initialLibrary}),list=f.nodes['ps-list'];
+  buttonByAction(list,'more').click();
+  assert.equal(buttonByAction(list,'up').disabled,true);
+  buttonByAction(list,'down').click();await settle();
   assert.deepEqual(f.stored().items.map(row=>row.body),['第二条','第一条']);
-  assert.equal(buttonByAction(n['ps-list'],'down').disabled,true,'last item cannot move down');
-  assert.equal(buttonByAction(n['ps-list'],'up').focused,true,'focus follows the reordered item to its enabled command');
-  buttonByAction(n['ps-list'],'copy').click();await settle();
-  assert.equal(f.copies().at(-1),'第一条');
-  buttonByAction(n['ps-list'],'up').click();await settle();
+  assert.equal(buttonByAction(list,'down').disabled,true,'last item cannot move down');
+  assert.equal(f.root.ownerDocument.activeElement,buttonByAction(list,'up'));
+  buttonByAction(list,'up').click();await settle();
   assert.deepEqual(f.stored().items.map(row=>row.body),['第一条','第二条']);
-  assert.equal(buttonByAction(n['ps-list'],'up').disabled,true,'first item cannot move up');
-  assert.equal(buttonByAction(n['ps-list'],'down').focused,true,'focus also follows the item to its enabled command at the first position');
+  assert.equal(buttonByAction(list,'up').disabled,true,'first item cannot move up');
+  assert.equal(f.root.ownerDocument.activeElement,buttonByAction(list,'down'));
+});
+
+test('Toggling a prompt persists its state and updates the open menu label',async()=>{
+  const f=await fixture({initialStored:initialLibrary}),list=f.nodes['ps-list'];
+  buttonByAction(list,'more').click();
+  for(const [enabled,label] of [[false,'启用'],[true,'停用']]){
+    buttonByAction(list,'toggle').click();await settle();
+    assert.equal(f.stored().items[0].enabled,enabled);
+    const toggle=buttonByAction(f.root.querySelector('.ps-more'),'toggle');
+    assert.equal(toggle.textContent,label);
+    assert.equal(f.root.ownerDocument.activeElement,toggle);
+  }
+});
+
+test('Copying from More leaves the menu open without writing to storage',async()=>{
+  const f=await fixture({initialStored:initialLibrary}),list=f.nodes['ps-list'];
+  buttonByAction(list,'more').click();
+  const menu=f.root.querySelector('.ps-more'),copy=buttonByAction(menu,'copy');
+  copy.focus();copy.click();
+  assert.deepEqual(f.copies(),['第一条']);
+  assert.equal(f.writes(),0);
+  assert.equal(f.root.querySelector('.ps-more'),menu);
+  assert.equal(f.root.ownerDocument.activeElement,copy);
+});
+
+test('Cancelling inline deletion restores the closed More trigger without writing',async()=>{
+  const f=await fixture({initialStored:initialLibrary}),list=f.nodes['ps-list'];
+  buttonByAction(list,'more').click();
+  buttonByAction(list,'delete').click();
+  assert.equal(f.root.querySelector('.ps-more'),null);
+  const confirmation=f.root.querySelector('.ps-confirm'),cancel=buttonByText(confirmation,'取消');
+  assert.equal(f.root.ownerDocument.activeElement,cancel);
+  cancel.click();
+  assert.equal(f.root.querySelector('.ps-confirm'),null);
+  assert.equal(f.root.querySelector('.ps-more'),null);
+  assert.equal(f.root.ownerDocument.activeElement,buttonByAction(list,'more'));
+  assert.equal(f.writes(),0);
 });
 test('R1.17 Save and Continue must acknowledge each Host write before resetting the draft',async()=>{
   const f=await fixture(),n=f.nodes;

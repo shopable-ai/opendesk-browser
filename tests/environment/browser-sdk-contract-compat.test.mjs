@@ -67,7 +67,7 @@ test('Page discovery validates inputs and does not expose privileged browser met
 test('Browser exports reject unsafe values before canonical dispatch',async()=>{
   const calls=[],sdk=createBrowserSdk({request:async(...args)=>{calls.push(args);return {ok:true};}});
   assert.throws(()=>sdk.clipboard.writeText(''),isCode('E_LIMIT'));
-  assert.throws(()=>sdk.clipboard.writeText('界'.repeat(50001)),isCode('E_LIMIT'));
+  assert.throws(()=>sdk.clipboard.writeText('界'.repeat(53334)),isCode('E_LIMIT'));
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'../bad.md'}),isCode('E_SCHEMA'));
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'bad.exe'}),isCode('E_SCHEMA'));
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'valid.md',extra:1}),isCode('E_SCHEMA'));
@@ -125,7 +125,7 @@ test('CSV text export keeps the existing Browser SDK Host gesture, filename and 
     assert.throws(()=>sdk.downloads.text({text:'x',filename:invalid}),isCode('E_SCHEMA'),invalid);
     assert.throws(()=>browserTextDownloadUrl({text:'x',filename:invalid}),isCode('E_SCHEMA'),invalid);
   }
-  assert.throws(()=>browserTextDownloadUrl({text:'中'.repeat(50001),filename:'products.csv'}),isCode('E_LIMIT'));
+  assert.throws(()=>browserTextDownloadUrl({text:'中'.repeat(53334),filename:'products.csv'}),isCode('E_LIMIT'));
   for(const [filename,mime] of [['note.md','text/markdown'],['note.txt','text/plain'],['data.json','application/json']])
     assert(browserTextDownloadUrl({text:'x',filename}).startsWith('data:'+mime+';charset=utf-8,'));
   assert.equal(Object.hasOwn(operationSchemas('browser.downloads.text').output.properties,'downloadId'),false);

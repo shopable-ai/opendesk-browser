@@ -3,12 +3,11 @@ import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mj
 import {officialPackagePath,officialSourceProjectPath} from '../../src/sidebar-tools/official-catalog.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile, mkdtemp, rm} from 'node:fs/promises';
-import {join} from 'node:path';
+import {createHash} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
-import {tmpdir} from 'node:os';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
-import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
+import {checkSidebarToolProjectPackage,createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {CLIP_CAPABILITY,CLIP_SITE_STORE,CLIP_PROTOCOL,clipGrantAllowed,changeClipGrant} from '../../projects/web-markdown-clipper/trusted/policy.js';
 import {initPageClip} from '../../projects/web-markdown-clipper/trusted/page.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
@@ -17,39 +16,54 @@ import {domToMarkdown,chooseArticle,safeMarkdownUrl,safeClipSource,CLIP_MAX_BYTE
 
 const tools=['web-markdown-clipper','markdown-workbench'];
 const readPkg=officialToolFixture;
-test('R22 Markdown workbench v1 and upgraded Clipper v2 are bounded installable packages',async()=>{
- const [clip,work]=await Promise.all(tools.map(readPkg));
+test('R22 Workbench v1 and Clipper v2 official and candidate packages stay within their install contracts',async()=>{
+ const [clip,work,candidate]=await Promise.all([
+  ...tools.map(readPkg),createSidebarToolPackage(officialSourceProjectPath('web-markdown-clipper'))]);
  assert.equal(validateSidebarToolPackage(clip).id,'web-markdown-clipper');
+ assert.equal(validateSidebarToolPackage(candidate).id,clip.id);
  assert.equal(validateSidebarToolPackage(work).id,'markdown-workbench');
- assert.equal(clip.format,'opendesk.sidebar-tool.v2');
- assert.deepEqual(clip.capabilities,['page.clip','user.export','storage.local','currentPage.read','browser.contextMenu']);
- assert.equal(clip.contributes.contextMenus[0].handler,'open-self');
- assert.deepEqual(clip.contributes.contextMenus[0].documentUrlPatterns,['http://*/*','https://*/*']);
- assert.equal(clip.scripts.length,1,'notes model must be a SHA-bound local Classic JS asset');
+ for(const pkg of [clip,candidate]){
+  assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
+  assert.deepEqual(pkg.capabilities,['page.clip','user.export','storage.local','currentPage.read','browser.contextMenu']);
+  assert.equal(pkg.contributes.contextMenus[0].handler,'open-self');
+  assert.deepEqual(pkg.contributes.contextMenus[0].documentUrlPatterns,['http://*/*','https://*/*']);
+  assert.deepEqual(pkg.scripts.map(script=>script.name),['src/notes.js']);
+  for(const {name,code,sha256} of pkg.scripts){
+   assert.equal(sha256,createHash('sha256').update(code,'utf8').digest('hex'),name+' must match its embedded bytes');
+   assert.doesNotMatch(code,/\bchrome\.(tabs|scripting|storage|runtime)\b/);
+  }
+ }
  assert.equal(work.format,'opendesk.sidebar-tool.v1');
  assert.deepEqual(work.capabilities,['user.export']);
- for(const pkg of [clip,work]){
+ for(const pkg of [clip,candidate,work]){
   assert.doesNotMatch(pkg.html,/<script|<iframe|<style|onload\s*=/i);
   assert.doesNotMatch(pkg.css,/@import|url\(\s*['"]?https?:/i);
   assert.doesNotMatch(pkg.js,/\bchrome\.(tabs|scripting|storage|runtime)\b/);
   assert.ok(Buffer.byteLength(JSON.stringify(pkg))<320000);
   assert.throws(()=>validateSidebarToolPackage({...pkg,capabilities:['page.unknown']}),/能力/);
  }
- const official=await officialToolFixture('web-markdown-clipper');
- assert.deepEqual(official,clip);
 });
-test('R22 packer is reproducible and matches the official build output',async()=>{
- const out=await mkdtemp(join(tmpdir(),'opendesk-r22-md-'));
- try{
-  for(const id of tools){
-   const target=join(out,id+'.json');
-   const report=await buildSidebarTool(officialSourceProjectPath(id),{out:target});
-   assert.equal(report.validated,true);
-   const expected=(await officialFixtures()).resources.get(officialPackagePath(id)).toString('utf8');
-   const actual=await readFile(target,'utf8');
-   assert.equal(actual,expected,'same validated source/version must have byte-identical JSON');
-  }
- }finally{await rm(out,{recursive:true,force:true});}
+test('R22 the same candidate sources produce byte-identical portable packages',async()=>{
+ for(const id of tools){
+  const project=officialSourceProjectPath(id);
+  const first=encodeSidebarToolPackage(await createSidebarToolPackage(project));
+  const second=encodeSidebarToolPackage(await createSidebarToolPackage(project));
+  assert.ok(first.equals(second),id+' candidate packaging must be deterministic');
+ }
+});
+test('R22 official Markdown tools distribute the checked-in installable bytes',async()=>{
+ const {resources,sourceInputs}=await officialFixtures();
+ const inputPaths=new Set(sourceInputs.map(input=>input.path));
+ for(const id of tools){
+  // Clipper is explicitly pinned; Workbench falls back to its conventional
+  // package filename. Advancing draft source cannot replace either release.
+  const project=officialSourceProjectPath(id),packagePath=project+'/'+id+'.opendesk-tool.json';
+  const promoted=await readFile(packagePath);
+  const distributed=resources.get(officialPackagePath(id));
+  assert.ok(distributed?.equals(promoted),id+' official distribution must use promoted bytes');
+  assert.ok(inputPaths.has(packagePath),id+' must fingerprint the promoted package');
+  assert.ok(!inputPaths.has(project+'/tool.config.json'),id+' draft config must not drive the official release');
+ }
 });
 test('R22 installed body capability is available by default and explicit site denial wins',async()=>{
  const pkg=await readPkg('web-markdown-clipper');
@@ -203,7 +217,6 @@ test('R5.2 Markdown Workbench built package has no confirm/alert/prompt or exit 
   readFile('projects/markdown-workbench/src/index.html','utf8'),
   readFile('projects/markdown-workbench/src/style.css','utf8'),
   readFile('projects/markdown-workbench/tool.config.json','utf8').then(JSON.parse)]);
- assert.equal(config.version,'1.0.5');
  assert.doesNotMatch(source,/\b(?:confirm|alert|prompt)\s*\(|beforeunload/);
  assert.match(source,/serial!==importSerial/,'late file loads must not overwrite later edits');
  for(const id of ['mdw-inline-review','mdw-review-text','mdw-review-confirm','mdw-review-cancel'])
@@ -212,6 +225,7 @@ test('R5.2 Markdown Workbench built package has no confirm/alert/prompt or exit 
  const packaged=await officialToolFixture('markdown-workbench');
  assert.equal(packaged.version,config.version,'current package must match its fixed source version');
  assert.doesNotMatch(packaged.js,/\bconfirm\s*\(|beforeunload/);
+ await checkSidebarToolProjectPackage(officialSourceProjectPath('markdown-workbench'));
 });
 
 test('R5.2 Markdown Workbench import and clear are explicit in-page operations',async()=>{

@@ -25,6 +25,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocation
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
 import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,sidebarToolPackageHash,sidebarToolStorageKey} from '../../ui/sidebar-tools/package.js';
+import {assertBrowserExportWire,isBrowserTextExport} from '../../framework/sdk/browser-schemas.js';
 // The installer owns the revocation store. Keep the SW's menu listener small:
  // importing installation.js here would bundle the entire tool installer in SW.
 const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
@@ -1003,7 +1004,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     try{return await Promise.race([dispatchTool(request,sender,admission),admission.expiry]);}
     finally{admission.stop();}
   }
-  async function dispatchTool({operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch,packageHash,approvalRef,cookieReadDocument},sender,admission,clearPreviewTarget){
+  async function dispatchTool(request,sender,admission,clearPreviewTarget){
+    const {operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch,packageHash,approvalRef,cookieReadDocument}=request;
     const checkAdmission=()=>admission?.check();
     const readAdmission=read=>admission?admission.wait(read):read();
     const actualHost=await checkedSender(api,sender);
@@ -1115,6 +1117,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       }
       if(intentOperations.has(operation)||operation==='browser.sidePanel.openSelf'||operation==='browser.network.request'){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+        if(isBrowserTextExport(operation))assertBrowserExportWire(checked,JSON.stringify(request));
         const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null,
           hostInstanceId,toolInstance};
@@ -1387,7 +1390,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       dispatchHost(request,sender,{...deadline,admission,guardImport}),admission.expiry]);}
     finally{admission.stop();}
   }
-  async function dispatchHost({operation,toolId,enabled,scope,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,proxyConsent,args},sender,importApproval,checkedHost,clearApprovalTarget){
+  async function dispatchHost(request,sender,importApproval,checkedHost,clearApprovalTarget){
+    const {operation,toolId,enabled,scope,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,
+      cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,proxyConsent,args}=request;
     const admission=importApproval?.admission;
     const actualHost=checkedHost??await checkedSender(api,sender);
     if(actualHost!==hostInstanceId)
@@ -1650,6 +1655,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(!intentOperations.has(targetOperation)||typeof toolInstance!=='string'||
            !/^[0-9a-f-]{36}$/i.test(toolInstance))throw failure('E_SCHEMA','Invalid trusted action');
         const args=normalizeBrowserOperation(targetOperation,targetArgs);
+        if(isBrowserTextExport(targetOperation))assertBrowserExportWire(args,JSON.stringify(request));
         const cookieOperation=cookieCapabilities[targetOperation];
         const source=await (cookieOperation?readInstallation(api,cookiePackageProof):readSources(api));
         const tool=admittedTool(source.tools,toolId);

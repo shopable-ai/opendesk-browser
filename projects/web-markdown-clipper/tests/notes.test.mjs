@@ -267,9 +267,10 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
  const elements=Object.fromEntries([...new Set(ids)].map(id=>[id,new Element(id)]));
  const doc={createElement:tag=>new Element(tag),createElementNS:(_ns,tag)=>new Element(tag)};
  const root={ownerDocument:doc,querySelector:key=>elements[key.slice(1)]};
- let resolveSave,saveCalls=0,writeInput=null;
+ let resolveSave,saveCalls=0,writeInput=null,listError=null;
  const pending=new Promise(resolve=>{resolveSave=resolve;});
  const request=(operation,payload={})=>{
+  if(operation==='clipNotes.list'&&listError)return Promise.reject(listError);
   if(operation==='clipNotes.list')return Promise.resolve({
    items:writeInput?[{id:'clip-1',kind:writeInput.kind,title:writeInput.title}]:[],total:writeInput?1:0,usedBytes:0,etag:'e',nextOffset:null
   });
@@ -282,11 +283,14 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
   });
   throw Error('unexpected operation: '+operation);
  };
- const ctx={OpenDeskTool:{setState(){}}};
+ const notices=[],statuses=[];
+ const ctx={OpenDeskTool:{setState(){},ui:{notify({message,type,position}){notices.push({message,type,position});return true;}}}};
  runInNewContext(source,{globalThis:ctx,document:doc,TextEncoder,URL,Date,Math,setTimeout,clearTimeout});
- const changes=[];let copied=null;
- const notes=ctx.OpenDeskClipNotes.create({root,request,sdk:{clipboard:{writeText:async text=>{copied=text;return {copied:true};}}},
-  onStatus:()=>{},renderMarkdown:()=>{},
+ const changes=[];let copied=null,copyConfirmed=true,prepared=0;
+ const writeText=async text=>{copied=text;return {copied:copyConfirmed};};
+ const notes=ctx.OpenDeskClipNotes.create({root,request,sdk:{clipboard:{writeText,
+  prepareText:async factory=>{prepared++;return writeText(await factory());}}},
+  onStatus:(message,error)=>statuses.push({message,error}),renderMarkdown:()=>{},
   onSaveBusy:active=>changes.push(active)});
  notes.setClip({body:'旧网页敏感正文',title:'原文',source:'https://old.example/a'});
  await elements['clip-save'].fire('click');
@@ -319,14 +323,38 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
  assert.equal(elements['clip-note-editor'].hidden,true);
  const card=elements['clip-recent-list'].children[0];
  assert.equal(card.children[1].children.length,3,'copy/edit/delete share the existing card actions');
- await card.children[1].children[0].fire('click');
+ listError=new Error('library refresh failed');
+ await elements['clip-recent-retry'].fire('click');
+ for(let i=0;i<20;i++)await Promise.resolve();
+ const priorStatus=statuses.at(-1);
+ assert.match(priorStatus.message,/library refresh failed/);
+ assert.equal(priorStatus.error,true);
+ const cardClick=card.children[1].children[0].fire('click');
+ assert.equal(prepared,1,'reserve the click before awaiting the full body');
+ assert.deepEqual(notices,[],'do not show success while the copy is pending');
+ await cardClick;
  for(let i=0;i<20;i++)await Promise.resolve();
  assert.equal(copied,writeInput.body,'copy must read complete body, not the list summary');
  assert.equal(elements['clip-home'].hidden,false,'copy must not navigate');
+ const successNotice={message:'完整 Markdown 已复制',type:'success',position:'bottom-center'};
+ assert.deepEqual(notices,[successNotice]);
+ assert.equal(statuses.at(-1),priorStatus,'copy leaves the home error intact');
+ assert.equal(elements['clip-notes-status'].textContent,priorStatus.message);
+ assert.equal(elements['clip-notes-status'].dataset.error,'true');
  elements['clip-reader-content'].scrollTop=8000;
  await elements['clip-recent-list'].children[0].children[0].fire('click');
  for(let i=0;i<20;i++)await Promise.resolve();
  assert.equal(elements['clip-reader-content'].scrollTop,0,'opening another article must start at its title, not the previous article end');
+ copyConfirmed=false;
+ await elements['clip-note-read-copy'].fire('click');
+ for(let i=0;i<20;i++)await Promise.resolve();
+ assert.deepEqual(notices,[successNotice],'an unconfirmed copy must not report success');
+ assert.match(elements['clip-notes-status'].textContent,/复制失败：复制未确认/);
+ copyConfirmed=true;copied=null;
+ await elements['clip-note-read-copy'].fire('click');
+ for(let i=0;i<20;i++)await Promise.resolve();
+ assert.equal(copied,writeInput.body);
+ assert.deepEqual(notices,[successNotice,successNotice],'reader copy shares the same success notification');
 });
 
 
@@ -377,7 +405,7 @@ test('R1.11 formal controls, preview and installable package use identical offic
  assert.doesNotMatch(notes,/preview-remove|preview-edit|sessionStorage/);
  assert.match(notes,/reloadRecent\(\)/);
  assert.match(css,/--opendesk-host-available-height/);
- for(const name of ['arrow-left','plus','list','pencil','trash-2','refresh-cw','copy','download','save','search','filter','eye','code-2','settings-2','archive','chevron-down'])
+ for(const name of ['arrow-left','plus','list','pencil','trash-2','refresh-cw','copy','download','save','search','filter','eye','code-2','archive','chevron-down'])
   assert.ok(html.includes('id="clip-i-'+name+'"'),'missing semantic icon '+name);
 });
 

@@ -13,7 +13,6 @@
  <symbol id="clip-i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6.5 7.5V20l-3-2v-5.5L4 5z"/></symbol>
  <symbol id="clip-i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
  <symbol id="clip-i-code-2" viewBox="0 0 24 24"><path d="m8 8-4 4 4 4"/><path d="m16 8 4 4-4 4"/><path d="m14 4-4 16"/></symbol>
- <symbol id="clip-i-settings-2" viewBox="0 0 24 24"><path d="M4 7h9"/><path d="M17 7h3"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
  <symbol id="clip-i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v12h14V8"/><path d="M10 12h4"/></symbol>
  <symbol id="clip-i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
  <symbol id="clip-i-help-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></symbol>
@@ -37,17 +36,30 @@
  <button type="button" data-clip-mode="quote" aria-pressed="false">引用</button>
  <button type="button" data-clip-mode="link" aria-pressed="false">链接</button>
 </div>
+<p id="clip-mode-status" class="clip-hint" role="status" hidden></p>
 <button type="button" id="clip-fetch" class="primary clip-fetch" aria-label="点选网页区域">点选网页区域</button>
-<div class="clip-actions" role="toolbar" aria-label="显示方式">
- <button type="button" id="clip-show-preview" aria-pressed="true"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-eye"></use></svg>预览</button>
- <button type="button" id="clip-show-source" aria-pressed="false"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-code-2"></use></svg>Markdown</button>
- <span class="clip-spacer"></span>
- <details class="clip-settings"><summary><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-settings-2"></use></svg>更多设置</summary>
-  <label for="clip-meta">来源格式</label>
-  <select id="clip-meta" aria-label="来源信息格式">
-   <option value="footer">文末链接</option><option value="yaml">YAML Front Matter</option><option value="none">不添加</option>
-  </select>
- </details>
+<div class="clip-actions">
+ <div class="clip-view-switch" role="group" aria-label="显示方式">
+  <button type="button" id="clip-show-preview" aria-pressed="true"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-eye"></use></svg>预览</button>
+  <button type="button" id="clip-show-source" aria-pressed="false"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-code-2"></use></svg>Markdown</button>
+ </div>
+ <div id="clip-source-options" class="clip-source-options" role="group" aria-label="Markdown 输出设置">
+  <label class="clip-source-toggle" for="clip-include-source">
+   <input id="clip-include-source" type="checkbox" role="switch" checked>
+   <span class="clip-source-track" aria-hidden="true"></span><span>附加来源</span>
+  </label>
+  <details id="clip-format-settings" class="clip-format-settings">
+   <summary aria-label="来源格式" title="来源格式"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-chevron-down"></use></svg></summary>
+   <div class="clip-format-panel">
+    <label for="clip-meta">来源格式</label>
+    <select id="clip-meta" aria-describedby="clip-format-hint">
+     <option value="footer">文末链接</option><option value="yaml">文首 YAML</option>
+    </select>
+    <p id="clip-format-hint">开启「附加来源」后，将标题和网址写入 Markdown。</p>
+   </div>
+  </details>
+ </div>
+ <span id="clip-link-output" class="clip-link-output" hidden>仅输出网页链接</span>
 </div>
 <textarea id="clip-source" spellcheck="false" hidden aria-label="编辑剪藏的 Markdown 源码" placeholder="请先提取当前网页内容"></textarea>
 <div id="clip-preview" class="clip-preview" role="document" aria-label="Markdown 只读预览"></div>
@@ -57,6 +69,7 @@
  <button type="button" id="clip-download" aria-label="下载 Markdown" title="下载为本地 .md 文件"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-download"></use></svg>下载 .md</button>
 </div>
 <p id="clip-save-explain" class="clip-hint" hidden></p>
+<p id="clip-source-status" class="clip-status" hidden><span id="clip-source-message" role="status"></span> <button id="clip-retry-source" type="button" class="clip-link">重试记住设置</button></p>
 <p id="clip-status" class="clip-status" role="status" aria-live="polite">点选网页区域，或选择其他剪藏方式。</p>
 <section id="clip-recent" aria-labelledby="clip-recent-title">
  <div class="clip-recent-head">

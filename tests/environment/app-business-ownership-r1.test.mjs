@@ -37,9 +37,6 @@ test('R1.3 fixed bundle accepts only audited app-owned blobs in approved Chrome 
     ['projects/web-markdown-clipper/trusted/page.js','agents/page-relay.js'],
     ['examples/shared/markdown/convert.js','agents/page-relay.js'],
     ['projects/web-markdown-clipper/trusted/policy.js','ui/marketplace.js'],
-    ['projects/reading-toc/trusted/page.js','agents/page-relay.js'],
-    ['projects/reading-toc/trusted/view.js','agents/page-relay.js'],
-    ['projects/reading-toc/trusted/existing-tabs.js','sidebar-tools/preinstall-intent.js'],
     ['projects/reading-toc/trusted/policy.js','ui/marketplace.js'],
     ['projects/reading-toc/trusted/locales.generated.js','ui/tool-shell.js']
   ];
@@ -51,24 +48,30 @@ test('R1.3 fixed bundle accepts only audited app-owned blobs in approved Chrome 
     assert.throws(()=>check(name,'scripting/packaged/page-session.js'),
       /Historical\/user\/vendor/,name+' cannot enter an unreviewed executable world');
   }
+  // The Reading TOC Page module superseded these fixed executable paths.
+  for(const [name,target] of [
+    ['page.js','agents/page-relay.js'],
+    ['view.js','agents/page-relay.js'],
+    ['existing-tabs.js','sidebar-tools/preinstall-intent.js']
+  ])assert.throws(()=>check('projects/reading-toc/trusted/'+name,target),
+    /Historical\/user\/vendor/,name+' cannot return to a privileged fixed bundle');
   assert.throws(()=>check('projects/reading-toc/src/main.js','agents/page-relay.js'),
     /Historical\/user\/vendor/,'arbitrary packaged plugin JavaScript cannot be compiled as trusted');
 });
 
 test('R1 approved fixed runtime entrypoints use app-owned sources and existing Host',()=>{
   const sw=read('src/sw.js');
-  assert.ok(sw.includes("examples/sidebar-tools/stay-focus/trusted/service.js"));
+  assert.ok(sw.includes('projects/stay-focus/trusted/service.js'));
   assert.ok(sw.includes("importScripts('time-review/time-review-host.js')"));
-  assert.ok(read('src/entrypoints/time-review-host.js').includes('examples/sidebar-tools/time-review/trusted/service.js'));
-  assert.ok(read('src/ui/sidebar-tools.js').includes('examples/sidebar-tools/time-review/trusted/host-controls.js'));
-  assert.ok(read('src/ui/sidebar-tools/installation.js').includes('examples/sidebar-tools/time-review/trusted/model.js'));
+  assert.ok(read('src/ui/sidebar-tools.js').includes('projects/time-review/trusted/host-controls.js'));
+  assert.ok(read('src/ui/sidebar-tools/installation.js').includes('projects/time-review/trusted/model.js'));
   assert.ok(sw.includes('projects/ai-vip-share/trusted/service.js'));
   const sidebarHost=read('src/entrypoints/sidebar-tool-host.js');
-  assert.ok(sidebarHost.includes('examples/sidebar-tools/time-review/trusted/trusted-native-ui.js'));
+  assert.ok(sidebarHost.includes('projects/time-review/trusted/trusted-native-ui.js'));
   assert.ok(sidebarHost.includes('projects/ai-vip-share/trusted/tool-host.js'));
 });
 
-test('R1.3 page clip plugin owns trusted page, policy and converter, with shared browser site grants',()=>{
+test('R1.3 Clipper keeps trusted page and policy with shared conversion; TOC uses its Page module',()=>{
   assert.equal(existsSync(file('src/page-clip')),false);
   assert.equal(existsSync(file('projects/web-markdown-clipper/trusted/convert.js')),false,
     'shared Markdown converter must not remain owned by Clipper');
@@ -77,9 +80,11 @@ test('R1.3 page clip plugin owns trusted page, policy and converter, with shared
   assert.match(read('projects/web-markdown-clipper/trusted/page.js'),/shared\/markdown\/convert\.js/);
   assert.equal(existsSync(file('src/reading-toc')),false);
   assert.equal(existsSync(file('src/sidebar-tools/reading-toc-existing-tabs.js')),false,'TOC worker repair must be App-owned');
-  assert.match(read('src/entrypoints/preinstall-intent.js'),/reading-toc\/trusted\/existing-tabs\.js/);
+  assert.doesNotMatch(read('src/entrypoints/preinstall-intent.js'),/reading-toc\/trusted\/existing-tabs\.js/);
   const entry=read('src/entrypoints/page-relay.js');
-  assert.match(entry,/reading-toc\/trusted\/page\.js/);
+  assert.doesNotMatch(entry,/reading-toc\/trusted\/(?:page|view)\.js/);
+  assert.ok(JSON.parse(read('projects/reading-toc/tool.config.json')).capabilities.includes('page.module'));
+  assert.match(read('projects/reading-toc/src/page/engine.js'),/from ['"]\.\.\/\.\.\/trusted\/view\.js['"]/);
   assert.match(entry,/web-markdown-clipper\/trusted\/page\.js/);
   const policy=read('projects/web-markdown-clipper/trusted/policy.js');
   assert.doesNotMatch(policy,/reading-toc/);
@@ -92,7 +97,7 @@ test('R1.1 fixed Time Review executable WXT entry is the actual package contract
   assert.match(contract,/'time-review\/time-review-host': '\.\/src\/entrypoints\/time-review-host\.js'/);
   const entry=read('src/entrypoints/time-review-host.js');
   assert.match(entry,/defineUnlistedScript\(\(\)=>installTimeReviewService\(\)\)/);
-  assert.match(entry,/examples\/sidebar-tools\/time-review\/trusted\/service\.js/);
+  assert.match(entry,/from ['"]\.\.\/\.\.\/projects\/time-review\/trusted\/service\.js['"]/);
   assert.match(read('src/sw.js'),/importScripts\('time-review\/time-review-host\.js'\)/);
 });
 

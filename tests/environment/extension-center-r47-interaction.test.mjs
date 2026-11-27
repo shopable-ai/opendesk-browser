@@ -1840,30 +1840,32 @@ test('pin controls have explicit labels in all supported Extension Center locale
   }
 });
 
-test('installed extension pin/unpin persists, reorders the list, and does not invoke lifecycle operations',async t=>{
+test('installed Web Flow starts pinned and can be unpinned and pinned again without lifecycle operations',async t=>{
   const alpha={...app,id:'alpha',title:'Alpha'};
   const webflow={...app,id:'webflow',title:'WebFlow'};
   const f=fixture(t,{installedRows:[alpha,webflow]});
   await f.ui.refresh();
   const order=()=>[...f.list.querySelectorAll('li[data-extension-id]')].map(node=>node.dataset.extensionId).filter(key=>key.startsWith('app:'));
-  assert.deepEqual(order(),['app:alpha','app:webflow']);
   const installedBefore=structuredClone(f.store.get(SIDEBAR_TOOL_STORE));
   const pinKey=extensionCenterPinStorageKey('app:webflow');
-  f.button('app:webflow','more').dispatch('click');
-  const pin=f.menuItem('置顶');
-  assert.ok(pin,'installed extension overflow menu exposes Pin to top');
-  pin.dispatch('click');
-  await settle(()=>f.store.get(pinKey)===true&&order()[0]==='app:webflow'&&
-    Boolean(f.list.querySelector('li[data-extension-id="app:webflow"] .ec-pin-indicator')));
+  assert.equal(f.store.has(pinKey),false,'a default does not require a stored preference');
+  assert.deepEqual(order(),['app:webflow','app:alpha']);
   const indicator=f.list.querySelector('li[data-extension-id="app:webflow"] .ec-pin-indicator');
   assert.equal(indicator.getAttribute('aria-label'),'已置顶');
   assert.equal(f.list.querySelector('li[data-extension-id="app:webflow"]').getAttribute('data-pinned'),'true');
   f.button('app:webflow','more').dispatch('click');
   const unpin=f.menuItem('取消置顶');
-  assert.ok(unpin,'the same menu changes to Remove from top');
+  assert.ok(unpin,'the default pin can be removed through the same menu');
   unpin.dispatch('click');
   await settle(()=>f.store.get(pinKey)===false&&order()[0]==='app:alpha'&&
     !f.list.querySelector('li[data-extension-id="app:webflow"] .ec-pin-indicator'));
+  await f.ui.refresh();
+  assert.deepEqual(order(),['app:alpha','app:webflow'],'refresh respects the saved override');
+  f.button('app:webflow','more').dispatch('click');
+  const pin=f.menuItem('置顶');
+  assert.ok(pin,'an unpinned extension can be pinned again');
+  pin.dispatch('click');
+  await settle(()=>f.store.get(pinKey)===true&&order()[0]==='app:webflow');
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),installedBefore,'pinning never rewrites installed package records');
   assert.equal(f.invocations.length,0,'pinning never opens, enables, disables or launches an extension');
   assert.equal(f.writes.length,0,'pinning never calls the Page Authority');
@@ -1889,11 +1891,11 @@ test('stored pins are restored on refresh and external local changes synchronize
 });
 
 test('failed pin persistence never reports a successful pin',async t=>{
-  const webflow={...app,id:'webflow',title:'WebFlow'};
-  const f=fixture(t,{installedRows:[webflow]});
+  const f=fixture(t);
   await f.ui.refresh();
-  const pinKey=extensionCenterPinStorageKey('app:webflow');
-  f.button('app:webflow','more').dispatch('click');
+  const key='app:'+app.id;
+  const pinKey=extensionCenterPinStorageKey(key);
+  f.button(key,'more').dispatch('click');
   const pin=f.menuItem('置顶');
   assert.ok(pin);
   f.setCorrupt(true);

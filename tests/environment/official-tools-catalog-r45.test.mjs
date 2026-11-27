@@ -16,7 +16,7 @@ import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js'
 import {officialMarketApps} from '../../src/marketplace/catalog.js';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
-for(const id of ['reading-toc','web-markdown-clipper']){
+for(const id of ['reading-toc','web-markdown-clipper','ai-new-chat-window']){
   test(id+' preinstalls the reviewed package bytes from the official distribution',async()=>{
     const source=await readOfficialSources();
     const row=source.tools.find(item=>item.id===id);
@@ -113,9 +113,9 @@ test('official candidates disclose only explicit About fields bound to the packa
 test('official catalog retains the approved default and optional install policies',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
-    ['adblock','ai-knowledge-answers','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-downloader','video-speed-controller','video-svip','web-markdown-clipper','webflow']);
+    ['adblock','ai-knowledge-answers','ai-new-chat-window','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-downloader','video-speed-controller','video-svip','web-markdown-clipper','webflow']);
   const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
-  assert.deepEqual(policies,{'ai-send-queue':'preinstalled','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'preinstalled',
+  assert.deepEqual(policies,{'ai-send-queue':'preinstalled','ai-new-chat-window':'preinstalled','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'preinstalled',
     'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional','video-svip':'optional','video-downloader':'optional','webflow':'preinstalled'});
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));

@@ -409,13 +409,33 @@ export function validateDirectBrowserValue(value,schema){
   return value;
 }
 
+export const isBrowserTextExport=operation=>
+  operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
+
+const BROWSER_TEXT_EXPORT_MAX_BYTES=160000;
+// JSON can encode one decoded byte as six ASCII bytes. Reserve room
+// for the filename and keys, and bound the transport envelope separately.
+export const BROWSER_TEXT_EXPORT_MAX_REQUEST_BYTES=6*BROWSER_TEXT_EXPORT_MAX_BYTES+1024;
+
+export function assertBrowserExportWire(args,serialized){
+  const encoder=new TextEncoder();
+  const argumentBytes=encoder.encode(JSON.stringify(args)).byteLength;
+  const messageBytes=encoder.encode(serialized).byteLength;
+  if(argumentBytes>BROWSER_TEXT_EXPORT_MAX_REQUEST_BYTES||messageBytes-argumentBytes>512)
+    throw fail('E_LIMIT','Export request exceeds its wire budget');
+}
+
 export function validateExportArguments(operation,value){
   if(operation==='browser.clipboard.writeText')fields(value,['text'],['text']);
   else if(operation==='browser.downloads.text')fields(value,['text','filename'],['text','filename']);
   else throw fail('E_SERVICE_UNSUPPORTED');
-  if(typeof value.text!=='string'||!value.text||
-     new TextEncoder().encode(value.text).byteLength>150000)
-    throw fail('E_LIMIT','Export text must be 1–150000 UTF-8 bytes');
+  const maxBytes=BROWSER_TEXT_EXPORT_MAX_BYTES;
+  if(typeof value.text!=='string'||!value.text||value.text.length>maxBytes||
+     new TextEncoder().encode(value.text).byteLength>maxBytes)
+    throw fail('E_LIMIT','Export text must be 1–'+maxBytes+' UTF-8 bytes');
+  // Under /u a valid surrogate pair is one code point. Reject lone halves
+  // rather than substitute bytes or let encodeURIComponent throw at the sink.
+  if(/[\uD800-\uDFFF]/u.test(value.text))throw fail('E_SCHEMA','Export text must be well-formed Unicode');
   if(operation==='browser.downloads.text'){
     if(typeof value.filename!=='string'||value.filename.length>90||
        !/^[^/\\\x00-\x1f:?*"<>|]+\.(?:md|txt|json|csv)$/i.test(value.filename)||value.filename.startsWith('.'))

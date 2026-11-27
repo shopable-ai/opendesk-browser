@@ -8,7 +8,7 @@ function fixture(){
   createElement(tag){return new Element(tag,doc);},async fire(name,event){for(const fn of [...this.events.get(name)||[]])fn(event);}};
  class Element{
   constructor(tag,doc){this.tagName=tag.toUpperCase();this.nodeType=1;this.doc=doc;this.children=[];this.parentElement=null;this.attributes={};
-   this.style={cssText:'',outline:'',setProperty:()=>{}};this.text='';}
+   this.style={cssText:'',setProperty(name,value){this[name]=value;}};this.text='';}
   append(...children){for(const child of children){child.parentElement=this;this.children.push(child);}}
   remove(){if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(c=>c!==this);this.parentElement=null;}
   setAttribute(name,value){this.attributes[name]=value;}
@@ -52,6 +52,12 @@ function fixture(){
  const p=doc.createElement('p');p.textContent='A'.repeat(350);
  const q=doc.createElement('p');q.textContent='B'.repeat(300);
  a.append(p);b.append(q);thread.append(a,b);body.append(thread);
+ doc.elementFromPoint=()=>p;
+ win.MutationObserver=class {
+  constructor(callback){this.callback=callback;}
+  observe(){win.notifyMutations=this.callback;}
+  disconnect(){win.notifyMutations=null;}
+ };
  const event=(target,extra={})=>({target,isTrusted:true,button:0,defaultPrevented:false,
   preventDefault(){this.defaultPrevented=true;},stopPropagation(){},stopImmediatePropagation(){},...extra});
  return {doc,win,thread,a,b,p,q,event};
@@ -78,6 +84,29 @@ test('one trusted click extracts one connected region, prevents page activation 
  assert.equal(doc.events.get('click').size,0);
  assert.equal(win.timer,null);
  assert.equal(win.monitor,null);
+});
+
+test('inserting an editor invalidates an enlarged region before the next commit',async()=>{
+ const {doc,win,p,a,event}=fixture();const extracted=[];
+ const pick=beginRegionPick({doc,win,extract:node=>{extracted.push(node);return node.textContent;}});
+ await doc.fire('mousemove',event(p));
+ await doc.fire('keydown',event(p,{key:'ArrowUp'}));
+ a.append(doc.createElement('textarea'));
+ await doc.fire('click',event(p));
+ assert.deepEqual(extracted,[],'a changed eligibility must not silently extract another region');
+ await doc.fire('click',event(p));
+ await pick.promise;
+ assert.deepEqual(extracted,[p]);
+});
+
+test('scrolling retargets the highlight under the pointer before pressing Enter',async()=>{
+ const {doc,win,p,q,event}=fixture();
+ const pick=beginRegionPick({doc,win,extract:node=>node.textContent});
+ await doc.fire('mousemove',event(p,{clientX:30,clientY:120}));
+ doc.elementFromPoint=(x,y)=>{assert.deepEqual([x,y],[30,120]);return q;};
+ for(const scroll of win.events.get('scroll'))scroll();
+ await doc.fire('keydown',event(p,{key:'Enter'}));
+ assert.equal((await pick.promise).markdown,q.textContent);
 });
 
 test('a same-document route change refuses extraction before reading the DOM',async()=>{
@@ -185,6 +214,29 @@ test('tiny text region is selectable and Ctrl/Cmd changes the returned intent',a
  await doc.fire('keyup',event(p,{key:'Control',ctrlKey:false}));
  await doc.fire('click',event(p));
  assert.equal((await pick.promise).append,false);
+});
+test('stationary pointer refreshes an invalidated outline before capture and coalesces DOM mutations',async()=>{
+ const {doc,win,p,a,event}=fixture();let captured=null,hits=0;
+ doc.elementFromPoint=()=>{hits++;return p;};
+ p.getBoundingClientRect=()=>({left:5,top:30,right:64,bottom:50,width:59,height:20});
+ const pick=beginRegionPick({doc,win,extract:node=>{captured=node;return node.textContent;}});
+ const overlay=doc.documentElement.querySelector('[data-opendesk-clip-root]');
+ await doc.fire('mousemove',event(p,{clientX:10,clientY:40}));
+ await doc.fire('keydown',event(p,{key:'ArrowUp'}));
+ assert.equal(overlay.style.width,'395px');
+ a.append(doc.createElement('textarea'));
+ for(let i=0;i<5;i++)win.notifyMutations?.([{target:a}]);
+ assert.equal(hits,0,'mutation callbacks must not rescan synchronously');
+ win.monitor();
+ assert.equal(overlay.style.width,'59px');
+ assert.equal(captured,null,'refresh must not commit');
+ win.notifyMutations?.([{target:overlay},{target:overlay.children[0]}]);
+ win.monitor();
+ assert.equal(hits,1,'picker overlay updates must not trigger another rescan');
+ await doc.fire('keydown',event(p,{key:'Enter'}));
+ assert.equal((await pick.promise).markdown,p.textContent);
+ assert.equal(captured,p);
+ assert.equal(win.notifyMutations,null);
 });
 test('a click on a new descendant cannot commit stale parent highlight',async()=>{
  const {doc,win,p,a,event}=fixture();let captured;

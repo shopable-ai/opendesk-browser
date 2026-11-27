@@ -711,7 +711,7 @@
       "siteScope": "none",
       "userGesture": true,
       "minChrome": 138,
-      "maxRequestBytes": 170000,
+      "maxRequestBytes": 961024,
       "maxResponseBytes": 12000,
       "lifecycle": "request"
     },
@@ -1572,7 +1572,7 @@
       "siteScope": "none",
       "userGesture": true,
       "minChrome": 138,
-      "maxRequestBytes": 170000,
+      "maxRequestBytes": 961024,
       "maxResponseBytes": 12000,
       "lifecycle": "request"
     },

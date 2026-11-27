@@ -1,5 +1,33 @@
 # AI 消息发送队列 UI 验证
 
+## 2026-11-27 · ChatGPT 空队列皇冠直发 · 本轮实站回归
+
+**实站通过，本候选未复现反馈中的故障。** 复用已连接开发服务的 Ego Lite TaskSpace 58，仅使用本任务的 ChatGPT 专用标签。两次发送前均读回了合成正文，确认皇冠和原生发送均可点击、队列 0 项、没有应等待的回复；发送后均观察到回复开始并完成、队列 0 项、草稿为空、未出现 Info。以下时间为 UTC+8，计数依次为皇冠可信点击 / 原生发送点击 / 精确用户入站 / 原生停止点击。
+
+| 真实 ChatGPT 场景 | 合成标记、时间与结果 | 同次证据 |
+| --- | --- | --- |
+| 已有专用会话 | `OD-EQ-27NOV-K4E` · 10:44:29–10:44:44 · **1 / 1 / 1 / 0**。原草稿先被队列安全接管，原生点击前逐字恢复到编辑器；站点收下后队列排空。 | [点击前](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/existing-before.png) · [点击后](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/existing-after.png) · [事件](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/existing.json) |
+| 普通新聊天首页 | `OD-EQ-27NOV-J8H` · 10:45:35–10:45:47 · **1 / 1 / 1 / 0**。先走原生提交，草稿安全清空，首页切入 `/c/` 后只收到一条，无重放。 | [点击前](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/home-before.png) · [点击后](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/home-after.png) · [事件](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/home.json) |
+| 已有会话快速连点 | `OD-EQ-27NOV-M2Q` · 10:46:42–10:46:53 · **2 / 1 / 1 / 0**。两次可信点击相隔 **12 ms**，第二次点击时同一草稿仍在。回复完成，队列和草稿归空。 | [原始事件](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/rapid-double-trusted.json) · [独立只读核验](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/rapid-double-verified.json) |
+| 已有会话空输入 | 探针标识 `OD-EQ-27NOV-Z0N`（未输入、未提交）· 10:46:13–10:46:17 · **1 / 0 / 0 / 0**。输入框和队列持续为空。 | [事件](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/empty-composer.json) |
+
+截图展示同候选的输入区与站点回复，防重依据是精确正文计数及点击事件。快速连点原始探针还要求页面同时挂载的用户行总数增加 1，但站点虚拟列表同时卸载了旧行，导致探针标为 `INCOMPLETE`；随后只读查得该合成正文恰好一条且有完整回复，没有补点或重发。新聊天后图右上角的「阅读目录 · 暂无章节」来自另一个网页增强，与本次发送及恢复通知无关。
+
+| 候选身份 | 读回值 |
+| --- | --- |
+| 开发扩展 | `dist/development`；扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；开发服务已连接，复用 watcher PID 8131 |
+| 实际应用的开发 revision | `5d97d51f51500dce04837f339fde6dc3a3690d0be13368be5d561d090b3ef393` |
+| 实站固定 ISOLATED 网页桥 SHA-256 | `826ea0b94faa8ec8dd04c435a51ee0dd5ae26e92b4b4daa7e53f76e2d243beb0`，从实际发送标签读回脚本并校对开发目录 |
+| 本地唯一正式 Sidebar JSON SHA-256 | `557c8200804ec7618d67b91fa701129ec74d379f37fa791a607c9e9b37b01301`（1.0.4/r64，独立核对，本轮未重新安装） |
+
+**Chromium 源码夹具。** [皇冠与回复门控](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/source-empty-crown.txt)覆盖空输入、首页单发、暂停、上一答完成后按顺序发送及零误停。[恢复界面证据](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/source-recovery-info.json)覆盖正常无 Info、人工恢复仅一枚带无障碍名称的 Info、通知和显式确认位于队列外、查看或复制不解锁、显式确认本身零提交，以及 320/380/700 CSS px 和剪贴板拒绝保留原文。 [恢复图](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/fixture/notify-open-320-dark.png) · [手动备份图](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/fixture/notify-manual-320-dark.png)。
+
+**定向 Node 回归 382/382。** `admission`、`dispatch-guard`、`engine`、`main-recovery`、`site`、`page-status`、`view` 通过，包含原生发送未就绪时等待或保留草稿、未知结果保留队列且不自动重试、等待上条回复和草稿保护。原生不可用及回执未知未在实站故意制造。未修改发送队列源码、固定桥或 Sidebar JSON。
+
+**仍为 NOT_TESTED。** 正式包安装/升级、production、Gemini/DeepSeek 实站发送、冻结或丢弃标签；上轮共享安装检查的 22 项失败仍未独立归因，本轮未重跑。
+
+**右上角界面反馈。** 发送队列的普通网页短提示已使用框架的 Page UI Toast；Sidebar 的 `ui.notify` 属于侧栏宿主。需要复制、查看草稿或明确确认的恢复界面继续由队列保留。截图右上角是阅读目录的「暂无章节」空卡片。仅在本任务的专用标签试摆现有边缘折叠入口：卡片由约 254×91 CSS px 收成 38×46 CSS px，不再盖住用户消息，编辑器边界不变。[原样](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/toc-empty-before.png) · [折叠预览](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/toc-empty-compact-preview.png) · [测量](../../artifacts/sidebar-tools/ai-send-queue/empty-queue-live-20261127/toc-empty-preview.json)。预览已在试验后还原，未改设置或并行中的阅读目录 1.1.20 安装包；自动折叠规则尚未交付。
+
 ## 2026-11-27 · 1.0.4/r64 持续开发验收 · 100/100
 
 复用现有 `dist/development` 和已连接的开发服务。在 Ego Lite TaskSpace 53 的专用 ChatGPT 标签使用合成标记 `OD-Q64-27NOV-T7D-{FIRST,A,B,DRAFT}`。以下分别记录真实站点、源码夹具和 Node 回归；原始证据存于本机 `artifacts/sidebar-tools/ai-send-queue/recovery-info-evidence/`。

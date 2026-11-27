@@ -118,7 +118,7 @@ test('owner-scoped toast handles update only their own row and retire on switch'
   assert.equal(typeof own,'number');
   assert.equal(view.updateToolToast(own,'「A」：成功',{type:'success',timeout:3000},'instance-B'),false);
   assert.equal(view.updateToolToast(own,'「A」：成功',{type:'success',timeout:3000},'instance-A'),true);
-  assert.equal(view.getSnapshot().toasts.some(row=>row.id===own&&row.type==='success'),true);
+  assert.equal(view.getSnapshot().toasts.find(row=>row.id===own)?.position,'bottom-center');
   assert.equal(view.hasToast(own,'instance-A'),true);
   view.clearToastsByOwner('instance-A');
   assert.equal(view.hasToast(own,'instance-A'),false);

@@ -368,25 +368,53 @@ function icon(name){
   }
   return svg;
 }
-function iconButton(parent,name,label,callback,action,itemId,{danger=false,disabled=false}={}){
-  const b=dom('button','od-icon-button ps-action-control'+(danger?' od-icon-button--danger':''));
+function iconButton(parent,name,label,callback,action,itemId,{disabled=false}={}){
+  const b=dom('button','od-icon-button ps-action-control');
   b.type='button';b.title=label;b.setAttribute('aria-label',label);
   b.dataset.action=action;b.dataset.itemId=itemId;b.dataset.locked=disabled?'1':'0';
   b.disabled=disabled;b.append(icon(name));
   b.addEventListener('click',callback);parent.append(b);return b;
 }
+function menuAction(menu,name,label,callback,action,itemId,disabled=false){
+  const b=button(menu,label,callback,'quiet');
+  b.prepend(icon(name));b.tabIndex=-1;b.setAttribute('role','menuitem');
+  b.dataset.action=action;b.dataset.itemId=itemId;b.dataset.locked=disabled?'1':'0';
+  b.disabled=disabled;return b;
+}
+function focusMenuAction(menu,button){
+  button.focus({preventScroll:true});
+  if(menu.scrollHeight<=menu.clientHeight)return;
+  const bounds=menu.getBoundingClientRect(),rect=button.getBoundingClientRect();
+  if(rect.top<bounds.top+5)menu.scrollTop+=rect.top-bounds.top-5;
+  else if(rect.bottom>bounds.bottom-5)menu.scrollTop+=rect.bottom-bounds.bottom+5;
+}
 function focusListAction(id,action){
   const b=Array.from(el('ps-list').querySelectorAll('button'))
     .find(node=>node.dataset.itemId===id&&node.dataset.action===action);
   if(!b||b.disabled)return null;
-  b.focus({preventScroll:true});
   const menu=b.closest('.ps-more');
-  if(menu&&menu.scrollWidth>menu.clientWidth){
-    const bounds=menu.getBoundingClientRect(),rect=b.getBoundingClientRect();
-    if(rect.left<bounds.left+5)menu.scrollLeft+=rect.left-bounds.left-5;
-    else if(rect.right>bounds.right-5)menu.scrollLeft+=rect.right-bounds.right+5;
-  }
+  if(menu?.scrollHeight)focusMenuAction(menu,b);
+  else b.focus({preventScroll:true});
   return b;
+}
+
+function placeListMenu(menu,trigger){
+  const viewport=root.ownerDocument.documentElement;
+  if(!viewport)return;
+  const {clientWidth:width,clientHeight:height}=viewport;
+  const rect=trigger.getBoundingClientRect(),gutter=8,gap=4;
+  if(rect.bottom<=0||rect.top>=height){closeListMenuOutside();return;}
+  const below=height-rect.bottom-gap-gutter,above=rect.top-gap-gutter;
+  const naturalHeight=menu.scrollHeight+menu.offsetHeight-menu.clientHeight;
+  const openBelow=below>=naturalHeight||below>=above;
+  menu.style.maxHeight=Math.max(0,openBelow?below:above)+'px';
+  menu.style.left=Math.max(gutter,Math.min(rect.right-menu.offsetWidth,width-menu.offsetWidth-gutter))+'px';
+  menu.style.top=(openBelow?Math.max(gutter,rect.bottom+gap):rect.top-gap-menu.offsetHeight)+'px';
+}
+
+function toggleListMenu(id,edge='first'){
+  expanded=expanded===id?null:id;pendingDelete=null;
+  render();focusListAction(id,expanded===id?(edge==='last'?'delete':'edit'):'more');
 }
 
 function siteMessage(text='',isError=false){
@@ -734,6 +762,7 @@ async function toggleSites(){
 
 function render(){
   const list=el('ps-list');list.replaceChildren();
+  let anchor=null;
   const enabled=data.items.filter(item=>item.enabled).length;
   el('ps-count').textContent=data.items.length+' 个 · '+enabled+' 个启用';
   el('ps-empty').hidden=data.items.length>0;
@@ -769,30 +798,29 @@ function render(){
     const quick=iconButton(actions,'copy','快速复制：'+identity,
       ()=>void copy(item),'quick-copy',item.id,{disabled:!item.enabled});
     quick.classList.add('ps-card-quick');
-    const more=iconButton(actions,'more','更多操作：'+identity,()=>{
-      const opening=expanded!==item.id;expanded=opening?item.id:null;pendingDelete=null;
-      render();focusListAction(item.id,opening?'edit':'more');
-    },'more',item.id);
+    const more=iconButton(actions,'more','更多操作：'+identity,()=>toggleListMenu(item.id),'more',item.id);
+    more.setAttribute('aria-haspopup','menu');
     more.setAttribute('aria-expanded',String(expanded===item.id));
-    if(expanded===item.id)more.setAttribute('aria-controls',(pendingDelete===item.id?'ps-delete-':'ps-commands-')+i);
+    if(expanded===item.id)more.setAttribute('aria-controls','ps-commands-'+i);
     mainRow.prepend(glyph);mainRow.append(actions);card.append(mainRow);
     if(!item.nameAuto&&item.name?.trim())card.append(dom('div','ps-card-caption',item.name));
-    if(expanded===item.id&&!pendingDelete){
-      const commands=dom('div','ps-more');
-      commands.id='ps-commands-'+i;commands.setAttribute('role','group');
+    if(expanded===item.id){
+      const commands=dom('div','ps-more od-surface');
+      commands.id='ps-commands-'+i;commands.setAttribute('role','menu');
       commands.setAttribute('aria-label','提示词操作：'+identity);
-      iconButton(commands,'pencil','编辑：'+identity,()=>start(item.id),'edit',item.id);
-      iconButton(commands,item.enabled?'eye-off':'eye',(item.enabled?'停用：':'启用：')+identity,
+      menuAction(commands,'pencil','编辑',()=>start(item.id),'edit',item.id);
+      menuAction(commands,item.enabled?'eye-off':'eye',item.enabled?'停用':'启用',
         ()=>void update(item.id,row=>({...row,enabled:!row.enabled}),'toggle'),'toggle',item.id);
-      iconButton(commands,'up','上移：'+identity,()=>void move(item.id,-1),'up',item.id,{disabled:i===0});
-      iconButton(commands,'down','下移：'+identity,()=>void move(item.id,1),'down',item.id,
-        {disabled:i===data.items.length-1});
-      iconButton(commands,'copy','复制：'+identity,()=>void copy(item,true),'copy',item.id);
-      iconButton(commands,'trash','删除：'+identity,()=>{
-        pendingDelete=item.id;render();
-        root.querySelector('.ps-delete-cancel')?.focus({preventScroll:true});
-      },'delete',item.id,{danger:true});
-      card.append(commands);
+      menuAction(commands,'up','上移',()=>void move(item.id,-1),'up',item.id,i===0);
+      menuAction(commands,'down','下移',()=>void move(item.id,1),'down',item.id,i===data.items.length-1);
+      menuAction(commands,'copy','复制',()=>void copy(item,true),'copy',item.id);
+      const separator=dom('div','ps-more-separator');separator.setAttribute('role','separator');
+      commands.append(separator);
+      menuAction(commands,'trash','删除',()=>{
+        expanded=null;pendingDelete=item.id;render();
+        root.querySelector('.ps-delete-cancel')?.focus();
+      },'delete',item.id);
+      card.append(commands);anchor=[commands,more];
     }
     if(pendingDelete===item.id){
       const confirm=dom('div','ps-confirm');confirm.id='ps-delete-'+i;
@@ -808,6 +836,28 @@ function render(){
     list.append(card);
   }
   lock();
+  if(anchor)placeListMenu(...anchor);
+}
+
+function closeListMenuOutside(target=null){
+  if(mode!=='index'||!expanded||pendingDelete)return;
+  const card=el('ps-list').querySelector('.ps-card.is-expanded');
+  const trigger=card?.querySelector('[data-action="more"]');
+  const menu=card?.querySelector('.ps-more');
+  if(trigger?.contains(target)||menu?.contains(target))return;
+  // Keep the outside click target and its focus in place.
+  expanded=null;
+  card?.classList.remove('is-expanded');
+  trigger?.setAttribute('aria-expanded','false');
+  trigger?.removeAttribute('aria-controls');
+  menu?.remove();
+}
+
+function repositionListMenu(event){
+  if(!expanded)return;
+  const menu=root.querySelector('.ps-more');
+  const trigger=menu?.parentElement.querySelector('[data-action="more"]');
+  if(menu&&trigger&&event.target!==menu)placeListMenu(menu,trigger);
 }
 
 function closeTransfer(){
@@ -1174,6 +1224,11 @@ el('ps-import-replace').addEventListener('click',()=>void applyImport('replace')
 root.addEventListener('click',event=>{
   if(!el('ps-transfer-control').contains?.(event.target))closeTransfer();
 });
+root.ownerDocument.addEventListener('click',event=>closeListMenuOutside(event.target),true);
+root.ownerDocument.addEventListener('scroll',repositionListMenu,true);
+root.ownerDocument.defaultView.addEventListener('resize',repositionListMenu);
+// The host header lives outside the sandbox; leaving the frame also dismisses the menu.
+root.ownerDocument.defaultView.addEventListener('blur',()=>closeListMenuOutside());
 el('ps-new').addEventListener('click',()=>start());
 // Existing instance-gated bridge gestures never grant file/clipboard authority.
 // Secondary only opens the sandbox menu; real import/export clicks stay here.
@@ -1188,12 +1243,30 @@ function dismissListActions(event){
   if(!id)return false;
   event.preventDefault();
   if(!busy){
-    if(pendingDelete)pendingDelete=null;else expanded=null;
-    render();focusListAction(id,'more');
+    if(pendingDelete){pendingDelete=null;render();}
+    else closeListMenuOutside();
+    focusListAction(id,'more');
   }
   return true;
 }
 root.addEventListener('keydown',event=>{
+  const target=event.target;
+  if(target?.dataset?.action==='more'&&!target.disabled&&expanded!==target.dataset.itemId&&
+      (event.key==='ArrowDown'||event.key==='ArrowUp')){
+    event.preventDefault();toggleListMenu(target.dataset.itemId,event.key==='ArrowUp'?'last':'first');return;
+  }
+  const menu=target?.closest?.('.ps-more');
+  if(menu&&event.key==='Tab'){
+    const id=expanded;closeListMenuOutside();focusListAction(id,'more');return;
+  }
+  if(menu&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+    event.preventDefault();
+    const items=Array.from(menu.querySelectorAll('button:enabled')),index=items.indexOf(target);
+    const next=event.key==='Home'?0:event.key==='End'?items.length-1:
+      (index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length;
+    if(items[next])focusMenuAction(menu,items[next]);
+    return;
+  }
   if(event.key!=='Escape'||dismissListActions(event))return;
   if(!el('ps-transfer-menu').hidden){closeTransfer();restoreTransferFocus();event.preventDefault();}
   else if(stagedImport&&!busy&&!transferBusy){discardImport();restoreTransferFocus();event.preventDefault();}

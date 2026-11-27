@@ -115,7 +115,7 @@ export function createSidebarToolsView() {
     if(disposed||typeof message!=='string'||!message.trim())return null;
     const type=['info','success','warning','error'].includes(options?.type)?options.type:'info';
     const position=['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right']
-      .includes(options?.position)?options.position:'top-center';
+      .includes(options?.position)?options.position:(type==='success'?'bottom-center':'top-center');
     const caption=typeof options?.caption==='string'?options.caption:'';
     const timeout=Number.isSafeInteger(options?.timeout)&&
       (options.timeout===0||options.timeout>=1000&&options.timeout<=15000)?options.timeout:5000;

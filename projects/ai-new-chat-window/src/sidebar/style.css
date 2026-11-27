@@ -1,0 +1,7 @@
+.new-chat-guide { box-sizing: border-box; padding: 16px; line-height: 1.55; }
+.new-chat-guide h1 { margin: 0; font-size: 18px; }
+.new-chat-guide p { margin: 8px 0 0; }
+.new-chat-guide dl { margin: 16px 0; }
+.new-chat-guide dt { font-weight: 600; }
+.new-chat-guide dd { margin: 3px 0 12px; }
+.new-chat-help { border-block-start: 1px solid currentColor; padding-block-start: 12px; }

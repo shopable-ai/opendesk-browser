@@ -1,0 +1,62 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>AI Send Queue · failed edit and diagnostics</title>
+<style>
+  body{margin:30px;font:16px/1.5 sans-serif}header{position:fixed;z-index:20;inset:0 0 auto;
+    height:96px;background:#eef3fa;padding:10px}main{margin-top:260px;width:min(620px,100%)}
+  form{margin:0}.surface{border-radius:28px;background:#eee;padding:16px}
+  textarea{box-sizing:border-box;display:block;width:100%;height:80px;resize:none}
+  #toolbar{display:flex;justify-content:flex-end;margin-top:16px}#native-send{width:34px;height:34px}
+</style>
+<header>Local fixture · no connection to an AI service</header>
+<main><form><div class="surface">
+  <textarea id="prompt-textarea" data-testid="composer-input">Existing native draft</textarea>
+  <div id="toolbar"><button type="button" id="native-send" data-testid="send-button" aria-label="Send">↑</button></div>
+</div></form></main>
+<script>window.addEventListener('error',event=>{window.fixtureError=String(event.error?.stack||event.message);});</script>
+<script type="module">
+import {createPageUI} from '../../../../src/scripting/user-scripts/page-ui.js';
+import {createChatGPTSite,deepSeekRoute} from '../../src/page/site.js';
+import {createQueueEngine} from '../../src/page/engine.js';
+import {createQueueView} from '../../src/page/view.js';
+import {createQueueCache} from '../../src/page/cache.js';
+
+const runId=new URLSearchParams(location.search).get('run');
+const route='c/failed-edit-fixture'+(/^[0-9a-f-]{36}$/.test(runId)?'-'+runId:'');
+const key='opendesk.ai-send-queue.session.v1:'+route;
+const original='  Failed synthetic item 🙂\n\nSecond line  ';
+if(!sessionStorage.getItem(key))sessionStorage.setItem(key,JSON.stringify({version:1,route,
+  items:[{id:'q1',text:original,state:'unknown'},{id:'q2',text:'Other paused item',state:'paused'}],inFlight:{id:'q1'}}));
+const [source,css,image]=await Promise.all([
+  fetch('../../src/page/main.js').then(r=>r.text()),fetch('../../assets/queue.css').then(r=>r.text()),
+  fetch('../../assets/crown-premium.webp').then(r=>r.arrayBuffer())]);
+const assets={'assets/queue.css':{kind:'css',text:css},'assets/crown-premium.webp':{kind:'image',
+  url:'data:image/webp;base64,'+btoa(Array.from(new Uint8Array(image),b=>String.fromCharCode(b)).join(''))}};
+const win=new Proxy(window,{get(target,name){
+  if(name==='top')return win;
+  if(name==='location')return {origin:'https://chatgpt.com',pathname:'/'+route,href:'https://chatgpt.com/'+route};
+  const value=Reflect.get(target,name,target);
+  return ['getComputedStyle','getSelection'].includes(name)?value.bind(target):value;
+}});
+let clicks=0,clipboard=[],rejectClipboard=false,allowSave=true;
+const composer=document.querySelector('#prompt-textarea');
+document.querySelector('#native-send').addEventListener('click',()=>clicks++);
+Object.defineProperty(navigator,'clipboard',{configurable:true,value:{async writeText(text){
+  if(rejectClipboard)throw new DOMException('Test denial','NotAllowedError');
+  clipboard.push(text);
+}}});
+const ui=({pageRules,...options})=>{
+  const owner=createPageUI(options);
+  return {...owner,on(target,...args){return owner.on(target===win?window:target,...args);}};
+};
+const load=new Function('createPageUI','createChatGPTSite','deepSeekRoute','createQueueEngine','createQueueView',
+  'createQueueCache','window','document',source.replace(/^import .*;\n/gm,'')
+    .replace(/^export (default )?/gm,'')+'\nreturn runQueue;');
+const run=load(ui,options=>createChatGPTSite({...options,doc:document,win}),deepSeekRoute,createQueueEngine,createQueueView,
+  ()=>createQueueCache({storage:()=>({getItem:k=>sessionStorage.getItem(k),removeItem:k=>sessionStorage.removeItem(k),
+    setItem(k,value){if(!allowSave)throw new Error('Fixture storage denied');sessionStorage.setItem(k,value);}})}),win,document);
+await run({assets,fixed:{authorize:async()=>true,own(){}}});
+window.failedEditFixture={original,read:()=>({clicks,clipboard:[...clipboard],composer:composer.value,
+  cache:JSON.parse(sessionStorage.getItem(key))}),denyClipboard:()=>{rejectClipboard=true;},
+  allowSave(value){allowSave=value;}};
+</script>

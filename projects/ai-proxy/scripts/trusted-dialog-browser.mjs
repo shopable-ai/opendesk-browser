@@ -44,13 +44,14 @@ const bundle=await build({stdin:{contents:`
  import {createRoot} from 'react-dom/client';
  import {createPortal} from 'react-dom';
  import Surface from './projects/ai-proxy/trusted/Surface.jsx';
+ import proxyCss from './projects/ai-proxy/src/style.css?inline';
  import {configureEnvironment} from './projects/ai-proxy/src/environment';
  import {createPreviewBoundary} from './projects/ai-proxy/preview/sdk-preview';
  const container=document.getElementById('sidebar-tool-frame');
  // This Host fixture has no enhanced Header bridge. Exercise the real App's
  // content-action fallback rather than inventing Header business behavior.
  const env=configureEnvironment({root:container,locale:'zh-CN'},null,{trusted:true,preview:createPreviewBoundary()});
- createRoot(document.getElementById('react-root')).render(createPortal(<Surface/>,container));
+ createRoot(document.getElementById('react-root')).render(createPortal(<Surface previewCss={proxyCss}/>,container));
  addEventListener('pagehide',()=>env.dispose(),{once:true});
  `,resolveDir:repo,loader:'jsx'},bundle:true,write:false,outdir:join(out,'compiled'),format:'iife',jsx:'transform',metafile:true,
  alias:{'@opendesk/ui':join(repo,'src/ui/react/components/ui/button.tsx')},

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import AIProxySurface from '../trusted/Surface.jsx';
+import proxyCss from '../src/style.css?inline';
 import {configureEnvironment} from '../src/environment';
 import managementCss from './management.css?inline';
 import managementActionsCss from './management-actions.css?inline';
@@ -44,7 +45,7 @@ function boot({view,route,locale='zh-CN',currentSources=false}){
     if(management&&next==='')send({type:'ai-proxy-preview-leave-approved'});
   });
   root=createRoot(document.getElementById('ai-proxy-app'));
-  root.render(<><AIProxySurface surface={management?'management':'side-panel'}/>{!currentSources&&<style>{managementCss+managementActionsCss}</style>}</>);
+  root.render(<><AIProxySurface surface={management?'management':'side-panel'} previewCss={proxyCss}/>{!currentSources&&<style>{managementCss+managementActionsCss}</style>}</>);
   if(view==='add'){
     const observer=new MutationObserver(()=>{const button=document.querySelector('.r86IconFirst');if(button){observer.disconnect();button.click();}});
     observer.observe(document.getElementById('ai-proxy-app'),{childList:true,subtree:true});

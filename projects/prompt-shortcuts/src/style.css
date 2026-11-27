@@ -220,7 +220,10 @@
 /* Prompt list detail and non-reflow hover layer.
    The card body always owns the same columns; tool CSS positions actions only.
    All interactive button skins remain canonical .od-icon-button/.od-button. */
-.ps-card{position:relative;cursor:pointer;isolation:isolate}
+.ps-card{
+  --ps-card-action-size:34px;
+  position:relative;cursor:pointer;isolation:isolate
+}
 .ps-card:focus-within,.ps-card.is-expanded{z-index:10}
 .ps-card-main{grid-template-columns:30px minmax(0,1fr)}
 .ps-card-main:has(.ps-glyph.has-image){grid-template-columns:48px minmax(0,1fr)}
@@ -239,27 +242,40 @@
   opacity:1;pointer-events:auto;transform:none
 }
 .ps-card-actions>.od-icon-button{
-  box-sizing:border-box;flex:0 0 34px;width:34px;min-width:34px;max-width:34px;
-  height:34px;min-height:34px;max-height:34px
+  box-sizing:border-box;flex:0 0 var(--ps-card-action-size);width:var(--ps-card-action-size);
+  min-width:var(--ps-card-action-size);max-width:var(--ps-card-action-size);
+  height:var(--ps-card-action-size);min-height:var(--ps-card-action-size);max-height:var(--ps-card-action-size)
 }
+.ps-card-actions>[data-action=more]>.ps-icon-svg{stroke-width:3}
 .ps-card.is-disabled .ps-card-quick{display:none}
-/* Six list commands in a single compact row. Keep full touch targets and
-   scroll only this overlay if the available width cannot accommodate them. */
+/* Viewport placement keeps the menu next to its trigger without resizing the list. */
 .ps-more{
-  --ps-more-size:30px;--ps-more-min:24px;
-  position:absolute;right:7px;top:calc(100% - 5px);z-index:12;
-  display:grid;grid-template-columns:repeat(6,minmax(var(--ps-more-min),1fr));gap:4px;justify-content:start;align-items:center;
-  box-sizing:border-box;width:calc(6 * var(--ps-more-size) + 32px);
-  max-width:calc(100% - 14px);margin:0;padding:5px;overflow-x:auto;
-  border:1px solid var(--od-line);border-radius:var(--radius-control);
-  background:var(--od-paper);box-shadow:0 8px 24px var(--od-line)
+  position:fixed;z-index:12;box-sizing:border-box;
+  width:max-content;min-width:min(104px,calc(100% - 16px));max-width:calc(100% - 16px);
+  margin:0;padding:5px;
+  overflow:auto;overscroll-behavior:contain;cursor:default;
+  scrollbar-width:none;
+  border-radius:calc(var(--radius-control) + 2px);
+  box-shadow:0 12px 32px color-mix(in srgb,var(--od-ink) 20%,transparent)
 }
-.ps-more>.od-icon-button{
-  box-sizing:border-box;width:100%;min-width:0;
-  height:var(--ps-more-size);min-height:var(--ps-more-size);max-height:var(--ps-more-size)
+@scope (.ps){
+  .ps-more>.od-button{
+    display:flex;align-items:center;justify-content:flex-start;gap:8px;
+    box-sizing:border-box;width:100%;min-width:0;
+    padding:6px 9px;border:0;font-size:var(--od-note-size);font-weight:500;text-align:start;
+    overflow-wrap:anywhere
+  }
+  .ps-more>[role=menuitem]:hover:not(:disabled),.ps-more>[role=menuitem]:focus-visible{background:var(--od-muted)}
+  .ps-more>[role=menuitem]:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
+  .ps-more>.od-button[data-action=delete]{color:var(--od-negative)}
 }
-.ps-more>.od-icon-button>.ps-icon-svg{width:16px;height:16px;flex:none}
-@media(pointer:coarse){.ps-more{--ps-more-size:44px;--ps-more-min:44px}}
+.ps-more .ps-icon-svg{width:16px;height:16px;flex:none;display:block;pointer-events:none;
+  fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ps-more-separator{border-top:1px solid var(--od-line);margin:4px 3px}
+@media(pointer:coarse){
+  .ps-card{--ps-touch-action-size:44px}
+  .ps-more>.od-button{min-height:var(--ps-touch-action-size)}
+}
 .ps-detail-head{margin:0 0 var(--space-3)}
 .ps-detail-head h2{margin:0;font-size:15px}
 .ps-detail-identity{display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-3)}
@@ -278,8 +294,8 @@
 .ps-detail-actions .ps-icon-svg{width:18px;height:18px;flex:none;display:block;pointer-events:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ps.ps-host-nav .ps-detail-head{display:none}
 @media(hover:none),(pointer:coarse){
+  .ps-card{--ps-card-action-size:var(--ps-touch-action-size,40px)}
   .ps-card-actions{opacity:1;pointer-events:auto;transform:none}
   .ps-card-quick{display:none}
-  .ps-card-actions>.od-icon-button{width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;max-height:40px}
 }
 @media(prefers-reduced-motion:reduce){.ps-card-actions{transition:none;transform:none}}

@@ -1,0 +1,13 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "ai-new-chat-window",
+  "version": "1.0.2",
+  "title": "AI New Chat",
+  "description": "在保留当前会话的同时，从 AI 网站的新对话入口打开独立标签页或窗口。",
+  "capabilities": ["page.module"],
+  "requires": {"browserSdk": "1.0.0"},
+  "contributes": {"contextMenus": []},
+  "files": {"html": "src/sidebar/index.html", "css": "src/sidebar/style.css", "js": "src/sidebar/main.js"},
+  "locales": "locales.json",
+  "pageModule": {"revision": 3}
+}

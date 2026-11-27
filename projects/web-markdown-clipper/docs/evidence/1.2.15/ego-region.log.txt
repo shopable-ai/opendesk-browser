@@ -1,0 +1,23 @@
+{ id: 'short-title-tiny-nested-list-code', status: 'PASS' }
+{ id: 'highlight-range-and-modifier-add', status: 'PASS' }
+{ id: 'dynamic-dom-clears-ineligible-highlight', status: 'PASS' }
+{ id: 'long-answer-format-isolation', status: 'PASS', bytes: 3242, chapters: 36 }
+{ id: 'reselect-other-answer', status: 'PASS' }
+{ id: 'link-click-is-consumed', status: 'PASS' }
+{ id: 'narrow-range-click', status: 'PASS' }
+{ id: 'keyboard-keeps-highlighted-range', status: 'PASS' }
+{ id: 'escape-restores-website-events', status: 'PASS' }
+{ id: 'untrusted-click-cannot-capture', status: 'PASS' }
+{ id: 'streaming-is-labelled-as-snapshot', status: 'PASS' }
+{ id: 'input-is-not-selectable', status: 'PASS' }
+{ id: 'spa-route-cancels-before-extraction', status: 'PASS' }
+{ id: 'stale-route-consumes-enter', status: 'PASS' }
+{ id: 'stale-route-consumes-space', status: 'PASS' }
+{ id: 'timeout-cleans-overlay', status: 'PASS' }
+{ id: 'large-code-json-expansion', status: 'PASS', markdownBytes: 140011, jsonBytes: 280080 }
+{ id: 'utf8-159999', status: 'PASS' }
+{ id: 'utf8-160000', status: 'PASS' }
+{ id: 'utf8-160001', status: 'PASS' }
+{ id: 'virtualized-turn-default-and-parent-boundary', status: 'PASS' }
+{ level: 'SOURCE_BROWSER_FIXTURE', passed: 21 }
+

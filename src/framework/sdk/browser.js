@@ -28,7 +28,7 @@ function freezeFacade(node){
   for(const value of Object.values(node))if(value&&typeof value==='object')freezeFacade(value);
   return Object.freeze(node);
 }
-export function createBrowserSdk({request,context='sidebar-tool',prepareExport}={}){
+export function createBrowserSdk({request,context='sidebar-tool',prepareExport,prepareCopy}={}){
   const page=context==='page-sdk';
   const ask=(name,args={})=>{
     normalizeBrowserOperation(name,args);
@@ -89,6 +89,7 @@ export function createBrowserSdk({request,context='sidebar-tool',prepareExport}=
   // Local sandbox helper: the Bridge owns click reservation and canonical send.
   // Never expose a proof-bearing request function or add an RPC operation.
   if(typeof prepareExport==='function')facade.downloads.prepareText=factory=>prepareExport(factory);
+  if(typeof prepareCopy==='function')facade.clipboard.prepareText=factory=>prepareCopy(factory);
   facade.network.watch=watch;
   return freezeFacade(Object.assign(facade,{apiVersion:'1.0.0'}));
 }

@@ -2,11 +2,15 @@
 
 遇到导图一闪即退、关闭后跳离历史回复或 XMind 加载失败，见[错误经验与回归测试](TROUBLESHOOTING.zh-CN.md)。
 
-## 日常安装：Gemini 操作行、DeepSeek 与 XMind 打开（2026-11-24）
+## 日常安装：使用侧栏组合版
+
+在 ego(lite) 的 OpenDesk「扩展 → 导入」只导入侧栏组合包（ID `ai-reply-mindmap`，文件后缀 `.opendesk-tool.json`）。该包已包含负责网页按钮的 `app.ai-reply-mindmap`。若列表同时有独立的 `opendesk.ai-reply-mindmap`，按 ID 核对后可卸载独立项。验证日常网页行为时也只保留组合版；历史独立 Page 包仅供专项复现。
+
+### Gemini 操作行、DeepSeek 与 XMind 打开（2026-11-24 实测）
 
 Gemini 的导图按钮挂在同一回复的原生复制操作所在行，位于该行的占位符之前。DeepSeek 使用同一回复的原生图标操作行；ChatGPT 沿用原操作栏。较慢的 XMind 固定子帧有独立的创建等待时间；替换长回复后，完全离开视口的画布会在初始适配前滚入可见区。
 
-日常 ego(lite) 已从 OpenDesk「扩展 → 导入」更新两个原安装身份：独立网页增强 [0.2.14/r11](../../artifacts/ai-reply-mindmap-daily-20261124/r11.local.opendesk-page.json)（`opendesk.ai-reply-mindmap`）和侧栏组合 [0.3.3](../../artifacts/ai-reply-mindmap-daily-20261124/0.3.3.local.opendesk-tool.json)（网页模块 `app.ai-reply-mindmap` r6）。两者均已注册三站。三站主样本均在日常 ego 的桌面 1716 和窄屏 390 CSS px 真实原页通过：导图与原生复制同排，鼠标打开相应回复的 XMind，关闭恢复原文和可访问性。Gemini 刷新后仍有效，三站各复核一条额外回复。运行身份、几何截图和开关回执见[日常验收记录](../../artifacts/ai-reply-mindmap-daily-20261124/verification.zh-CN.md)。项目根目录的旧 Page JSON 不包含本轮修复。XMind 再分发许可仍为 NOT_APPROVED，候选仅供本机使用。
+当日「扩展 → 导入」分别审阅更新了两个已经存在的安装：独立网页增强 0.2.14/r11 和侧栏组合 [0.3.3](../../artifacts/ai-reply-mindmap-daily-20261124/0.3.3.local.opendesk-tool.json)（网页模块 r6）。两项当时均注册三站，因此这些实测记录不能单独作为组合包验收。三站主样本在桌面 1716 和窄屏 390 CSS px 打开了对应回复的 XMind，关闭后恢复原文和可访问性。Gemini 刷新后仍有效，三站各复核一条额外回复。运行身份、几何截图和开关回执见[日常验收记录](../../artifacts/ai-reply-mindmap-daily-20261124/verification.zh-CN.md)。XMind 再分发许可仍为 NOT_APPROVED，候选仅供本机使用。
 
 组合版提供网页定位设置。内置规则可用时无需配置；ChatGPT 或 Gemini 的页面结构改版后，可输入助手回复容器、回复正文和操作栏的 CSS 选择器，先测试再保存并刷新。规则按站点保存，可恢复默认。DeepSeek 的导图使用内置定位。本轮未重新验收侧栏保存或恢复规则。
 
@@ -28,9 +32,9 @@ Gemini 的导图按钮挂在同一回复的原生复制操作所在行，位于�
 - 空间足够时，检查最后一个原生操作和共享组在同一行；组只有一个，里面能找到导图和两枚回复导航按钮（导航按钮可能在同一个 Shadow DOM 内）。窄宽下允许整组换行，但三个按钮须可见、可聚焦、可点击，不能遮挡原生操作或引入横向滚动。记录原生行、共享组和各按钮的父节点、边界、`flex-wrap`、溢出和命中结果，以区分换行、挂错容器和未挂载。
 - 实点回复回顶、到底，核对同一回复正文的首尾进入可见区；实点打开、关闭导图，核对回到原回复。再用短回复和两个开关分别核对预期隐藏；刷新或切换专用会话后重验，不能沿用旧页面的结果。按实际安装版本在 ChatGPT、Gemini 分别记录；DeepSeek 支持导图，本节的三按钮联动不包含 DeepSeek。
 
-## 上一版独立本机安装包（2026-11-23）
+## 历史独立本机安装包（2026-11-23）
 
-上一版 **0.2.11/r8** 将导图工具栏的导出按钮改为向下箭头落入托盘的图标。项目根目录的 [旧本机 Page JSON](ai-reply-mindmap.local.opendesk-page.json) 仅包含 `https://chatgpt.com/*`、`https://gemini.google.com/*`。当前候选见本文开头；已有同 ID 的安装可以直接更新。
+当时的独立 Page 包 **0.2.11/r8** 将导出按钮改为向下箭头落入托盘的图标，仅匹配 `https://chatgpt.com/*`、`https://gemini.google.com/*`。它使用独立安装身份，再次导入会在组合版之外另装一项。
 
 此 JSON 内嵌本机 XMind 资源，仅供本机使用（`LOCAL_VALIDATION_ONLY`）。XMind 再分发许可仍为 `NOT_APPROVED`，安装包被 Git 忽略，不作为公开发行物提交。包格式、源码及资源哈希已校验；本次未重新执行浏览器安装与功能验收。构建回执位于 `.opendesk-local/package-build-receipt.json`。
 

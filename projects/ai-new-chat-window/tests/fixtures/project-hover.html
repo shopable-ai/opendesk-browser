@@ -21,6 +21,8 @@ body{font-family:Arial;margin:30px}.item{width:320px;display:flex;align-items:ce
 </nav><textarea id="draft">preserved synthetic draft</textarea><p id="outside">Outside navigation</p>
 <script type="module">
 import {installNewChatButtons} from '../../src/buttons.js';
+import catalog from '../../locales.json' with {type:'json'};
+const messages=catalog.messages.en;
 const disposers=[];
 const owner={
   on(target,type,handler){target.addEventListener(type,handler);const off=()=>target.removeEventListener(type,handler);disposers.push(off);return off},
@@ -34,7 +36,7 @@ const state={calls:[],toasts:[],native:0,menu:0,owner};
 const fakeWindow={location:{href:'https://chatgpt.com/c/old-conversation'},open:(...args)=>{state.calls.push(args);return null}};
 state.fakeWindow=fakeWindow;
 state.dispose=()=>{disposers.splice(0).reverse().forEach(off=>off())};
-state.reinstall=()=>{state.mount=installNewChatButtons({doc:document,win:fakeWindow,owner})};
+state.reinstall=()=>{state.mount=installNewChatButtons({doc:document,win:fakeWindow,owner,t:key=>messages[key].text})};
 document.querySelector('#native-plus').addEventListener('click',()=>state.native++);
 document.querySelector('#global-new').addEventListener('click',()=>state.native++);
 document.querySelector('#menu').addEventListener('click',()=>state.menu++);

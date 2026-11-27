@@ -783,7 +783,7 @@ const compiledWebClipperInputs=Object.freeze({
   // Host prepares only the existing fixed ISOLATED relay in that exact document.
   'projects/web-markdown-clipper/trusted/page.js':'a4e91daee1496fdcc4bef25f0b166daf125a3686',
   'projects/web-markdown-clipper/trusted/page-connection.js':'1ca443c6ece3520e18896cfbd3cdc0618a4e4ad5',
-  'projects/web-markdown-clipper/trusted/region-picker.js':'45f09fae8c948bfd748b66c01d3066282e550b1c',
+  'projects/web-markdown-clipper/trusted/region-picker.js':'2e83d222f374dc2f17fa27bf635685f81319ea21',
   'projects/web-markdown-clipper/trusted/policy.js':'6b2259c9731b3a818336403c91ea7a12f0a13b29',
   'projects/web-markdown-clipper/trusted/notes-store.js':'17073f63ba0d73e427d9b19697191d9c5bbda766'
 });
@@ -878,6 +878,9 @@ const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row
 // bytes remain opaque; source drift requires a separate reviewed lock update.
 const compiledAIProxyInputs=Object.freeze(JSON.parse(readFileSync(
   new URL('../projects/ai-proxy/trusted/source-lock.json',import.meta.url),'utf8')));
+export const TRUSTED_AI_PROXY_STYLE='ui/ai-proxy.css';
+export const TRUSTED_AI_PROXY_STYLE_INPUTS=Object.freeze(Object.keys(compiledAIProxyInputs)
+  .filter(path=>path.endsWith('.css')));
 function reviewedAIProxyInput(path,root){
   if(!Object.hasOwn(compiledAIProxyInputs,path))
     throw Error('Unreviewed trusted AI Proxy input: '+path);
@@ -888,31 +891,42 @@ function reviewedAIProxyInput(path,root){
   if(hash!==compiledAIProxyInputs[path])throw Error('Trusted AI Proxy source changed; review and re-pin: '+path);
   return {bytes,hash};
 }
-// Vite can flatten CSS @imports before Rollup enumerates modules. Validate the
-// whole reviewed set for the trusted shell, plus every recursive local import;
-// neither a missing module record nor a newly added unpinned leaf can bypass it.
-export function verifyTrustedAIProxySources(root=process.cwd()){
-  for(const path of Object.keys(compiledAIProxyInputs))reviewedAIProxyInput(path,root);
-  const seen=new Set();
+// Resolve only reviewed, unconditional local imports, at their original
+// positions. Retain the scoped rules and named cascade layers as authored.
+function trustedAIProxyStyleTree(root){
+  const active=new Set();
   const visit=path=>{
-    if(seen.has(path))return;
-    seen.add(path);
+    if(active.has(path))throw Error('Circular trusted AI Proxy CSS import: '+path);
+    active.add(path);
     const {bytes}=reviewedAIProxyInput(path,root);
-    postcss.parse(bytes.toString(),{from:resolve(root,path)}).walkAtRules(/^import$/i,rule=>{
+    const tree=postcss.parse(bytes.toString(),{from:resolve(root,path)});
+    tree.walkAtRules(/^import$/i,rule=>{
       const match=rule.params.match(/^(['"])(\.\.?\/[^'"\\]+\.css)\1$/);
-      if(!match)throw Error('Unreviewed trusted AI Proxy CSS import: '+rule.params);
+      if(!match||rule.parent!==tree)throw Error('Unreviewed trusted AI Proxy CSS import: '+rule.params);
       const next=relative(root,resolve(root,dirname(path),match[2])).split(sep).join('/');
       if(!next.startsWith('projects/ai-proxy/src/'))throw Error('Trusted AI Proxy CSS import outside project: '+next);
-      visit(next);
+      rule.replaceWith(...visit(next).nodes);
     });
+    active.delete(path);
+    return tree;
   };
-  visit('projects/ai-proxy/src/style.css');
+  return visit('projects/ai-proxy/src/style.css');
+}
+export function verifyTrustedAIProxySources(root=process.cwd()){
+  for(const path of Object.keys(compiledAIProxyInputs))reviewedAIProxyInput(path,root);
+  trustedAIProxyStyleTree(root);
 }
 function reviewedCompiledAIProxy(target,path,root){
   if(!Object.hasOwn(compiledAIProxyInputs,path)||
+    path.endsWith('.css')||
     !(target==='ui/tool-shell.js'||target==='ui/sidebar-tool-host.js'&&
       path==='projects/ai-proxy/trusted/admission.js'))return null;
   return reviewedAIProxyInput(path,root).hash;
+}
+export function trustedAIProxyStyle(root=process.cwd()){
+  return transformSync(trustedAIProxyStyleTree(root).toString(),{
+    loader:'css',minifyWhitespace:true,legalComments:'none'
+  }).code;
 }
 export function assertLibraryModuleBoundary(target,path,npmName) {
   const embeddedPackage=[...npmOwners].find(([name])=>npmName===name||path.includes('node_modules/'+name+'/'));

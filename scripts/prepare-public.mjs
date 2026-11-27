@@ -11,7 +11,7 @@ import {buildOfficialTools} from './build-official-tools.mjs';
 import {buildOfficialPages} from './build-official-pages.mjs';
 import {resolveMarketChannel,MARKET_CHANNEL_PATH} from './market-channel.mjs';
 import {OFFICIAL_STORE_WEBSITE} from '../src/marketplace/store-website.js';
-import {trustedToolShellStyle} from './bundle-provenance.mjs';
+import {trustedToolShellStyle,trustedAIProxyStyle,TRUSTED_AI_PROXY_STYLE} from './bundle-provenance.mjs';
 import {PACKAGED_TASK_RESOURCES,preparePackagedTaskResources} from './packaged-task-resources.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
@@ -109,6 +109,7 @@ export async function preparePublic() {
   // Keep the unchanged, .bm-* scoped trusted styles in the existing fixed CSS
   // asset instead of carrying another stylesheet string in the shell's JS.
   await writeFile(resolve(publicRoot,'ui/tool-shell.css'),trustedToolShellStyle());
+  await writeFile(resolve(publicRoot,TRUSTED_AI_PROXY_STYLE),trustedAIProxyStyle());
   // Generate optional release assets once from trusted source projects.
   await buildOfficialTools(publicRoot);
   await buildOfficialPages(publicRoot);

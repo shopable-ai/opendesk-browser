@@ -423,6 +423,11 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         }
         notify('草稿已写入，等待下一轮核对后取消排队');return true;
       },
+      saveRecoveryEdit(input){
+        if(pending||site.currentRoute()?.route!==input.route)
+          return {ok:false,reason:'当前会话或草稿交接状态已变化，未保存'};
+        return engine.saveRecoveryEdit(input);
+      },
       remove(id){
         const state=engine.view();
         const unknown=state.inFlight?.id===id&&state.inFlight.phase==='unknown';
@@ -640,10 +645,11 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         if(!owner.active()||retireForLegacy())return;
         const flight=engine.view().inFlight;
         const ticked=attempt(()=>{
-          const canSubmit=dispatchAllowed&&!checkFailed&&placed&&(!deepseek||!!snap?.route)&&!pending&&!firstSend&&!recovery&&
+          const recoveryEditing=view.isRecoveryEditing?.()===true;
+          const canSubmit=dispatchAllowed&&!checkFailed&&placed&&(!deepseek||!!snap?.route)&&!pending&&!firstSend&&!recovery&&!recoveryEditing&&
             engine.view().phase!=='unknown'&&checkpoint();
           const submitBlockReason=!dispatchAllowed?'本轮没有发送授权':checkFailed?'本轮队列检查异常':!placed?'队列控件尚未安全显示':
-            pending?'草稿交接尚未确认':recovery?'恢复草稿尚待核对':'队列缓存未保存';
+            pending?'草稿交接尚未确认':recovery?'恢复草稿尚待核对':recoveryEditing?'正在编辑暂停草稿':'队列缓存未保存';
           engine.tick({canSubmit,submitBlockReason});
         },'queue-check');
         const nextFlight=engine.view().inFlight;

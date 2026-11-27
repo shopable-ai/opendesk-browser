@@ -174,6 +174,8 @@ globalThis.OpenDeskTool={
   if(latencyMs&&operation.startsWith('clipNotes.'))await new Promise(resolve=>setTimeout(resolve,latencyMs));
   if(operation==='clipNotes.getPreference')return {mode:local.lastMode??null};
   if(operation==='clipNotes.setPreference'){if(!['region','article','selection','quote','link'].includes(args.mode))throw reason('E_SCHEMA','剪藏范围无效');local.lastMode=args.mode;persist();return {mode:args.mode};}
+  if(operation==='storage.get'&&args.key==='markdownSource')return {value:local.markdownSource??null};
+  if(operation==='storage.set'&&args.key==='markdownSource'){local.markdownSource=args.value;persist();return {saved:true};}
   if(operation==='clip.region.cancel'){
     const cancelled=pendingRegion?.id===args.pickId;
     if(cancelled)pendingRegion.cancel('演示：已取消区域点选');
@@ -257,7 +259,9 @@ globalThis.OpenDeskSDK={browser:{
   return {toolId:'web-markdown-clipper',actionId:'save-selection',selection,
    source:{url:source},expiresAt:Date.now()+60000};
  }},
- clipboard:{async writeText(text){
+ clipboard:{async prepareText(factory){
+  return globalThis.OpenDeskSDK.browser.clipboard.writeText(await factory());
+ },async writeText(text){
   send('模拟复制（未写入系统剪贴板）',enc.encode(text).length);
   return {copied:true};
  }},

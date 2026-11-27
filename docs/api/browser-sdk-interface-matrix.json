@@ -3714,7 +3714,7 @@
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
       "userGesture": true,
-      "maxRequestBytes": 170000,
+      "maxRequestBytes": 961024,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -7587,7 +7587,7 @@
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
       "userGesture": true,
-      "maxRequestBytes": 170000,
+      "maxRequestBytes": 961024,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",

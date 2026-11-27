@@ -1,0 +1,119 @@
+{
+  "candidateBuild": {
+    "sourceCommit": "10cc2275fb5a69165e2768318ed3d3beaa995679",
+    "attemptId": "e8616fb8-16a1-4fb9-b055-453d76e752ec",
+    "builder": "WXT0.21.4/Vite7.3.6/Rollup",
+    "mode": "production",
+    "edition": "standard",
+    "status": "passed",
+    "manifestVersion": 3,
+    "packageSha256": "eda74f1f42d46a2a9414c88b5c82777ab394def4d368017a029867f69558007e",
+    "sourceDriftDuringBuild": [],
+    "verifiedSourceInputs": 872,
+    "verifiedPackageFiles": 148,
+    "fixedAssets": [
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 186601,
+        "sha256": "bf7631eda3bf489a37e89a130ce0b689074cca3876e6b65d1614b1e7d2142118"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 2804,
+        "sha256": "ac005c8c2b1f123f49bd32036e3837c967200a97cae2907e7ec8c28530e95546"
+      },
+      {
+        "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+        "bytes": 90874,
+        "sha256": "a5dd4beacec6caec3289c3dc6b0bd2f19d36e80b966de5b6f49a55320b5fd054"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 1416171,
+        "sha256": "d49e3aac46fb3db9a9ed7538a5d626621502f7251fd755f82edbfc8268411294"
+      },
+      {
+        "path": "ui/ai-proxy.css",
+        "bytes": 151301,
+        "sha256": "873d3a44bbc44c630349175f941a7561699f294a7813f7d5c1d476f1c52e0bb1"
+      },
+      {
+        "path": "ui/sidebar-tool-host.js",
+        "bytes": 950752,
+        "sha256": "eafb29eda4bb531bd728b39dbd83505a9f2386eb1792201c4e88e71bffe9c0f0"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 3094448,
+        "sha256": "2ea8ca59bdc81dfe93901a2965e7773f62669573751a3a18a0ad34d762be92e4"
+      }
+    ],
+    "toolShellBudgetBytes": 3145728
+  },
+  "legacyBuild": {
+    "attemptId": "0c4fdd98-0c58-46cc-b2f1-c5687c0b9ef7",
+    "builder": "WXT0.21.4/Vite7.3.6/Rollup",
+    "mode": "production",
+    "edition": "standard",
+    "status": "passed",
+    "manifestVersion": 3,
+    "packageSha256": "5f749138021a7a143fab070fbb0b69f42581ccd570efaab5e913bb02a12ca2a7",
+    "sourceDriftDuringBuild": [],
+    "fixedAssets": [
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 176937,
+        "sha256": "69b02eac7e1f4d6c04acc14700f9785bb19a7e7cc316bc47bf59d61149cda698"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 2162,
+        "sha256": "294fd628d27b3bb55bd062a110a41d6039cab7353a26af849ada2455f4f12bcc"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 1309039,
+        "sha256": "48c70f75f8e331348badd33c58da73e8064c220643510ef81b79f6dca9a6b002"
+      },
+      {
+        "path": "ui/sidebar-tool-host.js",
+        "bytes": 790491,
+        "sha256": "273b451e1ab49f0c433a1d65b1c8ffd5f8bd65a6e605be993b4533e7aa4436f5"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 2957009,
+        "sha256": "d4c279bb31595885f6497433ebbdeabbb1610da0999baa0b93f91995a1610e54"
+      }
+    ],
+    "toolShellBudgetBytes": 3145728,
+    "embeddedToolVersion": "1.2.10",
+    "reviewedLegacyToolVersion": "1.2.14"
+  },
+  "appCandidate": {
+    "schema": "opendesk.app-ci-candidate.v1",
+    "sourceCommit": "10cc2275fb5a69165e2768318ed3d3beaa995679",
+    "project": "projects/web-markdown-clipper",
+    "id": "web-markdown-clipper",
+    "version": "1.2.15",
+    "capabilities": [
+      "page.clip",
+      "user.export",
+      "storage.local",
+      "currentPage.read",
+      "browser.contextMenu"
+    ],
+    "sha256": "a5dd4beacec6caec3289c3dc6b0bd2f19d36e80b966de5b6f49a55320b5fd054",
+    "bytes": 90874,
+    "status": "CANDIDATE_SOURCE_IDENTICAL"
+  },
+  "checks": {
+    "prePromotionCandidate": "131/131",
+    "promotedProject": "132/132",
+    "bundleProvenance": "49/49",
+    "appCiNode": "232/232",
+    "appCiPlan": "PASS",
+    "appCiInspect": "PASS",
+    "projectPackage": "PROJECT_PACKAGE_MATCH"
+  }
+}

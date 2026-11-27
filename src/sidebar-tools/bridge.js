@@ -366,6 +366,7 @@ export function initSidebarToolSandbox() {
   };
   const prepareRequest=(operation,factory)=>{
     const ai=operation==='ai.generate';
+    const clipboard=operation==='browser.clipboard.writeText';
     // Consume even an invalid factory's opportunity. No caller-controlled
     // property is read until the native dispatch has been checked and spent.
     const port=consumeRequestGesture(operation);
@@ -412,9 +413,14 @@ export function initSidebarToolSandbox() {
         if(!valid())return;
         try{
           if(ai&&result===null){finish();resolve(null);return;}
-          if(!result||typeof result!=='object')throw exportError(ai?'E_AI_PREPARE':'E_SCHEMA',ai?'AI 准备结果必须为请求对象':'Expected text export arguments');
           let payload;
-          if(ai){
+          if(clipboard){
+            if(typeof result!=='string')throw exportError('E_SCHEMA','Expected clipboard text');
+            const data=create(null);data.text=result;
+            payload=normalizeBrowserOperation(reservation.operation,data);
+          }else if(!result||typeof result!=='object'){
+            throw exportError(ai?'E_AI_PREPARE':'E_SCHEMA',ai?'AI 准备结果必须为请求对象':'Expected text export arguments');
+          }else if(ai){
             // Copy accessors/thenables before the final private delivery check.
             // Host still owns the strict AI schema, identity and capability checks.
             payload=apply(clone,globalThis,[result]);
@@ -438,6 +444,7 @@ export function initSidebarToolSandbox() {
     });
   };
   const prepareExport=factory=>prepareRequest('browser.downloads.text',factory);
+  const prepareCopy=factory=>prepareRequest('browser.clipboard.writeText',factory);
   const prepareAI=factory=>prepareRequest('ai.generate',factory);
   // A real user input means refreshing this preview could discard unsaved work.
   // This is a UX signal only; no security decision relies on untrusted code.
@@ -785,7 +792,7 @@ export function initSidebarToolSandbox() {
         localeListeners.add(callback);return ()=>localeListeners.delete(callback);
       }
     }),configurable:false});
-    Object.defineProperty(window,'OpenDeskSDK',{value:Object.freeze({browser:createBrowserSdk({request,context:'sidebar-tool',prepareExport})}),configurable:false});
+    Object.defineProperty(window,'OpenDeskSDK',{value:Object.freeze({browser:createBrowserSdk({request,context:'sidebar-tool',prepareExport,prepareCopy})}),configurable:false});
     // Native/File-first: every dependency is the exact UTF-8 source bundled in
     // the installed v2 package. Verify SHA before creating a local Blob URL.
     // Never create a network script.src, never use privileged extension DOM.

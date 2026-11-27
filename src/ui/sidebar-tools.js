@@ -14,7 +14,7 @@ import {assertManagedSiteToolLease} from '../platform/host/managed-site-authorit
 import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
   extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins}
   from '../framework/host/managed-site-reviewed-scopes.js';
-import {browserTextDownloadUrl,COOKIE_BATCH_ERROR_CODES} from '../framework/sdk/browser-schemas.js';
+import {browserTextDownloadUrl,isBrowserTextExport,COOKIE_BATCH_ERROR_CODES} from '../framework/sdk/browser-schemas.js';
 import {requestManagedProxyIntent,createManagedProxyActionGate} from './sidebar-tools/managed-proxy-consent.js';
 import readingTocCatalog from '../../projects/reading-toc/trusted/locales.generated.js';
 import {uiMessage,resolveUiLocale,UI_LOCALE_SUPPORTED} from './app-localization.js';
@@ -154,7 +154,7 @@ export function checkSidebarToolRequestBudget(message){
       ?{ok:true}:{ok:false,code:'E_LIMIT'};
   // Keep other non-Browser tool request budgets unchanged.
   return serialized.length<=(
-    ['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)
+    ['knowledge.update','knowledge.create'].includes(message.operation)
       ?170000:12000
   )?{ok:true}:{ok:false,code:'E_LIMIT'};
 }
@@ -2940,7 +2940,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // that would deadlock the host's existing per-tool Web Lock.
     if(operation.startsWith('browser.')){
       normalizeBrowserOperation(operation,payload);
-      const browserExport=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
+      const browserExport=isBrowserTextExport(operation);
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
       if(!isDiscovery&&(!browserOperation(operation)||!browserOperation(operation).requiredCapabilities.every(cap=>tool.capabilities.includes(cap))))
         throw Object.assign(new Error('此工具没有获准浏览器能力'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
@@ -6542,23 +6542,26 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   if(currentPageTarget?.subscribe){
     // revalidate() intentionally observes the same document before and after a
-    // privileged read. Only an actual target transition invalidates tool output;
-    // resolving/unavailable and same-URL reloads must still revoke pending work.
-    const pageKey=()=>JSON.stringify(['status','windowId','tabId','frameId','documentId','url','origin','title','reason','navigationStarted']
+    // privileged read. Clipper treats titles as display metadata, but
+    // resolving/unavailable and same-URL reloads still revoke pending work.
+    const pageKey=()=>JSON.stringify(['status','windowId','tabId','frameId','documentId','url','origin','reason','navigationStarted']
       .map(key=>currentPageTarget.snapshot?.[key]??null));
     let previousPage=pageKey(),previousCookiePage={...currentPageTarget.snapshot},cookiePagePending=false;
+    let previousTitle=previousCookiePage.title??null;
     lastConfirmedCookieOrigin=websiteOrigin(previousCookiePage.url);
     const unsubscribe=currentPageTarget.subscribe(()=>{
       render();
       const nextPage=pageKey(),nextCookiePage={...currentPageTarget.snapshot};
       const priorCookiePage=previousCookiePage;
-      if(nextPage===previousPage)return;
-      previousPage=nextPage;
+      const targetChanged=nextPage!==previousPage,title=nextCookiePage.title??null;
+      if(!targetChanged&&title===previousTitle)return;
+      previousPage=nextPage;previousTitle=title;
+      if(!targetChanged&&active?.id==='web-markdown-clipper')return;
       if(nextCookiePage.status==='available')lastConfirmedCookieOrigin=websiteOrigin(nextCookiePage.url);
       if(classifyCookiePageTransition(priorCookiePage,nextCookiePage)!=='ignore')cookiePageRevision++;
       clearClipRegions();
-      // Only Cookie Editor filters visual changes: the other tools retain
-      // the existing page-changed contract. Document/Origin/tab fail closed.
+      // Cookie Editor also filters visual changes. Other tools retain the
+      // existing page-changed contract. Document/Origin/tab fail closed.
       let cookieTransition=active?.id==='cookie-editor'&&isCookieTool(active)?
         classifyCookiePageTransition(priorCookiePage,nextCookiePage):null;
       if(cookieTransition==='pending')cookiePagePending=true;

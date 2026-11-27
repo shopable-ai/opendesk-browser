@@ -3,6 +3,18 @@
 const {root,request}=globalThis.OpenDeskTool;
 const q=id=>root.querySelector('#'+id);
 const input=q('clip-source'),display=q('clip-preview'),state=q('clip-status');
+const includeSource=q('clip-include-source'),sourceStyle=q('clip-meta'),formatSettings=q('clip-format-settings');
+const sourceOptionsKey='markdownSource';
+if(formatSettings){
+ const closeOutside=event=>{if(formatSettings.open&&!formatSettings.contains(event.target))formatSettings.open=false;};
+ root.addEventListener('pointerdown',closeOutside);
+ root.addEventListener('focusin',closeOutside);
+ formatSettings.addEventListener('keydown',event=>{
+  if(event.key!=='Escape'||!formatSettings.open)return;
+  event.preventDefault();event.stopPropagation();formatSettings.open=false;
+  formatSettings.querySelector('summary').focus();
+ });
+}
 const modes=Array.from(root.querySelectorAll('[data-clip-mode]'));
 const help=q('clip-context-help');
 if(help){
@@ -28,7 +40,8 @@ if(help){
  });
 }
 let mode=modes.find(button=>button.getAttribute?.('aria-pressed')==='true')?.dataset.clipMode||'region',version=0,pageEpoch=0,pageKey='',pageInfo=null;
- let modeIntent=0;
+let modeIntent=0,preferenceWrite=null,storedMode=null,preferenceUnknown=false;
+let sourceLoading=true,sourceEdited=false,sourceWriting=false,sourceQueued=null,sourceUnknown=false;
 let results=Object.create(null),drafts=Object.create(null),record=null,markdown='',exportBusy=false,extracting=false,saving=false;
 let activePickId=null;
 const newPickId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,15);
@@ -39,7 +52,7 @@ function stopRegionPick(){
 const emptyHints=Object.freeze({
  article:'点击「提取当前文章」',
  selection:'请先在网页选中文字',
- quote:'先选择文字，再生成带来源引用',
+ quote:'先选择文字，再生成 Markdown 引用',
  link:'生成当前网页链接',region:'点击「点选网页区域」，然后在网页单击目标内容'
 });
 const actions=Object.freeze({article:'提取当前文章',selection:'提取选中文字',
@@ -165,9 +178,11 @@ function renderPreview(content,target=display){
  flush();target.replaceChildren(out);
 }
 function updateExportButtons(){
- q('clip-copy').disabled=!markdown.trim()||exportBusy||saving||extracting;
-  q('clip-download').disabled=!markdown.trim()||exportBusy||saving||extracting;
+ q('clip-copy').disabled=!markdown.trim()||sourceLoading||exportBusy||saving||extracting;
+  q('clip-download').disabled=!markdown.trim()||sourceLoading||exportBusy||saving||extracting;
   input.readOnly=!record||saving||extracting;
+ includeSource.disabled=sourceStyle.disabled=saving||exportBusy;
+ if(saving&&formatSettings)formatSettings.open=false;
 }
 function updateFetchButton(){
  const button=q('clip-fetch');
@@ -178,7 +193,10 @@ function updateFetchButton(){
   item.setAttribute('aria-pressed',String(item.dataset.clipMode===mode));
   item.disabled=saving;
  }
- q('clip-meta').disabled=saving;
+ const linkOnly=mode==='link';
+ q('clip-source-options').hidden=linkOnly;
+ q('clip-link-output').hidden=!linkOnly;
+ if(linkOnly&&formatSettings)formatSettings.open=false;
  const hint=q('clip-selection-hint');
  if(hint)hint.textContent=helpHints[mode];
 }
@@ -204,7 +222,8 @@ function metaParts(raw,format,target=mode){
    .map(([key,value])=>key+': '+JSON.stringify(value)).join('\n')+'\n---\n\n',tail:''};
   return {head:'',tail:''};
  }
- function composeMarkdown(raw,format=q('clip-meta').value,target=mode){
+ const sourceFormat=()=>includeSource.checked?sourceStyle.value:'none';
+ function composeMarkdown(raw,format=sourceFormat(),target=mode){
   if(!raw)return '';
   const content=target==='quote'
    ?raw.markdown.trim().split('\n').map(line=>line?'> '+line:'>').join('\n')+'\n'
@@ -221,7 +240,7 @@ function metaParts(raw,format,target=mode){
  }
  function draftMarkdown(raw){
   if(!raw)return '';
-  const draft=drafts[mode],format=q('clip-meta').value;
+  const draft=drafts[mode],format=sourceFormat();
   if(!draft)return composeMarkdown(raw,format);
   if(draft.format!==format){
    const old=metaParts(raw,draft.format),next=metaParts(raw,format);
@@ -240,7 +259,7 @@ function metaParts(raw,format,target=mode){
    const hint=previewNode('p',emptyHints[mode]);hint.className='clip-empty-hint';
    display.replaceChildren(hint);
   }
-  notes?.setClip(record&&markdown.trim()&&!extracting?{body:markdown,title:record.title,source:record.source}:null);
+  notes?.setClip(record&&markdown.trim()&&!extracting&&!sourceLoading?{body:markdown,title:record.title,source:record.source}:null);
   updateExportButtons();updateFetchButton();
   const home=q('clip-home');if(home)home.dataset.clipState=extracting?'extracting':record?'ready':'empty';
  }
@@ -257,7 +276,7 @@ function metaParts(raw,format,target=mode){
   if(!record||saving||extracting){input.value=markdown;return;}
   if(input.value===markdown)return;
   version++;markdown=input.value;
-  const format=q('clip-meta').value,{head,tail}=metaParts(record,format);
+  const format=sourceFormat(),{head,tail}=metaParts(record,format);
   drafts[mode]={text:markdown,format,customMeta:(!head||markdown.startsWith(head))&&(!tail||markdown.endsWith(tail))?false:true};
   syncOutput();
  });
@@ -266,10 +285,37 @@ function metaParts(raw,format,target=mode){
  version++;pageEpoch++;pageKey='';pageInfo=null;results=Object.create(null);drafts=Object.create(null);
  extracting=false;refresh();say(text);
 }
+async function rememberMode(next){
+ if(preferenceWrite?.mode===next||(!preferenceWrite&&!preferenceUnknown&&storedMode===next))return;
+ const write={mode:next};
+ const status=q('clip-mode-status');
+ const report=message=>{if(status){status.textContent=message;status.hidden=!message;}};
+ const check=preferenceUnknown;
+ preferenceWrite=write;
+ try{
+  if(check){
+   const existing=await request('clipNotes.getPreference');
+   if(preferenceWrite!==write)return;
+   storedMode=existing?.mode??null;preferenceUnknown=false;
+  }
+  if(!check||storedMode!==next){
+   const result=await request('clipNotes.setPreference',{mode:next});
+   if(preferenceWrite!==write)return;
+   if(result?.mode!==next)throw Object.assign(Error('偏好写入回执不完整'),{code:'E_OUTCOME_UNKNOWN'});
+   storedMode=next;
+  }
+  report('');
+ }catch(error){
+  if(preferenceWrite!==write)return;
+  storedMode=null;
+  preferenceUnknown=preferenceUnknown||error?.code==='E_OUTCOME_UNKNOWN';
+  report(preferenceUnknown?'剪藏范围保存结果未知；再次点选时会先核对。':'未能保存剪藏范围；可再点选当前范围重试。');
+ }finally{if(preferenceWrite===write)preferenceWrite=null;}
+}
 function selectMode(next){
   if(saving||!Object.hasOwn(actions,next))return;
-  const firstIntent=modeIntent++===0;
-  if(next!==mode||firstIntent)void request('clipNotes.setPreference',{mode:next}).catch(()=>{});
+  modeIntent++;
+  void rememberMode(next);
   if(next===mode)return;
   stopRegionPick();
  mode=next;version++;extracting=false;refresh();
@@ -281,18 +327,54 @@ modes.forEach(button=>button.addEventListener('click',()=>selectMode(button.data
   try{
    const result=await request('clipNotes.getPreference');
    if(ticket===version&&intent===modeIntent&&!saving&&Object.hasOwn(actions,result?.mode)){
+    storedMode=result.mode;
     mode=result.mode;refresh();say(record?'已恢复本页 Markdown':emptyHints[mode]);
    }
   }catch{/* Default to the first (region) tab when preferences are unavailable. */}
  }
-q('clip-meta').addEventListener('change',()=>{
- if(saving)return;
- if(activePickId){stopRegionPick();extracting=false;version++;}
- else if(!extracting)version++;
+function showSourceError(message){
+ q('clip-source-message').textContent=message;
+ q('clip-source-status').hidden=!message;
+}
+async function restoreSourceOptions(){
+ try{
+  const {value}=await request('storage.get',{key:sourceOptionsKey});
+  if(sourceEdited||typeof value?.enabled!=='boolean'||!['footer','yaml'].includes(value.format))return;
+  includeSource.checked=value.enabled;sourceStyle.value=value.format;
+ }catch{/* The default source format is available even without stored preferences. */}
+ finally{if(!sourceEdited){sourceLoading=false;refresh();}}
+}
+async function rememberSourceOptions(){
+ sourceQueued={enabled:includeSource.checked,format:sourceStyle.value};
+ if(sourceWriting)return;
+ sourceWriting=true;
+ try{
+  while(sourceQueued){
+   const value=sourceQueued;sourceQueued=null;
+   if(sourceUnknown){
+    const stored=(await request('storage.get',{key:sourceOptionsKey})).value;
+    sourceUnknown=false;
+    if(sourceQueued||(stored?.enabled===value.enabled&&stored.format===value.format))continue;
+   }
+   const result=await request('storage.set',{key:sourceOptionsKey,value});
+   if(result?.saved!==true)throw Object.assign(Error('未确认设置已保存'),{code:'E_OUTCOME_UNKNOWN'});
+  }
+  showSourceError('');
+ }catch(error){
+  sourceQueued=null;
+  sourceUnknown=sourceUnknown||error?.code==='E_OUTCOME_UNKNOWN';
+  showSourceError(sourceUnknown?'设置保存结果未知。':'未能记住来源设置。');
+ }finally{sourceWriting=false;}
+}
+function changeSourceOptions(){
+ if(saving||exportBusy)return;
+ sourceEdited=true;sourceLoading=false;
  refresh();
- if(extracting)return; // Format the pending read when it arrives; do not strand its busy state.
- say(record?'已按来源格式更新完整 Markdown':emptyHints[mode]);
-});
+ return rememberSourceOptions();
+}
+includeSource.addEventListener('change',changeSourceOptions);
+sourceStyle.addEventListener('change',changeSourceOptions);
+q('clip-retry-source').addEventListener('click',rememberSourceOptions);
 q('clip-fetch').addEventListener('click',async()=>{
  if(saving)return;
  if(mode==='region'&&extracting){
@@ -301,9 +383,6 @@ q('clip-fetch').addEventListener('click',async()=>{
  const token=++version,selectedMode=mode;
  const pickId=selectedMode==='region'?newPickId():null;
  if(pickId)activePickId=pickId;
- if(selectedMode==='selection'||selectedMode==='quote'){
-   delete results.selection;delete results.quote;delete drafts.selection;delete drafts.quote;
-  }else if(selectedMode!=='region'){delete results[selectedMode];delete drafts[selectedMode];}
  extracting=true;refresh();say(selectedMode==='region'
   ?'单击替换 · Ctrl/Cmd + 单击追加 · Esc 取消'
   :'正在读取授权网页…');
@@ -324,7 +403,7 @@ q('clip-fetch').addEventListener('click',async()=>{
    let raw={...result,source};
    let nextDraft=null;
    if(adding){
-    const draft=drafts.region,format=q('clip-meta').value;
+    const draft=drafts.region,format=sourceFormat();
     raw={...previous,markdown:joinMarkdown(previous.markdown,result.markdown),streaming:previous.streaming===true||result.streaming===true};
     if(draft){
      const {tail}=metaParts(previous,format,'region');
@@ -332,19 +411,19 @@ q('clip-fetch').addEventListener('click',async()=>{
      const hasTail=!draft.customMeta&&tail&&oldText.endsWith(tail);
      nextDraft={...draft,format,text:hasTail?joinMarkdown(oldText.slice(0,-tail.length),result.markdown)+tail:joinMarkdown(oldText,result.markdown)};
     }
-    const combined=nextDraft?.text??composeMarkdown(raw,format,'region');
-    if(typeof TextEncoder==='function'&&new TextEncoder().encode(combined).length>160000)
-     throw Error('追加后超过 160,000 字节，已保留原内容，请缩小范围');
    }
+   if(selectedMode==='region'&&typeof TextEncoder==='function'&&
+      new TextEncoder().encode(nextDraft?.text??composeMarkdown(raw,sourceFormat(),'region')).length>160000)
+    throw Error((adding?'追加后':'完整 Markdown')+'超过 160,000 字节，已保留原内容，请缩小范围');
    pageKey=source;
   if(selectedMode==='link')
    raw.markdown='['+escapeLabel(raw.title)+']('+source+')\n';
+  results[selectedMode]=raw;
+  if(nextDraft)drafts[selectedMode]=nextDraft;else delete drafts[selectedMode];
   if(selectedMode==='selection'||selectedMode==='quote'){
-   results.selection=raw;results.quote=raw;
-  }else{
-    results[selectedMode]=raw;
-    if(nextDraft)drafts[selectedMode]=nextDraft;else delete drafts[selectedMode];
-   }
+   const companion=selectedMode==='selection'?'quote':'selection';
+   if(!drafts[companion])results[companion]=raw;
+  }
   extracting=false;refresh();
   say(selectedMode==='region'
    ?(adding?'已追加区域，原 Markdown 已保留'+(result.streaming?'（当前内容仍在生成）':''):result.streaming?'已提取正在生成的回答快照，内容可能未完整生成；可稍后重新选择':
@@ -371,14 +450,16 @@ q('clip-show-preview').addEventListener('click',()=>{
  q('clip-show-preview').setAttribute('aria-pressed','true');
 });
 q('clip-copy').addEventListener('click',async()=>{
- if(exportBusy||saving||extracting)return;
+ if(sourceLoading||exportBusy||saving||extracting)return;
   if(!markdown.trim())return say('请先剪藏',true);
  const ticket=version,content=markdown;
  const current=()=>ticket===version&&content===markdown;
  setExportBusy(true);
  try{const response=await globalThis.OpenDeskSDK.browser.clipboard.writeText(content);
   if(!current())return;
-  if(!response?.copied)throw Error('复制未确认');say('已复制 Markdown');
+  if(response?.copied!==true)throw Error('复制未确认');
+  if(!globalThis.OpenDeskTool?.ui?.notify?.({message:'已复制 Markdown',type:'success',position:'bottom-center'}))
+   say('已复制 Markdown');
  }catch(error){
   if(!current())return;
   if(error?.code==='E_CANCELLED')say('已取消复制');
@@ -390,7 +471,7 @@ q('clip-copy').addEventListener('click',async()=>{
  }finally{setExportBusy(false);}
 });
 q('clip-download').addEventListener('click',async()=>{
- if(exportBusy||saving||extracting)return;
+ if(sourceLoading||exportBusy||saving||extracting)return;
   if(!markdown.trim())return say('请先剪藏',true);
  const ticket=version,content=markdown;
  setExportBusy(true);
@@ -435,11 +516,11 @@ async function receiveRightClick(){
   const host=new URL(source).hostname;
   pageKey=source;
   version++;modeIntent++;mode='selection';extracting=false;
-   delete drafts.selection;delete drafts.quote;
+   delete drafts.selection;
   const rich=typeof launch.selectionMarkdown==='string'&&launch.selectionMarkdown.trim();
   const raw={markdown:rich?launch.selectionMarkdown:launch.selection,title:host,site:host,source,
    capturedAt:new Date().toISOString(),mode:'clip.selection'};
-  results.selection=raw;results.quote=raw;
+  results.selection=raw;if(!drafts.quote)results.quote=raw;
   refresh();
   say(rich?'已载入右键选区及格式，点击「保存摘录」即可保存。':
    '已载入右键文字（未取得格式，可尝试「提取选中文字」），点击「保存摘录」即可保存。');
@@ -449,6 +530,7 @@ root.addEventListener('opendesk-page-changed',()=>{
  invalidate();if(notes)void readCurrentPage();
 });
 refresh();
+ void restoreSourceOptions();
  void restoreMode();
  if(notes){void readCurrentPage();void receiveRightClick();}
 

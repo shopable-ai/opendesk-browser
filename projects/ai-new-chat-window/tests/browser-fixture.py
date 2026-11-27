@@ -1,5 +1,6 @@
 from pathlib import Path
 from base64 import b64encode
+import json
 from os import environ
 from playwright.sync_api import sync_playwright, expect
 
@@ -8,7 +9,10 @@ root=Path(__file__).resolve().parents[1]
 def data_url(source): return 'data:text/javascript;base64,'+b64encode(source.encode()).decode()
 destinations=data_url((root/'src/destinations.js').read_text())
 buttons=data_url((root/'src/buttons.js').read_text().replace('./destinations.js',destinations))
-html=(root/'tests/fixtures/project-hover.html').read_text().replace('../../src/buttons.js',buttons)
+locale=json.loads((root/'locales.json').read_text())
+english={key:value['text'] for key,value in locale['messages']['en'].items()}
+messages='data:application/json;base64,'+b64encode((root/'locales.json').read_bytes()).decode()
+html=(root/'tests/fixtures/project-hover.html').read_text().replace('../../src/buttons.js',buttons).replace('../../locales.json',messages)
 with sync_playwright() as pw:
     browser=pw.chromium.launch(executable_path=environ.get('CHROMIUM_EXECUTABLE') or None)
     page=browser.new_page(viewport={'width':900,'height':750})
@@ -27,6 +31,8 @@ with sync_playwright() as pw:
     for row in ['#history','#history2','#unknown','#conflict','#invalid-link','#invalid-legacy']:
         assert_count(row+' '+mark,0)
     page.locator('#project-row').hover(); expect(button('#project-row')).to_be_visible()
+    expect(button('#project-row')).to_have_accessible_name(english['projectTab'])
+    expect(button('#project-row')).to_have_attribute('title',english['projectTab'])
     page.locator('#outside').hover(); expect(button('#project-row')).to_be_hidden()
     page.locator('#history').hover(); expect(button('#project-row')).to_be_hidden()
     print('PASS default/hover/leave; no history/conflict/unknown; project versus ordinary counts')
@@ -51,6 +57,7 @@ with sync_playwright() as pw:
     expect(page.locator('#project-row '+mark)).to_have_count(1)
     assert page.evaluate('window.__fixture.toasts.length')==1
     assert page.evaluate('window.__fixture.toasts[0].variant')=='error'
+    assert page.evaluate('window.__fixture.toasts[0].message')==english['staleEntry']
     print('PASS click-time updated ID; conflicting href prevents stale/ordinary open and requests error toast; attribute refresh')
     # Replace title row; browser observer remounts exactly once.
     page.evaluate("let row=document.querySelector('#project-only');let copy=row.cloneNode(true);copy.querySelector('[data-opendesk-new-chat-window]')?.remove();row.replaceWith(copy)")
@@ -108,6 +115,8 @@ with sync_playwright() as pw:
       project.setAttribute('data-sidebar-project-container-id',id);
       project.innerHTML='<div><div><div id="marked" class="item" role="button" tabindex="0" aria-expanded="false" data-app-action-sidebar-project-row><span class="title">Nested project</span><div><div role="presentation" style="display:flex;gap:6px"><button aria-haspopup="menu">Menu</button><button aria-label="New chat in project">+</button></div></div></div></div></div><a id="marked-history" href="/c/old">History</a>';
       const row=project.querySelector('#marked');row.setAttribute('data-app-action-sidebar-project-id',id.slice('project:'.length));
+      const menuWrapper=document.createElement('span');menuWrapper.setAttribute('data-sidebar-project-container-id',id);
+      const menu=row.querySelector('[aria-haspopup]');menu.before(menuWrapper);menuWrapper.append(menu);
       const state=window.__fixture;state.rowActivations=0;
       row.addEventListener('click',()=>state.rowActivations++);
       row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')state.rowActivations++});
@@ -116,21 +125,56 @@ with sync_playwright() as pw:
     slot='#marked [role="presentation"]'
     expect(page.locator(slot+' > '+mark)).to_have_count(1)
     expect(button('#marked')).to_be_hidden()
+    menu=page.locator(slot+' button[aria-haspopup="menu"]')
+    plus=page.locator(slot+' button[aria-label="New chat in project"]')
+    native_positions=[menu.bounding_box(),plus.bounding_box()]
     page.locator('#marked').hover(); expect(button('#marked')).to_be_visible()
-    assert_count(slot+' > button',2); assert_count('#marked-history '+mark,0)
+    companion=button('#marked').bounding_box()
+    assert companion['x']+companion['width']<=native_positions[0]['x']
+    assert [menu.bounding_box(),plus.bounding_box()]==native_positions
+    assert_count(slot+' button:not([type=button])',2); assert_count('#marked-history '+mark,0)
     old_count=len(calls()); button('#marked').click()
     assert len(calls())==old_count+1 and calls()[-1]==expected('c')
-    page.locator('#outside').hover(); page.locator('#marked').focus()
-    for _ in range(3): page.keyboard.press('Tab')
+    page.locator('#outside').hover(); expect(button('#marked')).to_be_hidden()
+    assert [menu.bounding_box(),plus.bounding_box()]==native_positions
+    page.locator('#marked').focus(); page.keyboard.press('Tab')
     expect(button('#marked')).to_be_focused(); page.wait_for_timeout(470)
     page.keyboard.press('Space'); assert len(calls())==old_count+2 and calls()[-1]==expected('c')
     assert page.evaluate('window.__fixture.rowActivations')==0
+    menu.evaluate("node=>node.removeAttribute('aria-haspopup')")
+    expect(page.locator(slot+' > '+mark)).to_have_count(0)
+    page.locator(slot+' button').first.evaluate("node=>node.setAttribute('aria-haspopup','menu')")
+    expect(page.locator(slot+' > '+mark+' + span button[aria-haspopup=menu]')).to_have_count(1)
     page.locator('#marked').evaluate("row=>row.setAttribute('data-app-action-sidebar-project-id','g-p-dabf8a999a548191919851197b47446f')")
     expect(page.locator('#marked '+mark)).to_have_count(0)
     page.locator('#marked').evaluate("row=>row.setAttribute('data-app-action-sidebar-project-id','g-p-cabf8a999a548191919851197b47446f')")
     expect(page.locator(slot+' > '+mark)).to_have_count(1)
+    nested=slot+' span[data-sidebar-project-container-id]'
+    page.locator(nested).evaluate("n=>n.setAttribute('data-sidebar-project-container-id','project:g-p-dabf8a999a548191919851197b47446f')")
+    expect(page.locator(slot+' > '+mark)).to_have_count(0)
+    page.locator(nested).evaluate("n=>n.setAttribute('data-sidebar-project-container-id','project:g-p-cabf8a999a548191919851197b47446f')")
+    expect(page.locator(slot+' > '+mark)).to_have_count(1)
     page.locator(slot).evaluate("slot=>{const next=slot.cloneNode(true);next.querySelector('[data-opendesk-new-chat-window]').remove();slot.replaceWith(next)}")
     expect(page.locator(slot+' > '+mark)).to_have_count(1)
+    # A second live variant owns the expansion state on the leading toggle.
+    page.locator('#marked').evaluate("""row=>{
+      row.removeAttribute('aria-expanded');
+      row.setAttribute('data-app-action-sidebar-project-collapsed','true');
+      const id=row.closest('[data-sidebar-project-container-id]').getAttribute('data-sidebar-project-container-id');
+      row.querySelector('[data-sidebar-project-container-id]').removeAttribute('data-sidebar-project-container-id');
+      row.firstElementChild.outerHTML='<div><div><span role="presentation"><span><span id="leading-marker"></span></span><button aria-expanded="false">Toggle</button></span></div><div>Nested project</div></div>';
+      row.querySelector('#leading-marker').setAttribute('data-sidebar-project-container-id',id);
+    }""")
+    trailing='#marked > div:last-child > [role="presentation"]'
+    expect(page.locator(trailing+' > '+mark)).to_have_count(1)
+    page.locator('#marked').evaluate("row=>row.setAttribute('data-app-action-sidebar-project-collapsed','unknown')")
+    expect(page.locator(trailing+' > '+mark)).to_have_count(0)
+    page.locator('#marked').evaluate("row=>row.setAttribute('data-app-action-sidebar-project-collapsed','true')")
+    expect(page.locator(trailing+' > '+mark)).to_have_count(1)
+    page.locator('#marked').evaluate("row=>row.append(row.querySelector('#leading-marker'))")
+    expect(page.locator('#marked '+mark)).to_have_count(0)
+    page.locator('#marked').evaluate("row=>{row.firstElementChild.querySelector('[role=presentation]').append(row.querySelector('#leading-marker'));row.firstElementChild.querySelector('button').remove();row.setAttribute('aria-expanded','false')}")
+    expect(page.locator(trailing+' > '+mark)).to_have_count(1)
     page.locator('#marked').evaluate("row=>row.closest('[data-sidebar-project-container-id]').remove()")
     print('PASS nested live-layout fixture / native slot / isolated mouse and keyboard activation / ID mismatch and slot replacement')
     page.evaluate('window.__fixture.dispose()'); assert_count(mark,0)

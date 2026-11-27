@@ -17,17 +17,23 @@ class Node {
   select(){this.selected=true;}
 }
 function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),download=async()=>({started:true}),
-  launch=async()=>{throw Error('E_LAUNCH_EXPIRED');},notesFactory=null,initialMode='article',preferences=null}={}){
+  launch=async()=>{throw Error('E_LAUNCH_EXPIRED');},notesFactory=null,initialMode='article',preferences=null,notify,
+  sourceStorage=(op)=>Promise.resolve(op==='storage.get'?{value:null}:{saved:true})}={}){
   const ids=['clip-source','clip-preview','clip-status','clip-site','clip-title','clip-meta','clip-fetch',
-    'clip-show-source','clip-show-preview','clip-copy','clip-download','clip-home','clip-selection-hint'];
+    'clip-show-source','clip-show-preview','clip-copy','clip-download','clip-home','clip-selection-hint','clip-mode-status',
+    'clip-include-source','clip-source-options','clip-link-output','clip-source-status','clip-source-message','clip-retry-source'];
   const nodes=Object.fromEntries(ids.map(id=>[id,new Node(id)]));
-  nodes['clip-meta'].value='none';
+  nodes['clip-meta'].value='footer';nodes['clip-include-source'].checked=false;
   const modes=['article','selection','quote','link','region'].map(name=>{const n=new Node(name);n.dataset.clipMode=name;n.setAttribute('aria-pressed',String(name===initialMode));return n;});
   const root={querySelector:key=>nodes[key.slice(1)],querySelectorAll:()=>modes,events:{},
     addEventListener(name,fn){this.events[name]=fn;}};
   const document={createElement:tag=>new Node(tag),createDocumentFragment:()=>new Node('fragment')};
-  const uiRequest=(operation,args)=>['clipNotes.getPreference','clipNotes.setPreference'].includes(operation)?(preferences?preferences(operation,args):Promise.resolve({mode:null})):request(operation,args);
-  const context={OpenDeskTool:{root,request:uiRequest},OpenDeskSDK:{browser:{
+  const uiRequest=(operation,args)=>{
+   if(operation.startsWith('storage.'))return sourceStorage(operation,args);
+   if(['clipNotes.getPreference','clipNotes.setPreference'].includes(operation))return preferences?preferences(operation,args):Promise.resolve({mode:null});
+   return request(operation,args);
+  };
+  const context={OpenDeskTool:{root,request:uiRequest,ui:{notify}},OpenDeskSDK:{browser:{
     clipboard:{writeText:clipboard},downloads:{text:download},launch:{consume:launch}}}};
   if(notesFactory)context.OpenDeskClipNotes={create:notesFactory};
   runInNewContext(source,{globalThis:context,document,URL,Date,TextEncoder});
@@ -55,6 +61,7 @@ test('changing metadata during an article read formats its result and unlocks fe
  const gate=deferred();let calls=0;
  const {nodes}=mounted({request:()=>{calls++;return gate.promise;}});
  const pending=nodes['clip-fetch'].fire('click');
+ nodes['clip-include-source'].checked=true;
  nodes['clip-meta'].value='yaml';await nodes['clip-meta'].fire('change');
  assert.equal(nodes['clip-fetch'].disabled,true);
  gate.resolve({markdown:'ARTICLE',source:'https://example.com/a',title:'Example'});
@@ -101,6 +108,25 @@ test('selection and quote reuse one Host extract; article and safe link restore 
  assert.equal(nodes['clip-source'].value,'[来源标题](https://example.com/a)\n');
  assert.equal(operations.join(','),'clip.article,clip.selection');
 });
+test('a failed re-extraction preserves the active draft and a new selection keeps an edited quote',async()=>{
+ let response='FIRST SELECTION';
+ const {nodes,modes}=mounted({request:async op=>{
+  if(op!=='clip.selection')return {};
+  if(!response)throw Error('网页未选中文字');
+  return {markdown:response,source:'https://example.com/a',mode:op};
+ }});
+ await modes[1].fire('click');await nodes['clip-fetch'].fire('click');
+ nodes['clip-source'].value='Edited selection';await nodes['clip-source'].fire('input');
+ await modes[2].fire('click');
+ nodes['clip-source'].value='> Edited quote';await nodes['clip-source'].fire('input');
+ await modes[1].fire('click');response='';await nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,'Edited selection');
+ assert.match(nodes['clip-status'].textContent,/未选中/);
+ response='NEW SELECTION';await nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,'NEW SELECTION');
+ await modes[2].fire('click');
+ assert.equal(nodes['clip-source'].value,'> Edited quote');
+});
 test('raw text, footer, YAML and no metadata share exact save/copy/download snapshot',async()=>{
  let saved=null,copied='',downloaded='';
  const {nodes}=mounted({
@@ -113,14 +139,42 @@ test('raw text, footer, YAML and no metadata share exact save/copy/download snap
  });
  await nodes['clip-fetch'].fire('click');
  for(const style of ['footer','yaml','none','footer','yaml']){
-  nodes['clip-meta'].value=style;await nodes['clip-meta'].fire('change');
+  nodes['clip-include-source'].checked=style!=='none';
+  if(style!=='none')nodes['clip-meta'].value=style;
+  await nodes['clip-include-source'].fire('change');
   const body=nodes['clip-source'].value;
   await nodes['clip-show-preview'].fire('click');
   await nodes['clip-copy'].fire('click');await nodes['clip-download'].fire('click');
   assert.equal(saved.body,body);assert.equal(copied,body);assert.equal(downloaded,body);
   assert.equal((body.match(/来源：/g)||[]).length,style==='footer'?1:0);
   assert.equal((body.match(/^---$/gm)||[]).length,style==='yaml'?2:0);
+  if(style==='none')assert.equal(body,'## 正文\n\n含中文和 Unicode。\n');
  }
+});
+test('source options restore across sessions and reconcile an uncertain write before retry',async()=>{
+ const raw={markdown:'正文中的 [原文链接](https://example.com/ref)\n',source:'https://example.com/a',title:'网页'};
+ const calls=[];let stored={enabled:true,format:'yaml'};
+ const deps={request:async()=>raw,sourceStorage:async(op,args)=>{
+  calls.push([op,args.key]);
+  if(op==='storage.get')return {value:stored};
+  stored=args.value;
+  throw Object.assign(Error('lost receipt'),{code:'E_OUTCOME_UNKNOWN'});
+ }};
+ const {nodes}=mounted(deps);
+ await nodes['clip-fetch'].fire('click');
+ assert.match(nodes['clip-source'].value,/^---\n/);
+ nodes['clip-include-source'].checked=false;
+ await nodes['clip-include-source'].fire('change');
+ assert.equal(nodes['clip-source'].value,raw.markdown);
+ assert.equal(nodes['clip-source-status'].hidden,false);
+ await nodes['clip-retry-source'].fire('click');
+ assert.deepEqual(calls,[['storage.get','markdownSource'],['storage.set','markdownSource'],['storage.get','markdownSource']]);
+ assert.equal(nodes['clip-source-status'].hidden,true);
+ const reopened=mounted(deps).nodes;
+ await reopened['clip-fetch'].fire('click');
+ assert.equal(reopened['clip-include-source'].checked,false);
+ assert.equal(reopened['clip-meta'].value,'yaml');
+ assert.equal(reopened['clip-source'].value,raw.markdown);
 });
 test('150 KB Unicode with code fence survives source and preview without truncation',async()=>{
  const fence=String.fromCharCode(96).repeat(3);
@@ -128,7 +182,7 @@ test('150 KB Unicode with code fence survives source and preview without truncat
  const {nodes}=mounted({request:async()=>({
   markdown:raw,source:'https://example.com/code',title:'代码',site:'example.com'
  })});
- nodes['clip-meta'].value='yaml';
+ nodes['clip-include-source'].checked=true;nodes['clip-meta'].value='yaml';
  await nodes['clip-fetch'].fire('click');
  const expected=nodes['clip-source'].value;
  assert.ok(expected.length>49000);
@@ -165,6 +219,7 @@ test('save operation freezes mode and actions until Host confirms it',async()=>{
  setBusy(true);await modes[1].fire('click');
  assert.equal(clip.body,before);
  assert.equal(nodes['clip-meta'].disabled,true);
+ assert.equal(nodes['clip-include-source'].disabled,true);
  assert.ok(modes.every(item=>item.disabled));
  assert.equal(nodes['clip-copy'].disabled,true);
  assert.equal(nodes['clip-download'].disabled,true);
@@ -247,11 +302,22 @@ test('changing pages clears cached Markdown before subsequent copy',async()=>{
   assert.equal(nodes['clip-status'].dataset.error,'true');
 });
 
+test('copy shows a bottom receipt only after the clipboard confirms the write',async()=>{
+ const response=deferred(),notices=[];
+ const {nodes}=mounted({request:async()=>({markdown:'Edited Markdown',source:'https://example.com',title:'A'}),
+  clipboard:()=>response.promise,notify:({message,type,position})=>{notices.push({message,type,position});return true;}});
+ await nodes['clip-fetch'].fire('click');
+ const copying=nodes['clip-copy'].fire('click');
+ assert.deepEqual(notices,[]);
+ response.resolve({copied:true});await copying;
+ assert.deepEqual(notices,[{message:'已复制 Markdown',type:'success',position:'bottom-center'}]);
+});
+
 test('quote mode folds unsafe multiline titles into one escaped source link',async()=>{
  const {nodes,modes}=mounted({request:async()=>({
   markdown:'正文内容\n',source:'https://example.com/article',title:'复杂 [标题]\n另一行  ',site:'A'
  })});
- nodes['clip-meta'].value='footer';
+ nodes['clip-include-source'].checked=true;
  await modes[2].fire('click');
  await nodes['clip-fetch'].fire('click');
  assert.equal(nodes['clip-source'].value,
@@ -283,7 +349,7 @@ test('late clipboard and download replies cannot override navigation or mode cha
  assert.equal(nodes['clip-source'].value,'[现在](https://example.com/a)\n');
 });
 
-test('starting another extraction immediately clears stale Markdown and source site',async()=>{
+test('a pending re-extraction preserves the visible draft without allowing export',async()=>{
  const next=deferred();let calls=0,copies=0;
  const {nodes}=mounted({
   request:()=>++calls===1?Promise.resolve({markdown:'旧内容',source:'https://old.example/a',title:'旧',site:'old.example'}):next.promise,
@@ -292,8 +358,8 @@ test('starting another extraction immediately clears stale Markdown and source s
  await nodes['clip-fetch'].fire('click');
  assert.equal(nodes['clip-site'].textContent,'old.example');
  const fetching=nodes['clip-fetch'].fire('click');
- assert.equal(nodes['clip-source'].value,'','old content must disappear before new read finishes');
- assert.equal(nodes['clip-site'].textContent,'当前网页','old origin must disappear');
+ assert.equal(nodes['clip-source'].value,'旧内容');
+ assert.equal(nodes['clip-source'].readOnly,true);
  await nodes['clip-copy'].fire('click');
  assert.equal(copies,0,'stale content must not be exportable');
  next.resolve({markdown:'新内容',source:'https://old.example/a',title:'新',site:'old.example'});
@@ -407,7 +473,7 @@ test('YAML source metadata stays text and cannot become DOM injection',async()=>
   markdown:'# 正文\n',source:'https://example.com/a',
   title:'"<script>alert(1)</script>"',site:'example.com',capturedAt:'2026-10-20T00:00:00Z'
  })});
- nodes['clip-meta'].value='yaml';
+ nodes['clip-include-source'].checked=true;nodes['clip-meta'].value='yaml';
  await nodes['clip-fetch'].fire('click');
  const elements=previewTags(nodes['clip-preview']);
  assert.ok(elements.some(e=>e.tagName==='PRE'));
@@ -554,7 +620,7 @@ test('region keeps edited content on cancel, appends before the single generated
   if(op==='clip.region.cancel')return {cancelled:true};
   return await replies.shift();
  },notesFactory:()=>({setClip:v=>{saved=v;}}),clipboard:async v=>{copied=v;return {copied:true};},download:async v=>{downloaded=v.text;return {started:true};}});
- nodes['clip-meta'].value='footer';
+ nodes['clip-include-source'].checked=true;
  replies.push(response('第一段\n'));await nodes['clip-fetch'].fire('click');
  await nodes['clip-show-source'].fire('click');
  nodes['clip-source'].value=nodes['clip-source'].value.replace('第一段','手动修改');
@@ -565,7 +631,13 @@ test('region keeps edited content on cancel, appends before the single generated
  assert.equal(nodes['clip-source'].value,original);
  await nodes['clip-fetch'].fire('click');pending.resolve(response('过期回执'));await reading;
  assert.equal(nodes['clip-source'].value,original);
- replies.push(response('第二段\n',true));await nodes['clip-fetch'].fire('click');
+ const addition=deferred();replies.push(addition.promise);
+ const appending=nodes['clip-fetch'].fire('click');
+ nodes['clip-include-source'].checked=false;await nodes['clip-include-source'].fire('change');
+ assert.equal(nodes['clip-source'].value,'手动修改\n');
+ addition.resolve(response('第二段\n',true));await appending;
+ assert.equal(nodes['clip-source'].value,'手动修改\n\n第二段\n');
+ nodes['clip-include-source'].checked=true;await nodes['clip-include-source'].fire('change');
  const combined=nodes['clip-source'].value;
  assert.equal(combined,'手动修改\n\n第二段\n\n来源：[标题](https://example.com/a)\n');
  assert.equal(saved.body,combined);
@@ -590,11 +662,25 @@ test('last selected tab restores from scoped storage and late reads cannot overr
   if(op==='clipNotes.getPreference')return {mode:cached};
   cached=args.mode;writes.push(args.mode);return {mode:cached};
  }});
- await Promise.resolve();await Promise.resolve();
+ await new Promise(setImmediate);
  assert.equal(nodes['clip-fetch'].textContent,'生成引用');
  await modes[3].fire('click');assert.equal(cached,'link');assert.deepEqual(writes,['link']);
  const gate=deferred();
  const second=mounted({initialMode:'region',preferences:(op,args)=>op==='clipNotes.getPreference'?gate.promise:Promise.resolve({mode:args.mode})});
- await second.modes[0].fire('click');gate.resolve({mode:'quote'});await Promise.resolve();
+ await second.modes[0].fire('click');gate.resolve({mode:'quote'});await new Promise(setImmediate);
  assert.equal(second.nodes['clip-fetch'].textContent,'提取当前文章');
+});
+test('retrying an unconfirmed preference reads storage before writing again',async()=>{
+ let cached='region',writes=0,reads=0;
+ const {nodes,modes}=mounted({initialMode:'region',preferences:async(op,args)=>{
+  if(op==='clipNotes.getPreference'){reads++;return {mode:cached};}
+  writes++;cached=args.mode;
+  throw Object.assign(Error('回执未确认'),{code:'E_OUTCOME_UNKNOWN'});
+ }});
+ await new Promise(setImmediate);
+ await modes[0].fire('click');await new Promise(setImmediate);
+ assert.match(nodes['clip-mode-status'].textContent,/结果未知/);
+ await modes[0].fire('click');await new Promise(setImmediate);
+ assert.equal(reads,2);assert.equal(writes,1);
+ assert.equal(nodes['clip-mode-status'].hidden,true);
 });

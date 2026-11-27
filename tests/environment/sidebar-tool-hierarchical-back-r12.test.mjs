@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
+import {checkSidebarToolProjectPackage} from '../../scripts/build-sidebar-tool.mjs';
+import {toolManagementText} from '../../src/ui/tool-management-localization.js';
 
 const src=async path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 test('React header exposes one back/context icon and places external-tab inside trusted settings',async()=>{
@@ -42,10 +45,13 @@ test('framework settings title and back label apply to tools with no business ro
  assert.ok(host.includes("formatSidebarToolHeading(labelOptions)"));
  assert.ok(host.includes("attributes:{'aria-label':fullTitle}"));
  assert.ok(host.includes("isSettings:tocSettingsOpen"));
- assert.ok(host.includes("const backLabel=tocSettingsOpen?'返回上一页'"));
- assert.ok(host.includes("?'返回上一级':'返回扩展列表'"));
+ assert.equal(toolManagementText('zh-CN','backToPrevious'),'返回上一页');
+ assert.match(host,/const backLabel\s*=\s*tocSettingsOpen\s*\?\s*toolManagementText\(settingsLocale,\s*'backToPrevious'\)\s*:\s*\(nativeBookmarkNavigation\?\.canBack\s*\|\|\s*navigation\?\.canBack\s*\|\|\s*\(clipNavigation\s*&&\s*clipPage\s*!==\s*'home'\)\)\s*\?\s*'返回上一级'\s*:\s*'返回扩展列表'/);
+ assert.match(host,/setToolFieldAttribute\(view,\s*backButton,\s*'aria-label',\s*backLabel\)/);
  assert.ok(host.includes("{new:'新建',edit:'编辑',save:'保存'}"));
- assert.ok(host.includes('if(tocSettingsOpen){closePromptSettings();'));
+ const backHandler=host.split("listen(backButton,'click',")[1]?.split('listen(primaryAction,')[0]||'';
+ assert.match(backHandler,/if\s*\(tocSettingsOpen\)\s*\{[^}]*closePromptSettings\(\);[\s\S]*?return;\s*\}/);
+ assert.match(backHandler,/if\(requestBusinessNavigation\('back'\)\)return;\s*if\(clipPage&&clipPage!=='home'&&requestClipNavigation\('back'\)\)return;/);
 });
 
 test('clipper keeps data store intact and prioritizes saved content/touch actions',async()=>{
@@ -62,18 +68,21 @@ test('clipper keeps data store intact and prioritizes saved content/touch action
  assert.match(source,/sidebarToolStorageKey\(toolId\)/);
 });
 
-test('official installable package exactly embeds current clipper sources and canonical tokens',async()=>{
+test('post-promotion: official Clipper embeds current sources, canonical tokens and portable scripts',async()=>{
  const dir='projects/web-markdown-clipper/';
  const meta=JSON.parse(await src(dir+'tool.config.json'));
  const pkg=JSON.parse(await src(dir+'web-markdown-clipper.opendesk-tool.json'));
- assert.equal(pkg.version,meta.version);
+ assert.equal(pkg.version,meta.version,'run after the tested Clipper candidate has been promoted');
  assert.equal(pkg.id,meta.id);
  assert.equal(pkg.html,await src(dir+meta.files.html));
  const {compileSharedToolCss}=await import('../../scripts/preview/shared-tool-design.mjs');
  assert.equal(pkg.css,await compileSharedToolCss(await src(dir+meta.files.css)));
  assert.equal(pkg.js,await src(dir+meta.files.js));
- assert.equal(pkg.scripts.length,1);
- assert.equal(pkg.scripts[0].code,await src(dir+meta.files.dependencies[0]));
+ assert.deepEqual(pkg.scripts,await Promise.all(meta.files.dependencies.map(async name=>{
+  const code=await src(dir+name);
+  return {name,code,sha256:createHash('sha256').update(code,'utf8').digest('hex')};
+ })));
+ await checkSidebarToolProjectPackage(dir);
 });
 test('preview forwards to the only official React root and embeds source-owned navigation actions',async()=>{
  const outer=await src('projects/web-markdown-clipper/preview/index.html');

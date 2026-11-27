@@ -29,6 +29,8 @@ import {createExtensionDetailMemory,SIDEBAR_LAST_EXTENSION_DETAIL_KEY,
 
 export {SIDEBAR_LAST_EXTENSION_DETAIL_KEY} from './sidebar-extension-detail-memory.js';
 
+const defaultPinnedKeys=new Set(['app:webflow']);
+
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,currentPageTarget,localeController=null,toolLocaleService=null,extensionList=null,
   createScrollConversation=null,openAIProviderSettings=null,notify=null,
@@ -534,7 +536,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const next=new Set(pinnedKeys);
       if(appStatusKnown)for(const key of next)if(key.startsWith('app:'))next.delete(key);
       if(pageStatusKnown)for(const key of next)if(key.startsWith('page:'))next.delete(key);
-      for(const key of keys)if(saved[extensionCenterPinStorageKey(key)]===true)next.add(key);
+      for(const key of keys){
+        const pin=saved[extensionCenterPinStorageKey(key)];
+        if(pin===true||(pin===undefined&&defaultPinnedKeys.has(key)))next.add(key);
+      }
       pinnedKeys=next;pinStateKnown=true;
       return true;
     }catch(error){

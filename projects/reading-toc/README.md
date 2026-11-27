@@ -12,7 +12,7 @@
 - 网页模块通过 `globalThis.OpenDeskAppPage.readContext()` 读取语言、目录与应用数据，通过 `onRequest(({operation,payload}) => ...)` 响应侧栏，并使用同命名空间的 `storage.get/set` 和 ETag/CAS 保存偏好；只在明确 CAS 冲突时重读并合并本次字段变更。容量或未知写入失败不截断数据、不自动重放。
 - `@opendesk/ui` 的 `createPageUI/onDispose` 管理资源清理；授权读取失败立即停止。位置和折叠按完整 Origin 校验，页面设置按 `Origin + pathname` 匹配，忽略查询参数和锚点。
 
-版本以 [`tool.config.json`](tool.config.json) 为准，并须与 [`package.json`](package.json) 的 Page 项目版本一致；唯一正式包是 [`1.1.19 / revision 19`](reading-toc.opendesk-tool.json)。已安装版本、候选编译通过和正式包晋升是不同状态，不能用 README 中的历史版本号替代核对。
+版本以 [`tool.config.json`](tool.config.json) 为准，并须与 [`package.json`](package.json) 的 Page 项目版本一致；唯一正式包是 [`1.1.20 / revision 20`](reading-toc.opendesk-tool.json)。已安装版本、候选编译通过和正式包晋升是不同状态，不能用 README 中的历史版本号替代核对。
 
 **1.1.19 · ChatGPT 统计展示和回答层级**：基于网格卡片及评分组件的结构，在建立目录前排除展示值。回答内的 Writing 提示词归属它所在的章节，保留文档内的标题关系。已通过定向回归和组合包同源校验；[更新与真实 UI 验收](INSTALLATION-TESTS.zh-CN.md#当前--1119-chatgpt-统计展示与回答层级2026-11-26)待完成。
 

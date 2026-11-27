@@ -77,7 +77,7 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
   Object.assign(editorShell.computed,{backgroundColor:'white',borderTopLeftRadius:'12px',borderTopRightRadius:'12px'});
   Object.assign(wrapper.computed,{borderTopLeftRadius:'44px',borderTopRightRadius:'44px'});
   const createPageUI=({id})=>{
-    const kind=id.endsWith('.list')?'list':'button',host=doc.createElement('host');
+    const kind=id.split('.').at(-1),host=doc.createElement('host');
     const content=doc.createElement('shadow');
     content.measure=host.measure=()=>{
       if(host.style.getPropertyValue('display')==='none')return rect(0,0,0,0);
@@ -114,6 +114,7 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
 const panel=h=>h.ui('list').content.children[0];
 const infoButton=h=>panel(h).children.find(node=>node.dataset.action==='info');
 const stack=h=>h.ui('button').content.children[1];
+const feedback=h=>h.ui('feedback').content.children[0];
 const infoBody=h=>stack(h).children.find(node=>node.getAttribute('role')==='dialog');
 const infoAction=(h,action)=>infoBody(h)?.querySelectorAll('button').find(node=>node.dataset.action===action);
 const click=(ui,node,button)=>ui.listeners.find(item=>item.node===node&&item.event==='click')
@@ -157,17 +158,18 @@ test('ordinary feedback uses the shared Page toast without replacing a recovery 
 
 test('copyable feedback writes only the current error and shows a clipboard receipt',async()=>{
   const h=fixture({sharedToast:true});h.view.place(h.snap);
-  const notice=stack(h).children[0],writes=[];
+  const writes=[];
   let denied=false;
   h.doc.defaultView.navigator={clipboard:{async writeText(text){
     if(denied)throw Error('clipboard denied');writes.push(text);
   }}};
-  const select=copy=>clickInfo(h,copy);
+  const select=copy=>click(h.ui('feedback'),feedback(h),copy);
   const show=error=>{
     h.view.toast(error,{variant:'warning',copyable:true});
+    const notice=feedback(h).children[0];
     const [row,receipt]=notice.children,[text,copy]=row.children;
     assert.equal(text.textContent,error);assert.equal(copy.getAttribute('aria-label'),'复制错误信息');
-    return {copy,receipt};
+    return {copy,receipt,notice};
   };
   const previous=show('先前的错误');
   const current=show('当前错误；草稿已保留');
@@ -177,9 +179,10 @@ test('copyable feedback writes only the current error and shows a clipboard rece
   assert.equal(current.receipt.textContent,'已复制错误信息');
   denied=true;
   await select(current.copy);
-  assert.match(current.receipt.textContent,/无法访问剪贴板/);
-  assert.equal(notice.hidden,false);
-  h.view.clearError();assert.equal(notice.hidden,true);
+  assert.match(current.receipt.textContent,/剪贴板不可用/);
+  const manual=current.notice.querySelector('textarea');
+  assert.equal(manual.readOnly,true);assert.equal(manual.value,'当前错误；草稿已保留');
+  h.view.clearError();assert.equal(feedback(h).children.length,0);
 });
 
 for(const clipboard of ['allowed','denied']){
@@ -440,8 +443,9 @@ test('unknown result stays on its message with an accessible warning and no retr
   assert.notEqual(buttons.find(node=>node.dataset.action==='edit').disabled,true,'read-only draft recovery stays reachable');
   const click=h.ui('list').listeners.find(x=>x.event==='click').callback;
   click({target:{closest:()=>warning},stopPropagation(){}});
-  const toast=stack(h).children[0];
-  assert.equal(toast.hidden,false);assert.equal(toast.textContent,warning.title);
+  const toast=feedback(h).children[0];
+  assert.equal(toast.children[0].children[0].textContent,warning.title);
+  assert.equal(toast.querySelectorAll('button').some(node=>node.dataset.action==='copy'),true);
   h.state({reason:'未能确认用户消息入站'});h.view.render();
   assert.match(panel(h).querySelectorAll('button').find(node=>node.dataset.action==='status').title,
     /未能确认用户消息入站/);

@@ -12,7 +12,7 @@ const defer=()=>{
 class Element {
  constructor(id){
   this.id=id;this.value='';this.textContent='';this.dataset={};this.events={};
-  this.children=[];this.hidden=false;this.disabled=false;this.scrollTop=0;
+  this.children=[];this.hidden=false;this.disabled=false;this.readOnly=false;this.scrollTop=0;
   this.classList={add(){}};
  }
  addEventListener(type,callback){(this.events[type]??=[]).push(callback);}
@@ -155,7 +155,9 @@ test('R1.4: editing lookup is independent of filtering; dirty discard and scroll
  const f=await setup(),e=f.elements;
  await f.notes.showLibrary();f.document.scrollingElement.scrollTop=96;
  f.setManualGet(true);
- await f.row(0).children[1].children[0].fire('click');
+ const edit=f.row(0).children[1].children.find(button=>button['aria-label']==='编辑 正文 A');
+ assert.ok(edit,'the row exposes its edit action alongside copy and delete');
+ await edit.fire('click');
  assert.equal(f.getCalls[0].id,'note-a');
  e['clip-kind-filter'].value='note';await e['clip-kind-filter'].fire('change');await flush();
  f.getCalls[0].resolve(f.snapshot('note-a'));await flush();
@@ -180,13 +182,19 @@ test('R1.4: reader edit/save has a busy navigation lock and returns to updated r
  const hold=f.holdEdit();
  await e['clip-note-save'].fire('click');await flush();
  assert.equal(f.editCalls.length,1,'exactly one edit issued');
+ assert.equal(e['clip-note-body'].readOnly,true,'the submitted draft cannot be changed during the write');
  await e['clip-note-save'].fire('click');
  await f.root.fire('opendesk-tool-navigation',{detail:{action:'back'}});
  assert.equal(e['clip-notes'].dataset.view,'editing','busy back is rejected');
  assert.equal(f.editCalls.length,1,'busy double click must not duplicate the write');
+ f.setManualGet(true);
  hold.resolve();await flush();
+ assert.equal(f.getCalls[0].id,'note-b');
+ assert.equal(e['clip-note-body'].readOnly,true,'the draft stays locked until read-back confirms the write');
+ f.getCalls[0].resolve(f.snapshot('note-b'));await flush();
  assert.equal(e['clip-notes'].dataset.view,'reading');
  assert.equal(e['clip-note-read-body'].textContent,'B 更新 Markdown');
+ assert.equal(e['clip-note-body'].readOnly,false);
  assert.equal(f.states.at(-1).busy,false);
  await e['clip-note-reader-back'].fire('click');
  assert.equal(f.document.scrollingElement.scrollTop,122);
@@ -212,4 +220,22 @@ test('saving after cancel confirmation cannot discard the pending edit',async()=
  assert.equal(e['clip-notes'].dataset.view,'reading');
  assert.equal(e['clip-note-read-body'].textContent,'保存期间保留正文');
  assert.equal(f.states.at(-1).busy,false);
+});
+
+test('a rejected edit unlocks the editor and leaves the submitted draft available',async()=>{
+ const f=await setup(),e=f.elements;
+ await f.notes.showLibrary();await f.row().children[0].fire('click');await flush();
+ await e['clip-note-read-edit'].fire('click');
+ const body=e['clip-note-body'];
+ body.value='保存失败后继续编辑';await body.fire('input');
+ const hold=f.holdEdit();
+ await e['clip-note-save'].fire('click');await flush();
+ assert.equal(body.readOnly,true);
+ hold.reject(new Error('write failed'));await flush();
+ assert.equal(body.readOnly,false);
+ assert.equal(body.value,'保存失败后继续编辑');
+ assert.equal(e['clip-notes'].dataset.view,'editing');
+ assert.equal(f.states.at(-1).dirty,true);
+ assert.equal(f.states.at(-1).busy,false);
+ assert.match(e['clip-notes-status'].textContent,/保存失败.*write failed/);
 });

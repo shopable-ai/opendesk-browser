@@ -8,6 +8,7 @@ const CHATGPT_CONTAINER='[data-sidebar-project-container-id]';
 const CHATGPT_ID='data-sidebar-project-container-id';
 const CHATGPT_ROW='[data-app-action-sidebar-project-row]';
 const CHATGPT_ROW_ID='data-app-action-sidebar-project-id';
+const CHATGPT_COLLAPSED='data-app-action-sidebar-project-collapsed';
 const TITLE_TOGGLE='button[aria-expanded]:not([aria-haspopup]),[role="button"][aria-expanded]:not([aria-haspopup]),a[href][aria-expanded]:not([aria-haspopup])';
 const STYLE=`:host{all:initial;display:inline-flex;align-items:center;flex:none;margin-inline:4px;vertical-align:middle}
 button{appearance:none;box-sizing:border-box;width:28px;height:28px;display:grid;place-items:center;
@@ -95,11 +96,28 @@ function chatGPTRowDestination(row,container,pageHref){
     :projectDestination(evidence.href,pageHref);
 }
 function chatGPTMarkedSlot(row,container){
-  if(!row.isConnected||!row.matches(CHATGPT_ROW+'[role="button"][aria-expanded]:not([aria-haspopup])')||
+  const slot=row.lastElementChild?.querySelector(':scope > [role="presentation"]');
+  const leading=row.firstElementChild?.firstElementChild?.querySelector(':scope > span[role="presentation"]');
+  const projectId=container.getAttribute(CHATGPT_ID);
+  const collapsed=row.getAttribute(CHATGPT_COLLAPSED);
+  const hasToggle=row.matches('[aria-expanded="true"],[aria-expanded="false"]')||
+    ((collapsed==='true'||collapsed==='false')&&
+      leading?.querySelector('button[aria-expanded="'+(collapsed==='true'?'false':'true')+'"]:not([aria-haspopup])'));
+  if(!row.isConnected||!row.matches(CHATGPT_ROW+'[role="button"]:not([aria-haspopup])')||!hasToggle||
      row.closest(CHATGPT_CONTAINER)!==container||row.closest('a[href]')||
-     row.querySelector(`${CHATGPT_CONTAINER},a[href*="/c/"],ul,ol,[role="list"]`)||
-     `project:${row.getAttribute(CHATGPT_ROW_ID)}`!==container.getAttribute(CHATGPT_ID))return null;
-  return row.lastElementChild?.querySelector(':scope > [role="presentation"]')||null;
+     row.querySelector('a[href*="/c/"],ul,ol,[role="list"]')||
+     'project:'+row.getAttribute(CHATGPT_ROW_ID)!==projectId||!slot)return null;
+  // The native leading toggle and trailing actions may repeat this row's ID.
+  // A different project, or a marker outside those slots, is ambiguous.
+  if([...row.querySelectorAll(CHATGPT_CONTAINER)].some(node=>
+    !node.matches('span')||(!slot.contains(node)&&!leading?.contains(node))||
+    node.getAttribute(CHATGPT_ID)!==projectId))return null;
+  return slot;
+}
+function chatGPTMenuItem(slot){
+  const menus=slot.querySelectorAll('button[aria-haspopup="menu"],[role="button"][aria-haspopup="menu"]');
+  if(menus.length!==1)return null;
+  return [...slot.children].find(item=>item.contains(menus[0]))||null;
 }
 function discoverChatGPTProjects(doc,navRoots,win,found){
   const pageHref=win.location.href;
@@ -114,6 +132,8 @@ function discoverChatGPTProjects(doc,navRoots,win,found){
       if(marked.length!==1)continue;
       const [row]=marked,slot=chatGPTMarkedSlot(row,container);
       if(!slot)continue;
+      const menuItem=chatGPTMenuItem(slot);
+      if(!menuItem)continue;
       const resolve=()=>{
         if(chatGPTMarkedSlot(row,container)!==slot||
            [...container.querySelectorAll(CHATGPT_ROW)].some(other=>other!==row&&other.closest(CHATGPT_CONTAINER)===container))return null;
@@ -123,7 +143,7 @@ function discoverChatGPTProjects(doc,navRoots,win,found){
         return destination;
       };
       const destination=resolve();
-      if(destination)found.set(row,{destination,row,inside:true,resolve,container,slot});
+      if(destination)found.set(row,{destination,row,inside:true,resolve,container,slot,menuItem});
       continue;
     }
     const rows=[...container.children].filter(row=>chatGPTTitleEvidence(row,pageHref));
@@ -186,20 +206,21 @@ function discover(doc,win){
   }
   return found;
 }
-function newButton(doc,entry,owner,win){
-  const {destination,row=null,resolve}=entry;
+function newButton(doc,entry,owner,win,t){
+  const {destination,row=null,resolve,menuItem}=entry;
   const isChatGPT=destination.provider==='chatgpt';
   const host=doc.createElement('span');
   host.setAttribute(OWN,destination.kind);
-  if(row)host.style.setProperty('display','none','important');
+  if(menuItem)host.style.setProperty('visibility','hidden','important');
+  else if(row)host.style.setProperty('display','none','important');
   const shadow=host.attachShadow({mode:'open'});
   const style=doc.createElement('style');style.textContent=STYLE+(isChatGPT?CHATGPT_STYLE:'')+
     (entry.slot?':host{margin-inline:0}button{width:20px;height:20px;outline-offset:-2px}svg{width:14px;height:14px}':'');
   const button=doc.createElement('button');
   button.type='button';
-  const title=destination.kind==='project'?'在新标签页打开此项目的新对话':'在新标签页打开新对话';
-  const label=isChatGPT?title:title.replace('新标签页','新窗口');
-  button.title=label+(isChatGPT?'':'（Alt + 点击：新标签页）');
+  const project=destination.kind==='project';
+  const label=t(isChatGPT?(project?'projectTab':'chatTab'):(project?'projectWindow':'chatWindow'));
+  button.title=isChatGPT?label:label+' · '+t('altTab');
   button.setAttribute('aria-label',label);
   const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
@@ -222,30 +243,32 @@ function newButton(doc,entry,owner,win){
     try{
       const current=resolve?resolve():destination;
       if(!current){
-        failure('新对话入口已失效，请重新选择项目或新聊天入口。');
+        failure(t('staleEntry'));
         return; // Never fall back to ordinary chat.
       }
       if(requestNewChat(win,current,{mode:isChatGPT||event.altKey?'tab':'window'})){
         if(isChatGPT)lastRequest=performance.now();
-      }else failure('无法打开新对话：目标地址或浏览器打开能力无效。');
+      }else failure(t('invalidTarget'));
     }catch(error){
-      failure('打开新对话失败，请检查浏览器设置后重新点击。');
+      failure(t('openFailed'));
       console.warn('OpenDesk new chat window request failed',error);
     }
   });
   shadow.append(style,button);
   const off=()=>{clickOff();for(const release of keyboardOff)release();};
-  return {host,off,destination,row,inside:entry.inside,container:entry.container,slot:entry.slot};
+  return {host,off,destination,row,inside:entry.inside,container:entry.container,slot:entry.slot,menuItem};
 }
 
-export function installNewChatButtons({doc,win,owner}){
+export function installNewChatButtons({doc,win,owner,t}){
   const mounted=new Map();let scheduled=false,disposed=false,keyboardNavigation=false;
   function syncVisibility(){
     for(const item of mounted.values()){
       if(!item.row)continue;
       const showing=item.row.isConnected&&
         (item.row.matches(':hover')||(keyboardNavigation&&item.row.matches(':focus-within')));
-      item.host.style.setProperty('display',showing?'inline-flex':'none','important');
+      // Keep the width in the native action strip when the companion is hidden.
+      if(item.menuItem)item.host.style.setProperty('visibility',showing?'visible':'hidden','important');
+      else item.host.style.setProperty('display',showing?'inline-flex':'none','important');
     }
   }
   function clear(target){
@@ -260,12 +283,14 @@ export function installNewChatButtons({doc,win,owner}){
       const next=found.get(target);
       if(!target.isConnected||!next||next.destination.url!==item.destination.url||
          next.row!==item.row||next.inside!==item.inside||next.container!==item.container||
-         next.slot!==item.slot||!item.host.isConnected)clear(target);
+         next.slot!==item.slot||next.menuItem!==item.menuItem||!item.host.isConnected||
+         (item.menuItem&&item.host.nextElementSibling!==item.menuItem))clear(target);
     }
     for(const [target,entry] of found){
       if(!target.isConnected||mounted.has(target))continue;
-      const item=newButton(doc,entry,owner,win);
-      if(entry.inside)(entry.slot||target).append(item.host);
+      const item=newButton(doc,entry,owner,win,t);
+      if(entry.menuItem)entry.menuItem.before(item.host);
+      else if(entry.inside)(entry.slot||target).append(item.host);
       else target.insertAdjacentElement('afterend',item.host);
       mounted.set(target,item);
     }
@@ -298,7 +323,8 @@ export function installNewChatButtons({doc,win,owner}){
         .some(node=>node.nodeType===1&&node.matches?.(`${navScope},header,main`)));
     }))schedule();
   },navScope===NAV?{childList:true,subtree:true}:{childList:true,subtree:true,attributes:true,
-    attributeFilter:['href',CHATGPT_ID,CHATGPT_ROW_ID,'data-app-action-sidebar-project-row']});
+    attributeFilter:['href','aria-expanded','aria-haspopup',CHATGPT_ID,CHATGPT_ROW_ID,CHATGPT_COLLAPSED,
+      'data-app-action-sidebar-project-row']});
   // Account for SPA routing which can change project identity without a reload.
   owner.setInterval(refresh,1600);
   owner.onDispose(()=>{disposed=true;for(const target of [...mounted.keys()])clear(target);});

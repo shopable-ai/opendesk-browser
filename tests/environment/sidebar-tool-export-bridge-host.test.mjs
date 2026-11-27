@@ -105,6 +105,7 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
   };
   return {win,port,publicMessages,request,NativeEvent,realm,blobs,root,get leaked(){return leaked;},
     prepare:factory=>track(win.OpenDeskSDK.browser.downloads.prepareText(factory)),
+    prepareCopy:factory=>track(win.OpenDeskSDK.browser.clipboard.prepareText(factory)),
     prepareAI:factory=>track(win.OpenDeskTool.prepareAI(factory)),
     click(run,timeStamp){const event=new NativeEvent('click');states.get(event).trusted=true;
       if(timeStamp!==undefined)states.get(event).timeStamp=timeStamp;return dispatch(event,run);},
@@ -698,7 +699,7 @@ test('prepareText: throw, reject, invalid factory, extra keys, unsafe filename a
     ()=>({filename:'x.txt',text:'bytes',extra:true}),
     ()=>Object.defineProperty({filename:'x.txt',text:'bytes'},'hidden',{value:true}),
     ()=>({filename:'x.txt',text:'bytes',[Symbol('extra')]:true}),
-    ()=>({filename:'../x.txt',text:'bytes'}),()=>({filename:'x.txt',text:'中'.repeat(50001)}),
+    ()=>({filename:'../x.txt',text:'bytes'}),()=>({filename:'x.txt',text:'中'.repeat(53334)}),
     ()=>({filename:'x.txt',text:''}),()=>undefined,
     ()=>Object.defineProperty({},'then',{get(){throw failure;}}),
     ()=>{const value=Promise.resolve({filename:'x.txt',text:'bytes'});Object.defineProperty(value,'constructor',{get(){throw failure;}});return value;}
@@ -901,7 +902,7 @@ test('prepareText: after send a lost acknowledgement remains unknown and never r
 });
 
 async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime,openAIProviderSettings,
-  toolOverrides={},foundationClient,currentPageTarget,lockManager={request:(_key,run)=>run()}}={}){
+  toolOverrides={},foundationClient,currentPageTarget,fetcher=officialFixtureFetch,lockManager={request:(_key,run)=>run()}}={}){
   const installed={...tool,capabilities,...toolOverrides};
   const descriptors=new Map(['window','navigator','location','MessageChannel'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
   const win=new Events(),copied=[],downloads=[],calls=[],store=new Map([[SIDEBAR_TOOL_STORE,[installed]]]);
@@ -936,14 +937,14 @@ async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime,ope
   const settingsCalls=[];
   const host=createSidebarTools({api,doc,view,providerRuntime,foundationClient,currentPageTarget,
     openAIProviderSettings:(...args)=>{settingsCalls.push(args);return openAIProviderSettings?.(...args);},
-    taskWorkbench:{},lockManager,fetcher:officialFixtureFetch});
+    taskWorkbench:{},lockManager,fetcher});
   t.after(()=>{host.dispose();view.dispose();for(const [key,descriptor] of descriptors){
     if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];
   }});
-  await host.ready;host.setVisible(true);host.openTool(tool.id);
+  await host.ready;host.setVisible(true);host.openTool(installed.id);
   const frame=runtime.frameRoot.children[0];await frame.onload();
   const loaded=frame.contentWindow.sent[0],port=frame.contentWindow.ports[0];
-  const envelope=(operation,payload,id)=>({protocol:loaded.protocol,kind:'request',toolId:tool.id,instance:loaded.instance,
+  const envelope=(operation,payload,id)=>({protocol:loaded.protocol,kind:'request',toolId:installed.id,instance:loaded.instance,
     operation,payload,requestId:String(id)});
   return {host,api,store,frame,loaded,port,view,copied,downloads,calls,settingsCalls,
     windowMessage(data){win.emit('message',{origin:'null',source:frame.contentWindow,data});},
@@ -1173,6 +1174,103 @@ test('host + bridge: trusted click uses the same exact Host intent then one fron
     for(const key of ['packageHash','toolInstance','hostInstanceId','installEpoch','toolVersion'])
       assert.equal(f.calls[i][key],f.calls[i+1][key]);
   }
+});
+
+test('host + bridge: prepared clipboard writes fresh Markdown once without review',async t=>{
+  const f=await hostFixture(t);
+  const b=sandbox({loaded:f.loaded,port:f.port,send:message=>f.windowRequest(message.operation,message.payload,message.requestId)});
+  f.frame.contentWindow.receive=message=>b.respond(message);
+  t.after(()=>b.dispose());
+  let resolveRead;
+  const fresh=new Promise(resolve=>{resolveRead=resolve;});
+  const text='# 摘录\n\n完整正文与手动修改\n';
+  const pending=b.click(()=>b.prepareCopy(()=>fresh));
+  assert.deepEqual(f.copied,[]);
+  await assert.rejects(b.prepareCopy(()=>assert.fail('must not run without a click')),{code:'E_EXPORT_GESTURE'});
+  resolveRead(text);
+  assert.deepEqual(await pending,{copied:true});
+  assert.deepEqual(f.copied,[text]);
+  assert.equal(f.review(),false);
+  assert.equal(f.calls.length,2);
+  assert.deepEqual(f.calls[0].targetArgs,{text});
+  assert.deepEqual(f.calls[1].args,{text});
+});
+
+test('prepared clipboard rejects synthetic and Cookie clicks before reading text',async()=>{
+  const factory=()=>assert.fail('unapproved factory must not run');
+  const b=preparedSandbox();
+  const cookies=sandbox({loaded:{protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'cookies',
+    tool:{...tool,capabilities:['user.export','browser.cookies.read']}}});
+  try{
+    await assert.rejects(b.synthetic(()=>b.prepareCopy(factory)),{code:'E_EXPORT_GESTURE'});
+    await assert.rejects(b.click(()=>b.prepareCopy(()=>({text:'invalid clipboard factory shape'}))),{code:'E_SCHEMA'});
+    await assert.rejects(cookies.click(()=>cookies.prepareCopy(factory)),{code:'E_EXPORT_GESTURE'});
+    assert.equal(b.port.sent.length+cookies.port.sent.length,0);
+  }finally{await Promise.all([b.dispose(),cookies.dispose()]);}
+});
+
+test('Clipper Host keeps the picker and draft on title changes and invalidates both on target changes',async t=>{
+  const page={status:'available',windowId:1,tabId:7,frameId:0,documentId:'doc-a',
+    url:'https://example.com/article',origin:'https://example.com',title:'Before'};
+  let notify;
+  const target={snapshot:page,capture:()=>({...target.snapshot}),
+    revalidate:async captured=>captured,subscribe(fn){notify=fn;return()=>{};}};
+  const f=await hostFixture(t,{toolOverrides:{id:'web-markdown-clipper'},capabilities:['page.clip'],
+    currentPageTarget:target,fetcher:async()=>new Response(null,{status:404})});
+  const browserCalls=[];
+  let finishPick;
+  f.api.tabs={async sendMessage(tabId,message,options){
+    browserCalls.push({tabId,...options,...message});
+    if(message.operation==='clip.ready')return {ok:true,data:{ready:true}};
+    if(message.operation==='clip.region.cancel')return {ok:true,data:{cancelled:true}};
+    return new Promise(resolve=>{finishPick=()=>resolve({ok:true,data:{markdown:'draft',source:page.url}});});
+  }};
+  const pageChanges=()=>f.frame.contentWindow.sent.filter(row=>row.kind==='page-changed').length;
+  const updates=[null,{...page,documentId:'doc-b'},{...page,url:page.url+'#next'},
+    {...page,tabId:8,documentId:'doc-tab-b'},{status:'unavailable',windowId:1}];
+  for(const [index,next] of updates.entries()){
+    target.snapshot=page;notify();
+    const count=pageChanges(),requestId=index+1;
+    finishPick=null;
+    f.windowRequest('clip.region',{pickId:'picker-id-'+requestId},requestId);
+    await settle(()=>finishPick);
+    const started=browserCalls.at(-1);
+    assert.equal(started.operation,'clip.region');
+    target.snapshot={...page,title:'After'};notify();
+    assert.equal(pageChanges(),count,'Bridge receives no draft reset');
+    assert.equal(browserCalls.at(-1),started,'the active picker is preserved');
+    if(next){
+      target.snapshot=next;notify();
+      assert.equal(pageChanges(),count+1);
+      assert.equal(browserCalls.at(-1).operation,'clip.region.cancel');
+      assert.equal(browserCalls.at(-1).documentId,started.documentId);
+      assert.equal(browserCalls.at(-1).pickId,started.pickId);
+    }
+    finishPick();await settle(()=>f.response(requestId));
+    assert.equal(f.response(requestId).ok,!next,'only a still-current picker may deliver results');
+  }
+});
+
+for(const toolOverrides of [{id:'web-markdown-clipper',version:'1.2.15'},{}])test(
+  'host + bridge: reviewed '+(toolOverrides.id??'historical tool')+' exports without a catalog match',async t=>{
+  const f=await hostFixture(t,{toolOverrides,fetcher:async()=>new Response(null,{status:404})});
+  const b=sandbox({loaded:f.loaded,port:f.port,send:message=>f.windowRequest(message.operation,message.payload,message.requestId)});
+  f.frame.contentWindow.receive=message=>b.respond(message);t.after(()=>b.dispose());
+  const text='\u0001'.repeat(159996)+'😀';
+  const args={filename:'clip.md',text};
+  await b.click(()=>b.win.OpenDeskSDK.browser.clipboard.writeText(text));
+  await b.click(()=>b.win.OpenDeskSDK.browser.downloads.text(args));
+  await b.click(()=>b.prepare(async()=>args));
+  assert.deepEqual(f.copied,[text]);
+  assert.deepEqual(f.downloads.map(result=>decodeURIComponent(result.url.split(',')[1])),[text,text]);
+  for(const index of [2,4]){
+    assert.deepEqual(f.calls[index].targetArgs,args);
+    assert.deepEqual(f.calls[index+1].args,args);
+  }
+  await assert.rejects(b.click(()=>b.prepare(()=>({...args,text:text+'x'}))),{code:'E_LIMIT'});
+  await assert.rejects(b.click(()=>b.prepare(()=>({...args,text:'\ud800'}))),{code:'E_SCHEMA'});
+  await assert.rejects(async()=>b.click(()=>b.win.OpenDeskSDK.browser.clipboard.writeText('\ud800')),{code:'E_SCHEMA'});
+  assert.equal(f.calls.length,6);assert.equal(f.downloads.length,2);assert.equal(f.copied.length,1);
 });
 
 test('host + bridge: prepared fresh bytes use canonical exact intent, while old async text still requires review',async t=>{

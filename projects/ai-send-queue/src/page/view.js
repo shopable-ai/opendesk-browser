@@ -143,7 +143,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     throw new Error('Packaged Send Queue crown image is missing or invalid');
   const buttonCss=css.replace(imageRef,packagedImageRef);
   let list=null,button=null,root=null,blue=null,arrow=null,crown=null,toastNode=null,statusNode=null,toastToken=0;
-  let errorNotice=null;
+  let feedback=null,feedbackPanel=null,errorNotice=null,recoveryEditor=null;
   let awaitingConversation=false;
   let lastSignature='',recovery=null,cacheWarning='';
   let info=null,notice=null;
@@ -174,7 +174,14 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
           case 'now':actions.sendNow(b.dataset.id);break;
           case 'pause':actions.pause(b.dataset.id);break;
           case 'resume':actions.resume(b.dataset.id);break;
-          case 'edit':actions.edit(b.dataset.id);break;
+          case 'edit':{
+            const state=engine.view();
+            if(state.inFlight?.id===b.dataset.id&&state.inFlight.phase==='unknown'&&actions.saveRecoveryEdit&&
+              !engine.canReclaimPrepared(b.dataset.id))
+              openRecoveryEditor(state,b);
+            else actions.edit(b.dataset.id);
+            break;
+          }
           case 'remove':actions.remove(b.dataset.id);break;
           case 'info':if(b===info&&infoAvailable())notice?closeInfo(true):showInfo();break;
           case 'more':engine.toggleExpanded();break;
@@ -189,7 +196,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
             const state=engine.view();
             if(state.items.some(item=>item.id===b.dataset.id&&item.state==='unknown')||
               (state.inFlight?.id===b.dataset.id&&state.inFlight.phase==='unknown'))
-              toast(unknownMessage(state));
+              showError(unknownMessage(state),b);
             break;
           }
         }
@@ -216,7 +223,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       });
     }
     if(!button?.active()){
-      errorNotice=null;
       button=createPageUI({id:'opendesk.chatgpt-send-queue.button',assets,baseStyles:false});
       button.addStyle(buttonCss);
       blue=element(doc,'button','sq-send');
@@ -252,14 +258,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
           }
           await copyInfo(b);return;
         }
-        if(b!==errorNotice?.copy||statusNode.hidden)return;
-        const error=errorNotice;b.disabled=true;
-        try{
-          await writeClipboard(error.message);
-          if(error===errorNotice)error.receipt.textContent='已复制错误信息';
-        }catch{
-          if(error===errorNotice)error.receipt.textContent='无法访问剪贴板，可选中文字手动复制';
-        }finally{b.disabled=false;}
       });
       button.on(toastNode,'keydown',event=>{
         if(event.key==='Escape'&&notice?.node.contains(event.target)){
@@ -268,29 +266,123 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       });
     }
   }
+  const feedbackRoute=()=>currentRoute?currentRoute()?.route??null:engine.view().route;
+  function ensureFeedback(){
+    if(feedback?.active())return;
+    errorNotice=null;recoveryEditor=null;
+    feedback=createPageUI({id:'opendesk.chatgpt-send-queue.feedback',assets,baseStyles:false});
+    feedback.addStyle(css);
+    feedbackPanel=element(doc,'div','sq-feedback');feedback.content.append(feedbackPanel);
+    feedback.on(feedbackPanel,'click',async event=>{
+      if(trustedActions&&event.isTrusted!==true)return;
+      const b=event.target.closest?.('button[data-action]');if(!b||b.disabled)return;
+      event.stopPropagation();syncFeedbackRoute();
+      if(b===errorNotice?.copy)await copyError(errorNotice);
+      else if(b===errorNotice?.close)clearError(undefined,true);
+      else if(b===recoveryEditor?.cancel)closeRecoveryEditor(true);
+      else if(b===recoveryEditor?.save)await saveRecoveryEditor(recoveryEditor);
+    });
+    feedback.on(feedbackPanel,'keydown',event=>{
+      if(event.key!=='Escape'||event.isComposing||recoveryEditor?.save.disabled)return;
+      event.preventDefault();event.stopPropagation();
+      if(recoveryEditor)closeRecoveryEditor(true);
+      else clearError(undefined,true);
+    });
+  }
+  function syncFeedbackRoute(){
+    const route=feedbackRoute();
+    if(errorNotice&&errorNotice.route!==route)clearError();
+    if(recoveryEditor&&recoveryEditor.route!==route)closeRecoveryEditor();
+  }
+  function showError(message,trigger){
+    ensureFeedback();
+    if(errorNotice?.message===message&&errorNotice.route===feedbackRoute()){
+      if(trigger)errorNotice.copy.focus?.({preventScroll:true});
+      return;
+    }
+    clearError();
+    const node=element(doc,'section','sq-toast-card');
+    const copy=action(doc,'copy','复制错误信息'),close=action(doc,'remove','关闭错误提示');
+    copy.className='sq-action sq-error-copy';close.className='sq-action sq-error-copy';
+    const receipt=element(doc,'div','sq-error-receipt');role(receipt,'status');
+    const row=element(doc,'div','sq-error-row');
+    const reason=element(doc,'span','sq-error-text',message);role(reason,'status');
+    row.append(reason,copy,close);node.append(row,receipt);
+    feedbackPanel.insertBefore(node,feedbackPanel.firstElementChild??null);
+    errorNotice={message,node,copy,close,receipt,route:feedbackRoute(),trigger};
+    if(trigger)copy.focus?.({preventScroll:true});
+  }
+  async function copyError(error){
+    const {copy,message,node,receipt}=error;copy.disabled=true;
+    let copied=false;
+    try{await writeClipboard(message);copied=true;}catch{}finally{copy.disabled=false;}
+    if(error!==errorNotice||error.route!==feedbackRoute()||!feedback?.active())return;
+    if(copied){
+      error.manual?.remove();error.manual=null;receipt.textContent='已复制错误信息';
+    }else{
+      if(!error.manual){
+        error.manual=element(doc,'textarea','sq-notice-backup');error.manual.readOnly=true;
+        labelElement(error.manual,'完整错误信息，请手动复制');node.append(error.manual);
+      }
+      error.manual.value=message;error.manual.focus?.();error.manual.select?.();
+      receipt.textContent='剪贴板不可用，已选中完整错误信息，请手动复制';
+    }
+  }
+  function openRecoveryEditor(state,trigger){
+    const item=state.items.find(row=>row.id===trigger.dataset.id);
+    if(!item||maskRows(state))return;
+    showError(unknownMessage(state));
+    if(recoveryEditor){recoveryEditor.input.focus?.();return;}
+    const node=element(doc,'section','sq-toast-card sq-recovery-editor');
+    role(node,'dialog');labelElement(node,'编辑失败消息');
+    const input=element(doc,'textarea','sq-notice-backup');
+    input.value=item.text;input.maxLength=8192;labelElement(input,'暂停草稿正文');
+    const save=infoAction('edit-save','保存为暂停草稿'),cancel=infoAction('edit-cancel','取消');
+    const receipt=element(doc,'div','sq-error-receipt');role(receipt,'status');
+    node.append(element(doc,'strong','','编辑失败消息'),element(doc,'div','',
+      '原发送记录会保留。编辑稿保存后保持暂停；请核对原对话，再决定是否发送。'),input,save,cancel,receipt);
+    recoveryEditor={node,input,save,cancel,receipt,id:item.id,route:state.route,trigger};
+    feedbackPanel.append(node);input.focus?.({preventScroll:true});
+  }
+  function closeRecoveryEditor(restoreFocus=false){
+    const editor=recoveryEditor;if(!editor)return;
+    recoveryEditor=null;editor.node.remove();
+    if(restoreFocus)restoreQueueFocus(editor.trigger);
+  }
+  function restoreQueueFocus(trigger){
+    const target=trigger?.isConnected?trigger:trigger&&root?.querySelector(
+      '[data-id="'+trigger.dataset.id+'"][data-action="'+trigger.dataset.action+'"]');
+    (target||blue)?.focus?.({preventScroll:true});
+  }
+  async function saveRecoveryEditor(editor){
+    const {id,route,input,save,cancel,receipt}=editor;
+    save.disabled=cancel.disabled=input.readOnly=true;
+    let result;
+    try{result=await actions.saveRecoveryEdit({id,route,text:input.value});}catch{}
+    if(recoveryEditor!==editor||route!==feedbackRoute()||!feedback?.active())return;
+    if(result?.ok){
+      closeRecoveryEditor(true);toast('已保存为暂停草稿。原发送记录仍待核对。',{variant:'success'});
+    }else{
+      save.disabled=cancel.disabled=input.readOnly=false;
+      receipt.textContent=result?.reason||'未能保存，编辑内容仍保留在这里';
+      input.focus?.({preventScroll:true});
+    }
+  }
   function hasRecovery(){return recovery!==null;}
   function offerRecovery(text,reason){
     if(recovery!==null||typeof text!=='string'||!text)return false;
     ensure();recovery={text,reason,route:getNoticeRoute()};
     onRecoveryChange();refreshInfo();return true;
   }
-  function clearError(message){
+  function clearError(message,restoreFocus=false){
     if(!errorNotice||(message!==undefined&&message!==errorNotice.message))return;
-    errorNotice=null;
-    statusNode.replaceChildren();statusNode.hidden=true;
+    const {node,trigger}=errorNotice;errorNotice=null;node.remove();
+    if(restoreFocus){if(recoveryEditor)recoveryEditor.input.focus?.();else restoreQueueFocus(trigger);}
   }
   function toast(message,{variant='info',duration=3000,copyable=false}={}){
     if(typeof owner.active==='function'&&!owner.active())return;
     if(copyable&&button?.active()){
-      const copy=action(doc,'copy','复制错误信息');
-      copy.className='sq-action sq-error-copy';
-      const receipt=element(doc,'div','sq-error-receipt');role(receipt,'status');
-      const row=element(doc,'div','sq-error-row');
-      row.append(element(doc,'span','sq-error-text',message),copy);
-      toastToken++;
-      errorNotice={message,copy,receipt};
-      statusNode.replaceChildren(row,receipt);statusNode.hidden=false;
-      return;
+      showError(message);return;
     }
     if(typeof owner.toast==='function'){
       try{owner.toast({message,variant,duration,position:'top'});return;}catch{}
@@ -386,6 +478,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     root.insertBefore(rows,info);
   }
   function render(snapshot){
+    syncFeedbackRoute();
     if(!list?.active()||!button?.active())return;
     if(currentRoute&&!currentRoute()){hide();return;}
     syncInfo(snapshot);
@@ -457,7 +550,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       }
       const ops=element(doc,'div','sq-ops');
       for(const [key,label] of [[item.state==='paused'?'resume':'pause',item.state==='paused'?'恢复此条':'暂停此条'],
-        ['now','提前发送'],['edit','取回输入框编辑'],['remove','删除']]){
+        ['now','提前发送'],['edit',uncertain?'编辑失败消息':'取回输入框编辑'],['remove','删除']]){
         const b=action(doc,key,label,item.id);
         if(((item.state==='sending'||uncertain||state.inFlight?.id===item.id)&&
           key!=='remove'&&!(uncertain&&key==='edit'))||
@@ -551,6 +644,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     return {native,anchor,toolbar};
   }
   function hide(){
+    syncFeedbackRoute();
     closeInfo();
     if(list)important(list.host,'display','none');
     if(button){
@@ -625,7 +719,8 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     return true;
   }
   function destroy(){reset();applyNativeLayout(null);recovery=null;
-    closeInfo();list?.destroy();button?.destroy();list=null;button=null;info=null;}
+    closeInfo();closeRecoveryEditor();clearError();feedback?.destroy();feedback=null;
+    list?.destroy();button?.destroy();list=null;button=null;info=null;}
   function isPlaced(snap){
     if(!snap?.ok||!list?.active()||!button?.active())return false;
     const slot=bottomSlot(snap),win=doc.defaultView;
@@ -635,5 +730,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
   }
   owner.onDispose(destroy);
   return Object.freeze({place,render,hide,toast,clearError,setCacheWarning,offerRecovery,hasRecovery,isPlaced,
+    isRecoveryEditing:()=>!!recoveryEditor?.node.isConnected&&feedback.active()&&recoveryEditor.route===feedbackRoute(),
     recovery:()=>recovery===null?null:{text:recovery.text},destroy});
 }

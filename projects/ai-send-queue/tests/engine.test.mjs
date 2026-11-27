@@ -1237,8 +1237,11 @@ for(const stage of ['never committed','button not ready','before click rejection
     f.step(20000,{}, {canSubmit:false});
     const allowed=!['clicked','throwing commit'].includes(stage);
     let proof=false;f.site.canReclaimPrepared=()=>proof;
+    assert.equal(f.engine.canReclaimPrepared('q1'),false);
     assert.equal(f.engine.reclaimPrepared('q1'),false,'missing draft/history proof retains unknown');
     proof=true;
+    assert.equal(f.engine.canReclaimPrepared('q1'),allowed);
+    assert.equal(f.engine.view().phase,'unknown','checking proof alone must not release the original');
     assert.equal(f.engine.reclaimPrepared('q1'),allowed);
     assert.equal(f.engine.view().phase,allowed?'waiting':'unknown');
     assert.deepEqual(f.engine.view().items.map(x=>x.id),allowed?['q2']:['q1','q2']);

@@ -8,6 +8,8 @@ import {readFileSync,realpathSync} from 'node:fs';
 import postcss from 'postcss';
 import {parse} from 'acorn';
 import {build,transformSync} from 'esbuild';
+import {preprocessCSS,resolveConfig} from 'vite';
+import {trustedAIProxyStyle} from '../../scripts/bundle-provenance.mjs';
 import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure,trustedBookmarkStyle,verifyTrustedAIProxySources,reviewedCompiledExtensionSettings} from '../../scripts/bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PACKAGE_ENTRIES,FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
@@ -45,7 +47,7 @@ test('AI Scroll R4.2 reviewed settings sources admit only exact bytes to the ori
 test('Subagent Result projection admits only three exact SW blobs and rejects other worlds or drift',async t=>{
   const pins={
     'projects/subagent/trusted/page-task-result.js':'16dda6e9a439dedb340e33874f1062bdfeaf8147',
-    'projects/subagent/trusted/result.js':'1c7de2644d572a3b936549e68a70bf709f540f68',
+    'projects/subagent/trusted/result.js':'1d3cf5e91710b1493f0d1e83e3a3f9a6908e0057',
     'projects/subagent/src/contract.js':'c394ad1d5dfb7271ec2a23d428e7605030da7664'
   };
   const project=await realpath(await mkdtemp(join(tmpdir(),'subagent-result-source-pin-')));
@@ -267,6 +269,17 @@ test('trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.mo
  assert.throws(()=>verifyTrustedAIProxySources(project),/must not be a symlink/);
 });
 
+test('packaged AI Proxy CSS preserves the inline cascade and stays out of the fixed JS graph',async()=>{
+ const path=resolve('projects/ai-proxy/src/style.css');
+ const config=await resolveConfig({configFile:false},'build','production','production');
+ const {code}=await preprocessCSS(await readFile(path,'utf8'),path,config);
+ const oldStyle=transformSync(code,{loader:'css',minifyWhitespace:true,legalComments:'none'}).code;
+ assert.equal(trustedAIProxyStyle(),oldStyle);
+ assert.throws(()=>describeBundle({chunk:{fileName:'ui/tool-shell.js',
+  modules:{[path+'?inline']:{renderedLength:1,originalLength:1}}},lock:{packages:{}}}),
+ /cannot enter a privileged fixed bundle/);
+});
+
 test('reviewed AI Proxy form and diagnostics keep exact source locks and reject altered locale bytes',async t=>{
  const changed=[
   ['projects/ai-proxy/src/Settings.tsx','0fbdf463441c40f5dd7466a318f5d32c4b5cb847'],
@@ -347,7 +360,7 @@ test('fixed Bookmark CSS keeps its exact source pin after leaving the JS bundle'
   assert.doesNotMatch(css,/\/\*|url\s*\(/i);
   const project=await realpath(await mkdtemp(join(tmpdir(),'bookmark-style-pin-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
-  const path='examples/sidebar-tools/bookmark-manager/src/react/style.css',file=join(project,path);
+  const path='projects/bookmark-manager/src/react/style.css',file=join(project,path);
   await mkdir(join(file,'..'),{recursive:true});
   const bytes=await readFile(resolve(path));
   await writeFile(file,bytes);
@@ -518,12 +531,13 @@ test('a symlink cannot substitute a pinned Time Review source in privileged outp
   },root:project,lock:{packages:{}}}),/Trusted Time Review source must not be a symlink/);
 });
 
-test('R3.1 trusted Bookmark React compiles only four pinned first-party blobs into the existing tool-shell',()=>{
+test('R3.1 trusted Bookmark React compiles only the pinned first-party blobs into the existing tool-shell',()=>{
   const inputs=[
-    'examples/sidebar-tools/bookmark-manager/src/model.js',
-    'examples/sidebar-tools/bookmark-manager/src/service.js',
-    'examples/sidebar-tools/bookmark-manager/src/react/App.jsx',
-    'examples/sidebar-tools/bookmark-manager/src/react/style.css'
+    'projects/bookmark-manager/src/model.js',
+    'projects/bookmark-manager/src/service.js',
+    'projects/bookmark-manager/src/react/App.jsx',
+    'projects/bookmark-manager/src/react/navigation.js',
+    'projects/bookmark-manager/src/react/style.css'
   ];
   const modules=Object.fromEntries(inputs.map(path=>[resolve(path),{renderedLength:42,originalLength:42}]));
   const compiled=describeBundle({chunk:{fileName:'ui/tool-shell.js',modules},lock:{packages:{}}});
@@ -532,10 +546,10 @@ test('R3.1 trusted Bookmark React compiles only four pinned first-party blobs in
   for(const target of ['sw.js','ui/sidebar-tool-host.js','scripting/sandbox/sandbox.js'])
     assert.throws(()=>describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}}),
       /cannot enter a privileged fixed bundle/);
-  for(const path of ['examples/sidebar-tools/bookmark-manager/src/main.js',
-    'examples/sidebar-tools/bookmark-manager/preview/react/src/formal.jsx',
-    'examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx',
-    'examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json'])
+  for(const path of ['projects/bookmark-manager/src/main.js',
+    'projects/bookmark-manager/preview/react/src/formal.jsx',
+    'projects/bookmark-manager/preview/react/src/main.jsx',
+    'projects/bookmark-manager/bookmark-manager.opendesk-tool.json'])
     assert.throws(()=>describeBundle({chunk:{
       fileName:'ui/tool-shell.js',modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}
     },lock:{packages:{}}}),/cannot enter a privileged fixed bundle/,
@@ -544,9 +558,9 @@ test('R3.1 trusted Bookmark React compiles only four pinned first-party blobs in
 test('R3.1 modified trusted Bookmark App fails at build rather than silently executing new JSX',async t=>{
   const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-bookmark-pin-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
-  const path='examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
+  const path='projects/bookmark-manager/src/react/App.jsx';
   const file=join(project,path);
-  await mkdir(join(project,'examples/sidebar-tools/bookmark-manager/src/react'),{recursive:true});
+  await mkdir(join(project,'projects/bookmark-manager/src/react'),{recursive:true});
   await writeFile(file,'export default function Unexpected(){return null}');
   assert.throws(()=>describeBundle({chunk:{
     fileName:'ui/tool-shell.js',modules:{[file]:{renderedLength:8,originalLength:8}}
@@ -555,9 +569,9 @@ test('R3.1 modified trusted Bookmark App fails at build rather than silently exe
 test('R3.1 symlink substitution cannot bypass trusted Bookmark static pin',async t=>{
   const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-bookmark-symlink-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
-  const path='examples/sidebar-tools/bookmark-manager/src/model.js';
+  const path='projects/bookmark-manager/src/model.js';
   const file=join(project,path);
-  await mkdir(join(project,'examples/sidebar-tools/bookmark-manager/src'),{recursive:true});
+  await mkdir(join(project,'projects/bookmark-manager/src'),{recursive:true});
   await symlink(resolve('src/ui/react/main.tsx'),file);
   assert.throws(()=>describeBundle({chunk:{
     fileName:'ui/tool-shell.js',modules:{[file]:{renderedLength:9,originalLength:9}}
@@ -583,8 +597,8 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
   const approved=[
     ['projects/ai-vip-share/trusted/provider-config.js','sw.js',
       'd09c57ef4bbc96f406bb2092feb9ff9b2465cf43'],
-    ['examples/sidebar-tools/time-review/trusted/service.js','time-review/time-review-host.js',
-      '3dfd773fa8cf38deeb23a5d5f9f56d0b27e11ff6']
+    ['projects/time-review/trusted/service.js','time-review/time-review-host.js',
+      '87e438ee574bc4180123b1dec2cd4cf6be369f50']
   ];
   const make=(target,file,project=process.cwd())=>describeBundle({
     chunk:{fileName:target,modules:{[file]:{renderedLength:1,originalLength:1}}},
@@ -603,7 +617,7 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
   }
   for(const unknown of [
     'projects/ai-vip-share/trusted/remote-supplied.js',
-    'examples/sidebar-tools/time-review/trusted/unsafe-background.js',
+    'projects/time-review/trusted/unsafe-background.js',
     'examples/programs/local-controller/src/main.js'
   ])assert.throws(()=>make('sw.js',resolve(unknown)),/cannot enter/);
 });
@@ -679,7 +693,7 @@ test('fixed Clipper relay and marketplace admit their reviewed capture dependenc
 
 test('Clipper region picker retains exact source, target and symlink fences',async ctx=>{
   const path='projects/web-markdown-clipper/trusted/region-picker.js';
-  const pin='45f09fae8c948bfd748b66c01d3066282e550b1c';
+  const pin='2e83d222f374dc2f17fa27bf635685f81319ea21';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,pin);
@@ -800,30 +814,15 @@ test('R1.3 pinned shared Markdown converter can only enter the existing Page Rel
   assert.throws(()=>make('sw.js',root),/cannot enter a privileged fixed bundle/);
 });
 
-test('R1.3 Reading TOC model, overview, placement, page and view require audited Page Relay pins',async ctx=>{
-  const names=['overview.js','model.js','placement.js','page.js','view.js'];
-  const prefix='projects/reading-toc/trusted/';
-  const make=(target,root=process.cwd(),list=names)=>describeBundle({chunk:{fileName:target,
-    modules:Object.fromEntries(list.map(name=>[resolve(root,prefix+name),
-      {renderedLength:20,originalLength:100}]))},root,lock:{packages:{}}});
-  const row=make('agents/page-relay.js');
-  assert.equal(row.modules.length,names.length);
-  for(const item of row.modules)assert.match(item.reviewedFirstPartyBlob,/^[0-9a-f]{40}$/);
-  for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
-    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
-  const tmp=await realpath(await mkdtemp(join(tmpdir(),'reading-toc-source-pin-')));
-  ctx.after(()=>rm(tmp,{recursive:true,force:true}));
-  await mkdir(join(tmp,prefix),{recursive:true});
-  for(const name of ['model.js','page.js','view.js']){
-    const path=join(tmp,prefix,name),bytes=await readFile(resolve(prefix,name));
-    await writeFile(path,bytes);
-    assert.equal(make('agents/page-relay.js',tmp,[name]).modules[0].reviewedFirstPartyBlob,
-      row.modules.find(item=>item.path===prefix+name).reviewedFirstPartyBlob);
-    await writeFile(path,Buffer.concat([bytes,Buffer.from('\n// unsigned edit\n')]));
-    assert.throws(()=>make('agents/page-relay.js',tmp,[name]),
-      /Trusted Reading TOC source changed/);
-    await rm(path);await symlink(resolve(prefix,name),path);
-    assert.throws(()=>make('agents/page-relay.js',tmp,[name]),/must not be a symlink/);
+test('Reading TOC Page Program sources cannot enter fixed bundles',()=>{
+  for(const name of ['overview.js','model.js','placement.js','page.js','view.js','existing-tabs.js']){
+    const path=resolve('projects/reading-toc/trusted',name);
+    for(const target of ['agents/page-relay.js','sidebar-tools/preinstall-intent.js','sw.js',
+      'ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js']){
+      assert.throws(()=>describeBundle({chunk:{fileName:target,
+        modules:{[path]:{renderedLength:20,originalLength:100}}},lock:{packages:{}}}),
+        /cannot enter a privileged fixed bundle/);
+    }
   }
 });
 
@@ -846,10 +845,9 @@ test('Reading TOC generated locale keeps exact source, target and symlink fences
   assert.throws(()=>make('sw.js',tmp),/must not be a symlink/);
 });
 
-test('relocated trusted policies and tab repair keep exact source, target and symlink fences',async ctx=>{
+test('Reading TOC fixed policy keeps exact source, target and symlink fences',async ctx=>{
   const cases=[
-    ['projects/reading-toc/trusted/policy.js','sw.js','2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2'],
-    ['projects/reading-toc/trusted/existing-tabs.js','sidebar-tools/preinstall-intent.js','e82a3e3b43debfff756180ccf1da110b7dfd8172']
+    ['projects/reading-toc/trusted/policy.js','sw.js','80fc351e9afc0cd94eedbc93c014cc4098f8b0b7']
   ];
   const tmp=await realpath(await mkdtemp(join(tmpdir(),'relocated-trusted-source-')));
   ctx.after(()=>rm(tmp,{recursive:true,force:true}));
@@ -859,7 +857,6 @@ test('relocated trusted policies and tab repair keep exact source, target and sy
     }});
     assert.equal(make(target).modules[0].reviewedFirstPartyBlob,pin);
     assert.throws(()=>make('scripting/sandbox/worker-runtime.js'),/cannot enter a privileged fixed bundle/);
-    if(path.endsWith('/existing-tabs.js'))assert.throws(()=>make('sw.js'),/cannot enter a privileged fixed bundle/);
     const file=resolve(tmp,path),bytes=await readFile(path);
     await mkdir(resolve(file,'..'),{recursive:true});await writeFile(file,bytes);
     assert.equal(make(target,tmp).modules[0].reviewedFirstPartyBlob,pin);
@@ -870,11 +867,8 @@ test('relocated trusted policies and tab repair keep exact source, target and sy
   }
 });
 
-test('Clipper region source is byte-pinned to Page Relay and never admitted elsewhere',async t=>{
-  const inputs=[
-    ['projects/web-markdown-clipper/trusted/page.js','a4e91daee1496fdcc4bef25f0b166daf125a3686'],
-    ['projects/web-markdown-clipper/trusted/region-picker.js','1aff80ff37936283b6922431cb9bfd1c44d1e286']
-  ];
+test('Clipper page source is byte-pinned to Page Relay and never admitted elsewhere',async t=>{
+  const inputs=[['projects/web-markdown-clipper/trusted/page.js','a4e91daee1496fdcc4bef25f0b166daf125a3686']];
   const project=await realpath(await mkdtemp(join(tmpdir(),'clipper-region-provenance-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
   for(const [path,pin] of inputs){

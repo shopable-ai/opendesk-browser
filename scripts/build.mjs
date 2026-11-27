@@ -9,7 +9,7 @@ import {build as buildVite} from 'vite';
 import {mkdir, readFile, writeFile, rm, mkdtemp} from 'node:fs/promises';
 import {createHash,randomUUID} from 'node:crypto';
 import {resolve} from 'node:path';
-import {collectBundleEvidence,recordBuildFailure} from './bundle-provenance.mjs';
+import {collectBundleEvidence,recordBuildFailure,TRUSTED_AI_PROXY_STYLE_INPUTS} from './bundle-provenance.mjs';
 import {verifyReadingTocTrustedLocales} from './generate-reading-toc-locales.mjs';
 import {PACKAGE_ENTRIES} from './build-contract.mjs';
 import {resolveBrowserEdition,editionOutputName} from './browser-editions-r245.mjs';
@@ -20,8 +20,9 @@ const mode = process.argv[2] || 'production';
 if (!['production', 'development'].includes(mode)) throw new Error('Invalid build mode');
 const edition=resolveBrowserEdition(),outputLabel=editionOutputName(mode,edition);
 async function sourceInputs() {
-  const paths = [...await officialToolInputs(), ...await officialPageInputs(), ...(await filesAt('src')).map(path => `src/${path}`), ...(await filesAt('scripts')).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt', 'docs/contracts/licenses/shared-ui-third-party-notices.txt'].sort();
-  return Promise.all(paths.map(async path => { const bytes = await readFile(path); return {path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')}; }));
+  const paths = [...await officialToolInputs(), ...await officialPageInputs(), ...(await filesAt('src')).map(path => `src/${path}`), ...(await filesAt('scripts')).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt', 'docs/contracts/licenses/shared-ui-third-party-notices.txt',
+    ...TRUSTED_AI_PROXY_STYLE_INPUTS,'projects/ai-proxy/trusted/source-lock.json','projects/ai-proxy/trusted/Surface.jsx'];
+  return Promise.all([...new Set(paths)].sort().map(async path => { const bytes = await readFile(path); return {path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')}; }));
 }
 const releaseOutput=await acquireDevelopmentLock('build');
 const evidence = process.env.OPENDESK_BUILD_EVIDENCE_DIR || 'docs/framework/evidence/wxt/builds';

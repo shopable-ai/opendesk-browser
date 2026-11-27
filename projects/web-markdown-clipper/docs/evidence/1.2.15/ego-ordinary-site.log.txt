@@ -1,0 +1,2 @@
+{ level: 'SOURCE_BROWSER_PUBLIC_DOM', url: 'https://www.w3.org/MarkUp/Guide/', evidence: [ { selector: 'h1', tag: 'H1', markdown: '# [![Dave Raggett](https://www.w3.org/MarkUp/Guide/dsr.jpg)](https://www.w3.org/People/Raggett) Getting started with HTML' }, { selector: 'a[href="Advanced.html"]', tag: 'A', markdown: '[Advanced HTML](https://www.w3.org/MarkUp/Guide/Advanced.html)' } ] }
+

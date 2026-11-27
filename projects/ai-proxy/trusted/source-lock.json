@@ -65,7 +65,7 @@
   "projects/ai-proxy/src/usage/domain.ts": "3730ac5455225e5451b142fba7be3403426272ab",
   "projects/ai-proxy/src/usage/ranking.ts": "19a04f545c68e444f9bcfd7512e4c95f6e434fc7",
   "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat": "1eca38b5174fdd4b43612cd5e639dca5b06299d9",
-  "projects/ai-proxy/trusted/Surface.jsx": "6ccfec0ff567a7797525dd86e5eefe0d574384fa",
+  "projects/ai-proxy/trusted/Surface.jsx": "d158b530051a1ec9e658a1efaa4764cec15f6138",
   "projects/ai-proxy/trusted/admission.js": "031477094a6aa39720a6cc5b59aaf76f1bab15b0",
   "projects/ai-proxy/trusted/app-page-routes.js": "36f1d80fb21f6b91831479c429d96396cd750dd2"
 }

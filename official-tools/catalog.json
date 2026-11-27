@@ -99,6 +99,13 @@
       "packageFile": "ai-send-queue.opendesk-tool.json"
     },
     {
+      "id": "ai-new-chat-window",
+      "project": "projects/ai-new-chat-window",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled",
+      "packageFile": "ai-new-chat-window.opendesk-tool.json"
+    },
+    {
       "id": "video-speed-controller",
       "project": "projects/video-speed-controller",
       "kind": "sidebar-tool",

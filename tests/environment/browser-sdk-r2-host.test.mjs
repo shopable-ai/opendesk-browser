@@ -20,8 +20,8 @@ const sender={id:'ext-r2',frameId:0,documentId:'host-document-1',documentLifecyc
 const locks={request:(_key,work)=>work()};
 const err=code=>error=>error?.code===code;
 
-function fixture({fetchImpl=async()=>new Response('{"ok":true}',{status:200,headers:{'content-type':'application/json'}})}={}){
-  const local=new Map([['opendesk.sidebar-tools.installed.v1',[pkg]]]),session=new Map();
+function fixture({installed=pkg,fetchImpl=async()=>new Response('{"ok":true}',{status:200,headers:{'content-type':'application/json'}})}={}){
+  const local=new Map([['opendesk.sidebar-tools.installed.v1',[installed]]]),session=new Map();
   const tabs=new Map(),created=[],updated=[],removed=[],listeners=[],storageListeners=[];
   const webRequests={start:[],complete:[],error:[]},downloads=[];
   let permitted=true,chromeGranted=true;
@@ -76,6 +76,29 @@ function fixture({fetchImpl=async()=>new Response('{"ok":true}',{status:200,head
     navigate(id,url){tabs.set(id,{...tabs.get(id),url});for(const fn of updated)fn(id,{url});}
   };
 }
+
+test('Browser Host bounds text exports from reviewed installs and consumes exactly one matching approval',async()=>{
+  const operation='browser.downloads.text';
+  const args={text:'\u0001'.repeat(160000),filename:'clip.md'};
+  for(const installed of [{...pkg,capabilities:['user.export']},
+    {...pkg,id:'web-markdown-clipper',version:'1.2.15',capabilities:['user.export']}]){
+    const {host}=fixture({installed,fetchImpl:async()=>new Response(null,{status:404})});
+    const owner={...identity,toolId:installed.id,toolVersion:installed.version,packageHash:await sidebarToolPackageHash(installed)};
+    const confirm=(targetArgs=args,extra={},from=sender)=>host.handleHost({operation:'browser.intent.confirm',
+      targetOperation:operation,targetArgs,...owner,...extra},from);
+    const execute=(approvalRef,actual=args,extra={})=>host.handleTool({operation,args:actual,approvalRef,...owner,...extra},sender);
+    await assert.rejects(confirm(args,{}, {...sender,id:'other'}),err('E_OWNER'));
+    await assert.rejects(confirm({...args,text:args.text+'x'}),err('E_LIMIT'));
+    await assert.rejects(confirm(args,{extra:'x'.repeat(513)}),err('E_LIMIT'));
+    const first=await confirm();
+    await assert.rejects(execute(first.approvalRef,{...args,text:'x'+args.text.slice(1)}),err('E_USER_GESTURE_REQUIRED'));
+    await assert.rejects(execute(first.approvalRef),err('E_USER_GESTURE_REQUIRED'));
+    const second=await confirm();
+    await assert.rejects(execute(second.approvalRef,args,{packageHash:identity.packageHash}),err('E_TOOL_CHANGED'));
+    assert.deepEqual(await execute(second.approvalRef),{authorized:true});
+    await assert.rejects(execute(second.approvalRef),err('E_USER_GESTURE_REQUIRED'));
+  }
+});
 
 test('R2 public Browser SDK wraps four real operations while page SDK stays isolated',async()=>{
   const calls=[],sdk=createBrowserSdk({request:async(operation,args)=>{calls.push([operation,args]);return {ok:true};}});

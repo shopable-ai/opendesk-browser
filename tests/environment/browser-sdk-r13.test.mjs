@@ -461,8 +461,8 @@ test('Browser canonical export methods preserve payload, bounds and strict schem
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'..\\escape.md'}),{code:'E_SCHEMA'});
   assert.deepEqual(await sdk.downloads.text({text:'x',filename:'x.txt'}),{text:'x',filename:'x.txt'});
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'x.md',tabId:9}),{code:'E_SCHEMA'});
-  assert.throws(()=>sdk.clipboard.writeText('中'.repeat(50001)),{code:'E_LIMIT'});
-  assert.equal(BROWSER_OPERATIONS['browser.downloads.text'].maxRequestBytes,170000);
+  assert.throws(()=>sdk.clipboard.writeText('中'.repeat(53334)),{code:'E_LIMIT'});
+  assert.equal(BROWSER_OPERATIONS['browser.downloads.text'].maxRequestBytes,961024);
 });
 test('R10 export Host requires exact one-use intent, current tool package and Chrome permission',async()=>{
   const base=await readSample('selection-notes.opendesk-tool.json');
