@@ -226,6 +226,8 @@ try{
   // Simulated save failure must retain user input and keep the editor open.
   await openTestMenuAndClick('#failNextSave');
   await click('#pcAddRule');
+  await waitFor("!document.querySelector('#editorPanel').hidden",'PC rule editor opened');
+  await screenshot('pc-editor-open.png');
   await setValue('#ruleName','保存失败保留输入');
   await setValue('#ruleFind','KeepThisInput');
   await setValue('#ruleReplace','KeepThisOutput');
