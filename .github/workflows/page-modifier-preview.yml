@@ -22,6 +22,10 @@ jobs:
           node-version: "22.12.0"
       - uses: browser-actions/setup-chrome@v2
         id: chrome
+      - name: Install CJK fonts for accurate Chinese UI screenshots
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
       - name: Exercise Side Panel and PC HTML preview in real Chromium
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
