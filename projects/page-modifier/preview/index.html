@@ -901,6 +901,12 @@ body[data-view=side] .side-view{min-height:0}
   $('editorBack').addEventListener('click',function(){closeEditor(false);});
   $('cancelEdit').addEventListener('click',function(){closeEditor(false);});
   ruleForm.addEventListener('submit',saveRule);
+  ruleForm.addEventListener('keydown',function(event){
+    if(event.key==='Enter' && event.target.matches('input[type="text"]')){
+      event.preventDefault();
+      ruleForm.requestSubmit();
+    }
+  });
   [ruleName,ruleFind,ruleReplace].forEach(function(input){input.addEventListener('input',markDirty);});
   matchMode.addEventListener('change',function(){markDirty();updateModeUI();});
   caseSensitive.addEventListener('change',function(){markDirty();runRegexPreview();});
