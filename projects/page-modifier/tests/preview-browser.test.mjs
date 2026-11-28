@@ -151,6 +151,7 @@ try{
   // Create a normal text rule through the visible form and save button.
   await click('#sideAddRule');
   assert.equal(await evaluate("!document.querySelector('#editorPanel').hidden"),true);
+  await screenshot('side-editor-open-360.png');
   await setValue('#ruleName','测试规则：品牌别名');
   await setValue('#ruleFind','OldLabel');
   await setValue('#ruleReplace','NewLabel');
@@ -186,6 +187,8 @@ try{
   await setValue('#ruleReplace','Item-$1');
   await setValue('#testText','Product A and Product B');
   assert.equal(await evaluate("document.querySelector('#matchCount').textContent"),'2 处匹配');
+  await evaluate("document.querySelector('#regexTools').scrollIntoView({block:'center'})");
+  await screenshot('side-regex-test-360.png');
   assert.equal(await evaluate("document.querySelector('#testOutput').textContent"),'Item-A and Item-B');
   await setValue('#ruleFind','[');
   assert.equal(await evaluate("!document.querySelector('#regexError').hidden"),true);
