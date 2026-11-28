@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {renderMarkdown} from '../src/render.js';
+test('GFM, Unicode, links, local images, code copy and strict DOM allowlist',()=>{
+  const {window}=new JSDOM('',{url:'file:///Users/test/docs/a.md'});
+  const fence=String.fromCharCode(96).repeat(3);
+  const sample='# 中文\n\n## 重复\n\n## 重复\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n- [x] Done\n- [ ] Todo\n\n[local](../A%20B.markdown) ![img](./x.png) [jump](#重复)\n\n[bad](javascript:alert(1)) ![remote](https://example.com/x.png)\n\n<script>globalThis.pwned=1</script>\n\n<img src=x onerror=alert(1)>\n\n'+fence+'js\nconst x=1;\n'+fence+'\n';
+  let copied;
+  const result=renderMarkdown(window.document,sample,window.location.href,{copy:t=>copied=t});
+  window.document.body.append(result.root);
+  const body=window.document.body;
+  assert.deepEqual(result.headings.map(h=>h.id),['中文','重复','重复-1']);
+  assert.equal(body.querySelectorAll('table tr').length,2);
+  assert.equal(body.querySelectorAll('input[disabled]').length,2);
+  assert.equal(body.querySelector('input').checked,true);
+  assert.equal(body.querySelector('a').href,'file:///Users/test/A%20B.markdown');
+  assert.equal(body.querySelector('img').src,'file:///Users/test/docs/x.png');
+  assert.equal(body.querySelectorAll('img').length,1);
+  assert.equal(body.querySelector('a[href^="javascript:"]'),null);
+  assert.equal(body.querySelector('script,[onerror]'),null);
+  assert.match(body.textContent,/<script>/);
+  assert.equal(body.querySelector('.token.keyword').textContent,'const');
+  body.querySelector('button').click();assert.equal(copied,'const x=1;');
+  window.close();
+});

@@ -10,6 +10,19 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
   initAnalyticsConsentControls({api,doc});
   initChatGPTFilesSettingsUI({api,document:doc});
   initWebflowMediaVaultSettingsUI({api,document:doc});
+  const markdownPermission=doc.getElementById('markdown-viewer-permission');
+  if(markdownPermission){
+    const refreshMarkdownPermission=()=>{
+      const unknown=()=>{markdownPermission.textContent='无法检测权限 / File access status unavailable';};
+      try{
+        if(typeof api.extension?.isAllowedFileSchemeAccess!=='function'){unknown();return;}
+        api.extension.isAllowedFileSchemeAccess(allowed=>{markdownPermission.textContent=api.runtime?.lastError?'无法检测权限 / File access status unavailable':allowed?'已允许访问文件网址 / File URL access enabled':'尚未授权，请按上方指引开启 / File URL access disabled';});
+      }catch{unknown();}
+    };
+    doc.getElementById('markdown-viewer-permission-refresh')?.addEventListener('click',refreshMarkdownPermission);
+    doc.defaultView?.addEventListener('focus',refreshMarkdownPermission);
+    refreshMarkdownPermission();
+  }
   const status=doc.getElementById('bridge-status');
   const caption=doc.getElementById('bridge-caption');
   const toggle=doc.getElementById('bridge-toggle');

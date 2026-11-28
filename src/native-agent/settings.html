@@ -42,6 +42,12 @@
   <p id="bridge-feedback" class="settings-error" role="alert" hidden></p>
   <p id="bridge-switch-note" class="settings-note">开启连接需要浏览器授权 Native Messaging；已有授权不会重复申请。连接开启不等于 Codex 已就绪。</p>
  </section>
+ <section id="markdown-viewer-settings" class="settings-card" aria-labelledby="markdown-viewer-heading">
+  <h2 id="markdown-viewer-heading">Markdown 实时阅读器 / Markdown Viewer</h2>
+  <p class="settings-note">直接打开本地 .md / .markdown 文件即可阅读与实时更新，无需连接本机服务。首次使用：打开 chrome://extensions（Edge：edge://extensions），进入本扩展详情，开启「允许访问文件网址 / Allow access to file URLs」，再重新打开 Markdown 文件。</p>
+  <p id="markdown-viewer-permission" role="status" aria-live="polite">正在检测文件访问权限… / Checking file URL access…</p>
+  <button id="markdown-viewer-permission-refresh" type="button" class="secondary">重新检测 / Check again</button>
+ </section>
  <section id="webflow-media-settings" class="settings-card" aria-labelledby="webflow-media-heading">
   <h2 id="webflow-media-heading">WebFlow 素材仓库（首版 PNG）</h2>
   <p class="settings-note">在本扩展可信页面选择真实本机 PNG，保存后按 SHA-256 独立读回验证。单文件不超过 1 MiB；最多 20 张、合计 10 MiB、7 天清理。素材 ID 不是上传授权，暂不支持自动跨脚本取图。</p>

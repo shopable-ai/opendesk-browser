@@ -75,7 +75,13 @@ export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
   {matches:['http://*/*','https://*/*'],js:['agents/page-relay.js'],run_at:'document_start',all_frames:true,world:'ISOLATED'},
   {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
 ]);
+// Local file viewer stays isolated; its own MIME and extension checks run before reading.
+export const MARKDOWN_VIEWER_CONTENT_SCRIPT=Object.freeze({
+  matches:['file:///*'],js:['markdown-viewer/markdown-viewer.js'],
+  run_at:'document_idle',all_frames:false,world:'ISOLATED'
+});
 export const FIXED_ASSETS = Object.freeze({
+  'licenses/markdown-viewer-MIT.txt': {bytes:4393,sha256:'464f39d353d7c9046ee8bc144e6ff0a177f4cde1dc3538a428edc3b69c5e3c2d'},
   ...Object.fromEntries(BRAND_ICONS.map(({output,bytes,sha256})=>[output,{bytes,sha256}])),
   'licenses/video-downloader-mux-Apache-2.0.txt': {bytes: 11342, sha256: '1a3c5bb355ae9ea7f0e8e92836b72189c7acf85a487dd8706d5f1dfff9bf7d3d'},
   'licenses/shared-ui-third-party-notices.txt': {bytes: 12986, sha256: 'e4135b8c9ef1f90616ebf63e55708a91f020f5a726f2bc7c5484aac00bafdcb8'},
@@ -254,7 +260,7 @@ export function verifyManifest(manifest,{mode='production',source=false,edition=
   if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
   if (!same(manifest.web_accessible_resources, APPROVED_WEB_ACCESSIBLE_RESOURCES)) throw new Error('Unexpected web accessible resources');
-  if (!same(manifest.content_scripts, [CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT, GEMINI_FIXED_QUEUE_CONTENT_SCRIPT, ...SDK_AUTOMATIC_CONTENT_SCRIPTS]))
+  if (!same(manifest.content_scripts, [CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT, GEMINI_FIXED_QUEUE_CONTENT_SCRIPT, ...SDK_AUTOMATIC_CONTENT_SCRIPTS, MARKDOWN_VIEWER_CONTENT_SCRIPT]))
     throw new Error('Only the origin-limited isolated ChatGPT Bridge and Gemini queue and the two unchanged SDK fixed scripts may auto-install');
   if (manifest.optional_host_permissions)
     throw new Error('Unapproved optional host or page exposure');

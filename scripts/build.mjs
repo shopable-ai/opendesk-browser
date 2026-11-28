@@ -21,6 +21,7 @@ if (!['production', 'development'].includes(mode)) throw new Error('Invalid buil
 const edition=resolveBrowserEdition(),outputLabel=editionOutputName(mode,edition);
 async function sourceInputs() {
   const paths = [...await officialToolInputs(), ...await officialPageInputs(), ...(await filesAt('src')).map(path => `src/${path}`), ...(await filesAt('scripts')).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt', 'docs/contracts/licenses/shared-ui-third-party-notices.txt',
+    ...(await filesAt('projects/markdown-viewer/src')).map(path => 'projects/markdown-viewer/src/'+path),
     ...TRUSTED_AI_PROXY_STYLE_INPUTS,'projects/ai-proxy/trusted/source-lock.json','projects/ai-proxy/trusted/Surface.jsx'];
   return Promise.all([...new Set(paths)].sort().map(async path => { const bytes = await readFile(path); return {path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')}; }));
 }

@@ -8,6 +8,7 @@ import {projectSubagentPageTaskResult} from '../projects/subagent/trusted/page-t
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
 import {FIXED_QUEUE_PROTOCOL} from './scripting/user-scripts/fixed-send-queue.js';
+import {handleMarkdownViewerRead} from '../projects/markdown-viewer/src/service.js';
 import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
 import {installStayFocusService} from '../projects/stay-focus/trusted/service.js';
 import {installManagedSiteBudgetService} from './platform/chrome/browser-managed-site-budget.js';
@@ -354,6 +355,7 @@ chrome.tabs.onRemoved.addListener(tabId => {
       label:`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`}));
 });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if(handleMarkdownViewerRead({api:chrome,message,sender,respond:sendResponse}))return true;
   if(message?.protocol===FIXED_QUEUE_PROTOCOL){
     if(development?.held){sendResponse({ok:false,error:{code:'E_DEV_RELOADING'}});return false;}
     pendingFoundation++;

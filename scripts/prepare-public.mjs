@@ -19,6 +19,7 @@ const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
 const edition=resolveBrowserEdition();
 const browserCompilerFiles=compilerResourcesForEdition(edition);
 export const STATIC_RESOURCES=Object.freeze({
+  'projects/markdown-viewer/src/vendor/THIRD-PARTY-NOTICES.txt':'licenses/markdown-viewer-MIT.txt',
   ...Object.fromEntries(BRAND_ICONS.map(row=>[row.source,row.output])),
   ...Object.fromEntries(PACKAGED_TASK_RESOURCES.map(row=>[row.sourcePath,row.path])),
   'src/native-agent/http-relay.html':'native-agent/http-relay.html',

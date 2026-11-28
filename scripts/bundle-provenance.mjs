@@ -951,6 +951,69 @@ export function assertLibraryModuleBoundary(target,path,npmName) {
     throw Error('Preinstalled library implementation unexpectedly bundled into '+target+': '+path);
 }
 
+// Exact source bytes, purpose and bundle scope; no general local-file or project exemption.
+const MARKDOWN_VIEWER_SOURCE_PINS=Object.freeze({
+  "projects/markdown-viewer/src/policy.js": {
+    "blob": "a247d5e3e5a37345beb6ba6dfb9bd48dde2bde29",
+    "targets": [
+      "sw.js",
+      "markdown-viewer/markdown-viewer.js"
+    ]
+  },
+  "projects/markdown-viewer/src/live.js": {
+    "blob": "624b1c53deb21a63dcb28cb67ebc0de2233fbe77",
+    "targets": [
+      "markdown-viewer/markdown-viewer.js"
+    ]
+  },
+  "projects/markdown-viewer/src/service.js": {
+    "blob": "16fa0221dda0242adfdb8613aba1d09aa87a557e",
+    "targets": [
+      "sw.js"
+    ]
+  },
+  "projects/markdown-viewer/src/render.js": {
+    "blob": "3481ce8156d6d1309140393e777e721f8b260a7c",
+    "targets": [
+      "markdown-viewer/markdown-viewer.js"
+    ]
+  },
+  "projects/markdown-viewer/src/style.js": {
+    "blob": "159121ccae9c8a52e887177d1480242109f9ef7b",
+    "targets": [
+      "markdown-viewer/markdown-viewer.js"
+    ]
+  },
+  "projects/markdown-viewer/src/view.js": {
+    "blob": "3dd5cc70ae9a6186107abbffefe1e47eb576c323",
+    "targets": [
+      "markdown-viewer/markdown-viewer.js"
+    ]
+  },
+  "projects/markdown-viewer/src/vendor/marked.js": {
+    "blob": "06c1eb474022d95cec8aabc14a47f2bbcd031a5f",
+    "targets": [
+      "markdown-viewer/markdown-viewer.js"
+    ]
+  },
+  "projects/markdown-viewer/src/vendor/prism.js": {
+    "blob": "0928589a298a80c64f798274627af11ca9e9b7bd",
+    "targets": [
+      "markdown-viewer/markdown-viewer.js"
+    ]
+  }
+});
+function reviewedCompiledMarkdownViewer(target,path,root){
+  const row=Object.hasOwn(MARKDOWN_VIEWER_SOURCE_PINS,path)?MARKDOWN_VIEWER_SOURCE_PINS[path]:null;
+  if(!row||!row.targets.includes(target))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Markdown Viewer source cannot be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==row.blob)throw Error('Reviewed Markdown Viewer source changed: '+path);
+  return hash;
+}
+
 export function modulePath(id,root) {
   if(id.startsWith('\0'))return 'virtual:'+id.slice(1).split(root).join('<root>');
   const file=id.split('?')[0];
@@ -986,6 +1049,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledSharedMarkdown(chunk.fileName,path,root)||
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
       reviewedCompiledReadingToc(chunk.fileName,path,root)||
+      reviewedCompiledMarkdownViewer(chunk.fileName,path,root)||
       reviewedCompiledAIProxy(chunk.fileName,path,root)||
       reviewedCompiledHostStyle(chunk.fileName,path,root);
     // Moving an independent app into projects/ never grants privileged access.
