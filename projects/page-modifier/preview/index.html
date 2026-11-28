@@ -293,8 +293,8 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
     <main class="app-main" id="appMain">
       <section class="side-view" id="sideView" aria-label="Side Panel 快速管理">
         <div class="site-summary">
-          <div class="site-copy"><span class="eyebrow">当前网站</span><strong>chatgpt.com</strong><small>网站设置独立于全局开关</small></div>
-          <span class="site-tag">当前页面</span>
+          <div class="site-copy"><span class="eyebrow">当前网站</span><strong>chatgpt.com</strong><small>示例网站 · 设置独立于全局开关</small></div>
+          <span class="site-tag">模拟站点</span>
         </div>
 
         <section class="setting-list" aria-label="自动替换设置">
@@ -316,12 +316,12 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
           <button type="button" class="primary-button add-button" id="sideAddRule">＋ 添加规则</button>
           <ol class="rule-list" id="sideRuleList" aria-label="替换规则列表"></ol>
         </section>
-        <p class="side-footnote">关闭侧栏不会停止替换。全局开关和当前网站开关分别控制运行范围。</p>
+        <p class="side-footnote">原型仅演示界面和模拟数据，不会修改真实网页或保存正式设置。</p>
       </section>
 
       <section class="pc-view" id="pcView" aria-label="PC 完整管理页面" hidden>
         <div class="pc-heading">
-          <div><span class="eyebrow">RULE WORKSPACE</span><h2>替换规则管理</h2><p>集中管理规则、执行顺序与网站范围。</p></div>
+          <div><span class="eyebrow">RULE WORKSPACE</span><h2>替换规则管理</h2><p>集中管理规则、执行顺序与网站范围；本页只模拟配置，不修改真实网页。</p></div>
           <button type="button" class="primary-button" id="pcAddRule">＋ 新建规则</button>
         </div>
 
@@ -334,7 +334,7 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
             <div class="switch-copy"><strong>当前网站启用</strong><small id="pcSiteState">chatgpt.com 正常执行</small></div>
             <button type="button" class="switch" id="pcSiteSwitch" role="switch" aria-checked="true" aria-label="当前网站启用"><span class="switch-track"></span><span class="switch-thumb"></span></button>
           </div>
-          <div class="pc-site-summary"><span>当前网站范围</span><strong>chatgpt.com</strong><small>当前网站开关不会修改其他网站设置</small></div>
+          <div class="pc-site-summary"><span>模拟网站范围</span><strong>chatgpt.com</strong><small>当前网站开关不会修改其他网站设置</small></div>
         </section>
 
         <div class="pc-content">
@@ -529,7 +529,7 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
     $('sideSiteSwitch').setAttribute('aria-label','当前网站自动替换：'+(siteEnabled?'开启':'关闭'));
     $('pcSiteSwitch').setAttribute('aria-label','当前网站自动替换：'+(siteEnabled?'开启':'关闭'));
 
-    const state = !globalEnabled ? '全局暂停' : (!siteEnabled ? '本站暂停' : '运行中');
+    const state = !globalEnabled ? '全局模拟暂停' : (!siteEnabled ? '本站模拟暂停' : '模拟运行中');
     $('headerStatusText').textContent = state;
     $('headerStatus').dataset.state = globalEnabled && siteEnabled ? 'on' : 'off';
     $('sideGlobalSwitch').title = globalEnabled ? '关闭后所有网站暂停' : '开启后恢复各网站原有设置';
@@ -645,7 +645,7 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
     if(!rule) return;
     rule.enabled = !rule.enabled;
     renderAll();
-    showToast(rule.enabled ? '规则已启用' : '规则已停用');
+    showToast(rule.enabled ? '预览规则已启用' : '预览规则已停用');
   }
 
   function moveRule(id,direction){
@@ -656,28 +656,35 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
     rules[index] = rules[target];
     rules[target] = current;
     renderAll();
-    showToast('执行顺序已调整');
+    showToast('预览规则顺序已调整');
   }
 
   function requestDelete(id){
     const rule = rules.find(function(item){return item.id===id;});
     if(!rule) return;
-    showDialog('删除这条规则？','将删除「'+(rule.name || '未命名规则')+'」。此操作只影响当前 HTML 原型中的模拟数据。','删除规则',function(){
+    const deletingCurrent = editorOpen && editingId === id;
+    const message = deletingCurrent
+      ? '将删除「'+(rule.name || '未命名规则')+'」，并放弃这条规则尚未保存的编辑内容。此操作只影响当前原型。'
+      : '将删除「'+(rule.name || '未命名规则')+'」。此操作只影响当前 HTML 原型中的模拟数据。';
+    showDialog('删除这条规则？',message,'删除规则',function(){
+      if(deletingCurrent) closeEditor(true);
       rules = rules.filter(function(item){return item.id!==id;});
       renderAll();
-      showToast('规则已删除');
+      showToast('预览规则已删除');
     },true);
   }
 
   function attachEditor(){
     if(!editorOpen) return;
     if(currentView === 'side'){
+      sideView.inert = true;
       sideEditorSlot.append(editorPanel);
       sideEditorSlot.hidden = false;
       editorEmpty.hidden = true;
       editorPanel.setAttribute('role','dialog');
       editorPanel.setAttribute('aria-modal','true');
     }else{
+      sideView.inert = false;
       pcEditorSlot.append(editorPanel);
       sideEditorSlot.hidden = true;
       editorEmpty.hidden = true;
@@ -689,6 +696,7 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
 
   function setView(view){
     if(view !== 'side' && view !== 'pc') return;
+    const changed = currentView !== view;
     currentView = view;
     document.body.dataset.view = view;
     sideView.hidden = view !== 'side';
@@ -697,7 +705,7 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
       button.setAttribute('aria-pressed',String(button.dataset.viewChoice===view));
     });
     if(editorOpen) attachEditor();
-    showToast(view === 'side' ? '已切换到 Side Panel 视图' : '已切换到 PC 管理页面');
+    if(changed) showToast(view === 'side' ? '已切换到 Side Panel 视图' : '已切换到 PC 管理页面');
   }
 
   function clearFormErrors(){
@@ -791,6 +799,7 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
     editorPanel.hidden = true;
     editorPanel.remove();
     sideEditorSlot.hidden = true;
+    sideView.inert = false;
     editorEmpty.hidden = false;
     if(previousFocus && previousFocus.isConnected) previousFocus.focus();
     else (currentView === 'side' ? $('sideAddRule') : $('pcAddRule')).focus();
@@ -862,20 +871,20 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
       editorDirty = false;
       renderAll();
       closeEditor(true);
-      showToast(editingId ? '规则已更新' : '规则已创建');
+      showToast(editingId ? '预览规则已更新' : '预览规则已创建');
     },320);
   }
 
   function toggleGlobal(){
     globalEnabled = !globalEnabled;
     renderAll();
-    showToast(globalEnabled ? '已恢复全局自动替换' : '已暂停所有网站的自动替换');
+    showToast(globalEnabled ? '已恢复全局模拟状态' : '已暂停所有网站的模拟状态');
   }
 
   function toggleSite(){
     siteEnabled = !siteEnabled;
     renderAll();
-    showToast(siteEnabled ? '已恢复当前网站自动替换' : '当前网站已暂停，其他网站设置不变');
+    showToast(siteEnabled ? '已恢复当前网站模拟状态' : '当前网站模拟暂停，其他网站设置不变');
   }
 
   $('sideGlobalSwitch').addEventListener('click',toggleGlobal);
@@ -918,7 +927,9 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
   $('clearRules').addEventListener('click',function(){
     testMenu.hidden = true;
     testMenuToggle.setAttribute('aria-expanded','false');
-    showDialog('清空全部规则？','这会清空当前原型中的 '+rules.length+' 条模拟规则，用于检查空状态。','清空规则',function(){
+    const hadEditor = editorOpen;
+    showDialog('清空全部规则？','这会清空当前原型中的 '+rules.length+' 条模拟规则，用于检查空状态。'+(hadEditor?'，并放弃当前未保存的编辑内容。':''),'清空规则',function(){
+      if(hadEditor) closeEditor(true);
       rules = [];
       renderAll();
       showToast('规则列表已清空');
