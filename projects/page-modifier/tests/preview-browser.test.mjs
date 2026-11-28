@@ -73,7 +73,7 @@ async function evaluate(expression){
   const result=await send('Runtime.evaluate',{
     expression,returnByValue:true,awaitPromise:true,userGesture:true
   });
-  if(result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'Page evaluation failed');
+  if(result.exceptionDetails) throw new Error((result.exceptionDetails.text || 'Page evaluation failed')+' '+(result.exceptionDetails.exception?.description || ''));
   return result.result?.value;
 }
 
@@ -93,6 +93,7 @@ async function setViewport(width,height){
 }
 
 async function click(selector){
+  await evaluate("(()=>{const node=document.querySelector("+JSON.stringify(selector)+");if(node)node.scrollIntoView({block:'center',inline:'nearest'});return true;})()");
   const rect=await evaluate("(()=>{const node=document.querySelector("+JSON.stringify(selector)+");if(!node)return null;const box=node.getBoundingClientRect();return {x:box.left+box.width/2,y:box.top+box.height/2,w:box.width,h:box.height,disabled:!!node.disabled};})()");
   assert.ok(rect && rect.w>0 && rect.h>0,'Visible control not found: '+selector);
   assert.equal(rect.disabled,false,'Control is disabled: '+selector);
@@ -158,6 +159,7 @@ try{
 
   // Edit the new rule and verify the existing values are retained.
   await click('#sideRuleList .rule-item:first-child button[aria-label="编辑规则"]');
+  await waitFor("!document.querySelector('#editorPanel').hidden",'edit form opened');
   assert.equal(await evaluate("document.querySelector('#ruleFind').value"),'OldLabel');
   await setValue('#ruleReplace','UpdatedLabel');
   await click('#saveRule');
