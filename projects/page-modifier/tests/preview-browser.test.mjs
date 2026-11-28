@@ -124,6 +124,7 @@ async function screenshot(name){
 async function openTestMenuAndClick(selector){
   if(await evaluate("document.querySelector('#testMenu').hidden")) await click('#testMenuToggle');
   await click(selector);
+  if(selector === '#failNextSave' && !(await evaluate("document.querySelector('#testMenu').hidden"))) await click('#testMenuToggle');
 }
 
 try{
