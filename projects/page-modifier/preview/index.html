@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Page Modifier · 网页内容修改器</title>
+<style>
+:root{
+  --od-ink:#1b2c49;--od-sub:#5b6e86;--od-line:#dfe6ef;--od-brand:#365eda;
+  --od-paper:#fff;--od-bg:#fff;--od-input-border:#7f8da1;--od-focus:var(--od-brand);
+  --od-muted:#f5f7fb;--od-positive:#117a5d;--od-negative:#ae3d4b;
+  --od-warning:#80510d;--od-warning-bg:#fff9ec;--od-warning-border:#dcc58a;
+  --od-negative-bg:#fff0f1;--od-on-brand:#fff;--od-action-bg:var(--od-muted);
+  --od-action-ink:var(--od-ink);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;
+  --radius-control:8px;--radius-surface:12px;--radius-pill:999px;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;
+  font-size:13px;line-height:1.5;color:var(--od-ink);background:var(--od-bg);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-width:0;min-height:100%;margin:0}
+body{background:#f3f6fb;color:var(--od-ink);overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.48;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.preview-stage{min-height:100vh;padding:20px 24px 28px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.preview-toolbar{width:min(1200px,100%);display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.preview-brand{display:flex;align-items:baseline;gap:8px;min-width:0}
+.preview-brand strong{font-size:13px;font-weight:700;letter-spacing:-.01em}
+.preview-kicker{font-size:10px;letter-spacing:.08em;color:#71819a;font-weight:700;white-space:nowrap}
+.preview-actions{display:flex;align-items:center;gap:8px;min-width:0}
+.preview-segment{display:flex;align-items:center;gap:2px;padding:3px;border:1px solid #dfe6ef;border-radius:9px;background:#fff}
+.preview-segment button,.preview-test-button{min-height:30px;padding:5px 10px;border:0;border-radius:6px;background:transparent;color:#61718a;font-size:11px;font-weight:600;white-space:nowrap}
+.preview-segment button[aria-pressed=true]{background:#edf2ff;color:#294dbb}
+.preview-test-wrap{position:relative}
+.preview-test-button{border:1px solid #dfe6ef;background:#fff;color:#435570}
+.preview-test-button[aria-expanded=true]{background:#edf2ff;border-color:#b9c9f5;color:#294dbb}
+.preview-test-menu{position:absolute;z-index:30;right:0;top:calc(100% + 7px);width:230px;padding:10px;background:#fff;border:1px solid #dfe6ef;border-radius:10px;box-shadow:0 8px 28px #1b2c491a;display:grid;gap:7px}
+.preview-test-menu label{display:flex;align-items:center;gap:8px;padding:5px 3px;color:#40516b;font-size:12px}
+.preview-test-menu input{accent-color:var(--od-brand)}
+.preview-test-menu button{min-height:32px;padding:6px 9px;text-align:left;border:1px solid #e2e8f1;border-radius:7px;background:#fff;color:#40516b;font-size:12px}
+.preview-test-menu button:hover{background:#f5f7fb}
+.preview-test-menu button.danger{color:var(--od-negative)}
+.device-frame{width:min(1200px,100%);min-height:780px;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);border:1px solid #dfe6ef;border-radius:16px;box-shadow:0 8px 28px #1b2c490d}
+.app-header{height:58px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--od-line);background:var(--od-paper)}
+.brand-mark{width:32px;height:32px;display:grid;place-items:center;flex:none;border-radius:9px;background:var(--od-brand);color:#fff;font-size:12px;font-weight:800;letter-spacing:-.04em}
+.app-heading{min-width:0;display:grid;gap:0}
+.app-heading h1{margin:0;font-size:14px;line-height:1.35;font-weight:700;letter-spacing:-.02em}
+.app-heading p{margin:1px 0 0;color:var(--od-sub);font-size:11px;line-height:1.35}
+.header-status{margin-left:auto;display:flex;align-items:center;gap:6px;white-space:nowrap;color:var(--od-positive);font-size:11px;font-weight:650}
+.status-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.header-status[data-state=off]{color:var(--od-sub)}
+.app-main{position:relative;flex:1;min-height:720px;background:var(--od-paper)}
+.side-view,.pc-view{min-width:0;min-height:100%}
+.side-view{padding:14px 14px 22px;display:grid;align-content:start;gap:14px}
+.site-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:0 1px 12px;border-bottom:1px solid var(--od-line)}
+.site-copy{min-width:0;display:grid;gap:2px}
+.eyebrow{font-size:10px;line-height:1.4;letter-spacing:.07em;color:var(--od-sub);font-weight:700}
+.site-copy strong{font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.site-copy small{font-size:11px;color:var(--od-sub);line-height:1.45}
+.site-tag{flex:none;padding:4px 7px;border:1px solid var(--od-line);border-radius:var(--radius-pill);color:var(--od-sub);font-size:10px;white-space:nowrap}
+.setting-list{display:grid;gap:0;border-bottom:1px solid var(--od-line)}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;min-height:58px;padding:8px 1px}
+.switch-row+.switch-row{border-top:1px solid var(--od-line)}
+.switch-copy{min-width:0;display:grid;gap:2px}
+.switch-copy strong{font-size:12px;font-weight:650;line-height:1.45}
+.switch-copy small{font-size:11px;color:var(--od-sub);line-height:1.45;overflow-wrap:anywhere}
+.switch{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;width:42px;height:30px;padding:0;border:0;background:transparent}
+.switch-track{position:absolute;left:0;top:4px;width:42px;height:22px;border-radius:var(--radius-pill);background:#9aa7b8;transition:background .14s ease}
+.switch-thumb{position:absolute;left:3px;top:7px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px #1b2c4926;transition:transform .14s ease}
+.switch.is-on .switch-track{background:var(--od-brand)}
+.switch.is-on .switch-thumb{transform:translateX(20px)}
+.switch:focus-visible{outline-offset:3px;border-radius:7px}
+.switch:disabled{opacity:.45;cursor:not-allowed}
+.switch-state{font-size:10px;color:var(--od-sub);white-space:nowrap}
+.rules-section{display:grid;gap:9px;min-width:0}
+.section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.section-heading h2{margin:0;font-size:13px;line-height:1.4;font-weight:700}
+.section-heading p{margin:2px 0 0;color:var(--od-sub);font-size:11px;line-height:1.45}
+.heading-count{flex:none;color:var(--od-sub);font-size:11px;white-space:nowrap}
+.primary-button,.secondary-button,.quiet-button,.danger-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:7px 12px;border:1px solid transparent;border-radius:8px;font-size:12px;font-weight:650;line-height:1.3}
+.primary-button{background:var(--od-brand);border-color:var(--od-brand);color:var(--od-on-brand)}
+.primary-button:hover:not(:disabled){filter:brightness(.96)}
+.secondary-button{background:var(--od-action-bg);border-color:var(--od-line);color:var(--od-action-ink)}
+.quiet-button{background:transparent;border-color:transparent;color:var(--od-sub)}
+.danger-button{background:var(--od-negative-bg);border-color:#e7b7bd;color:var(--od-negative)}
+.add-button{min-height:32px;padding:6px 10px;white-space:nowrap}
+.rule-list{list-style:none;margin:0;padding:0;min-width:0;border:1px solid var(--od-line);border-radius:11px;overflow:hidden;background:var(--od-paper)}
+.rule-item{min-width:0;padding:11px 10px}
+.rule-item+.rule-item{border-top:1px solid var(--od-line)}
+.rule-top{display:flex;align-items:center;gap:7px;min-width:0}
+.rule-order{width:21px;height:21px;display:grid;place-items:center;flex:none;border-radius:6px;background:var(--od-muted);color:var(--od-sub);font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
+.rule-title{min-width:0;flex:1;font-size:12px;line-height:1.4;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rule-toggle{width:34px;height:26px}
+.rule-toggle .switch-track{top:4px;width:34px;height:18px}
+.rule-toggle .switch-thumb{top:6px;left:3px;width:14px;height:14px}
+.rule-toggle.is-on .switch-thumb{transform:translateX(14px)}
+.rule-mapping{display:flex;align-items:center;gap:7px;min-width:0;margin:7px 0 6px 28px;color:var(--od-ink);font-size:11px;line-height:1.45}
+.rule-mapping code{min-width:0;max-width:46%;padding:2px 5px;border-radius:5px;background:var(--od-muted);font:11px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere;word-break:break-word}
+.mapping-arrow{flex:none;color:var(--od-sub)}
+.rule-meta{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-left:28px;min-width:0}
+.meta-chip{padding:2px 5px;border-radius:5px;background:var(--od-muted);color:var(--od-sub);font-size:10px;line-height:1.4}
+.state-text{font-size:10px;line-height:1.4;font-weight:650}
+.state-text[data-tone=positive]{color:var(--od-positive)}
+.state-text[data-tone=muted]{color:var(--od-sub)}
+.rule-actions{display:flex;align-items:center;justify-content:flex-end;gap:2px;margin:7px 0 0 24px}
+.icon-action{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:30px;min-height:29px;padding:4px 6px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--od-sub);font-size:11px}
+.icon-action:hover:not(:disabled){background:var(--od-muted);color:var(--od-ink)}
+.icon-action.danger:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative)}
+.action-symbol{font-size:14px;line-height:1}
+.action-label{display:none}
+.list-empty{padding:22px 14px;text-align:center;color:var(--od-sub);font-size:12px;line-height:1.6}
+.list-empty strong{display:block;margin-bottom:3px;color:var(--od-ink);font-size:12px}
+.list-empty p{margin:0 0 10px}
+.list-empty button{min-height:31px;padding:5px 10px}
+.side-footnote{margin:0;padding:0 1px;color:var(--od-sub);font-size:10px;line-height:1.55}
+.side-editor-slot{position:absolute;inset:0;z-index:10;overflow-y:auto;overscroll-behavior:contain;background:var(--od-paper)}
+.editor-panel{min-width:0;background:var(--od-paper);color:var(--od-ink)}
+.side-editor-slot .editor-panel{min-height:100%;padding:15px 14px 24px}
+.editor-header{display:flex;align-items:flex-start;gap:10px;padding-bottom:13px;margin-bottom:14px;border-bottom:1px solid var(--od-line)}
+.back-button{display:inline-flex;align-items:center;gap:4px;flex:none;min-height:30px;padding:4px 7px;border:1px solid var(--od-line);border-radius:7px;background:var(--od-paper);color:var(--od-sub);font-size:11px}
+.back-button span{font-size:15px;line-height:1}
+.editor-heading{min-width:0;flex:1}
+.editor-heading h2{margin:0;font-size:15px;line-height:1.4;font-weight:700}
+.editor-heading p{margin:3px 0 0;color:var(--od-sub);font-size:11px;line-height:1.45}
+.rule-form{display:grid;gap:13px;min-width:0}
+.form-field{display:grid;gap:5px;min-width:0}
+.form-field label,.form-label{font-size:12px;font-weight:650;line-height:1.4;color:var(--od-ink)}
+.optional{margin-left:4px;color:var(--od-sub);font-size:10px;font-weight:400}
+.field-help{margin:0;color:var(--od-sub);font-size:10px;line-height:1.5}
+.form-field input,.form-field select,.form-field textarea{width:100%;min-width:0;min-height:38px;padding:8px 10px;border:1px solid var(--od-input-border);border-radius:8px;background:var(--od-paper);color:var(--od-ink);font-size:12px}
+.form-field textarea{min-height:76px;resize:vertical;line-height:1.55}
+.form-field input::placeholder,.form-field textarea::placeholder{color:#8996a8}
+.form-field [aria-invalid=true]{border-color:var(--od-negative)}
+.check-row{display:flex;align-items:center;gap:8px;min-height:30px}
+.check-row label{display:flex;align-items:center;gap:8px;color:var(--od-ink);font-size:12px;font-weight:500;cursor:pointer}
+.check-row input,.scope-option input{accent-color:var(--od-brand)}
+.scope-fieldset{min-width:0;margin:0;padding:0;border:0;display:grid;gap:6px}
+.scope-fieldset legend{margin-bottom:6px;font-size:12px;font-weight:650}
+.scope-options{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.scope-option{position:relative;display:flex;align-items:center;gap:7px;min-height:38px;padding:7px 9px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);font-size:11px;color:var(--od-ink);cursor:pointer}
+.scope-option:has(input:checked){border-color:#8ea6ed;background:#f3f6ff;color:#294dbb}
+.scope-option input{margin:0}
+.regex-tools{display:grid;gap:8px;padding:11px;border:1px solid var(--od-line);border-radius:10px;background:var(--od-muted)}
+.regex-tools-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.regex-tools-head strong{font-size:12px;font-weight:700}
+.regex-tools-head span{font-size:10px;color:var(--od-sub)}
+.regex-tools .form-field input,.regex-tools .form-field textarea{background:var(--od-paper)}
+.test-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.match-count{font-size:11px;font-weight:650;color:var(--od-positive)}
+.test-toolbar button{min-height:28px;padding:4px 8px;border:1px solid var(--od-line);border-radius:6px;background:var(--od-paper);color:var(--od-sub);font-size:10px}
+.result-preview{min-width:0;max-height:150px;overflow:auto;margin:0;padding:9px;border:1px solid var(--od-line);border-radius:7px;background:var(--od-paper);color:var(--od-ink);font:11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.alert{padding:9px 10px;border:1px solid var(--od-negative);border-radius:8px;background:var(--od-negative-bg);color:var(--od-negative);font-size:11px;line-height:1.5}
+.editor-footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:12px;margin-top:2px;border-top:1px solid var(--od-line)}
+.editor-footer button{min-width:82px}
+.pc-view{padding:25px 26px 32px;display:grid;align-content:start;gap:18px}
+.pc-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0}
+.pc-heading h2{margin:3px 0 0;font-size:21px;line-height:1.25;letter-spacing:-.03em}
+.pc-heading p{margin:5px 0 0;color:var(--od-sub);font-size:12px;line-height:1.5}
+.pc-heading .primary-button{flex:none;min-height:38px}
+.pc-controls{display:grid;grid-template-columns:1fr 1fr minmax(180px,1.1fr);min-width:0;border:1px solid var(--od-line);border-radius:11px;background:var(--od-paper);overflow:hidden}
+.pc-control{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:11px 13px}
+.pc-control+.pc-control{border-left:1px solid var(--od-line)}
+.pc-control .switch-copy strong{font-size:11px}
+.pc-control .switch-copy small{font-size:10px}
+.pc-site-summary{display:grid;align-content:center;gap:2px;min-width:0;padding:10px 13px;border-left:1px solid var(--od-line)}
+.pc-site-summary span{font-size:10px;color:var(--od-sub)}
+.pc-site-summary strong{font-size:12px;overflow-wrap:anywhere}
+.pc-site-summary small{font-size:10px;color:var(--od-sub)}
+.pc-content{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);align-items:start;gap:16px;min-width:0}
+.pc-list-column,.pc-editor-slot{min-width:0;border:1px solid var(--od-line);border-radius:12px;background:var(--od-paper);overflow:hidden}
+.pc-list-column{padding:14px}
+.pc-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.pc-list-head h3{margin:0;font-size:13px;font-weight:700}
+.pc-list-head span{font-size:11px;color:var(--od-sub)}
+.pc-tools{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pc-tools label{flex:1;min-width:0}
+.pc-tools input{width:100%;min-width:0;min-height:36px;padding:7px 10px;border:1px solid var(--od-input-border);border-radius:8px;background:var(--od-paper);color:var(--od-ink);font-size:11px}
+.pc-order-hint{flex:none;font-size:10px;color:var(--od-sub);white-space:nowrap}
+.pc-list-column .rule-list{border-radius:9px}
+.pc-list-column .rule-item{padding:12px}
+.pc-list-column .rule-title{font-size:12px}
+.pc-list-column .rule-mapping{font-size:11px;margin-top:8px}
+.pc-list-column .rule-mapping code{max-width:43%;font-size:11px}
+.pc-list-column .rule-meta{margin-top:7px}
+.pc-list-column .rule-actions{margin:8px 0 0 0;padding-top:7px;border-top:1px solid var(--od-line)}
+.pc-list-column .action-label{display:inline}
+.pc-list-column .icon-action{min-height:30px;padding:4px 7px}
+.pc-editor-slot{padding:15px;min-height:330px}
+.pc-editor-slot .editor-panel{padding:0}
+.pc-editor-slot .editor-header{margin-bottom:14px}
+.editor-empty{min-height:290px;display:grid;place-items:center;text-align:center;padding:25px;color:var(--od-sub)}
+.editor-empty-inner{max-width:260px}
+.editor-empty-mark{width:42px;height:42px;margin:0 auto 10px;display:grid;place-items:center;border:1px solid var(--od-line);border-radius:12px;background:var(--od-muted);color:var(--od-brand);font-size:18px;font-weight:700}
+.editor-empty strong{display:block;color:var(--od-ink);font-size:13px}
+.editor-empty p{margin:5px 0 0;font-size:11px;line-height:1.6}
+.toast{position:fixed;z-index:60;left:50%;bottom:20px;transform:translateX(-50%);max-width:calc(100vw - 28px);padding:9px 13px;border:1px solid #cbd8f4;border-radius:9px;background:#fff;color:#294dbb;box-shadow:0 6px 22px #1b2c491c;font-size:12px;font-weight:600;white-space:normal;text-align:center}
+.dialog-layer{position:fixed;z-index:50;inset:0;display:grid;place-items:center;padding:18px;background:#12213a66}
+.dialog-card{width:min(410px,100%);padding:18px;border:1px solid var(--od-line);border-radius:13px;background:var(--od-paper);box-shadow:0 16px 48px #101a2b2e}
+.dialog-card h2{margin:0;font-size:15px;font-weight:700}
+.dialog-card p{margin:7px 0 16px;color:var(--od-sub);font-size:12px;line-height:1.6}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px}
+.dialog-actions button{min-width:76px}
+@media(max-width:900px){
+  .pc-view{padding:18px 16px 24px}
+  .pc-controls{grid-template-columns:1fr 1fr}
+  .pc-site-summary{grid-column:1/-1;border-left:0;border-top:1px solid var(--od-line)}
+  .pc-content{grid-template-columns:minmax(0,1fr)}
+  .pc-editor-slot{min-height:0}
+  .editor-empty{min-height:180px}
+}
+@media(max-width:520px){
+  .preview-stage{padding:10px 0 20px;gap:9px}
+  .preview-toolbar{padding:0 10px;align-items:flex-start;flex-direction:column;gap:7px}
+  .preview-actions{width:100%;justify-content:space-between}
+  .device-frame{border-radius:0 0 12px 12px}
+  .pc-view{padding:15px 12px 22px;gap:13px}
+  .pc-heading{align-items:flex-start}
+  .pc-heading h2{font-size:18px}
+  .pc-heading p{font-size:11px}
+  .pc-heading .primary-button{min-height:34px;padding:6px 9px;font-size:11px}
+  .pc-controls{grid-template-columns:minmax(0,1fr)}
+  .pc-control+.pc-control{border-left:0;border-top:1px solid var(--od-line)}
+  .pc-site-summary{grid-column:auto}
+  .pc-list-column{padding:11px}
+  .pc-tools{align-items:stretch}
+  .pc-order-hint{align-self:center}
+  .pc-list-column .rule-mapping code{max-width:44%}
+}
+@media(hover:none),(pointer:coarse){
+  .switch{height:38px;width:46px}
+  .switch-track{width:42px}
+  .icon-action{min-height:36px;min-width:34px}
+  .back-button{min-height:38px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-brand:#3566ba;
+    --od-paper:#151c28;--od-bg:#101722;--od-input-border:#6d809b;--od-focus:#9dc1ff;
+    --od-muted:#222d3e;--od-positive:#a1f3cc;--od-negative:#ff9ea6;
+    --od-warning:#ffd08a;--od-warning-bg:#392d21;--od-warning-border:#8b6841;
+    --od-negative-bg:#442632;--od-action-bg:#222d3e;--od-action-ink:#e9eef7;
+  }
+  body{background:#0d1420}
+  .preview-kicker{color:#9aabc2}
+  .preview-segment,.preview-test-button,.preview-test-menu{background:#151c28;border-color:#374457;color:#c4d0df}
+  .preview-segment button[aria-pressed=true],.preview-test-button[aria-expanded=true]{background:#243450;color:#c7d8ff}
+  .preview-test-menu label,.preview-test-menu button{color:#d5deea}
+  .preview-test-menu button{background:#151c28;border-color:#374457}
+  .device-frame{border-color:#374457;box-shadow:0 8px 28px #0004}
+  .scope-option:has(input:checked){background:#22324d;border-color:#607fbd;color:#d0ddfa}
+  .toast{background:#17253a;border-color:#3c5c94;color:#c7d8ff}
+  .form-field input::placeholder,.form-field textarea::placeholder{color:#8291a6}
+}
+</style>
+</head>
+<body data-view="side">
+<div class="preview-stage">
+  <header class="preview-toolbar" aria-label="原型预览控制">
+    <div class="preview-brand"><span class="preview-kicker">OPENDESK · UI PREVIEW</span><strong>Page Modifier</strong></div>
+    <div class="preview-actions">
+      <div class="preview-segment" role="group" aria-label="切换预览界面">
+        <button type="button" data-view-choice="side" aria-pressed="true">Side Panel</button>
+        <button type="button" data-view-choice="pc" aria-pressed="false">PC 管理</button>
+      </div>
+      <div class="preview-test-wrap">
+        <button type="button" class="preview-test-button" id="testMenuToggle" aria-expanded="false" aria-controls="testMenu">原型测试 ▾</button>
+        <div class="preview-test-menu" id="testMenu" hidden>
+          <label><input type="checkbox" id="failNextSave"> 下一次保存模拟失败</label>
+          <button type="button" id="clearRules" class="danger">清空全部规则（测试空状态）</button>
+          <button type="button" id="restoreRules">恢复示例规则</button>
+          <button type="button" id="resetSwitches">重置全局和网站开关</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="device-frame" id="deviceFrame">
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true">PM</div>
+      <div class="app-heading"><h1>Page Modifier</h1><p>网页内容修改器</p></div>
+      <div class="header-status" id="headerStatus" data-state="on"><span class="status-dot" aria-hidden="true"></span><span id="headerStatusText">运行中</span></div>
+    </header>
+
+    <main class="app-main" id="appMain">
+      <section class="side-view" id="sideView" aria-label="Side Panel 快速管理">
+        <div class="site-summary">
+          <div class="site-copy"><span class="eyebrow">当前网站</span><strong>chatgpt.com</strong><small>网站设置独立于全局开关</small></div>
+          <span class="site-tag">当前页面</span>
+        </div>
+
+        <section class="setting-list" aria-label="自动替换设置">
+          <div class="switch-row">
+            <div class="switch-copy"><strong>全局自动替换</strong><small>关闭后所有网站暂停，原网站设置保留</small></div>
+            <button type="button" class="switch" id="sideGlobalSwitch" role="switch" aria-checked="true" aria-label="全局自动替换"><span class="switch-track"></span><span class="switch-thumb"></span></button>
+          </div>
+          <div class="switch-row">
+            <div class="switch-copy"><strong>在当前网站启用</strong><small>只控制 chatgpt.com，不影响其他网站</small></div>
+            <button type="button" class="switch" id="sideSiteSwitch" role="switch" aria-checked="true" aria-label="在当前网站启用"><span class="switch-track"></span><span class="switch-thumb"></span></button>
+          </div>
+        </section>
+
+        <section class="rules-section" aria-labelledby="sideRulesTitle">
+          <div class="section-heading">
+            <div><h2 id="sideRulesTitle">替换规则</h2><p>按列表顺序执行，靠前规则优先</p></div>
+            <span class="heading-count" id="sideRuleCount">3 条规则</span>
+          </div>
+          <button type="button" class="primary-button add-button" id="sideAddRule">＋ 添加规则</button>
+          <ol class="rule-list" id="sideRuleList" aria-label="替换规则列表"></ol>
+        </section>
+        <p class="side-footnote">关闭侧栏不会停止替换。全局开关和当前网站开关分别控制运行范围。</p>
+      </section>
+
+      <section class="pc-view" id="pcView" aria-label="PC 完整管理页面" hidden>
+        <div class="pc-heading">
+          <div><span class="eyebrow">RULE WORKSPACE</span><h2>替换规则管理</h2><p>集中管理规则、执行顺序与网站范围。</p></div>
+          <button type="button" class="primary-button" id="pcAddRule">＋ 新建规则</button>
+        </div>
+
+        <section class="pc-controls" aria-label="运行范围设置">
+          <div class="pc-control">
+            <div class="switch-copy"><strong>全局自动替换</strong><small id="pcGlobalState">所有网站允许执行</small></div>
+            <button type="button" class="switch" id="pcGlobalSwitch" role="switch" aria-checked="true" aria-label="全局自动替换"><span class="switch-track"></span><span class="switch-thumb"></span></button>
+          </div>
+          <div class="pc-control">
+            <div class="switch-copy"><strong>当前网站启用</strong><small id="pcSiteState">chatgpt.com 正常执行</small></div>
+            <button type="button" class="switch" id="pcSiteSwitch" role="switch" aria-checked="true" aria-label="当前网站启用"><span class="switch-track"></span><span class="switch-thumb"></span></button>
+          </div>
+          <div class="pc-site-summary"><span>当前网站范围</span><strong>chatgpt.com</strong><small>当前网站开关不会修改其他网站设置</small></div>
+        </section>
+
+        <div class="pc-content">
+          <section class="pc-list-column" aria-labelledby="pcRulesTitle">
+            <div class="pc-list-head"><h3 id="pcRulesTitle">全部规则</h3><span id="pcRuleCount">3 条 · 3 条启用</span></div>
+            <div class="pc-tools">
+              <label><span class="visually-hidden">搜索规则</span><input id="ruleSearch" type="search" placeholder="搜索名称、查找内容或替换结果" autocomplete="off"></label>
+              <span class="pc-order-hint">按执行顺序</span>
+            </div>
+            <ol class="rule-list" id="pcRuleList" aria-label="全部替换规则"></ol>
+          </section>
+
+          <section class="pc-editor-slot" id="pcEditorSlot" aria-label="规则编辑区">
+            <div class="editor-empty" id="editorEmpty">
+              <div class="editor-empty-inner"><div class="editor-empty-mark" aria-hidden="true">↗</div><strong>选择一条规则进行编辑</strong><p>也可以点击「新建规则」，在这里配置查找内容、替换结果和应用范围。</p></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <div class="side-editor-slot" id="sideEditorSlot" hidden></div>
+
+      <section class="editor-panel" id="editorPanel" aria-labelledby="editorTitle" hidden>
+        <div class="editor-header">
+          <button type="button" class="back-button" id="editorBack"><span aria-hidden="true">‹</span><span>返回</span></button>
+          <div class="editor-heading"><h2 id="editorTitle">新建规则</h2><p id="editorSubtitle">设置查找内容、替换结果和应用范围</p></div>
+        </div>
+        <form class="rule-form" id="ruleForm" novalidate>
+          <div class="form-field">
+            <label for="ruleName">规则名称 <span class="optional">选填</span></label>
+            <input id="ruleName" type="text" maxlength="80" placeholder="例如：品牌名称统一替换" autocomplete="off">
+          </div>
+          <div class="form-field">
+            <label for="ruleFind" id="findLabel">查找内容</label>
+            <input id="ruleFind" type="text" maxlength="500" placeholder="输入要查找的文字" autocomplete="off" required>
+            <p class="field-help" id="findHelp">输入网页中需要替换的文字。</p>
+          </div>
+          <div class="form-field">
+            <label for="ruleReplace">替换为</label>
+            <input id="ruleReplace" type="text" maxlength="1000" placeholder="输入替换后的文字" autocomplete="off">
+            <p class="field-help">允许留空，留空表示删除匹配到的文字。</p>
+          </div>
+          <div class="form-field">
+            <label for="matchMode">匹配方式</label>
+            <select id="matchMode">
+              <option value="text">普通文字</option>
+              <option value="regex">正则表达式</option>
+            </select>
+          </div>
+          <div class="check-row"><label for="caseSensitive"><input type="checkbox" id="caseSensitive"> 区分大小写</label></div>
+          <fieldset class="scope-fieldset">
+            <legend>应用范围</legend>
+            <div class="scope-options">
+              <label class="scope-option"><input type="radio" name="scope" value="site" checked><span>当前网站</span></label>
+              <label class="scope-option"><input type="radio" name="scope" value="all"><span>全部网站</span></label>
+            </div>
+            <p class="field-help" id="scopeHint">只在 chatgpt.com 生效。</p>
+          </fieldset>
+
+          <section class="regex-tools" id="regexTools" aria-label="正则表达式测试" hidden>
+            <div class="regex-tools-head"><strong>正则测试</strong><span>仅在本地原型中计算</span></div>
+            <div class="form-field"><label for="testText">测试文字</label><textarea id="testText" rows="4" spellcheck="false">Product A 和 Product B 正在更新，Product C 即将上线。</textarea></div>
+            <div id="regexError" class="alert" role="alert" hidden></div>
+            <div class="test-toolbar"><span class="match-count" id="matchCount">等待测试</span><button type="button" id="runTest">重新测试</button></div>
+            <div class="form-field"><label for="testOutput">替换结果预览</label><pre class="result-preview" id="testOutput" aria-live="polite">输入表达式后查看替换结果。</pre></div>
+          </section>
+
+          <div class="alert" id="formError" role="alert" hidden></div>
+          <div class="editor-footer">
+            <button type="button" class="secondary-button" id="cancelEdit">取消</button>
+            <button type="submit" class="primary-button" id="saveRule">保存规则</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="dialog-layer" id="dialogLayer" hidden>
+  <section class="dialog-card" role="alertdialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogMessage">
+    <h2 id="dialogTitle">请确认</h2>
+    <p id="dialogMessage"></p>
+    <div class="dialog-actions"><button type="button" class="secondary-button" id="dialogCancel">取消</button><button type="button" class="danger-button" id="dialogConfirm">确认</button></div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+  'use strict';
+
+  const seedRules = [
+    {id:'rule-1',name:'品牌名称统一替换',find:'OldBrand',replace:'NewBrand',mode:'text',caseSensitive:false,scope:'site',enabled:true},
+    {id:'rule-2',name:'产品名称更新',find:'Product A',replace:'Product B',mode:'text',caseSensitive:false,scope:'site',enabled:true},
+    {id:'rule-3',name:'统一产品系列格式',find:'\\bProduct\\s+([A-Z])\\b',replace:'Product-$1',mode:'regex',caseSensitive:false,scope:'all',enabled:true}
+  ];
+  let rules = seedRules.map(function(rule){return Object.assign({},rule);});
+  let globalEnabled = true;
+  let siteEnabled = true;
+  let currentView = 'side';
+  let editingId = null;
+  let editorOpen = false;
+  let editorDirty = false;
+  let saving = false;
+  let failNextSave = false;
+  let nextRuleId = 4;
+  let previousFocus = null;
+  let dialogReturnFocus = null;
+  let dialogAction = null;
+  let toastTimer = null;
+
+  const $ = function(id){return document.getElementById(id);};
+  const sideView = $('sideView');
+  const pcView = $('pcView');
+  const sideEditorSlot = $('sideEditorSlot');
+  const pcEditorSlot = $('pcEditorSlot');
+  const editorPanel = $('editorPanel');
+  const editorEmpty = $('editorEmpty');
+  const ruleForm = $('ruleForm');
+  const ruleName = $('ruleName');
+  const ruleFind = $('ruleFind');
+  const ruleReplace = $('ruleReplace');
+  const matchMode = $('matchMode');
+  const caseSensitive = $('caseSensitive');
+  const testText = $('testText');
+  const testOutput = $('testOutput');
+  const matchCount = $('matchCount');
+  const regexError = $('regexError');
+  const formError = $('formError');
+  const saveButton = $('saveRule');
+  const searchInput = $('ruleSearch');
+  const testMenu = $('testMenu');
+  const testMenuToggle = $('testMenuToggle');
+  const dialogLayer = $('dialogLayer');
+  const dialogTitle = $('dialogTitle');
+  const dialogMessage = $('dialogMessage');
+  const dialogConfirm = $('dialogConfirm');
+  const dialogCancel = $('dialogCancel');
+  const toast = $('toast');
+
+  function make(tag, className, text){
+    const node = document.createElement(tag);
+    if(className) node.className = className;
+    if(text !== undefined && text !== null) node.textContent = text;
+    return node;
+  }
+
+  function showToast(message){
+    toast.textContent = message;
+    toast.hidden = false;
+    if(toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function(){toast.hidden = true;},2300);
+  }
+
+  function showDialog(title,message,confirmText,action,danger){
+    dialogReturnFocus = document.activeElement;
+    dialogTitle.textContent = title;
+    dialogMessage.textContent = message;
+    dialogConfirm.textContent = confirmText || '确认';
+    dialogConfirm.className = danger ? 'danger-button' : 'primary-button';
+    dialogAction = action;
+    dialogLayer.hidden = false;
+    window.requestAnimationFrame(function(){dialogCancel.focus();});
+  }
+
+  function closeDialog(){
+    dialogLayer.hidden = true;
+    dialogAction = null;
+    if(dialogReturnFocus && dialogReturnFocus.isConnected) dialogReturnFocus.focus();
+  }
+
+  function switchState(button,checked){
+    button.setAttribute('aria-checked',String(checked));
+    button.classList.toggle('is-on',checked);
+  }
+
+  function effectiveState(rule){
+    if(!globalEnabled) return {label:'全局暂停',tone:'muted'};
+    if(!siteEnabled) return {label:'本站暂停',tone:'muted'};
+    if(!rule.enabled) return {label:'已停用',tone:'muted'};
+    return {label:'已启用',tone:'positive'};
+  }
+
+  function updateSettings(){
+    switchState($('sideGlobalSwitch'),globalEnabled);
+    switchState($('pcGlobalSwitch'),globalEnabled);
+    switchState($('sideSiteSwitch'),siteEnabled);
+    switchState($('pcSiteSwitch'),siteEnabled);
+
+    $('sideGlobalSwitch').setAttribute('aria-label','全局自动替换：'+(globalEnabled?'开启':'关闭'));
+    $('pcGlobalSwitch').setAttribute('aria-label','全局自动替换：'+(globalEnabled?'开启':'关闭'));
+    $('sideSiteSwitch').setAttribute('aria-label','当前网站自动替换：'+(siteEnabled?'开启':'关闭'));
+    $('pcSiteSwitch').setAttribute('aria-label','当前网站自动替换：'+(siteEnabled?'开启':'关闭'));
+
+    const state = !globalEnabled ? '全局暂停' : (!siteEnabled ? '本站暂停' : '运行中');
+    $('headerStatusText').textContent = state;
+    $('headerStatus').dataset.state = globalEnabled && siteEnabled ? 'on' : 'off';
+    $('sideGlobalSwitch').title = globalEnabled ? '关闭后所有网站暂停' : '开启后恢复各网站原有设置';
+    $('sideSiteSwitch').title = siteEnabled ? '暂停当前网站' : '恢复当前网站';
+    $('pcGlobalState').textContent = globalEnabled ? '所有网站允许执行' : '所有网站均已暂停';
+    $('pcSiteState').textContent = siteEnabled ? 'chatgpt.com 正常执行' : '仅 chatgpt.com 已暂停';
+  }
+
+  function formatFind(rule){
+    if(rule.mode === 'regex') return '/' + rule.find + '/' + (rule.caseSensitive ? 'g' : 'gi');
+    return rule.find;
+  }
+
+  function makeAction(label,symbol,disabled,onClick,danger){
+    const button = make('button','icon-action' + (danger ? ' danger' : ''));
+    button.type = 'button';
+    button.disabled = !!disabled;
+    button.setAttribute('aria-label',label);
+    button.title = label;
+    const glyph = make('span','action-symbol',symbol);
+    glyph.setAttribute('aria-hidden','true');
+    const word = make('span','action-label',label);
+    button.append(glyph,word);
+    button.addEventListener('click',onClick);
+    return button;
+  }
+
+  function renderRuleList(target,query){
+    target.replaceChildren();
+    const normalized = (query || '').trim().toLocaleLowerCase();
+    const visible = rules.map(function(rule,index){return {rule:rule,index:index};}).filter(function(item){
+      if(!normalized) return true;
+      const r = item.rule;
+      return [r.name,r.find,r.replace,formatFind(r)].join(' ').toLocaleLowerCase().includes(normalized);
+    });
+
+    if(!visible.length){
+      const empty = make('li','list-empty');
+      if(rules.length === 0){
+        empty.append(make('strong','', '还没有替换规则'),make('p','', '添加第一条规则，开始整理网页中的文字。'));
+        const add = make('button','secondary-button','＋ 添加第一条规则');
+        add.type = 'button';
+        add.addEventListener('click',function(){openEditor(null);});
+        empty.append(add);
+      }else{
+        empty.append(make('strong','', '没有找到匹配的规则'),make('p','', '试试其他关键词，或清空搜索条件。'));
+        const clear = make('button','secondary-button','清空搜索');
+        clear.type = 'button';
+        clear.addEventListener('click',function(){searchInput.value='';renderAll();searchInput.focus();});
+        empty.append(clear);
+      }
+      target.append(empty);
+      return;
+    }
+
+    visible.forEach(function(item){
+      const rule = item.rule;
+      const index = item.index;
+      const state = effectiveState(rule);
+      const li = make('li','rule-item');
+      const top = make('div','rule-top');
+      const order = make('span','rule-order',String(index+1).padStart(2,'0'));
+      const title = make('strong','rule-title',rule.name || '未命名规则');
+      const toggle = make('button','switch rule-toggle' + (rule.enabled ? ' is-on' : ''));
+      toggle.type = 'button';
+      toggle.setAttribute('role','switch');
+      toggle.setAttribute('aria-checked',String(rule.enabled));
+      toggle.setAttribute('aria-label',(rule.name || '未命名规则') + (rule.enabled ? '：停用' : '：启用'));
+      toggle.title = rule.enabled ? '停用规则' : '启用规则';
+      toggle.append(make('span','switch-track'),make('span','switch-thumb'));
+      toggle.addEventListener('click',function(){toggleRule(rule.id);});
+      top.append(order,title,toggle);
+
+      const mapping = make('div','rule-mapping');
+      const from = make('code','',formatFind(rule));
+      const arrow = make('span','mapping-arrow','→');
+      const to = make('code','',rule.replace === '' ? '（删除匹配内容）' : rule.replace);
+      mapping.append(from,arrow,to);
+
+      const meta = make('div','rule-meta');
+      meta.append(
+        make('span','meta-chip',rule.scope === 'site' ? '当前网站' : '全部网站'),
+        make('span','meta-chip',rule.mode === 'regex' ? '正则表达式' : '普通文字')
+      );
+      const status = make('span','state-text',state.label);
+      status.dataset.tone = state.tone;
+      meta.append(status);
+
+      const actions = make('div','rule-actions');
+      actions.append(
+        makeAction('上移规则','↑',index===0,function(){moveRule(rule.id,-1);}),
+        makeAction('下移规则','↓',index===rules.length-1,function(){moveRule(rule.id,1);}),
+        makeAction('编辑规则','✎',false,function(){openEditor(rule.id);}),
+        makeAction('删除规则','×',false,function(){requestDelete(rule.id);},true)
+      );
+      li.append(top,mapping,meta,actions);
+      target.append(li);
+    });
+  }
+
+  function renderAll(){
+    updateSettings();
+    renderRuleList($('sideRuleList'),'');
+    renderRuleList($('pcRuleList'),searchInput.value);
+    const active = rules.filter(function(rule){return rule.enabled;}).length;
+    const summary = rules.length + ' 条 · ' + active + ' 条启用';
+    $('sideRuleCount').textContent = rules.length + ' 条规则';
+    $('pcRuleCount').textContent = summary;
+  }
+
+  function toggleRule(id){
+    const rule = rules.find(function(item){return item.id===id;});
+    if(!rule) return;
+    rule.enabled = !rule.enabled;
+    renderAll();
+    showToast(rule.enabled ? '规则已启用' : '规则已停用');
+  }
+
+  function moveRule(id,direction){
+    const index = rules.findIndex(function(item){return item.id===id;});
+    const target = index + direction;
+    if(index < 0 || target < 0 || target >= rules.length) return;
+    const current = rules[index];
+    rules[index] = rules[target];
+    rules[target] = current;
+    renderAll();
+    showToast('执行顺序已调整');
+  }
+
+  function requestDelete(id){
+    const rule = rules.find(function(item){return item.id===id;});
+    if(!rule) return;
+    showDialog('删除这条规则？','将删除「'+(rule.name || '未命名规则')+'」。此操作只影响当前 HTML 原型中的模拟数据。','删除规则',function(){
+      rules = rules.filter(function(item){return item.id!==id;});
+      renderAll();
+      showToast('规则已删除');
+    },true);
+  }
+
+  function attachEditor(){
+    if(!editorOpen) return;
+    if(currentView === 'side'){
+      sideEditorSlot.append(editorPanel);
+      sideEditorSlot.hidden = false;
+      editorEmpty.hidden = true;
+      editorPanel.setAttribute('role','dialog');
+      editorPanel.setAttribute('aria-modal','true');
+    }else{
+      pcEditorSlot.append(editorPanel);
+      sideEditorSlot.hidden = true;
+      editorEmpty.hidden = true;
+      editorPanel.setAttribute('role','region');
+      editorPanel.removeAttribute('aria-modal');
+    }
+    editorPanel.hidden = false;
+  }
+
+  function setView(view){
+    if(view !== 'side' && view !== 'pc') return;
+    currentView = view;
+    document.body.dataset.view = view;
+    sideView.hidden = view !== 'side';
+    pcView.hidden = view !== 'pc';
+    document.querySelectorAll('[data-view-choice]').forEach(function(button){
+      button.setAttribute('aria-pressed',String(button.dataset.viewChoice===view));
+    });
+    if(editorOpen) attachEditor();
+    showToast(view === 'side' ? '已切换到 Side Panel 视图' : '已切换到 PC 管理页面');
+  }
+
+  function clearFormErrors(){
+    formError.hidden = true;
+    formError.textContent = '';
+    regexError.hidden = true;
+    regexError.textContent = '';
+    ruleFind.removeAttribute('aria-invalid');
+  }
+
+  function updateScopeHint(){
+    const scope = ruleForm.querySelector('input[name="scope"]:checked').value;
+    $('scopeHint').textContent = scope === 'site' ? '只在 chatgpt.com 生效。' : '在所有支持的网站中生效。';
+  }
+
+  function escapeRegExp(value){
+    return value.replace(/[.*+?^{}()|[\]\\$]/g,'\\$&');
+  }
+
+  function runRegexPreview(){
+    if(matchMode.value !== 'regex') return;
+    const pattern = ruleFind.value;
+    const replacement = ruleReplace.value;
+    const sample = testText.value;
+    if(!pattern.trim()){
+      regexError.hidden = true;
+      matchCount.textContent = '输入表达式后测试';
+      testOutput.textContent = '请先输入正则表达式。';
+      return;
+    }
+    let expression;
+    try{
+      expression = new RegExp(pattern,'g' + (caseSensitive.checked ? '' : 'i'));
+    }catch(error){
+      regexError.textContent = '正则表达式无效：' + error.message;
+      regexError.hidden = false;
+      matchCount.textContent = '无法计算匹配数量';
+      testOutput.textContent = '请修正表达式后重试。';
+      return;
+    }
+    regexError.hidden = true;
+    const matches = sample.match(expression) || [];
+    matchCount.textContent = matches.length + ' 处匹配';
+    testOutput.textContent = sample.replace(expression,replacement);
+  }
+
+  function updateModeUI(){
+    const isRegex = matchMode.value === 'regex';
+    $('findLabel').textContent = isRegex ? '正则表达式' : '查找内容';
+    ruleFind.placeholder = isRegex ? '例如：\\bProduct\\s+([A-Z])\\b' : '输入要查找的文字';
+    $('findHelp').textContent = isRegex ? '使用 JavaScript 正则表达式语法；替换内容支持 $1、$2 等分组引用。' : '输入网页中需要替换的文字。';
+    $('regexTools').hidden = !isRegex;
+    if(isRegex) runRegexPreview();
+  }
+
+  function openEditor(id){
+    if(saving) return;
+    editingId = id || null;
+    const existing = id ? rules.find(function(rule){return rule.id===id;}) : null;
+    previousFocus = document.activeElement;
+    editorDirty = false;
+    $('editorTitle').textContent = existing ? '编辑规则' : '新建规则';
+    $('editorSubtitle').textContent = existing ? '修改规则内容，不会影响其他规则。' : '只需填写查找内容和替换结果即可。';
+    ruleName.value = existing ? existing.name : '';
+    ruleFind.value = existing ? existing.find : '';
+    ruleReplace.value = existing ? existing.replace : '';
+    matchMode.value = existing ? existing.mode : 'text';
+    caseSensitive.checked = existing ? !!existing.caseSensitive : false;
+    const scope = existing ? existing.scope : 'site';
+    ruleForm.querySelectorAll('input[name="scope"]').forEach(function(input){input.checked=input.value===scope;});
+    testText.value = 'Product A 和 Product B 正在更新，Product C 即将上线。';
+    saveButton.disabled = false;
+    saveButton.textContent = '保存规则';
+    clearFormErrors();
+    updateScopeHint();
+    updateModeUI();
+    editorOpen = true;
+    attachEditor();
+    window.requestAnimationFrame(function(){ruleFind.focus();});
+  }
+
+  function closeEditor(force){
+    if(!editorOpen) return;
+    if(!force && editorDirty){
+      showDialog('放弃未保存的修改？','当前表单还有未保存的内容。放弃后，这些修改不会写入规则列表。','放弃修改',function(){closeEditor(true);},true);
+      return;
+    }
+    editorOpen = false;
+    editorDirty = false;
+    saving = false;
+    editorPanel.hidden = true;
+    editorPanel.remove();
+    sideEditorSlot.hidden = true;
+    editorEmpty.hidden = false;
+    if(previousFocus && previousFocus.isConnected) previousFocus.focus();
+    else (currentView === 'side' ? $('sideAddRule') : $('pcAddRule')).focus();
+  }
+
+  function markDirty(){
+    if(!editorOpen || saving) return;
+    editorDirty = true;
+    if(!formError.hidden) clearFormErrors();
+  }
+
+  function getFormData(){
+    return {
+      name:ruleName.value.trim(),
+      find:ruleFind.value,
+      replace:ruleReplace.value,
+      mode:matchMode.value,
+      caseSensitive:caseSensitive.checked,
+      scope:ruleForm.querySelector('input[name="scope"]:checked').value
+    };
+  }
+
+  function saveRule(event){
+    event.preventDefault();
+    if(saving || !editorOpen) return;
+    const draft = getFormData();
+    clearFormErrors();
+    if(!draft.find.trim()){
+      formError.textContent = '请填写要查找的内容。';
+      formError.hidden = false;
+      ruleFind.setAttribute('aria-invalid','true');
+      ruleFind.focus();
+      return;
+    }
+    if(draft.mode === 'regex'){
+      try{new RegExp(draft.find,'g' + (draft.caseSensitive ? '' : 'i'));}
+      catch(error){
+        formError.textContent = '正则表达式无效：' + error.message;
+        formError.hidden = false;
+        ruleFind.setAttribute('aria-invalid','true');
+        ruleFind.focus();
+        return;
+      }
+    }
+
+    saving = true;
+    saveButton.disabled = true;
+    saveButton.textContent = '保存中…';
+    window.setTimeout(function(){
+      if(!editorOpen) return;
+      if(failNextSave){
+        failNextSave = false;
+        $('failNextSave').checked = false;
+        saving = false;
+        saveButton.disabled = false;
+        saveButton.textContent = '重试保存';
+        formError.textContent = '模拟保存失败：本次修改没有写入规则列表。输入内容已保留，可以直接重试。';
+        formError.hidden = false;
+        return;
+      }
+
+      if(editingId){
+        const index = rules.findIndex(function(rule){return rule.id===editingId;});
+        if(index >= 0) rules[index] = Object.assign({},rules[index],draft);
+      }else{
+        rules.unshift(Object.assign({id:'rule-'+nextRuleId++,enabled:true},draft));
+      }
+      saving = false;
+      editorDirty = false;
+      renderAll();
+      closeEditor(true);
+      showToast(editingId ? '规则已更新' : '规则已创建');
+    },320);
+  }
+
+  function toggleGlobal(){
+    globalEnabled = !globalEnabled;
+    renderAll();
+    showToast(globalEnabled ? '已恢复全局自动替换' : '已暂停所有网站的自动替换');
+  }
+
+  function toggleSite(){
+    siteEnabled = !siteEnabled;
+    renderAll();
+    showToast(siteEnabled ? '已恢复当前网站自动替换' : '当前网站已暂停，其他网站设置不变');
+  }
+
+  $('sideGlobalSwitch').addEventListener('click',toggleGlobal);
+  $('pcGlobalSwitch').addEventListener('click',toggleGlobal);
+  $('sideSiteSwitch').addEventListener('click',toggleSite);
+  $('pcSiteSwitch').addEventListener('click',toggleSite);
+  $('sideAddRule').addEventListener('click',function(){openEditor(null);});
+  $('pcAddRule').addEventListener('click',function(){openEditor(null);});
+  $('editorBack').addEventListener('click',function(){closeEditor(false);});
+  $('cancelEdit').addEventListener('click',function(){closeEditor(false);});
+  ruleForm.addEventListener('submit',saveRule);
+  [ruleName,ruleFind,ruleReplace].forEach(function(input){input.addEventListener('input',markDirty);});
+  matchMode.addEventListener('change',function(){markDirty();updateModeUI();});
+  caseSensitive.addEventListener('change',function(){markDirty();runRegexPreview();});
+  ruleForm.querySelectorAll('input[name="scope"]').forEach(function(input){
+    input.addEventListener('change',function(){markDirty();updateScopeHint();});
+  });
+  [ruleFind,ruleReplace,testText].forEach(function(input){input.addEventListener('input',runRegexPreview);});
+  $('runTest').addEventListener('click',runRegexPreview);
+  searchInput.addEventListener('input',function(){renderAll();});
+
+  document.querySelectorAll('[data-view-choice]').forEach(function(button){
+    button.addEventListener('click',function(){setView(button.dataset.viewChoice);});
+  });
+
+  testMenuToggle.addEventListener('click',function(){
+    testMenu.hidden = !testMenu.hidden;
+    testMenuToggle.setAttribute('aria-expanded',String(!testMenu.hidden));
+  });
+  document.addEventListener('click',function(event){
+    if(!testMenu.hidden && !event.target.closest('.preview-test-wrap')){
+      testMenu.hidden = true;
+      testMenuToggle.setAttribute('aria-expanded','false');
+    }
+  });
+  $('failNextSave').addEventListener('change',function(){
+    failNextSave = $('failNextSave').checked;
+    showToast(failNextSave ? '下一次保存将模拟失败' : '已取消保存失败模拟');
+  });
+  $('clearRules').addEventListener('click',function(){
+    testMenu.hidden = true;
+    testMenuToggle.setAttribute('aria-expanded','false');
+    showDialog('清空全部规则？','这会清空当前原型中的 '+rules.length+' 条模拟规则，用于检查空状态。','清空规则',function(){
+      rules = [];
+      renderAll();
+      showToast('规则列表已清空');
+    },true);
+  });
+  $('restoreRules').addEventListener('click',function(){
+    testMenu.hidden = true;
+    testMenuToggle.setAttribute('aria-expanded','false');
+    rules = seedRules.map(function(rule){return Object.assign({},rule);});
+    nextRuleId = 4;
+    searchInput.value = '';
+    renderAll();
+    showToast('已恢复示例规则');
+  });
+  $('resetSwitches').addEventListener('click',function(){
+    testMenu.hidden = true;
+    testMenuToggle.setAttribute('aria-expanded','false');
+    globalEnabled = true;
+    siteEnabled = true;
+    renderAll();
+    showToast('全局和当前网站开关已重置为开启');
+  });
+
+  dialogCancel.addEventListener('click',closeDialog);
+  dialogConfirm.addEventListener('click',function(){
+    const action = dialogAction;
+    closeDialog();
+    if(typeof action === 'function') action();
+  });
+  dialogLayer.addEventListener('click',function(event){
+    if(event.target === dialogLayer) closeDialog();
+  });
+
+  document.addEventListener('keydown',function(event){
+    if(event.key === 'Escape'){
+      if(!dialogLayer.hidden){event.preventDefault();closeDialog();return;}
+      if(!testMenu.hidden){testMenu.hidden=true;testMenuToggle.setAttribute('aria-expanded','false');testMenuToggle.focus();return;}
+      if(editorOpen){event.preventDefault();closeEditor(false);return;}
+    }
+    if(!dialogLayer.hidden && event.key === 'Tab'){
+      const focusable = dialogLayer.querySelectorAll('button:not(:disabled),[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled)');
+      if(!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length-1];
+      if(event.shiftKey && document.activeElement === first){event.preventDefault();last.focus();}
+      else if(!event.shiftKey && document.activeElement === last){event.preventDefault();first.focus();}
+    }
+  });
+
+  window.addEventListener('beforeunload',function(event){
+    if(editorOpen && editorDirty){event.preventDefault();event.returnValue='';}
+  });
+
+  renderAll();
+  setView('side');
+})();
+</script>
+</body>
+</html>
