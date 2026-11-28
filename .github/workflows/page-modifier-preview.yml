@@ -1,0 +1,36 @@
+name: Page Modifier HTML preview browser validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "projects/page-modifier/preview/index.html"
+      - "projects/page-modifier/tests/preview-browser.test.mjs"
+      - ".github/workflows/page-modifier-preview.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  chrome-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Exercise Side Panel and PC HTML preview in real Chromium
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node projects/page-modifier/tests/preview-browser.test.mjs
+      - name: Preserve viewport screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: page-modifier-preview-chrome-evidence
+          path: artifacts/page-modifier-preview/
+          if-no-files-found: warn
+          retention-days: 14
