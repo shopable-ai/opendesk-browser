@@ -258,11 +258,15 @@ try{
   assert.equal(await evaluate("document.querySelector('#editorPanel').hidden"),true);
 
   await click('[data-view-choice="side"]');
-  await evaluate("document.querySelector('#sideAddRule').focus()");
+  await click('#sideAddRule');
+  await setValue('#ruleFind','KeyboardEnter');
+  await setValue('#ruleReplace','KeyboardDone');
   await press('Enter');
-  assert.equal(await evaluate("!document.querySelector('#editorPanel').hidden"),true);
+  await waitFor("document.querySelectorAll('#sideRuleList .rule-item').length===3",'Enter submits the rule form');
+  await click('#sideAddRule');
   await press('Escape');
   assert.equal(await evaluate("document.querySelector('#editorPanel').hidden"),true);
+  assert.equal(await evaluate("document.activeElement.id"),'sideAddRule','Closing the editor restores focus to its opener');
   await setViewport(360,900);
   assert.ok(await evaluate("document.documentElement.scrollWidth<=360"),'Side Panel remains horizontally contained after all interactions');
   await screenshot('side-panel-360-final.png');
