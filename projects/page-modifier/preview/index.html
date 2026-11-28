@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Page Modifier · 网页内容修改器</title>
+<link rel="icon" href="data:,">
 <style>
 :root{
   --od-ink:#1b2c49;--od-sub:#5b6e86;--od-line:#dfe6ef;--od-brand:#365eda;
@@ -47,6 +48,11 @@ button:disabled{opacity:.48;cursor:not-allowed}
 body[data-view=side] .preview-stage{padding:10px 0 20px}
 body[data-view=side] .preview-toolbar{width:360px;max-width:100%}
 body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 12px 12px}
+body[data-view=side]{overflow:hidden}
+body[data-view=side] .preview-stage{height:100vh;min-height:0;padding:10px 0;overflow:hidden}
+body[data-view=side] .device-frame{flex:1;min-height:0;height:auto}
+body[data-view=side] .app-main{min-height:0;overflow:auto}
+body[data-view=side] .side-view{min-height:0}
 .app-header{height:58px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--od-line);background:var(--od-paper)}
 .brand-mark{width:32px;height:32px;display:grid;place-items:center;flex:none;border-radius:9px;background:var(--od-brand);color:#fff;font-size:12px;font-weight:800;letter-spacing:-.04em}
 .app-heading{min-width:0;display:grid;gap:0}
@@ -215,7 +221,7 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
   .editor-empty{min-height:180px}
 }
 @media(max-width:520px){
-  .preview-stage{padding:10px 0 20px;gap:9px}
+  .preview-stage{padding:10px 0;gap:9px}
   .preview-toolbar{padding:0 10px;align-items:flex-start;flex-direction:column;gap:7px}
   .preview-actions{width:100%;justify-content:space-between}
   .device-frame{border-radius:0 0 12px 12px}
