@@ -137,7 +137,6 @@ try{
   await connectPage();
   await send('Page.enable');
   await send('Runtime.enable');
-  await send('Input.enable');
   await setViewport(360,900);
   await send('Page.navigate',{url:pathToFileURL(previewPath).href});
   await waitFor("document.readyState==='complete' && !!document.querySelector('#sideView')",'initial Side Panel render');
