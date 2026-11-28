@@ -51,8 +51,8 @@ body[data-view=side] .device-frame{width:360px;max-width:100%;border-radius:0 0 
 body[data-view=side]{overflow:hidden}
 body[data-view=side] .preview-stage{height:100vh;min-height:0;padding:10px 0;overflow:hidden}
 body[data-view=side] .device-frame{flex:1;min-height:0;height:auto}
-body[data-view=side] .app-main{min-height:0;overflow:hidden}
-body[data-view=side] .side-view{min-height:0;height:100%;overflow-y:auto;overscroll-behavior:contain}
+body[data-view=side] .app-main{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+body[data-view=side] .side-view{flex:1;min-height:0;height:auto;overflow-y:auto;overscroll-behavior:contain}
 .app-header{height:58px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--od-line);background:var(--od-paper)}
 .brand-mark{width:32px;height:32px;display:grid;place-items:center;flex:none;border-radius:9px;background:var(--od-brand);color:#fff;font-size:12px;font-weight:800;letter-spacing:-.04em}
 .app-heading{min-width:0;display:grid;gap:0}
@@ -205,7 +205,7 @@ body[data-view=side] .side-view{min-height:0;height:100%;overflow-y:auto;overscr
 .editor-empty-mark{width:42px;height:42px;margin:0 auto 10px;display:grid;place-items:center;border:1px solid var(--od-line);border-radius:12px;background:var(--od-muted);color:var(--od-brand);font-size:18px;font-weight:700}
 .editor-empty strong{display:block;color:var(--od-ink);font-size:13px}
 .editor-empty p{margin:5px 0 0;font-size:11px;line-height:1.6}
-.toast{position:fixed;z-index:60;left:50%;bottom:20px;transform:translateX(-50%);max-width:calc(100vw - 28px);padding:9px 13px;border:1px solid #cbd8f4;border-radius:9px;background:#fff;color:#294dbb;box-shadow:0 6px 22px #1b2c491c;font-size:12px;font-weight:600;white-space:normal;text-align:center}
+.toast{position:relative;z-index:20;width:max-content;max-width:calc(100% - 28px);margin:0 auto 8px;padding:8px 12px;border:1px solid #cbd8f4;border-radius:9px;background:#fff;color:#294dbb;box-shadow:0 4px 14px #1b2c4914;font-size:11px;font-weight:600;white-space:normal;text-align:center}
 .dialog-layer{position:fixed;z-index:50;inset:0;display:grid;place-items:center;padding:18px;background:#12213a66}
 .dialog-card{width:min(410px,100%);padding:18px;border:1px solid var(--od-line);border-radius:13px;background:var(--od-paper);box-shadow:0 16px 48px #101a2b2e}
 .dialog-card h2{margin:0;font-size:15px;font-weight:700}
@@ -297,6 +297,7 @@ body[data-view=side] .side-view{min-height:0;height:100%;overflow-y:auto;overscr
     </header>
 
     <main class="app-main" id="appMain">
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
       <section class="side-view" id="sideView" aria-label="Side Panel 快速管理">
         <div class="site-summary">
           <div class="site-copy"><span class="eyebrow">当前网站</span><strong>chatgpt.com</strong><small>示例网站 · 设置独立于全局开关</small></div>
@@ -426,7 +427,6 @@ body[data-view=side] .side-view{min-height:0;height:100%;overflow-y:auto;overscr
     <div class="dialog-actions"><button type="button" class="secondary-button" id="dialogCancel">取消</button><button type="button" class="danger-button" id="dialogConfirm">确认</button></div>
   </section>
 </div>
-<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
 (function(){
